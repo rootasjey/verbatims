@@ -107,11 +107,23 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: Comp
     const bounds = nextRow.getBoundingClientRect()
     const paginationBar = document.querySelector<HTMLElement>('[data-dashboard-pagination-bar]')
     const visibleBottom = paginationBar?.getBoundingClientRect().top ?? window.innerHeight
+    const stickyTop = Array.from(document.querySelectorAll<HTMLElement>('header, [class*="sticky"], [class*="fixed"]'))
+      .filter(element => {
+        const rect = element.getBoundingClientRect()
+        const position = getComputedStyle(element).position
+        return (position === 'sticky' || position === 'fixed')
+          && rect.top <= 1
+          && rect.bottom > 0
+          && rect.width >= window.innerWidth * 0.6
+          && rect.height < 160
+      })
+      .reduce((bottom, element) => Math.max(bottom, element.getBoundingClientRect().bottom), 0)
+    const visibleTop = stickyTop + 16
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const behavior: ScrollBehavior = reduceMotion ? 'instant' : 'smooth'
 
-    if (bounds.top < 0) {
-      nextRow.scrollIntoView({ block: 'start', inline: 'nearest', behavior })
+    if (bounds.top < visibleTop) {
+      window.scrollBy({ top: bounds.top - visibleTop, behavior })
     } else if (bounds.bottom > visibleBottom) {
       window.scrollBy({ top: bounds.bottom - visibleBottom + 12, behavior })
     }

@@ -106,8 +106,8 @@
         <div
           v-for="(quote, idx) in processedMobileQuotes"
           :key="quote.id"
-          class="py-4 first:pt-0 last:pb-0 animate-fade-in-up"
-          :class="selectionMode && rowSelection[quote.id] ? 'rounded-md bg-black/[0.035] px-2 dark:bg-white/[0.05]' : ''"
+          class="relative py-4 first:pt-0 last:pb-0 animate-fade-in-up"
+          :class="[selectionMode ? 'px-2' : '', selectionMode && rowSelection[quote.id] ? 'rounded-md bg-black/[0.035] dark:bg-white/[0.05]' : '']"
           :style="{ animationDelay: `${idx * 0.05}s` }"
           :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
           :tabindex="selectionMode ? 0 : undefined"
@@ -179,7 +179,7 @@
             :items="getQuoteActions(quote)"
           >
             <article
-              class="quote-editorial-surface group grid items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-white/[0.035]"
+              class="quote-editorial-surface group relative grid items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-white/[0.035]"
               :class="[selectionMode ? 'grid-cols-[auto_minmax(0,1fr)_auto]' : 'grid-cols-[minmax(0,1fr)_auto]', selectionMode && rowSelection[quote.id] ? 'bg-black/[0.035] dark:bg-white/[0.05]' : '']"
               :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
               :tabindex="selectionMode ? 0 : undefined"
