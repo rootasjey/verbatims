@@ -127,14 +127,12 @@
           @keydown.capture="handleRowKeydown($event, idx, quote.id)"
         >
           <div class="flex items-start gap-3">
-            <NCheckbox
-              v-if="selectionMode"
-              data-selection-ignore
-              checkbox="gray"
-              :aria-label="String($t('common.select_quote', { quote: quote.name }))"
+            <DashboardSelectionCheckbox
+              :visible="selectionMode"
+              :label="String($t('common.select_quote', { quote: quote.name }))"
               :model-value="!!rowSelection[quote.id]"
-              class="mt-1 shrink-0"
-              @click.stop="toggleQuote(idx, quote.id, $event.shiftKey)"
+              :delay-index="idx"
+              @toggle="toggleQuote(idx, quote.id, $event.shiftKey)"
             />
             <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link flex-1 min-w-0 block" @click.prevent="handleEditQuote(quote)">
               <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em]" />
@@ -195,9 +193,13 @@
               @click.capture="handleRowClickCapture($event, index, quote.id)"
               @keydown.capture="handleRowKeydown($event, index, quote.id)"
             >
-              <div v-if="selectionMode" data-selection-ignore>
-                <NCheckbox checkbox="gray" :aria-label="String($t('common.select_quote', { quote: quote.name }))" :model-value="!!rowSelection[quote.id]" @click.stop="toggleQuote(index, quote.id, $event.shiftKey)" />
-              </div>
+              <DashboardSelectionCheckbox
+                :visible="selectionMode"
+                :label="String($t('common.select_quote', { quote: quote.name }))"
+                :model-value="!!rowSelection[quote.id]"
+                :delay-index="index"
+                @toggle="toggleQuote(index, quote.id, $event.shiftKey)"
+              />
               <div class="min-w-0">
                 <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
                 <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-600 dark:text-gray-400">
@@ -252,21 +254,11 @@
 
     <div
       v-if="totalPages > 1 || (hasLoadedOnce && filteredQuotes.length > 0)"
+      data-dashboard-pagination-bar
       class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
-      <DashboardBulkSelectionControls
-        :selection-mode="selectionMode"
-        :selected-count="selectedQuotes.length"
-        :visible-count="filteredQuotes.length"
-        :actions="bulkSelectionActions"
-        @toggle-mode="toggleSelectionMode"
-        @select-visible="selectAllVisible"
-        @clear="clearSelection"
-        @exit-mode="exitSelectionMode"
-        @action="onBulkSelectionAction"
-      />
-      <span class="hidden font-sans text-xs text-gray-500 dark:text-gray-400 sm:inline">
+      <span class="shrink-0 font-sans text-xs text-gray-500 dark:text-gray-400">
         Page
         <button
           class="rounded-md px-1.5 py-0.5 font-medium text-gray-800 transition-colors hover:bg-black/5 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
@@ -276,7 +268,17 @@
         </button>
         of {{ totalPages }}
       </span>
-      <div class="flex items-center gap-2">
+      <DashboardBulkSelectionControls
+        :selection-mode="selectionMode"
+        :selected-count="selectedQuotes.length"
+        :visible-count="filteredQuotes.length"
+        :actions="bulkSelectionActions"
+        @toggle-visible="toggleSelectAllVisible"
+        @clear="clearSelection"
+        @exit-mode="exitSelectionMode"
+        @action="onBulkSelectionAction"
+      />
+      <div class="ml-auto flex shrink-0 items-center gap-2">
         <NButton v-if="currentPage > 1" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.previous') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.max(1, currentPage - 1)">
           <NIcon name="i-tabler-arrow-left" class="h-4 w-4" /><span class="sr-only sm:not-sr-only">{{ $t('common.previous') }}</span>
         </NButton>
@@ -528,9 +530,10 @@ const {
   selectedQuotes,
   clearSelection,
   exitSelectionMode,
-  toggleSelectionMode,
+  selectQuote,
   toggleQuote,
   selectAllVisible,
+  toggleSelectAllVisible,
   handleRowClickCapture,
   handleRowKeydown
 } = selection
@@ -541,6 +544,10 @@ watch(filteredQuotes, clearSelection)
 const handleMobileRowClick = (event: MouseEvent, index: number, id: number) => {
   if (selectionMode.value) handleRowClickCapture(event, index, id)
   else longPress.suppressLongPressClick(event)
+}
+const selectQuoteForBulk = (quote: DashboardQuote) => {
+  const index = filteredQuotes.value.findIndex(row => row.id === quote.id)
+  if (index >= 0) selectQuote(index, quote.id)
 }
 
 const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
@@ -623,6 +630,11 @@ const getQuoteActions = (quote: any) => {
   const entityActions = getQuoteEntityActions(quote)
 
   return [
+    ...(!selectionMode.value ? [{
+      label: $t('common.select_this_quote') as string,
+      leading: 'i-tabler-checkbox',
+      onclick: () => selectQuoteForBulk(quote)
+    }, {}] : []),
     {
       label: $t('action_edit') as string,
       leading: 'i-ph-pencil',
@@ -649,6 +661,11 @@ const getMobileActions = (quote: any) => {
   const entityActions = getQuoteEntityActions(quote)
 
   return [
+    ...(!selectionMode.value ? [{
+      label: $t('common.select_this_quote') as string,
+      leading: 'i-tabler-checkbox',
+      onclick: () => selectQuoteForBulk(quote)
+    }, {}] : []),
     ...entityActions,
     ...(entityActions.length ? [{}] : []),
     {

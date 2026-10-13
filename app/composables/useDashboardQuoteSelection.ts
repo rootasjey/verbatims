@@ -13,6 +13,7 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: Comp
     .entries(rowSelection.value)
     .filter(([, selected]) => selected)
     .map(([id]) => Number(id)))
+  const allVisibleSelected = computed(() => rows.value.length > 0 && selectedQuotes.value.length >= rows.value.length)
 
   const clearSelection = () => {
     rowSelection.value = {}
@@ -27,6 +28,13 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: Comp
   const toggleSelectionMode = () => {
     if (selectionMode.value) exitSelectionMode()
     else selectionMode.value = true
+  }
+
+  const selectQuote = (index: number, id: number) => {
+    selectionMode.value = true
+    clearSelection()
+    rowSelection.value[id] = true
+    lastSelectedIndex.value = index
   }
 
   const toggleQuote = (index: number, id: number, extendRange = false) => {
@@ -49,6 +57,11 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: Comp
   const selectAllVisible = () => {
     for (const quote of rows.value) rowSelection.value[quote.id] = true
     lastSelectedIndex.value = null
+  }
+
+  const toggleSelectAllVisible = () => {
+    if (allVisibleSelected.value) clearSelection()
+    else selectAllVisible()
   }
 
   const handleRowClickCapture = (event: MouseEvent, index: number, id: number) => {
@@ -84,19 +97,39 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: Comp
     const visibleRows = Array.from(document.querySelectorAll<HTMLElement>('[data-dashboard-selection-row]'))
       .filter(row => row.getClientRects().length > 0)
     const currentIndex = visibleRows.indexOf(event.currentTarget as HTMLElement)
-    const nextIndex = Math.max(0, Math.min(visibleRows.length - 1, currentIndex + (event.key === 'ArrowDown' ? 1 : -1)))
-    visibleRows[nextIndex]?.focus()
+    if (currentIndex < 0 || visibleRows.length === 0) return
+
+    const direction = event.key === 'ArrowDown' ? 1 : -1
+    const nextIndex = (currentIndex + direction + visibleRows.length) % visibleRows.length
+    const nextRow = visibleRows[nextIndex]
+    if (!nextRow) return
+
+    const bounds = nextRow.getBoundingClientRect()
+    const paginationBar = document.querySelector<HTMLElement>('[data-dashboard-pagination-bar]')
+    const visibleBottom = paginationBar?.getBoundingClientRect().top ?? window.innerHeight
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const behavior: ScrollBehavior = reduceMotion ? 'instant' : 'smooth'
+
+    if (bounds.top < 0) {
+      nextRow.scrollIntoView({ block: 'start', inline: 'nearest', behavior })
+    } else if (bounds.bottom > visibleBottom) {
+      window.scrollBy({ top: bounds.bottom - visibleBottom + 12, behavior })
+    }
+    nextRow.focus({ preventScroll: true })
   }
 
   return {
     selectionMode,
     rowSelection,
     selectedQuotes,
+    allVisibleSelected,
     clearSelection,
     exitSelectionMode,
     toggleSelectionMode,
+    selectQuote,
     toggleQuote,
     selectAllVisible,
+    toggleSelectAllVisible,
     handleRowClickCapture,
     handleRowKeydown
   }

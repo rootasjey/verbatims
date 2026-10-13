@@ -56,4 +56,20 @@ describe('like.service', () => {
     const count = await getLikesCount('quote', 999)
     expect(count).toBe(0)
   })
+
+  it('addQuoteLikes adds only missing likes and is idempotent', async () => {
+    const { addQuoteLikes, findExistingLike } = await import('../like.service')
+    await seedUser(currentDb.db, { id: 30, email: 'bulk@test.cc', name: 'Bulk' })
+    await seedQuote(currentDb.db, { id: 300, userId: 30 })
+    await seedQuote(currentDb.db, { id: 301, userId: 30 })
+    await seedQuote(currentDb.db, { id: 302, userId: 30 })
+
+    await addQuoteLikes([300], 30)
+    const added = await addQuoteLikes([300, 301, 302], 30)
+    const repeated = await addQuoteLikes([300, 301, 302], 30)
+
+    expect(added).toEqual([301, 302])
+    expect(repeated).toEqual([])
+    await expect(findExistingLike('quote', 301, 30)).resolves.toBeDefined()
+  })
 })

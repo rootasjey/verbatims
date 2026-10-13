@@ -1,18 +1,6 @@
 <template>
-  <div class="flex shrink-0 items-center gap-2">
-    <NButton
-      v-if="!selectionMode"
-      btn="ghost-gray"
-      size="sm"
-      rounded="full"
-      class="font-sans text-xs"
-      @click="$emit('toggle-mode')"
-    >
-      <NIcon name="i-tabler-checkbox" class="mr-1.5 h-4 w-4" />
-      <span>{{ $t('common.select_mode') }}</span>
-    </NButton>
-
-    <template v-else>
+  <div class="flex min-w-0 flex-1 items-center gap-2">
+    <template v-if="selectionMode">
       <span class="hidden font-sans text-xs text-gray-600 dark:text-gray-300 md:inline">
         {{ $t('common.selected_count', { count: selectedCount }) }}
       </span>
@@ -22,10 +10,10 @@
         rounded="full"
         class="hidden font-sans text-xs md:inline-flex"
         :disabled="visibleCount === 0"
-        @click="$emit('select-visible')"
+        @click="$emit('toggle-visible')"
       >
-        <NIcon name="i-tabler-select-all" class="mr-1.5 h-4 w-4" />
-        <span>{{ $t('common.select_visible') }}</span>
+        <NIcon :name="allVisibleSelected ? 'i-tabler-square-minus' : 'i-tabler-select-all'" class="mr-1.5 h-4 w-4" />
+        <span>{{ $t(allVisibleSelected ? 'common.select_none' : 'common.select_visible') }}</span>
       </NButton>
       <div class="flex items-center gap-1 md:hidden">
         <NButton
@@ -40,16 +28,15 @@
           <span v-if="selectedCount" class="ml-1 rounded-full bg-black/8 px-1.5 dark:bg-white/10">{{ selectedCount }}</span>
         </NButton>
         <NButton
-          v-if="selectedCount === 0"
           btn="ghost-gray"
           size="sm"
           rounded="full"
           class="font-sans text-xs"
           :disabled="visibleCount === 0"
-          @click="$emit('select-visible')"
+          @click="$emit('toggle-visible')"
         >
-          <NIcon name="i-tabler-select-all" class="h-4 w-4" />
-          <span class="sr-only">{{ $t('common.select_visible') }}</span>
+          <NIcon :name="allVisibleSelected ? 'i-tabler-square-minus' : 'i-tabler-select-all'" class="h-4 w-4" />
+          <span class="sr-only">{{ $t(allVisibleSelected ? 'common.select_none' : 'common.select_visible') }}</span>
         </NButton>
       </div>
       <div class="hidden items-center gap-1 md:flex">
@@ -101,9 +88,9 @@
                   type="button"
                   class="mt-2 font-sans text-sm text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-300 dark:hover:text-white"
                   :disabled="visibleCount === 0"
-                  @click="$emit('select-visible')"
+                  @click="$emit('toggle-visible')"
                 >
-                  {{ $t('common.select_visible') }}
+                  {{ $t(allVisibleSelected ? 'common.select_none' : 'common.select_visible') }}
                 </button>
               </div>
               <NButton icon btn="ghost-gray" size="xs" label="i-ph-x-bold" :aria-label="$t('common.close') as string" @click="drawerOpen = false" />
@@ -138,7 +125,7 @@
               </button>
             </div>
           </div>
-        </template>
+    </template>
       </NDrawer>
     </ClientOnly>
   </div>
@@ -152,7 +139,7 @@ interface BulkAction {
   disabled?: boolean
 }
 
-defineProps<{
+const props = defineProps<{
   selectionMode: boolean
   selectedCount: number
   visibleCount: number
@@ -160,9 +147,9 @@ defineProps<{
 }>()
 
 const { $t } = useI18n()
+const allVisibleSelected = computed(() => props.visibleCount > 0 && props.selectedCount >= props.visibleCount)
 const emit = defineEmits<{
-  (event: 'toggle-mode'): void
-  (event: 'select-visible'): void
+  (event: 'toggle-visible'): void
   (event: 'clear'): void
   (event: 'exit-mode'): void
   (event: 'action', key: string): void
