@@ -4,7 +4,6 @@
     :data-visible="visible"
     :aria-hidden="!visible"
     :inert="!visible"
-    :style="{ transitionDelay: visible ? `${Math.min(delayIndex, 12) * 12}ms` : '0ms' }"
     class="dashboard-selection-checkbox inline-flex shrink-0"
   >
     <NCheckbox
@@ -18,14 +17,11 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{
+defineProps<{
   visible: boolean
   label: string
   modelValue: boolean
-  delayIndex?: number
-}>(), {
-  delayIndex: 0
-})
+}>()
 
 defineEmits<{
   (event: 'toggle', value: MouseEvent): void
@@ -35,23 +31,21 @@ defineEmits<{
 <style scoped>
 .dashboard-selection-checkbox {
   opacity: 0;
-  position: absolute;
-  left: 0.5rem;
-  top: 50%;
-  translate: -5px -50%;
-  scale: 0.96;
+  width: 0;
+  overflow: hidden;
+  translate: -0.375rem 0;
+  scale: 0.94;
   pointer-events: none;
   transition:
-    opacity 150ms ease-out,
-    translate 150ms cubic-bezier(0.16, 1, 0.3, 1),
-    scale 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 170ms ease-out,
+    translate 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    scale 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dashboard-selection-checkbox[data-visible='true'] {
   opacity: 1;
-  position: relative;
-  left: auto;
-  top: auto;
+  width: 1.25rem;
   translate: 0 0;
   scale: 1;
   pointer-events: auto;
