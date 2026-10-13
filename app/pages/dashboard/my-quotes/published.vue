@@ -126,14 +126,12 @@
           @keydown.capture="handleRowKeydown($event, idx, quote.id)"
         >
           <div class="flex items-start gap-3">
-            <NCheckbox
-              v-if="selectionMode"
-              data-selection-ignore
-              checkbox="gray"
-              :aria-label="String($t('common.select_quote', { quote: quote.name }))"
+            <DashboardSelectionCheckbox
+              :visible="selectionMode"
+              :label="String($t('common.select_quote', { quote: quote.name }))"
               :model-value="!!rowSelection[quote.id]"
-              class="mt-1 shrink-0"
-              @click.stop="toggleQuote(idx, quote.id, $event.shiftKey)"
+              :delay-index="idx"
+              @toggle="toggleQuote(idx, quote.id, $event.shiftKey)"
             />
             <div class="flex-1 min-w-0">
               <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link block">
@@ -187,9 +185,6 @@
       <!-- Desktop: Table -->
       <div class="hidden md:block">
         <div class="divide-y divide-[#d2cfc6]/80 dark:divide-white/10">
-          <div class="flex min-h-10 items-center gap-4 border-b border-[#d2cfc6]/80 pb-3 dark:border-white/10">
-            <span class="font-sans text-xs font-medium text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</span>
-          </div>
           <ContextMenu
             v-for="(quote, index) in filteredQuotes"
             :key="quote.id"
@@ -207,9 +202,13 @@
               @click.capture="handleRowClickCapture($event, index, quote.id)"
               @keydown.capture="handleRowKeydown($event, index, quote.id)"
             >
-              <div v-if="selectionMode" data-selection-ignore>
-                <NCheckbox checkbox="gray" :aria-label="String($t('common.select_quote', { quote: quote.name }))" :model-value="!!rowSelection[quote.id]" @click.stop="toggleQuote(index, quote.id, $event.shiftKey)" />
-              </div>
+              <DashboardSelectionCheckbox
+                :visible="selectionMode"
+                :label="String($t('common.select_quote', { quote: quote.name }))"
+                :model-value="!!rowSelection[quote.id]"
+                :delay-index="index"
+                @toggle="toggleQuote(index, quote.id, $event.shiftKey)"
+              />
               <div class="min-w-0">
                 <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link block">
                   <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
@@ -220,9 +219,8 @@
                   <span v-if="quote.author?.name && quote.reference?.name" aria-hidden="true" class="text-gray-400 dark:text-gray-600">·</span>
                   <NuxtLink v-if="quote.reference?.name && quote.reference.id" :to="`/references/${quote.reference.id}`" class="underline decoration-transparent underline-offset-3 transition-colors hover:text-gray-900 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:hover:text-gray-100" @click.stop>{{ quote.reference.name }}</NuxtLink>
                   <span v-else-if="quote.reference?.name">{{ quote.reference.name }}</span>
-                </div>
-                <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-gray-500 dark:text-gray-400">
-                  <span class="font-medium text-gray-700 dark:text-gray-300">{{ $t('col_published') }}</span>
+                  <span v-if="quote.author?.name || quote.reference?.name" aria-hidden="true" class="text-gray-400 dark:text-gray-600">·</span>
+                  <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('col_published') }}</span>
                   <NTooltip v-if="formatDashboardQuoteDate(quote, 'published')" :content="formatDashboardQuoteDateTooltip(quote, 'published', locale || 'en') ?? ''">
                     <time>{{ formatDashboardQuoteDateRelative(quote, 'published', locale || 'en') }}</time>
                   </NTooltip>
@@ -257,21 +255,11 @@
 
     <div
       v-if="totalPages > 1 || (hasLoadedOnce && filteredQuotes.length > 0)"
+      data-dashboard-pagination-bar
       class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
-      <DashboardBulkSelectionControls
-        :selection-mode="selectionMode"
-        :selected-count="selectedQuotes.length"
-        :visible-count="filteredQuotes.length"
-        :actions="bulkSelectionActions"
-        @toggle-mode="toggleSelectionMode"
-        @select-visible="selectAllVisible"
-        @clear="clearSelection"
-        @exit-mode="exitSelectionMode"
-        @action="onBulkSelectionAction"
-      />
-      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+      <span class="shrink-0 font-sans text-xs text-gray-500 dark:text-gray-400">
         Page
         <button
           class="rounded-md px-1.5 py-0.5 font-medium text-gray-800 transition-colors hover:bg-black/5 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
@@ -281,6 +269,16 @@
         </button>
         of {{ totalPages }}
       </span>
+      <DashboardBulkSelectionControls
+        :selection-mode="selectionMode"
+        :selected-count="selectedQuotes.length"
+        :visible-count="filteredQuotes.length"
+        :actions="bulkSelectionActions"
+        @toggle-visible="toggleSelectAllVisible"
+        @clear="clearSelection"
+        @exit-mode="exitSelectionMode"
+        @action="onBulkSelectionAction"
+      />
       <div class="ml-auto flex items-center gap-2">
         <NButton v-if="currentPage > 1" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.previous') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.max(1, currentPage - 1)">
           <NIcon name="i-tabler-arrow-left" class="h-4 w-4" /><span class="sr-only sm:not-sr-only">{{ $t('common.previous') }}</span>
@@ -435,6 +433,7 @@ const hasLoadedOnce = ref(false)
 const showInitialSkeleton = ref(false)
 let initialSkeletonTimer: ReturnType<typeof setTimeout> | undefined
 const loadingMore = ref(false)
+const bulkLikeProcessing = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
 const searchOpen = ref(false)
@@ -524,9 +523,10 @@ const {
   selectedQuotes,
   clearSelection,
   exitSelectionMode,
-  toggleSelectionMode,
+  selectQuote,
   toggleQuote,
   selectAllVisible,
+  toggleSelectAllVisible,
   handleRowClickCapture,
   handleRowKeydown
 } = selection
@@ -535,11 +535,46 @@ const handleMobileRowClick = (event: MouseEvent, index: number, id: number) => {
   if (selectionMode.value) handleRowClickCapture(event, index, id)
   else longPress.suppressLongPressClick(event)
 }
+const selectQuoteForBulk = (quote: { id: number }) => {
+  const index = filteredQuotes.value.findIndex(row => row.id === quote.id)
+  if (index >= 0) selectQuote(index, quote.id)
+}
 const bulkSelectionActions = computed(() => [
+  { key: 'like', label: String($t('common.like_selected')), icon: 'i-tabler-heart', disabled: bulkLikeProcessing.value },
   { key: 'collection', label: String($t('bulk_add_collection')), icon: 'i-tabler-folder-plus' }
 ])
 const onBulkSelectionAction = (key: string) => {
+  if (key === 'like') void likeSelectedQuotes()
   if (key === 'collection') showBulkAddToCollection.value = true
+}
+
+const likeSelectedQuotes = async () => {
+  const quoteIds = selectedQuotes.value
+  if (!quoteIds.length || bulkLikeProcessing.value) return
+
+  bulkLikeProcessing.value = true
+  try {
+    const response = await $fetch<{ data: { addedIds: number[] } }>('/api/quotes/bulk-likes', {
+      method: 'POST',
+      body: { quoteIds }
+    })
+    const addedIds = new Set(response.data.addedIds)
+    const selectedIds = new Set(quoteIds)
+
+    for (const quote of filteredQuotes.value) {
+      if (!selectedIds.has(quote.id)) continue
+      quote.is_liked = true
+      if (addedIds.has(quote.id)) quote.likes_count = (quote.likes_count || 0) + 1
+    }
+
+    if (favouritesCount.value !== null && addedIds.size > 0) {
+      favouritesCount.value += addedIds.size
+    }
+  } catch (error) {
+    useErrorToast().showErrorToast(error, String($t('common.bulk_like_failed')))
+  } finally {
+    bulkLikeProcessing.value = false
+  }
 }
 
 const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
@@ -674,6 +709,11 @@ const getQuoteActions = (quote: any) => {
   const entityActions = getQuoteEntityActions(quote)
 
   return [
+    ...(!selectionMode.value ? [{
+      label: $t('common.select_this_quote') as string,
+      leading: 'i-tabler-checkbox',
+      onclick: () => selectQuoteForBulk(quote)
+    }, {}] : []),
     {
       label: $t('action_view_public') as string,
       leading: 'i-ph-eye',
@@ -719,6 +759,11 @@ const getMobileActions = (quote: any) => {
   const entityActions = getQuoteEntityActions(quote)
 
   return [
+    ...(!selectionMode.value ? [{
+      label: $t('common.select_this_quote') as string,
+      leading: 'i-tabler-checkbox',
+      onclick: () => selectQuoteForBulk(quote)
+    }, {}] : []),
     ...entityActions,
     ...(entityActions.length ? [{}] : []),
     {

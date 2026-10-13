@@ -91,3 +91,15 @@ export async function toggleLike(
   const likesCount = await getLikesCount(entityType, entityId)
   return { isLiked: !existingLike, likesCount }
 }
+
+export async function addQuoteLikes(quoteIds: number[], userId: number): Promise<number[]> {
+  if (quoteIds.length === 0) return []
+
+  const insertedLikes = await db.insert(schema.userLikes)
+    .values(quoteIds.map(likeableId => ({ userId, likeableType: 'quote' as const, likeableId })))
+    .onConflictDoNothing()
+    .returning({ quoteId: schema.userLikes.likeableId })
+    .all()
+
+  return insertedLikes.map(like => like.quoteId)
+}
