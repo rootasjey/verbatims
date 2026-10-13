@@ -106,11 +106,12 @@
         <div
           v-for="(quote, idx) in processedMobileQuotes"
           :key="quote.id"
-          class="relative py-4 first:pt-0 last:pb-0 animate-fade-in-up transition-[padding,background-color] duration-200 ease-out motion-reduce:transition-none"
-          :class="[selectionMode ? 'px-2' : '', selectionMode && rowSelection[quote.id] ? 'rounded-md bg-black/[0.035] dark:bg-white/[0.05]' : '']"
-          :style="{ animationDelay: `${idx * 0.05}s` }"
+          class="relative py-4 first:pt-0 last:pb-0 transition-[padding,background-color] duration-200 ease-out motion-reduce:transition-none"
+          :class="[idx < 8 ? 'animate-fade-in-up' : '', selectionMode ? 'px-2' : '', selectionMode && rowSelection[quote.id] ? 'rounded-md bg-black/[0.035] dark:bg-white/[0.05]' : '']"
+          :style="idx < 8 ? { animationDelay: `${idx * 0.025}s` } : undefined"
           :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
-          :tabindex="selectionMode ? 0 : undefined"
+          :data-dashboard-quote-row="quote.id"
+          :tabindex="selectionMode ? 0 : -1"
           @pointerdown="!selectionMode && longPress.start($event, quote)"
           @pointermove="!selectionMode && longPress.move($event)"
           @pointerup="longPress.end"
@@ -179,9 +180,11 @@
           >
             <article
               class="quote-editorial-surface group relative grid grid-cols-[0px_minmax(0,1fr)_auto] items-center gap-y-4 gap-x-0 rounded-md px-2 py-5 transition-[grid-template-columns,gap,background-color] duration-200 ease-out motion-reduce:transition-none hover:bg-black/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-white/[0.035]"
-              :class="[selectionMode ? 'grid-cols-[1.25rem_minmax(0,1fr)_auto] gap-x-4' : '', selectionMode && rowSelection[quote.id] ? 'bg-black/[0.035] dark:bg-white/[0.05]' : '']"
+              :class="[index < 8 ? 'animate-fade-in-up' : '', selectionMode ? 'grid-cols-[1.25rem_minmax(0,1fr)_auto] gap-x-4' : '', selectionMode && rowSelection[quote.id] ? 'bg-black/[0.035] dark:bg-white/[0.05]' : '']"
+              :style="index < 8 ? { animationDelay: `${index * 0.025}s` } : undefined"
               :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
-              :tabindex="selectionMode ? 0 : undefined"
+              :data-dashboard-quote-row="quote.id"
+              :tabindex="selectionMode ? 0 : -1"
               @click.capture="handleRowClickCapture($event, index, quote.id)"
               @keydown.capture="handleRowKeydown($event, index, quote.id)"
             >
@@ -222,7 +225,7 @@
                 <template #trigger="{ modelValue }">{{ modelValue?.label || quote.language }}</template>
               </NCombobox>
               <NDropdownMenu :items="getQuoteActions(quote)" :modal="false">
-                <button @click.stop class="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-black/[0.06] hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100">
+                <button @click.stop class="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 opacity-100 transition-[opacity,background-color,color] duration-150 hover:bg-black/[0.06] hover:text-gray-900 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100">
                   <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
                 </button>
               </NDropdownMenu>
@@ -769,7 +772,13 @@ onUnmounted(() => {
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out both;
+  animation: fade-in-up 0.28s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation: none;
+  }
 }
 
 .line-clamp-2 {
