@@ -469,6 +469,7 @@ const pageSize = ref(50)
 const totalQuotes = ref(0)
 const totalPages = ref(0)
 const hasMore = ref(false)
+const pendingKeyboardFocus = ref<'first' | 'last' | null>(null)
 
 const openSearch = async () => {
   searchOpen.value = true
@@ -532,7 +533,19 @@ const filteredQuotes = computed(() => {
   return filtered
 })
 
-const selection = useDashboardQuoteSelection(filteredQuotes)
+const selection = useDashboardQuoteSelection(filteredQuotes, {
+  onHorizontalArrow: (direction) => {
+    // The mobile feed loads pages incrementally and has no page controls.
+    if (!window.matchMedia('(min-width: 768px)').matches || loading.value) return false
+
+    const nextPage = direction === 'next' ? currentPage.value + 1 : currentPage.value - 1
+    if (nextPage < 1 || nextPage > totalPages.value) return false
+
+    pendingKeyboardFocus.value = direction === 'next' ? 'first' : 'last'
+    currentPage.value = nextPage
+    return true
+  }
+})
 const {
   selectionMode,
   rowSelection,
@@ -631,7 +644,20 @@ const loadPublishedQuotes = async () => {
     totalPages.value = response.pagination.totalPages || Math.ceil(response.pagination.total / response.pagination.limit)
     pageSize.value = response.pagination.limit
     clearSelection()
+
+    if (pendingKeyboardFocus.value) {
+      await nextTick()
+      const visibleRows = Array.from(document.querySelectorAll<HTMLElement>('[data-dashboard-quote-row]'))
+        .filter(row => row.getClientRects().length > 0)
+      const row = pendingKeyboardFocus.value === 'first' ? visibleRows[0] : visibleRows.at(-1)
+      pendingKeyboardFocus.value = null
+      if (row) {
+        row.focus({ preventScroll: true })
+        row.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'nearest' })
+      }
+    }
   } catch (error) {
+    pendingKeyboardFocus.value = null
     console.error('Failed to load published quotes:', error)
   } finally {
     if (initialSkeletonTimer) clearTimeout(initialSkeletonTimer)
@@ -691,6 +717,7 @@ watch(currentPage, () => {
 })
 
 watchDebounced([searchQuery, sortBy], () => {
+  pendingKeyboardFocus.value = null
   currentPage.value = 1
   loadPublishedQuotes()
 }, { debounce: 300 })
@@ -704,6 +731,7 @@ const resetFilters = () => {
 }
 
 const onLanguageChanged = async () => {
+  pendingKeyboardFocus.value = null
   currentPage.value = 1
   loadPublishedQuotes()
 }
