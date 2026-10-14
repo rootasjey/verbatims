@@ -6,7 +6,7 @@
         <button
           v-for="tab in tabs"
           :key="tab.value"
-          @click="activeTab = tab.value"
+          @click="selectTab(tab.value)"
           type="button"
           class="whitespace-nowrap border-b-2 border-transparent px-1 py-2 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 dark:focus-visible:ring-white/20"
           :class="activeTab === tab.value
@@ -118,11 +118,10 @@
     <div v-else-if="activeTab === 'preferences'" key="preferences" class="max-w-2xl space-y-5">
       <section class="border-b border-gray-200 pb-5 dark:border-white/10">
         <h2 class="mb-4 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
-          {{ $t('section_language') }}
+          {{ $t('label_preferred_language') }}
         </h2>
         <div class="max-w-xl">
-          <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_preferred_language') }}</label>
-          <LanguageSelector appearance="toolbar" />
+          <LanguageSelector appearance="toolbar" :aria-label="$t('label_preferred_language') as string" />
           <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_language') }}</p>
         </div>
       </section>
@@ -255,16 +254,33 @@ onMounted(() => {
 
 const { user } = useUserSession()
 
-const tabs = computed(() => [
-  { name: $t('tab_profile'), value: 'profile' },
-  { name: $t('tab_preferences'), value: 'preferences' },
-  { name: $t('section_privacy'), value: 'privacy' },
-  { name: $t('tab_notifications'), value: 'notifications' },
-  { name: $t('section_security'), value: 'security' },
-  { name: $t('tab_data'), value: 'data' }
+const settingsTabValues = ['profile', 'preferences', 'privacy', 'notifications', 'security', 'data'] as const
+type SettingsTab = typeof settingsTabValues[number]
+
+const isSettingsTab = (value: unknown): value is SettingsTab =>
+  typeof value === 'string' && settingsTabValues.includes(value as SettingsTab)
+
+const route = useRoute()
+const router = useRouter()
+
+const tabs = computed<Array<{ name: string, value: SettingsTab }>>(() => [
+  { name: String($t('tab_profile')), value: 'profile' },
+  { name: String($t('tab_preferences')), value: 'preferences' },
+  { name: String($t('section_privacy')), value: 'privacy' },
+  { name: String($t('tab_notifications')), value: 'notifications' },
+  { name: String($t('section_security')), value: 'security' },
+  { name: String($t('tab_data')), value: 'data' }
 ])
 
-const activeTab = ref('profile')
+const activeTab = computed<SettingsTab>(() =>
+  isSettingsTab(route.query.tab) ? route.query.tab : 'profile'
+)
+
+const selectTab = (tab: SettingsTab) => {
+  const query = { ...route.query, tab: tab === 'profile' ? undefined : tab }
+  if (route.query.tab === query.tab) return
+  void router.push({ query })
+}
 
 const profileForm = ref<ProfileForm>({
   name: user.value?.name || '',

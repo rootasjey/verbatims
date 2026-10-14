@@ -17,7 +17,7 @@
   "save_profile": "Save Profile",
   "section_language": "Language Preferences",
   "label_preferred_language": "Preferred Content Language",
-  "helper_language": "This sets the default language filter for quote content across pages. It does not change your interface language.",
+  "helper_language": "Filters quote content by default; your interface language stays unchanged.",
   "section_security": "Security",
   "label_current_password": "Current Password",
   "placeholder_current_password": "Enter current password",
