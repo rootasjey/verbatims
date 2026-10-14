@@ -2,7 +2,8 @@
   <nav
     :class="[
       'top-0 w-full z-4 transition-all duration-300 bg-[#FAFAF9] dark:bg-[#0C0A09]/70',
-      'border-b b-dashed',
+      'border-b',
+      pageHeader.section.value === 'admin' ? 'border-solid border-gray-200 dark:border-white/10' : 'b-dashed',
       scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md',
       // Optional left padding to account for layout sidebars (e.g., dashboard/admin)
       props.leftPadClass
