@@ -1,317 +1,200 @@
 <template>
-  <div>
-    <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-      <div class="flex items-center justify-between gap-4">
-        <h1 class="font-serif text-3xl md:text-5xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
-          {{ $t('title') }}
-        </h1>
-        <p class="font-sans text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">{{ currentDate }}</p>
+  <main>
+    <header class="mb-10 border-b border-gray-200 pb-6 dark:border-gray-800">
+      <div>
+        <div>
+          <h1 class="font-serif text-4xl font-300 leading-tight text-gray-950 dark:text-gray-50 md:text-5xl">
+            {{ $t('title') }}
+          </h1>
+          <p class="mt-2 max-w-2xl text-base text-gray-600 dark:text-gray-400">
+            {{ $t('home_description') }}
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <div v-if="loading" aria-label="Loading admin overview" class="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+      <div class="animate-pulse space-y-4">
+        <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-800" />
+        <div class="h-16 w-24 rounded bg-gray-200 dark:bg-gray-800" />
+        <div class="h-10 w-48 rounded bg-gray-200 dark:bg-gray-800" />
+      </div>
+      <div class="animate-pulse space-y-4">
+        <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-800" />
+        <div class="h-8 w-64 rounded bg-gray-200 dark:bg-gray-800" />
+        <div class="h-8 w-56 rounded bg-gray-200 dark:bg-gray-800" />
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="space-y-8">
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700 md:flex">
-        <div v-for="i in 6" :key="i" class="px-4 py-4 md:flex-1 animate-pulse">
-          <div class="h-6 bg-gray-100 dark:bg-gray-800 rounded w-16 mb-2" />
-          <div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-20" />
-        </div>
-      </div>
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
-        <div class="lg:col-span-8 lg:border-r border-dashed border-gray-200 dark:border-gray-700 lg:pr-8 pb-8">
-          <div class="space-y-4">
-            <div v-for="i in 5" :key="i" class="flex items-start gap-3 animate-pulse">
-              <div class="w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700 mt-1.5 flex-shrink-0" />
-              <div class="flex-1 space-y-2">
-                <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-full" />
-                <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div v-else-if="loadError" class="border-y border-gray-200 py-8 dark:border-gray-800">
+      <p class="text-base text-gray-800 dark:text-gray-200">{{ $t('load_error') }}</p>
+      <button class="mt-3 text-sm underline underline-offset-4" @click="loadStats()">{{ $t('retry') }}</button>
     </div>
 
-    <!-- Dashboard Content -->
     <div v-else>
-      <!-- Editorial Stats Bar -->
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700 md:flex mb-8">
-        <div class="px-4 py-4 md:flex-1">
-          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.quotes?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_total_quotes') }}</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.quotes?.approved || 0 }} {{ $t('stat_approved') }} &middot; {{ stats.quotes?.pending || 0 }} {{ $t('stat_pending') }}</p>
+      <section class="grid gap-10 border-b border-gray-200 pb-10 dark:border-gray-800 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
+        <div>
+          <p class="mb-3 text-sm font-600 uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+            {{ $t('section_moderation') }}
+          </p>
+          <div class="flex flex-wrap items-baseline gap-x-5 gap-y-2">
+            <span class="font-serif text-6xl leading-none tabular-nums text-gray-950 dark:text-gray-50 md:text-7xl">
+              {{ stats.quotes?.pending || 0 }}
+            </span>
+            <span class="text-lg text-gray-600 dark:text-gray-400">{{ $t('pending_heading') }}</span>
+          </div>
+          <p class="mt-3 max-w-lg text-sm leading-6 text-gray-600 dark:text-gray-400">
+            {{ stats.quotes?.pending ? $t('pending_description') : $t('pending_clear') }}
+          </p>
+          <NuxtLink
+            to="/admin/quotes/pending"
+            class="mt-6 inline-flex min-h-11 items-center gap-2 rounded-md bg-gray-950 px-5 text-sm font-600 text-white transition-colors hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
+          >
+            {{ $t('action_review_pending') }}
+            <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
+          </NuxtLink>
+          <p class="mt-5 text-sm text-gray-500 dark:text-gray-400">
+            {{ stats.quotes?.approved || 0 }} {{ $t('stat_approved') }}
+            <span class="mx-2 text-gray-300 dark:text-gray-700">·</span>
+            {{ stats.quotes?.draft || 0 }} {{ Number(stats.quotes?.draft || 0) === 1 ? $t('stat_draft_singular') : $t('stat_draft') }}
+          </p>
         </div>
-        <div class="px-4 py-4 md:flex-1">
-          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.users?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_total_users') }}</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.users?.active || 0 }} {{ $t('stat_active') }}</p>
-        </div>
-        <div class="px-4 py-4 md:flex-1">
-          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.authors?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_authors') }}</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.authors?.fictional || 0 }} {{ $t('stat_fictional') }}</p>
-        </div>
-        <div class="px-4 py-4 md:flex-1">
-          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.collections?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_collections') }}</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.collections?.public || 0 }} {{ $t('stat_public') }}</p>
-        </div>
-        <div class="px-4 py-4 md:flex-1">
-          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.likes?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_total_likes') }}</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.likes?.unique_users || 0 }} {{ $t('stat_users') }}</p>
-        </div>
-        <div class="px-4 py-4 md:flex-1">
-          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.views?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_total_views') }}</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.views?.unique_users || 0 }} {{ $t('stat_users') }}</p>
-        </div>
-      </div>
 
-      <!-- Two-column editorial layout -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
-        <!-- Main column: Recent Activity -->
-        <div class="lg:col-span-8 lg:border-r border-dashed border-gray-300 dark:border-gray-700 lg:pr-8 pb-8">
-          <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
-              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                {{ $t('section_recent_activity') }}
+        <div class="border-t border-gray-200 pt-6 dark:border-gray-800 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+          <h2 class="font-serif text-2xl text-gray-950 dark:text-gray-50">{{ $t('section_editorial') }}</h2>
+          <p class="mt-2 max-w-md text-sm leading-6 text-gray-600 dark:text-gray-400">
+            {{ $t('editorial_description') }}
+          </p>
+          <nav aria-label="Editorial tools" class="mt-5 divide-y divide-gray-200 dark:divide-gray-800">
+            <NuxtLink to="/admin/themes" class="group flex min-h-12 items-center justify-between gap-4 py-3 text-base text-gray-800 transition-colors hover:text-gray-500 dark:text-gray-200 dark:hover:text-gray-400">
+              <span class="flex items-center gap-3"><NIcon name="i-ph-palette" class="h-5 w-5 text-gray-500" />{{ $t('action_manage_themes') }}</span>
+              <NIcon name="i-ph-arrow-up-right" class="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </NuxtLink>
+            <NuxtLink to="/admin/authors" class="group flex min-h-12 items-center justify-between gap-4 py-3 text-base text-gray-800 transition-colors hover:text-gray-500 dark:text-gray-200 dark:hover:text-gray-400">
+              <span class="flex items-center gap-3"><NIcon name="i-ph-user" class="h-5 w-5 text-gray-500" />{{ $t('admin.nav.authors') }}</span>
+              <NIcon name="i-ph-arrow-up-right" class="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </NuxtLink>
+            <NuxtLink to="/admin/references" class="group flex min-h-12 items-center justify-between gap-4 py-3 text-base text-gray-800 transition-colors hover:text-gray-500 dark:text-gray-200 dark:hover:text-gray-400">
+              <span class="flex items-center gap-3"><NIcon name="i-ph-books" class="h-5 w-5 text-gray-500" />{{ $t('admin.nav.references') }}</span>
+              <NIcon name="i-ph-arrow-up-right" class="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </NuxtLink>
+          </nav>
+        </div>
+      </section>
+
+      <section class="pt-8" aria-labelledby="recent-activity-title">
+        <div class="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+          <h2 id="recent-activity-title" class="font-serif text-2xl text-gray-950 dark:text-gray-50">
+            {{ $t('section_recent_activity') }}
+          </h2>
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ $t('period_30_days') }}</span>
+        </div>
+
+        <div v-if="stats.recent_activity?.length" class="divide-y divide-gray-200 dark:divide-gray-800">
+          <article
+            v-for="(activity, idx) in stats.recent_activity"
+            :key="activity.timestamp + activity.type + activity.user_name"
+            class="flex items-start gap-3 py-4 first:pt-2"
+            :style="{ animationDelay: `${Number(idx) * 35}ms` }"
+          >
+            <NAvatar :src="activity.user_avatar" :alt="activity.user_name" size="xs" class="mt-0.5 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-sm leading-6 text-gray-700 dark:text-gray-300">
+                <span class="font-600 text-gray-950 dark:text-gray-50">{{ activity.user_name }}</span>
+                <span class="ml-1">{{ getActionText(activity) }}</span>
+                <NTooltip v-if="activity.description" :content="activity.description" :_tooltip-content="{ class: 'max-w-xs text-xs' }">
+                  <NuxtLink
+                    v-if="activity.target_type === 'quote' && activity.quote_status === 'approved'"
+                    :to="`/quotes/${activity.target_id}`"
+                    class="ml-1 text-gray-950 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-700 dark:text-gray-50 dark:decoration-gray-700 dark:hover:decoration-gray-300"
+                    target="_blank"
+                  >&ldquo;{{ truncate(activity.description, 50) }}&rdquo;</NuxtLink>
+                  <NuxtLink
+                    v-else-if="activity.target_type === 'author'"
+                    :to="`/authors/${activity.target_id}`"
+                    class="ml-1 text-gray-950 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-700 dark:text-gray-50 dark:decoration-gray-700 dark:hover:decoration-gray-300"
+                    target="_blank"
+                  >{{ truncate(activity.description, 50) }}</NuxtLink>
+                  <NuxtLink
+                    v-else-if="activity.target_type === 'reference'"
+                    :to="`/references/${activity.target_id}`"
+                    class="ml-1 text-gray-950 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-700 dark:text-gray-50 dark:decoration-gray-700 dark:hover:decoration-gray-300"
+                    target="_blank"
+                  >{{ truncate(activity.description, 50) }}</NuxtLink>
+                  <span v-else class="ml-1 text-gray-950 dark:text-gray-50">&ldquo;{{ truncate(activity.description, 50) }}&rdquo;</span>
+                </NTooltip>
+              </p>
+              <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                {{ formatRelativeTime(activity.timestamp) }}
+                <span v-if="activity.secondary_info"> · {{ activity.secondary_info }}</span>
               </p>
             </div>
-            <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ $t('period_30_days') }}</span>
-          </div>
-
-          <div v-if="stats.recent_activity && stats.recent_activity.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
-            <div
-              v-for="(activity, idx) in stats.recent_activity"
-              :key="activity.timestamp + activity.type + activity.user_name"
-              class="flex items-start gap-3 py-3 first:pt-0 last:pb-0 animate-fade-in-up"
-              :style="{ animationDelay: `${idx * 0.03}s` }"
-            >
-              <div class="mt-0.5 flex-shrink-0">
-                <img
-                  v-if="activity.user_avatar"
-                  :src="activity.user_avatar"
-                  :alt="activity.user_name"
-                  class="w-6 h-6 rounded-full"
-                />
-                <div
-                  v-else
-                  class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
-                >
-                  <span class="font-sans text-xs font-500 text-gray-400 dark:text-gray-500">{{ activity.user_name.charAt(0).toUpperCase() }}</span>
-                </div>
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="font-sans text-sm text-gray-700 dark:text-gray-300 leading-snug">
-                  <span class="font-500 text-gray-900 dark:text-gray-100">{{ activity.user_name }}</span>
-                  <span class="text-gray-500 dark:text-gray-400 ml-1">{{ getActionText(activity) }}</span>
-                  <NTooltip v-if="activity.description" :content="activity.description" :_tooltip-content="{ class: 'max-w-xs font-sans text-xs' }">
-                    <NuxtLink
-                      v-if="activity.target_type === 'quote' && activity.quote_status === 'approved'"
-                      :to="`/quotes/${activity.target_id}`"
-                      class="text-gray-900 dark:text-gray-100 ml-1 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-                      target="_blank"
-                    >&ldquo;{{ truncate(activity.description, 50) }}&rdquo;</NuxtLink>
-                    <NuxtLink
-                      v-else-if="activity.target_type === 'author'"
-                      :to="`/authors/${activity.target_id}`"
-                      class="text-gray-900 dark:text-gray-100 ml-1 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-                      target="_blank"
-                    >{{ truncate(activity.description, 50) }}</NuxtLink>
-                    <NuxtLink
-                      v-else-if="activity.target_type === 'reference'"
-                      :to="`/references/${activity.target_id}`"
-                      class="text-gray-900 dark:text-gray-100 ml-1 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-                      target="_blank"
-                    >{{ truncate(activity.description, 50) }}</NuxtLink>
-                    <span v-else class="text-gray-900 dark:text-gray-100 ml-1">&ldquo;{{ truncate(activity.description, 50) }}&rdquo;</span>
-                  </NTooltip>
-                </p>
-                <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                  {{ formatRelativeTime(activity.timestamp) }}
-                  <span v-if="activity.secondary_info" class="text-gray-400 dark:text-gray-500"> &middot; {{ activity.secondary_info }}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-          <div v-else class="py-10 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-            <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">{{ $t('empty_activity') }}</p>
-          </div>
+          </article>
         </div>
-
-        <!-- Sidebar column -->
-        <div class="lg:col-span-4 lg:pl-8 pb-8">
-          <!-- Quick Actions -->
-          <div class="mb-8 pb-6 border-b border-dashed border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-2 mb-4">
-              <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
-              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                {{ $t('section_quick_actions') }}
-              </p>
-            </div>
-            <div class="space-y-1">
-              <NuxtLink to="/admin/quotes/pending" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
-                <div class="flex items-center gap-2">
-                  <NIcon name="i-ph-clock" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_review_pending') }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <NBadge v-if="stats.quotes?.pending > 0" :label="`${stats.quotes.pending}`" badge="soft-gray" size="xs" />
-                  <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
-                </div>
-              </NuxtLink>
-              <NuxtLink to="/admin/quotes/published" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
-                <div class="flex items-center gap-2">
-                  <NIcon name="i-ph-check-circle" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_published_quotes') }}</span>
-                </div>
-                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
-              </NuxtLink>
-              <NuxtLink to="/admin/quotes/drafts" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
-                <div class="flex items-center gap-2">
-                  <NIcon name="i-ph-file-dashed" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_draft_quotes') }}</span>
-                </div>
-                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
-              </NuxtLink>
-              <NuxtLink to="/admin/authors" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
-                <div class="flex items-center gap-2">
-                  <NIcon name="i-ph-user" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('admin.nav.authors') }}</span>
-                </div>
-                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
-              </NuxtLink>
-              <NuxtLink to="/admin/import" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
-                <div class="flex items-center gap-2">
-                  <NIcon name="i-ph-upload" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_import_data') }}</span>
-                </div>
-                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
-              </NuxtLink>
-              <NuxtLink to="/admin/export" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors last:border-b-0">
-                <div class="flex items-center gap-2">
-                  <NIcon name="i-ph-download" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_export_data') }}</span>
-                </div>
-                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <!-- Top Contributors -->
-          <div>
-            <div class="flex items-center gap-2 mb-4">
-              <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
-              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                {{ $t('section_top_contributors') }}
-              </p>
-            </div>
-
-            <div v-if="stats.top_contributors && stats.top_contributors.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
-              <div
-                v-for="(contributor, idx) in stats.top_contributors"
-                :key="contributor.id"
-                class="flex items-center gap-3 py-3 first:pt-0 last:pb-0 animate-fade-in-up"
-                :style="{ animationDelay: `${idx * 0.05}s` }"
-              >
-                <span class="font-sans text-sm text-gray-400 dark:text-gray-500 w-4 flex-shrink-0">{{ idx + 1 }}.</span>
-                <NAvatar
-                  :src="contributor.avatar_url"
-                  :alt="contributor.name"
-                  size="xs"
-                />
-                <div class="min-w-0 flex-1">
-                  <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ contributor.name }}</p>
-                  <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ contributor.quote_count }} {{ $t('stat_quotes') }} &middot; {{ contributor.total_likes }} {{ $t('stat_likes') }}</p>
-                </div>
-              </div>
-            </div>
-            <div v-else class="py-8 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-              <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">{{ $t('empty_contributors') }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        <p v-else class="border-t border-gray-200 py-6 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          {{ $t('empty_activity') }}
+        </p>
+      </section>
     </div>
-  </div>
+  </main>
 </template>
 
-<script setup>
-import { formatDate, formatRelativeTime } from '~/utils/time-formatter'
+<script setup lang="ts">
+import { formatRelativeTime } from '~/utils/time-formatter'
 
-function getActionText(activity) {
+definePageMeta({ layout: 'admin', middleware: 'admin' })
+
+const { $t } = useI18n()
+useHead({ title: String($t('meta_title')) })
+
+const stats = ref<Record<string, any>>({})
+const loading = ref(true)
+const loadError = ref(false)
+const hasLoaded = ref(false)
+
+function getActionText(activity: any) {
   if (activity.type === 'quote_submitted') return String($t('action_submitted'))
   if (activity.type === 'quote_moderated') return activity.action?.toLowerCase() || String($t('action_moderated'))
   if (activity.type === 'user_registered') return String($t('action_registered'))
   return activity.action?.toLowerCase() || ''
 }
 
-function truncate(text, max) {
-  if (!text) return ''
-  return text.length > max ? text.slice(0, max) + '…' : text
+function truncate(text: string, max: number) {
+  return text?.length > max ? `${text.slice(0, max)}…` : text || ''
 }
 
-definePageMeta({
-  layout: 'admin',
-  middleware: 'admin'
-})
-
-const { $t } = useI18n()
-
-useHead({
-  title: String($t('meta_title'))
-})
-
-const stats = ref({})
-const loading = ref(true)
-
-const today = new Date()
-const currentDate = today.toLocaleDateString('en-US', {
-  weekday: 'short',
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric'
-})
-
-const loadStats = async () => {
+async function loadStats() {
+  loading.value = !hasLoaded.value
+  loadError.value = false
   try {
-    loading.value = true
-    const response = await $fetch('/api/admin/stats')
-    stats.value = response.data
+    const response = await $fetch<{ data: Record<string, any> }>('/api/admin/stats')
+    stats.value = response.data || {}
+    hasLoaded.value = true
   } catch (error) {
     console.error('Failed to load admin stats:', error)
+    loadError.value = true
   } finally {
     loading.value = false
   }
 }
 
+let refreshInterval: ReturnType<typeof setInterval> | undefined
 onMounted(() => {
   loadStats()
+  refreshInterval = setInterval(loadStats, 5 * 60 * 1000)
 })
-
-const refreshInterval = setInterval(loadStats, 5 * 60 * 1000)
-
 onUnmounted(() => {
-  clearInterval(refreshInterval)
+  if (refreshInterval) clearInterval(refreshInterval)
 })
 </script>
 
 <style scoped>
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@media (prefers-reduced-motion: no-preference) {
+  article { animation: activity-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out both;
+@keyframes activity-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

@@ -30,20 +30,21 @@
           <OutlinedButton size="md" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
         </div>
       </div>
-      <div class="md:hidden mt-4">
-        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
+      <div class="md:hidden mt-4 flex items-center gap-3">
+        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="min-w-0 flex-1 font-sans text-sm bg-transparent border-b border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
+        <OutlinedButton size="sm" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
       </div>
     </div>
 
     <!-- Skeleton -->
     <div v-if="loading && themes.length === 0" class="space-y-5">
-      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-gray-100 dark:border-gray-800">
         <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
       </div>
     </div>
 
     <!-- Empty -->
-    <div v-else-if="themes.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+    <div v-else-if="themes.length === 0 && !loading" class="py-16 text-center border border-gray-200 dark:border-gray-700 rounded-xl">
       <NIcon name="i-ph-palette" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}</p>
@@ -51,16 +52,16 @@
 
     <!-- Table -->
     <div v-else>
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
         <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
         <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showDeleteDialog = true">{{ $t('common.delete') }}</button>
         <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">{{ $t('common.clear') }}</button>
       </div>
 
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
-        <table class="w-full">
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto">
+        <table class="w-full min-w-[720px]">
           <thead>
-            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+            <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="themes.length > 0 && themes.every(t => !!rowSelection[t.id])" @update:model-value="selectAllOnPage" /></th>
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_name') }}</th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
@@ -142,7 +143,7 @@
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -159,7 +160,7 @@
         <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
         <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
         <button
-          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
+          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }} / {{ totalPages }}
@@ -169,19 +170,19 @@
       </div>
     </div>
 
-    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'max-w-2xl' }">
+    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-2xl overflow-x-hidden' }">
       <template #header>
-        <div class="px-2">
-          <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h3>
-          <p class="text-xs text-gray-400 dark:text-gray-600 italic ml-4">{{ editMode ? $t('dialog_edit_desc') : $t('dialog_create_desc') }}</p>
+        <div class="w-full min-w-0 px-2">
+          <h3 class="font-serif text-2xl font-400 text-gray-950 dark:text-gray-50">{{ editMode ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h3>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ editMode ? $t('dialog_edit_desc') : $t('dialog_create_desc') }}</p>
         </div>
       </template>
-      <div class="px-4">
+      <div class="w-full min-w-0 px-4">
         <NTabs v-model="activeTab" :items="tabs" class="px-2" :una="{ tabsList: 'max-w-xl overflow-x-auto' }">
           <template #content="{ item }">
-            <div class="mt-6 min-h-[55vh] max-h-[55vh] overflow-y-auto">
+            <div class="mt-5 min-h-[32vh] max-h-[60vh] overflow-y-auto">
               <!-- General -->
-              <div v-if="item.value === 'general'" class="p-1 space-y-6 overflow-y-auto max-h-[54vh]">
+              <div v-if="item.value === 'general'" class="p-1 space-y-5 overflow-y-auto max-h-[58vh]">
                 <div class="grid grid-cols-1 gap-4">
                   <div>
                     <NInput
@@ -192,16 +193,6 @@
                       required>
                       <template #leading>
                         <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_name_label') }}</span>
-                      </template>
-                      <template #trailing>
-                        <NButton
-                          icon size="xs" btn="soft-gray"
-                          :label="suggestingName ? 'i-lucide-loader-circle' : 'i-lucide-wand-sparkles'"
-                          :disabled="submitting || suggestingName"
-                          class="pointer-events-auto cursor-pointer"
-                          :class="suggestingName ? 'animate-spin' : ''"
-                          @click="suggestName"
-                        />
                       </template>
                     </NInput>
                   </div>
@@ -502,7 +493,7 @@
                   </div>
                 </div>
 
-                <div v-if="editMode && entitySuggestions.length" class="border-t border-dashed pt-8">
+                <div v-if="editMode && entitySuggestions.length" class="border-t pt-8">
                   <h4 class="text-xl font-200 text-gray-900 dark:text-white mb-3">
                     {{ $t('dialog_entity_suggestions') }}
                     <span class="ml-1.5 text-sm inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-yellow-300 text-2xs font-600">{{ entitySuggestions.length }}</span>
@@ -665,7 +656,7 @@
       </div>
 
       <template #footer>
-        <div class="flex justify-end gap-3 px-4 pb-2">
+        <div class="flex w-full min-w-0 justify-end gap-3 px-4 pb-2">
           <NButton btn="gray-link" class="hover:underline decoration-offset-6" :disabled="submitting" @click="showEditDialog = false">{{ $t('common.cancel') }}</NButton>
           <PrimaryButton class="px-6" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
             {{ editMode ? $t('dialog_update') : $t('dialog_create') }}
@@ -762,7 +753,7 @@ const { showErrorToast } = useErrorToast()
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: $t('meta_title') as string })
 
-const loading = ref(false)
+const loading = ref(true)
 const themes = ref<any[]>([])
 const totalThemes = ref(0)
 const currentPage = ref(1)
@@ -793,17 +784,13 @@ const testingConnection = ref(false)
 const activeTab = ref('general')
 
 const tabs = computed(() => {
-  const items = [
+  return [
     { name: $t('tab_general'), value: 'general', _tabsTrigger: { leading: 'i-ph-info' } },
     { name: $t('tab_appearance'), value: 'appearance', _tabsTrigger: { leading: 'i-ph-palette' } },
     { name: $t('tab_featured'), value: 'featured', _tabsTrigger: { leading: 'i-ph-star' } },
     { name: $t('tab_scheduling'), value: 'scheduling', _tabsTrigger: { leading: 'i-ph-calendar-blank' } },
     { name: $t('tab_filters'), value: 'filters', _tabsTrigger: { leading: 'i-ph-funnel' } },
   ]
-  if (!editMode.value) {
-    items.unshift({ name: '', value: 'ai', _tabsTrigger: { leading: 'i-ph-sparkle' } })
-  }
-  return items
 })
 
 const languageOptions = [
@@ -1427,7 +1414,7 @@ const openCreate = () => {
   resetForm()
   suggestions.value = []
   selectedSuggestionIndex.value = null
-  activeTab.value = 'ai'
+  activeTab.value = 'general'
   showEditDialog.value = true
 }
 
