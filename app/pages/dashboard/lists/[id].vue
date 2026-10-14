@@ -95,7 +95,7 @@
           :items="getQuoteActions(quote, idx)"
         >
         <div
-          class="group animate-fade-in-up rounded-md py-6 transition-[padding,background-color] duration-200 hover:bg-black/[0.025] focus-within:bg-black/[0.025] motion-reduce:transition-none dark:hover:bg-white/[0.035] dark:focus-within:bg-white/[0.035] sm:py-8"
+          class="group animate-fade-in-up rounded-md py-6 transition-[padding,background-color] duration-200 hover:bg-black/[0.025] focus-within:bg-black/[0.025] focus-visible:bg-black/[0.025] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 motion-reduce:transition-none dark:hover:bg-white/[0.035] dark:focus-within:bg-white/[0.035] dark:focus-visible:bg-white/[0.035] dark:focus-visible:outline-gray-300 sm:py-8"
           :class="[
             selectionMode ? 'px-2 sm:px-4' : 'px-0',
             selectionMode && rowSelection[quote.id] ? 'bg-black/[0.04] dark:bg-white/[0.06]' : '',
@@ -119,7 +119,7 @@
               :model-value="!!rowSelection[quote.id]"
               @toggle="toggleQuote(idx, quote.id, $event.shiftKey)"
             />
-            <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link block min-w-0 flex-1">
+            <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link block min-w-0 flex-1 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-500 dark:focus-visible:outline-gray-300">
               <QuoteEditorialText :text="quote.name" class="whitespace-normal break-words text-xl leading-snug tracking-[-0.01em] sm:text-2xl" />
               <div class="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-600 dark:text-gray-400">
                 <span class="font-500 text-gray-700 dark:text-gray-300">{{ (quote as any).author?.name || (quote as any).author_name || $t('common.unknown') }}</span>
@@ -133,27 +133,19 @@
                 </NTooltip>
               </div>
             </NuxtLink>
-            <div v-if="!selectionMode" class="hidden md:flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-              <NTooltip :content="$t('tooltip_share') as string">
-                <button @click.stop="handleShareQuote(quote)" class="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-black/[0.06] hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100">
-                  <NIcon name="i-ph-share" class="w-4 h-4" />
-                </button>
-              </NTooltip>
-              <NTooltip :content="$t('tooltip_remove') as string">
-                <button @click.stop="handleRemoveFromCollection(quote)" class="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-black/[0.06] hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100">
-                  <NIcon name="i-ph-x" class="w-4 h-4" />
-                </button>
-              </NTooltip>
+            <div v-if="!selectionMode" class="flex shrink-0 items-center">
+              <NDropdownMenu :items="getQuoteActions(quote, idx)" :modal="false">
+                <NButton
+                  icon
+                  btn="ghost-gray"
+                  size="xs"
+                  label="i-ph-dots-three-vertical"
+                  :aria-label="$t('components.quote_actions.quick_actions') as string"
+                  class="h-9 w-9 rounded-full text-gray-500 opacity-100 transition-opacity duration-150 hover:bg-black/[0.06] hover:text-gray-900 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                  @click.stop
+                />
+              </NDropdownMenu>
             </div>
-            <button
-              v-if="!selectionMode"
-              type="button"
-              class="sr-only rounded-md p-2 focus:not-sr-only focus:absolute focus:z-10 focus:bg-[#e7e4dd] focus:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:focus:bg-[#17191e] dark:focus:text-gray-100"
-              :aria-label="$t('components.quote_actions.quick_actions') as string"
-              @click.stop="openMobileQuoteActions(quote)"
-            >
-              <NIcon name="i-ph-dots-three" class="h-5 w-5" />
-            </button>
           </div>
         </div>
         </ContextMenu>
