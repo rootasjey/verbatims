@@ -144,7 +144,7 @@
               {{ $t('nav.contribute') }}
               <span class="flex items-center gap-3">
                 <NAvatar v-if="user" size="2" :src="user.avatar_url" :alt="user.name">
-                  <template #fallback><NIcon name="i-ph-user-circle" class="h-6 w-6" /></template>
+                  <template #fallback><BrandAvatarFallback /></template>
                 </NAvatar>
                 <NIcon name="i-ph-caret-down" class="transition-transform group-open:rotate-180" />
               </span>
