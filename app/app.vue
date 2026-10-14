@@ -3,7 +3,7 @@
     <NuxtLayout>
       <NuxtPage :transition="isDashboardPage ? dashboardPageTransition : false" />
     </NuxtLayout>
-    <MobileBottomNavigation v-if="!isAuthPage && !isDashboardPage" />
+    <MobileBottomNavigation v-if="!isAuthPage && !isDashboardPage && !isAdminPage" />
     <NuxtRouteAnnouncer />
     <NToaster :_toast-viewport="{ class: 'z-[200]' }" />
   </div>
@@ -18,6 +18,7 @@ const route = useRoute()
 const nuxtApp = useNuxtApp()
 const isAuthPage = computed(() => route.path === '/login' || route.path === '/signup')
 const isDashboardPage = computed(() => route.path.startsWith('/dashboard'))
+const isAdminPage = computed(() => route.path.startsWith('/admin'))
 const dashboardViewTransitionPending = useState('dashboard-view-transition-pending', () => false)
 let dashboardTransitionFallback: ReturnType<typeof setTimeout> | undefined
 

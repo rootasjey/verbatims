@@ -1,595 +1,539 @@
 <template>
   <div data-admin-workbench class="min-h-screen bg-[#FAFAF9] text-gray-950 dark:bg-[#0C0A09] dark:text-gray-50">
-    <AppHeader 
-      :left-pad-class="[(sidebarOpen ? 'lg:pl-64 md:pl-12 pl-12' : ''), (sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64')].join(' ')" 
-    />
-    
-    <!-- Admin Layout -->
-    <div class="pt-16 flex min-h-screen">
-      <!-- Sidebar Navigation -->
-      <aside
-        id="admin-sidebar"
-        :class="[
-          'fixed inset-y-0 left-0 border-r border-gray-200 pt-16 transition-all duration-300 ease-in-out z-40 dark:border-white/10',
-          sidebarCollapsed ? 'w-16' : 'w-64',
-          'lg:translate-x-0',
-          sidebarOpen ? 'translate-x-0 mt-0' : '-translate-x-full mt-1.5',
-        ]"
-      >
-        <div class="flex flex-col h-full overflow-hidden">
-          <!-- Sidebar Header (mobile) -->
-          <div class="flex items-center justify-between px-3 py-4 border-b border-gray-200 dark:border-white/10 lg:hidden">
-            <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">{{ $t('admin.title') }}</h2>
-            <button @click="sidebarOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-              <NIcon name="i-ph-x" class="w-4 h-4" />
-            </button>
-          </div>
+    <AppMastheadBar />
 
-          <!-- Desktop Collapse Toggle -->
-          <div class="hidden lg:flex justify-center py-3 border-b border-gray-200 dark:border-white/10">
-            <button
-              :title="sidebarCollapsed ? ($t('admin.expand_sidebar') as string) : ($t('admin.collapse_sidebar') as string)"
-              :aria-expanded="!sidebarCollapsed"
-              aria-controls="admin-sidebar"
-              class="grid h-8 w-8 place-items-center rounded-md text-gray-500 transition-colors hover:bg-black/5 hover:text-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
-              @click="sidebarCollapsed = !sidebarCollapsed"
-            >
-              <NIcon :name="sidebarCollapsed ? 'i-ph-caret-right' : 'i-ph-caret-left'" class="w-4 h-4" />
-            </button>
-          </div>
-
-          <!-- Navigation Menu -->
-          <nav :class="['admin-navigation flex-1 py-6 space-y-1 overflow-y-auto', sidebarCollapsed ? 'px-2' : 'px-3']">
-            <!-- Admin Overview -->
-            <NTooltip :content="sidebarCollapsed ? ($t('admin.nav.overview') as string) : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-              <NuxtLink
-                to="/admin"
-                :class="[
-                  'flex items-center text-sm rounded-sm transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                  isActive('/admin')
-                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                ]"
-                @click="sidebarOpen = false"
-              >
-                <NIcon name="i-ph-shield-check" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.overview') }}</span>
-              </NuxtLink>
-            </NTooltip>
-
-            <!-- Quotes Section -->
-            <div class="pt-3">
-              <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
-                {{ $t('admin.nav.quotes_management') }}
-              </h3>
-              
-              <!-- Published Quotes -->
-              <NTooltip :content="sidebarCollapsed ? ($t('admin.nav.published') as string) : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/quotes/published"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/quotes/published')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-check-circle" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.published') }}</span>
-                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" badge="soft-gray" size="xs" class="ml-auto" />
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Pending Quotes -->
-              <NTooltip :content="sidebarCollapsed ? ($t('admin.nav.pending') as string) : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/quotes/pending"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/quotes/pending')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-clock" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.pending') }}</span>
-                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" badge="soft-gray" size="xs" class="ml-auto" />
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Draft Quotes -->
-              <NTooltip :content="sidebarCollapsed ? 'Drafts' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/quotes/drafts"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/quotes/drafts')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-file-dashed" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.drafts') }}</span>
-                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" badge="soft-gray" size="xs" class="ml-auto" />
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Social Queue -->
-              <NTooltip :content="sidebarCollapsed ? 'Social Queue' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/social-queue"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/social-queue')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-share-network" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.social_queue') }}</span>
-                </NuxtLink>
-              </NTooltip>
-            </div>
-
-            <!-- Content Management Section -->
-            <div class="pt-3">
-              <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
-                {{ $t('admin.nav.content_management') }}
-              </h3>
-
-              <!-- Authors -->
-              <NTooltip :content="sidebarCollapsed ? 'Authors' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/authors"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/authors')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-user" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.authors') }}</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- References -->
-              <NTooltip :content="sidebarCollapsed ? 'References' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/references"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/references')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-book" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.references') }}</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Enrichment Queue -->
-              <NTooltip :content="sidebarCollapsed ? 'Enrichment Queue' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/enrichment"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/enrichment')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-magic-wand" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.enrichment_queue') }}</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Enrichment Audit -->
-              <NTooltip :content="sidebarCollapsed ? 'Enrichment Audit' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/enrichment-audit"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/enrichment-audit')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-chart-line-up" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Enrichment Audit</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Harvest Quotes -->
-              <NTooltip :content="sidebarCollapsed ? 'Harvest Quotes' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/harvest"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/harvest')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-plant" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.harvest_quotes') }}</span>
-                  <NBadge v-if="!sidebarCollapsed && harvestedCount > 0" :label="`${harvestedCount}`" badge="soft-gray" size="xs" class="ml-auto" />
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Tags -->
-              <NTooltip :content="sidebarCollapsed ? 'Tags' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/tags"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/tags')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-hash" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.tags') }}</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Sponsors -->
-              <NTooltip :content="sidebarCollapsed ? 'Sponsors' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/sponsors"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/sponsors')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-megaphone" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.sponsors') }}</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Themes -->
-              <NTooltip :content="sidebarCollapsed ? 'Themes' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/themes"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/themes')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-palette" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.themes') }}</span>
-                </NuxtLink>
-              </NTooltip>
-            </div>
-
-            <!-- Development Section -->
-            <div class="pt-3">
-              <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
-                {{ $t('admin.nav.development') }}
-              </h3>
-
-              <!-- API Keys -->
-              <NTooltip :content="sidebarCollapsed ? 'API Keys' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/api-keys"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/api-keys')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-key" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.api_keys') }}</span>
-                </NuxtLink>
-              </NTooltip>
-            </div>
-
-            <div class="pt-3">
-              <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
-                {{ $t('admin.nav.system_management') }}
-              </h3>
-              
-              <!-- Messages Inbox -->
-              <NTooltip :content="sidebarCollapsed ? 'Messages' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/messages"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/messages')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-envelope" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.messages') }}</span>
-                </NuxtLink>
-              </NTooltip>
-              
-              <!-- Users -->
-              <NTooltip :content="sidebarCollapsed ? 'Users' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/users"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/users')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-users" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.users') }}</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Database Maintenance -->
-              <NTooltip :content="sidebarCollapsed ? 'Database Maintenance' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/maintenance"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/maintenance')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-wrench" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.database_maintenance') }}</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Import -->
-              <NTooltip :content="sidebarCollapsed ? 'Import Data' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/import"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/import')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-upload" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.import_data') }}</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Export -->
-              <NTooltip :content="sidebarCollapsed ? 'Export Data' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/admin/export"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    isActive('/admin/export')
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-download" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.export_data') }}</span>
-                </NuxtLink>
-              </NTooltip>
-            </div>
-
-            <!-- Back to Dashboard -->
-            <div class="pt-3 border-t border-gray-100 dark:border-gray-800">
-              <NTooltip :content="sidebarCollapsed ? 'Back to Dashboard' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
-                <NuxtLink
-                  to="/dashboard"
-                  :class="[
-                    'flex items-center text-sm rounded-sm transition-all duration-200 mt-2',
-                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
-                    'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-house" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.back_to_dashboard') }}</span>
-                </NuxtLink>
-              </NTooltip>
-            </div>
-          </nav>
-        </div>
-      </aside>
-
-      <!-- Mobile Sidebar Overlay -->
-      <div
-        v-if="sidebarOpen"
-        class="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
-        @click="sidebarOpen = false"
+    <header class="fixed inset-x-0 top-0 z-40 flex items-center justify-between bg-[#FAFAF9] px-4 py-2.5 dark:bg-[#0C0A09] md:hidden">
+      <NuxtLink to="/" class="font-subtitle text-xl font-700 italic tracking-[0.1rem] text-gray-950 dark:text-gray-50">
+        verbatims
+      </NuxtLink>
+      <NButton
+        icon
+        btn="ghost-gray"
+        :label="mobileMenuOpen ? 'i-ph-x' : 'i-ph-list'"
+        size="sm"
+        :aria-label="String($t(mobileMenuOpen ? 'common.close' : 'nav.menu'))"
+        :aria-expanded="mobileMenuOpen"
+        aria-controls="admin-mobile-site-menu"
+        @click="mobileMenuOpen = !mobileMenuOpen"
       />
+    </header>
 
-      <!-- Main Content -->
-    <main :class="['admin-main min-w-0 flex-1 transition-all duration-300 pb-28 md:pb-0', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
-        <!-- Mobile Header -->
-        <div class="lg:hidden border-b border-gray-200 px-4 py-3 dark:border-white/10">
-          <div class="flex items-center justify-between">
-            <button @click="sidebarOpen = true" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              <NIcon name="i-ph-list-bold" class="w-5 h-5" />
-            </button>
-            <div class="w-8" />
+    <ClientOnly>
+      <NDrawer
+        v-model:open="mobileMenuOpen"
+        direction="bottom"
+        :dismissible="true"
+        :close-threshold="0.25"
+        :show-close="false"
+        :una="{ drawerContent: 'z-[60] h-screen rounded-none bg-[#FAFAF9] dark:bg-[#0C0A09]', drawerOverlay: 'z-[55] bg-black/45' }"
+      >
+        <template #body>
+          <div id="admin-mobile-site-menu" class="flex h-full flex-col overflow-y-auto px-6 pb-12 pt-8">
+            <div class="flex items-center justify-between gap-4">
+              <span class="font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                {{ mobileDate }}
+              </span>
+              <NButton icon btn="ghost-gray" label="i-ph-x" size="sm" :aria-label="String($t('common.close'))" @click="mobileMenuOpen = false" />
+            </div>
+
+            <nav class="mt-10 flex flex-col gap-1" :aria-label="String($t('nav.menu'))">
+              <NuxtLink
+                v-for="item in mobileMainLinks"
+                :key="item.to"
+                :to="item.to"
+                class="flex min-h-12 items-center border-b border-black/8 font-serif text-2xl text-gray-900 dark:border-white/10 dark:text-gray-100"
+                @click="mobileMenuOpen = false"
+              >
+                {{ item.label }}
+              </NuxtLink>
+
+              <details class="group mt-5 border-t border-black/10 pt-4 dark:border-white/15">
+                <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between font-sans text-lg font-600 text-gray-900 dark:text-gray-100">
+                  {{ $t('nav.contribute') }}
+                  <span class="flex items-center gap-3">
+                    <NAvatar v-if="user" size="2" :src="user.avatar_url" :alt="user.name">
+                      <template #fallback><BrandAvatarFallback /></template>
+                    </NAvatar>
+                    <NIcon name="i-ph-caret-down" class="transition-transform group-open:rotate-180" />
+                  </span>
+                </summary>
+                <div class="mt-2 grid gap-1 pl-1">
+                  <button v-if="user" type="button" class="flex min-h-11 items-center gap-3 py-2 text-left text-base text-gray-700 dark:text-gray-300" @click="openMobileAddQuote">
+                    <NIcon name="i-ph-quotes-duotone" />{{ $t('nav.add_quote') }}
+                  </button>
+                  <NuxtLink to="/sponsor" class="flex min-h-11 items-center gap-3 py-2 text-base text-gray-700 dark:text-gray-300" @click="mobileMenuOpen = false">
+                    <NIcon name="i-ph-megaphone-duotone" />{{ $t('components.masthead.sponsor') }}
+                  </NuxtLink>
+                  <NuxtLink v-if="!user" to="/login" class="flex min-h-11 items-center gap-3 py-2 text-base text-gray-700 dark:text-gray-300" @click="mobileMenuOpen = false">
+                    <NIcon name="i-ph-sign-in" />{{ $t('nav.sign_in') }}
+                  </NuxtLink>
+                </div>
+              </details>
+
+              <details v-if="user" class="group mt-4 border-t border-black/10 pt-4 dark:border-white/15">
+                <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between font-sans text-lg font-600 text-gray-900 dark:text-gray-100">
+                  {{ $t('components.user_menu.my_space') }}
+                  <NIcon name="i-ph-caret-down" class="transition-transform group-open:rotate-180" />
+                </summary>
+                <div class="mt-2 grid gap-1">
+                  <NuxtLink v-for="item in mobileSpaceLinks" :key="item.to" :to="item.to" class="flex min-h-11 items-center gap-3 py-2 text-base text-gray-700 dark:text-gray-300" @click="mobileMenuOpen = false">
+                    <NIcon :name="item.icon" />{{ item.label }}
+                  </NuxtLink>
+                </div>
+              </details>
+
+              <button v-if="user" type="button" class="mt-4 flex min-h-12 items-center gap-3 border-t border-black/10 pt-4 text-left text-base text-gray-700 dark:border-white/15 dark:text-gray-300" @click="signOutFromMobile">
+                <NIcon name="i-ph-sign-out" />{{ $t('components.user_menu.sign_out') }}
+              </button>
+            </nav>
+
+            <div class="mt-auto flex items-center gap-2 border-t border-black/10 pt-5 dark:border-white/15">
+              <I18nSelector />
+              <ThemeSelector />
+            </div>
           </div>
+        </template>
+      </NDrawer>
+    </ClientOnly>
+
+    <div class="min-h-screen pt-14 md:pt-0">
+      <header class="mx-auto max-w-6xl px-6 pt-8 sm:px-8 md:pt-28 lg:px-10">
+        <div class="max-w-3xl">
+          <h1 class="font-serif text-5xl font-400 leading-[0.98] tracking-[-0.035em] text-gray-950 dark:text-gray-50 sm:text-6xl lg:text-7xl">
+            {{ $t('admin.workspace_title') }}
+          </h1>
+          <p class="mt-4 max-w-2xl font-sans text-base leading-relaxed text-gray-600 dark:text-gray-400 sm:text-lg">
+            {{ $t('admin.workspace_description') }}
+          </p>
         </div>
 
-        <!-- Page Content -->
-        <div data-admin-content class="p-4 sm:p-6 lg:p-8">
-          <slot />
-        </div>
+        <nav :aria-label="String($t('admin.workspace_title'))" class="mt-6">
+          <div class="admin-tab-row">
+            <div
+              ref="groupTabs"
+              :class="[
+                'admin-nav-scroll flex gap-6 overflow-x-auto border-b border-gray-200 dark:border-white/10 sm:gap-9',
+                { 'px-10': groupTabsOverflow }
+              ]"
+              @scroll="updateTabScrollState('groups')"
+            >
+              <NuxtLink
+                v-for="group in adminNavGroups"
+                :key="group.id"
+                :data-admin-group="group.id"
+                :to="group.to"
+                :aria-current="activeGroupId === group.id ? 'page' : undefined"
+                :class="[
+                  'admin-section-link relative flex min-h-12 shrink-0 items-center gap-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500',
+                  activeGroupId === group.id
+                    ? 'font-600 text-gray-950 dark:text-gray-50'
+                    : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                ]"
+              >
+                <NIcon :name="group.icon" class="h-4 w-4 opacity-70" />
+                {{ group.label }}
+                <span
+                  v-if="activeGroupId === group.id"
+                  class="absolute inset-x-0 bottom-0 h-0.5 bg-gray-950 dark:bg-gray-100"
+                />
+              </NuxtLink>
+            </div>
+            <div v-if="groupTabsOverflow" class="pointer-events-none absolute inset-y-0 left-0 flex items-center pr-10">
+              <div v-if="groupTabsCanScrollLeft" class="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#FAFAF9] via-[#FAFAF9]/95 to-transparent dark:from-[#0C0A09] dark:via-[#0C0A09]/95" />
+              <NButton
+                icon
+                btn="soft-gray"
+                size="sm"
+                label="i-ph-caret-left"
+                class="pointer-events-auto relative z-1"
+                :aria-label="String($t('nav.scroll_tabs_left'))"
+                :disabled="!groupTabsCanScrollLeft"
+                @click="scrollTabs('groups', -1)"
+              />
+            </div>
+            <div v-if="groupTabsOverflow" class="pointer-events-none absolute inset-y-0 right-0 flex items-center pl-10">
+              <div v-if="groupTabsCanScrollRight" class="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#FAFAF9] via-[#FAFAF9]/95 to-transparent dark:from-[#0C0A09] dark:via-[#0C0A09]/95" />
+              <NButton
+                icon
+                btn="soft-gray"
+                size="sm"
+                label="i-ph-caret-right"
+                class="pointer-events-auto relative z-1"
+                :aria-label="String($t('nav.scroll_tabs_right'))"
+                :disabled="!groupTabsCanScrollRight"
+                @click="scrollTabs('groups', 1)"
+              />
+            </div>
+          </div>
+
+          <div v-if="activeGroupItems.length" class="admin-tab-row">
+            <div
+              ref="itemTabs"
+              :class="[
+                'admin-nav-scroll flex gap-6 overflow-x-auto border-b border-gray-200/70 py-2 dark:border-white/5 sm:gap-8',
+                { 'px-10': itemTabsOverflow }
+              ]"
+              @scroll="updateTabScrollState('items')"
+            >
+              <NuxtLink
+                v-for="item in activeGroupItems"
+                :key="item.to"
+                :to="item.to"
+                :aria-current="isRouteActive(item.to) ? 'page' : undefined"
+                :class="[
+                  'flex min-h-10 shrink-0 items-center gap-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500',
+                  isRouteActive(item.to)
+                    ? 'font-600 text-gray-950 dark:text-gray-50'
+                    : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                ]"
+              >
+                {{ item.label }}
+                <NBadge v-if="item.count !== undefined" :label="String(item.count)" badge="soft-gray" size="xs" />
+              </NuxtLink>
+            </div>
+            <div v-if="itemTabsOverflow" class="pointer-events-none absolute inset-y-0 left-0 flex items-center pr-10">
+              <div v-if="itemTabsCanScrollLeft" class="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#FAFAF9] via-[#FAFAF9]/95 to-transparent dark:from-[#0C0A09] dark:via-[#0C0A09]/95" />
+              <NButton
+                icon
+                btn="soft-gray"
+                size="sm"
+                label="i-ph-caret-left"
+                class="pointer-events-auto relative z-1"
+                :aria-label="String($t('nav.scroll_tabs_left'))"
+                :disabled="!itemTabsCanScrollLeft"
+                @click="scrollTabs('items', -1)"
+              />
+            </div>
+            <div v-if="itemTabsOverflow" class="pointer-events-none absolute inset-y-0 right-0 flex items-center pl-10">
+              <div v-if="itemTabsCanScrollRight" class="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#FAFAF9] via-[#FAFAF9]/95 to-transparent dark:from-[#0C0A09] dark:via-[#0C0A09]/95" />
+              <NButton
+                icon
+                btn="soft-gray"
+                size="sm"
+                label="i-ph-caret-right"
+                class="pointer-events-auto relative z-1"
+                :aria-label="String($t('nav.scroll_tabs_right'))"
+                :disabled="!itemTabsCanScrollRight"
+                @click="scrollTabs('items', 1)"
+              />
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      <main data-admin-content class="mx-auto max-w-6xl px-6 pb-28 pt-8 sm:px-8 sm:pt-10 lg:px-10">
+        <slot />
       </main>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const { $t } = useI18n()
-const route = useRoute()
-const sidebarOpen = ref(false)
-const sidebarCollapsed = ref(false)
+interface AdminNavItem {
+  to: string
+  label: string
+  count?: number
+}
 
-// Quote counts for badges
+interface AdminNavGroup {
+  id: string
+  label: string
+  icon: string
+  to: string
+  items: AdminNavItem[]
+}
+
+interface AdminStatsResponse {
+  data?: {
+    quotes?: {
+      approved?: number
+      pending?: number
+      draft?: number
+      harvested?: number
+    }
+  }
+}
+
+const { $t } = useI18n()
+const { locale } = useI18nLocale()
+const route = useRoute()
+const { user, clear } = useUserSession()
+const mobileMenuOpen = ref(false)
+const showAddQuote = useState('app-add-quote-dialog-open', () => false)
+
+const mobileDate = computed(() => new Date().toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
+  weekday: 'short',
+  year: '2-digit',
+  month: 'short',
+  day: 'numeric',
+}))
+
+const mobileMainLinks = computed(() => [
+  { label: String($t('nav.explore')), to: '/quotes' },
+  { label: String($t('nav.authors')), to: '/authors' },
+  { label: String($t('nav.references')), to: '/references' },
+  { label: String($t('nav.about')), to: '/about' },
+])
+
+const mobileSpaceLinks = computed(() => [
+  { label: String($t('components.user_menu.dashboard')), to: '/dashboard', icon: 'i-ph-house' },
+  { label: String($t('components.user_menu.collections')), to: '/dashboard/lists', icon: 'i-ph-bookmark' },
+  { label: String($t('components.user_menu.submissions')), to: '/dashboard/my-quotes/pending', icon: 'i-ph-file-text' },
+  { label: String($t('components.user_menu.liked')), to: '/dashboard/favourites', icon: 'i-ph-heart' },
+  { label: String($t('components.user_menu.settings')), to: '/dashboard/settings', icon: 'i-ph-gear' },
+  ...((user.value?.role === 'admin' || user.value?.role === 'moderator')
+    ? [{ label: String($t('components.user_menu.admin')), to: '/admin', icon: 'i-ph-shield-check' }]
+    : []),
+])
+
+function openMobileAddQuote() {
+  mobileMenuOpen.value = false
+  showAddQuote.value = true
+}
+
+async function signOutFromMobile() {
+  mobileMenuOpen.value = false
+  await clear()
+  await navigateTo('/')
+}
+
 const publishedCount = ref(0)
 const pendingCount = ref(0)
 const draftCount = ref(0)
 const harvestedCount = ref(0)
 
+const groupTabs = ref<HTMLDivElement | null>(null)
+const itemTabs = ref<HTMLDivElement | null>(null)
+const groupTabsOverflow = ref(false)
+const itemTabsOverflow = ref(false)
+const groupTabsCanScrollLeft = ref(false)
+const groupTabsCanScrollRight = ref(false)
+const itemTabsCanScrollLeft = ref(false)
+const itemTabsCanScrollRight = ref(false)
+
 const pageHeader = usePageHeader()
 
-onMounted(() => {
-  pageHeader.setHeaderFromRoute()
-})
+const adminNavGroups = computed<AdminNavGroup[]>(() => [
+  {
+    id: 'overview',
+    label: String($t('admin.nav.overview')),
+    icon: 'i-ph-house',
+    to: '/admin',
+    items: [],
+  },
+  {
+    id: 'moderation',
+    label: String($t('admin.sections.moderation')),
+    icon: 'i-ph-shield-check',
+    to: '/admin/quotes/pending',
+    items: [
+      { to: '/admin/quotes/pending', label: String($t('admin.nav.pending')), count: pendingCount.value },
+      { to: '/admin/quotes/published', label: String($t('admin.nav.published')), count: publishedCount.value },
+      { to: '/admin/quotes/drafts', label: String($t('admin.nav.drafts')), count: draftCount.value },
+      { to: '/admin/social-queue', label: String($t('admin.nav.social_queue')) },
+    ],
+  },
+  {
+    id: 'editorial',
+    label: String($t('admin.sections.editorial')),
+    icon: 'i-ph-books',
+    to: '/admin/authors',
+    items: [
+      { to: '/admin/authors', label: String($t('admin.nav.authors')) },
+      { to: '/admin/references', label: String($t('admin.nav.references')) },
+      { to: '/admin/tags', label: String($t('admin.nav.tags')) },
+      { to: '/admin/themes', label: String($t('admin.nav.themes')) },
+    ],
+  },
+  {
+    id: 'people',
+    label: String($t('admin.sections.people')),
+    icon: 'i-ph-users',
+    to: '/admin/users',
+    items: [
+      { to: '/admin/users', label: String($t('admin.nav.users')) },
+      { to: '/admin/sponsors', label: String($t('admin.nav.sponsors')) },
+      { to: '/admin/messages', label: String($t('admin.nav.messages')) },
+      { to: '/admin/api-keys', label: String($t('admin.nav.api_keys')) },
+    ],
+  },
+  {
+    id: 'operations',
+    label: String($t('admin.sections.operations')),
+    icon: 'i-ph-wrench',
+    to: '/admin/harvest',
+    items: [
+      { to: '/admin/harvest', label: String($t('admin.nav.harvest_quotes')), count: harvestedCount.value },
+      { to: '/admin/enrichment', label: String($t('admin.nav.enrichment_queue')) },
+      { to: '/admin/enrichment-audit', label: String($t('admin.nav.enrichment_audit')) },
+    ],
+  },
+  {
+    id: 'data',
+    label: String($t('admin.sections.data')),
+    icon: 'i-ph-database',
+    to: '/admin/import',
+    items: [
+      { to: '/admin/import', label: String($t('admin.nav.import_data')) },
+      { to: '/admin/export', label: String($t('admin.nav.export_data')) },
+      { to: '/admin/maintenance', label: String($t('admin.nav.database_maintenance')) },
+    ],
+  },
+])
 
-watch(() => route.path, (newPath) => {
-  pageHeader.setHeaderFromRoute()
-})
+const pathMatches = (to: string) => to === '/admin'
+  ? route.path === to
+  : route.path === to || route.path.startsWith(`${to}/`)
 
-const loadQuoteCounts = async () => {
-  try {
-    // @ts-expect-error deep type instantiation from $fetch without explicit return type
-    const stats = await $fetch('/api/admin/stats')
-    if (stats?.data?.quotes) {
-      publishedCount.value = stats.data.quotes.approved || 0
-      pendingCount.value = stats.data.quotes.pending || 0
-      draftCount.value = stats.data.quotes.draft || 0
-      harvestedCount.value = stats.data.quotes.harvested || 0
+const activeGroupId = computed(() =>
+  adminNavGroups.value.find(group => group.items.some(item => pathMatches(item.to)))?.id ?? 'overview'
+)
+
+const activeGroupItems = computed(() =>
+  adminNavGroups.value.find(group => group.id === activeGroupId.value)?.items ?? []
+)
+
+const isRouteActive = (to: string) => pathMatches(to)
+
+function getTabsElement(kind: 'groups' | 'items') {
+  return kind === 'groups' ? groupTabs.value : itemTabs.value
+}
+
+function updateTabScrollState(kind: 'groups' | 'items') {
+  const element = getTabsElement(kind)
+  if (!element) return
+
+  const canScrollLeft = element.scrollLeft > 1
+  const maxScrollLeft = Math.max(0, element.scrollWidth - element.clientWidth)
+  const canScrollRight = element.scrollLeft < maxScrollLeft - 1
+  const canScroll = maxScrollLeft > 1
+
+  if (kind === 'groups') {
+    groupTabsOverflow.value = canScroll
+    groupTabsCanScrollLeft.value = canScrollLeft
+    groupTabsCanScrollRight.value = canScrollRight
+  } else {
+    itemTabsOverflow.value = canScroll
+    itemTabsCanScrollLeft.value = canScrollLeft
+    itemTabsCanScrollRight.value = canScrollRight
+  }
+}
+
+function updateAllTabScrollStates() {
+  updateTabScrollState('groups')
+  updateTabScrollState('items')
+}
+
+function scrollTabs(kind: 'groups' | 'items', direction: -1 | 1) {
+  const element = getTabsElement(kind)
+  if (!element) return
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+  element.scrollBy({ left: direction * Math.max(element.clientWidth * 0.7, 140), behavior })
+}
+
+async function revealActiveTabs() {
+  await nextTick()
+  await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+
+  for (const [kind, element] of [['groups', groupTabs.value], ['items', itemTabs.value]] as const) {
+    if (!element) continue
+    const activeLink = element.querySelector<HTMLElement>('[aria-current="page"]')
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+    if (activeLink) {
+      const containerRect = element.getBoundingClientRect()
+      const linkRect = activeLink.getBoundingClientRect()
+      const maxScrollLeft = element.scrollWidth - element.clientWidth
+      const inset = maxScrollLeft > 1 ? 40 : 0
+      const leftInset = inset
+      const rightInset = inset
+      const visibleLeft = containerRect.left + leftInset + 4
+      const visibleRight = containerRect.right - rightInset - 4
+
+      if (linkRect.left < visibleLeft) {
+        const target = activeLink === element.firstElementChild
+          ? 0
+          : Math.max(0, element.scrollLeft - (visibleLeft - linkRect.left))
+        element.scrollTo({ left: target, behavior })
+      } else if (linkRect.right > visibleRight) {
+        const target = activeLink === element.lastElementChild
+          ? maxScrollLeft
+          : Math.min(maxScrollLeft, element.scrollLeft + (linkRect.right - visibleRight))
+        element.scrollTo({ left: target, behavior })
+      }
     }
+    updateTabScrollState(kind)
+  }
+}
+
+async function loadQuoteCounts() {
+  try {
+    const response = await fetch('/api/admin/stats')
+    if (!response.ok) throw new Error(`Admin stats request failed (${response.status})`)
+    const stats = await response.json() as AdminStatsResponse
+    publishedCount.value = stats.data?.quotes?.approved ?? 0
+    pendingCount.value = stats.data?.quotes?.pending ?? 0
+    draftCount.value = stats.data?.quotes?.draft ?? 0
+    harvestedCount.value = stats.data?.quotes?.harvested ?? 0
   } catch (error) {
     console.error('Failed to load admin quote counts:', error)
   }
 }
 
-const isActive = (to: string) => {
-  if (to === '/admin') return route.path === '/admin'
-  return route.path.startsWith(to)
+onMounted(() => {
+  pageHeader.setHeaderFromRoute()
+  loadQuoteCounts()
+  window.addEventListener('resize', handleTabResize)
+  updateTabScrollState('groups')
+  updateTabScrollState('items')
+  revealActiveTabs()
+})
+
+function handleTabResize() {
+  updateAllTabScrollStates()
+  revealActiveTabs()
 }
 
-// Close sidebar when route changes (mobile)
+onUnmounted(() => window.removeEventListener('resize', handleTabResize))
+
 watch(() => route.path, () => {
-  sidebarOpen.value = false
+  pageHeader.setHeaderFromRoute()
+  revealActiveTabs()
+}, { flush: 'post' })
+
+watch(activeGroupId, revealActiveTabs, { flush: 'post' })
+
+watch(() => [activeGroupItems.value.length, pendingCount.value, publishedCount.value, draftCount.value, harvestedCount.value], async () => {
+  await revealActiveTabs()
 })
 
-onMounted(() => {
-  loadQuoteCounts()
-  try {
-    const saved = localStorage.getItem('admin.sidebarCollapsed')
-    if (saved != null) sidebarCollapsed.value = saved === '1'
-  } catch (e) {}
-})
-
-watch(sidebarCollapsed, (val) => {
-  try {
-    localStorage.setItem('admin.sidebarCollapsed', val ? '1' : '0')
-  } catch (e) {}
+watch(() => adminNavGroups.value.flatMap(group => [group.label, ...group.items.map(item => item.label)]).join('\u0000'), async () => {
+  await revealActiveTabs()
 })
 </script>
 
-<style scoped>
-:deep(.admin-navigation a) {
-  border-radius: 0.5rem;
-}
-</style>
-
 <style>
-[data-highlighted="true"] {
-  scroll-margin-top: 5rem;
+.admin-nav-scroll {
+  scrollbar-width: none;
+  scroll-behavior: auto;
+  scroll-padding-inline: 2.5rem;
 }
 
-[data-admin-workbench] {
-  --admin-sidebar-surface: #f0efe9;
-  --admin-control-surface: #f0efe9;
-  --admin-table-surface: #f0efe9;
-  --admin-table-header: #e6e4dd;
-  --admin-border: #d8d4cb;
-  --admin-nav-hover: #eae8e1;
-  --admin-nav-active: #e6e4dd;
-  --admin-focus: #57534e;
+@media (prefers-reduced-motion: no-preference) {
+  .admin-nav-scroll {
+    scroll-behavior: smooth;
+  }
 }
 
-.dark [data-admin-workbench] {
-  --admin-sidebar-surface: #17191e;
-  --admin-control-surface: rgb(255 255 255 / 6%);
-  --admin-table-surface: #17191e;
-  --admin-table-header: #202126;
-  --admin-border: rgb(255 255 255 / 10%);
-  --admin-nav-hover: rgb(255 255 255 / 7%);
-  --admin-nav-active: rgb(255 255 255 / 11%);
-  --admin-focus: #a8a29e;
+.admin-nav-scroll::-webkit-scrollbar {
+  display: none;
 }
 
-[data-admin-workbench] #admin-sidebar {
-  background-color: var(--admin-sidebar-surface);
-  border-color: var(--admin-border);
+.admin-nav-scroll a:focus-visible {
+  outline-offset: -2px;
 }
 
-[data-admin-workbench] .admin-navigation a {
-  min-height: 2.5rem;
-  border-radius: 0.5rem;
-}
-
-[data-admin-workbench] .admin-navigation a:hover {
-  background-color: var(--admin-nav-hover);
-}
-
-[data-admin-workbench] .admin-navigation a[aria-current="page"] {
-  background-color: var(--admin-nav-active);
-  color: #1c1917;
-  font-weight: 600;
-}
-
-.dark [data-admin-workbench] .admin-navigation a[aria-current="page"] {
-  color: #fafaf9;
-}
-
-[data-admin-workbench] .admin-navigation a:focus-visible {
-  outline: 2px solid var(--admin-focus);
-  outline-offset: 2px;
-}
-
-[data-admin-workbench] .admin-navigation > div:not(:first-child) {
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--admin-border);
-  padding-top: 1rem;
+.admin-tab-row {
+  position: relative;
 }
 
 [data-admin-content] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
@@ -626,5 +570,23 @@ watch(sidebarCollapsed, (val) => {
 
 [data-admin-content] div[class*="bottom-0"][class*="z-20"] button {
   border-radius: 9999px;
+}
+
+[data-admin-workbench] {
+  --admin-sidebar-surface: #f0efe9;
+  --admin-control-surface: #f0efe9;
+  --admin-table-surface: #f0efe9;
+  --admin-table-header: #e6e4dd;
+  --admin-border: #d8d4cb;
+  --admin-focus: #57534e;
+}
+
+.dark [data-admin-workbench] {
+  --admin-sidebar-surface: #17191e;
+  --admin-control-surface: rgb(255 255 255 / 6%);
+  --admin-table-surface: #17191e;
+  --admin-table-header: #202126;
+  --admin-border: rgb(255 255 255 / 10%);
+  --admin-focus: #a8a29e;
 }
 </style>

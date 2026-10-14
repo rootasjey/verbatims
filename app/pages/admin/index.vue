@@ -1,22 +1,8 @@
 <template>
   <main>
-    <header class="mb-10 border-b border-gray-200 pb-6 dark:border-gray-800">
-      <div>
-        <div>
-          <h1 class="font-serif text-4xl font-300 leading-tight text-gray-950 dark:text-gray-50 md:text-5xl">
-            {{ $t('title') }}
-          </h1>
-          <p class="mt-2 max-w-2xl text-base text-gray-600 dark:text-gray-400">
-            {{ $t('home_description') }}
-          </p>
-        </div>
-      </div>
-    </header>
-
     <div v-if="loading" aria-label="Loading admin overview" class="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
       <div class="animate-pulse space-y-4">
-        <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-800" />
-        <div class="h-16 w-24 rounded bg-gray-200 dark:bg-gray-800" />
+        <div class="h-9 w-48 rounded bg-gray-200 dark:bg-gray-800" />
         <div class="h-10 w-48 rounded bg-gray-200 dark:bg-gray-800" />
       </div>
       <div class="animate-pulse space-y-4">
@@ -34,14 +20,11 @@
     <div v-else>
       <section class="grid gap-10 border-b border-gray-200 pb-10 dark:border-gray-800 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
         <div>
-          <p class="mb-3 text-sm font-600 uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
-            {{ $t('section_moderation') }}
-          </p>
-          <div class="flex flex-wrap items-baseline gap-x-5 gap-y-2">
-            <span class="font-serif text-6xl leading-none tabular-nums text-gray-950 dark:text-gray-50 md:text-7xl">
-              {{ stats.quotes?.pending || 0 }}
+          <div class="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-2">
+            <h2 class="font-serif text-3xl text-gray-950 dark:text-gray-50">{{ $t('section_moderation') }}</h2>
+            <span class="text-sm tabular-nums text-gray-500 dark:text-gray-400">
+              {{ stats.quotes?.pending || 0 }} {{ $t('pending_heading') }}
             </span>
-            <span class="text-lg text-gray-600 dark:text-gray-400">{{ $t('pending_heading') }}</span>
           </div>
           <p class="mt-3 max-w-lg text-sm leading-6 text-gray-600 dark:text-gray-400">
             {{ stats.quotes?.pending ? $t('pending_description') : $t('pending_clear') }}
@@ -53,11 +36,6 @@
             {{ $t('action_review_pending') }}
             <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
           </NuxtLink>
-          <p class="mt-5 text-sm text-gray-500 dark:text-gray-400">
-            {{ stats.quotes?.approved || 0 }} {{ $t('stat_approved') }}
-            <span class="mx-2 text-gray-300 dark:text-gray-700">·</span>
-            {{ stats.quotes?.draft || 0 }} {{ Number(stats.quotes?.draft || 0) === 1 ? $t('stat_draft_singular') : $t('stat_draft') }}
-          </p>
         </div>
 
         <div class="border-t border-gray-200 pt-6 dark:border-gray-800 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
@@ -90,12 +68,11 @@
           <span class="text-sm text-gray-500 dark:text-gray-400">{{ $t('period_30_days') }}</span>
         </div>
 
-        <div v-if="stats.recent_activity?.length" class="divide-y divide-gray-200 dark:divide-gray-800">
+        <div v-if="recentActivity.length" class="divide-y divide-gray-200 dark:divide-gray-800">
           <article
-            v-for="(activity, idx) in stats.recent_activity"
+            v-for="activity in recentActivity"
             :key="activity.timestamp + activity.type + activity.user_name"
             class="flex items-start gap-3 py-4 first:pt-2"
-            :style="{ animationDelay: `${Number(idx) * 35}ms` }"
           >
             <NAvatar :src="activity.user_avatar" :alt="activity.user_name" size="xs" class="mt-0.5 shrink-0" />
             <div class="min-w-0 flex-1">
@@ -151,6 +128,7 @@ const stats = ref<Record<string, any>>({})
 const loading = ref(true)
 const loadError = ref(false)
 const hasLoaded = ref(false)
+const recentActivity = computed(() => stats.value.recent_activity?.slice(0, 8) ?? [])
 
 function getActionText(activity: any) {
   if (activity.type === 'quote_submitted') return String($t('action_submitted'))
@@ -187,14 +165,3 @@ onUnmounted(() => {
   if (refreshInterval) clearInterval(refreshInterval)
 })
 </script>
-
-<style scoped>
-@media (prefers-reduced-motion: no-preference) {
-  article { animation: activity-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both; }
-}
-
-@keyframes activity-enter {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>
