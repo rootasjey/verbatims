@@ -48,7 +48,7 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search drafts..."
-          class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+          class="flex-1 font-sans text-sm bg-transparent border-b border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
         <NCombobox
           v-model="selectedLanguage"
@@ -73,7 +73,7 @@
 
     <!-- Skeleton -->
     <div v-if="!hasLoadedOnce && loading" class="space-y-5">
-      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-gray-100 dark:border-gray-800">
         <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" />
         <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-1/2 mb-2" />
         <div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
@@ -93,7 +93,7 @@
     <!-- Table -->
     <div v-else-if="hasLoadedOnce">
       <!-- Bulk action bar -->
-      <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+      <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
         <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedQuotes.length }} selected</span>
         <OutlinedButton size="sm" @click="showBulkEditDialog = true">Edit Selected</OutlinedButton>
         <OutlinedButton size="sm" variant="primary" @click="showBulkSubmitModal = true">Submit All</OutlinedButton>
@@ -111,10 +111,10 @@
         </button>
       </div>
 
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
-        <table class="w-full">
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto">
+        <table class="w-full min-w-[760px]">
           <thead>
-            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+            <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left">
                 <NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" />
               </th>
@@ -220,7 +220,7 @@
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 rounded-t-2xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -237,7 +237,7 @@
         <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
         <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
         <button
-          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
+          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }} / {{ totalPages }}
