@@ -15,11 +15,11 @@ Keep `/admin/export`. It creates selective, domain-aware Verbatims exports and m
 
 ## Theme creation and automation
 
-New themes now open on the manual editor. The AI-generated suggestion step, AI name button, and AI settings are no longer part of the admin creation journey. Deterministic filter recommendations and the existing theme editing, scheduling, activation, and default controls remain.
+The theme editor still exposes an optional AI-suggestions step in the create dialog, AI naming, and provider settings. Suggestions only populate the editable form; an admin must review and save the theme. Deterministic filter recommendations remain a separate path. The AI workflow is therefore still an existing admin operation and has not been removed.
 
-The older AI endpoints and stored provider settings are retained for now: this pass does not establish whether another client or an existing workflow uses them. Remove those server-side capabilities only after checking usage and deciding a deprecation/migration path.
+The user has expressed a preference for replacing weak automatic generation with deliberate curation, but also asked to preserve existing operations and clarify before deletion. Keep the current AI UI, endpoints, and provider settings until the exact deprecation scope is approved. A code-level review should validate generated names and filters against existing entities before treating suggestions as dependable; prompts alone do not enforce that constraint.
 
-For reproducible curation, `/api/v1/themes/apply` accepts a versioned JSON manifest. The SDK exposes `themes.apply`; the CLI adds `themes apply <file> --dry-run`. The manifest reconciles the required name and filters while retaining IDs for unchanged filters. Supplied translations reconcile by language and include homepage copy; omitted per-translation copy and omitted optional metadata are preserved. Activation and default status are always preserved. The companion SDK repository includes a sample manifest and documents the CLI workflow.
+For reproducible curation, `/api/v1/themes/apply` accepts a versioned JSON manifest. The SDK exposes `themes.apply`; the CLI adds `themes apply <file> --dry-run`. The manifest reconciles the required name and filters while retaining IDs for unchanged filters. Supplied translations reconcile by language and include homepage copy; omitted per-translation copy and omitted optional metadata are preserved. Activation and default status are always preserved. The companion SDK repository includes a sample manifest and documents the CLI workflow. This is a more reviewable authoring path, but it complements rather than currently replaces the in-admin AI suggestions.
 
 ## Operations retained
 
