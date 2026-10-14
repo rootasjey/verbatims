@@ -7,6 +7,11 @@
       </h1>
     </div>
 
+    <aside class="mb-6 flex max-w-4xl items-start gap-3 border-y border-gray-200 py-4 text-sm leading-6 text-gray-600 dark:border-gray-800 dark:text-gray-400">
+      <NIcon name="i-ph-info" class="mt-1 h-4 w-4 shrink-0" />
+      <p>{{ $t('export_scope_note') }}</p>
+    </aside>
+
     <!-- Alert Messages -->
     <div class="mb-6 space-y-4">
       <div v-if="dataExport.state.successMessage" class="font-sans text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 border border-dashed border-green-200 dark:border-green-700 flex items-center justify-between gap-2">

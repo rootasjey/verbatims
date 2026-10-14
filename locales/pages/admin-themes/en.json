@@ -25,7 +25,7 @@
   "dialog_edit_title": "Edit Theme",
   "dialog_create_title": "Create Theme",
   "dialog_edit_desc": "Edit the theme details below",
-  "dialog_create_desc": "Create a new theme manually or using AI suggestions",
+  "dialog_create_desc": "Create a curated theme by setting its details, appearance, and filters.",
   "dialog_generating": "Generating suggestions...",
   "dialog_ai": "Generate with AI",
   "dialog_ai_tooltip": "Generates creative theme ideas using an AI language model...",

@@ -10,7 +10,7 @@
       <aside
         id="admin-sidebar"
         :class="[
-          'fixed inset-y-0 left-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r b-dashed border-gray-200 dark:border-gray-700 pt-16 transition-all duration-300 ease-in-out z-40',
+          'fixed inset-y-0 left-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r border-gray-200 dark:border-gray-800 pt-16 transition-all duration-300 ease-in-out z-40',
           sidebarCollapsed ? 'w-16' : 'w-64',
           'lg:translate-x-0',
           sidebarOpen ? 'translate-x-0 mt-0' : '-translate-x-full mt-1.5',
@@ -39,7 +39,7 @@
           </div>
 
           <!-- Navigation Menu -->
-          <nav :class="['flex-1 py-6 space-y-1 overflow-y-auto', sidebarCollapsed ? 'px-2' : 'px-3']">
+          <nav :class="['admin-navigation flex-1 py-6 space-y-1 overflow-y-auto', sidebarCollapsed ? 'px-2' : 'px-3']">
             <!-- Admin Overview -->
             <NTooltip :content="sidebarCollapsed ? ($t('admin.nav.overview') as string) : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
               <NuxtLink
@@ -442,9 +442,9 @@
       />
 
       <!-- Main Content -->
-      <main :class="['flex-1 transition-all duration-300 pb-28 md:pb-0', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
+    <main :class="['min-w-0 flex-1 transition-all duration-300 pb-28 md:pb-0', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
-        <div class="lg:hidden bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-800 px-4 py-3">
+        <div class="lg:hidden bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-gray-200 dark:border-gray-800 px-4 py-3">
           <div class="flex items-center justify-between">
             <button @click="sidebarOpen = true" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
               <NIcon name="i-ph-list-bold" class="w-5 h-5" />
@@ -523,6 +523,12 @@ watch(sidebarCollapsed, (val) => {
   } catch (e) {}
 })
 </script>
+
+<style scoped>
+:deep(.admin-navigation a) {
+  border-radius: 0.5rem;
+}
+</style>
 
 <style>
 [data-highlighted="true"] {
