@@ -33,6 +33,7 @@
   "error_password_mismatch": "Les nouveaux mots de passe ne correspondent pas.",
   "error_save_password": "Échec de la mise à jour du mot de passe.",
   "section_privacy": "Confidentialité et visibilité",
+  "coming_soon": "Bientôt disponible",
   "label_public_profile": "Profil public",
   "desc_public_profile": "Permettre aux autres de voir votre profil et vos collections publiques.",
   "label_show_attribution": "Afficher l'attribution",
@@ -48,9 +49,8 @@
   "label_weekly_digest": "Résumé hebdomadaire",
   "desc_weekly_digest": "Recevez un résumé hebdomadaire des nouvelles citations et activités.",
   "section_danger_zone": "Compte et données",
-  "heading_delete_account": "Supprimer le compte",
   "desc_delete_account": "Supprimez définitivement votre compte et toutes les données associées. Cette action est irréversible.",
-  "button_delete_account": "Supprimer le compte",
+  "button_delete_account": "Supprimer mon compte",
   "dialog_delete_title": "Supprimer le compte",
   "dialog_delete_body": "Êtes-vous sûr de vouloir supprimer votre compte ? Ceci supprimera définitivement :",
   "dialog_delete_item_profile": "Votre profil et vos informations de compte",
@@ -61,7 +61,5 @@
   "dialog_delete_warning": "Cette action est irréversible.",
   "dialog_delete_confirm": "Supprimer mon compte",
   "error_save_profile": "Échec de l'enregistrement du profil.",
-  "error_save_notifications": "Échec de l'enregistrement des notifications.",
-  "error_save_privacy": "Échec de l'enregistrement des paramètres de confidentialité.",
   "error_delete_account": "Échec de la suppression du compte."
 }
