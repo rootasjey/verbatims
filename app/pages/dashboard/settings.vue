@@ -58,13 +58,19 @@
         <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_email') }}</p>
       </div>
       <div>
-        <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_bio') }}</label>
-        <textarea
-          v-model="profileForm.bio"
-          :placeholder="$t('placeholder_bio') as string"
-          rows="4"
-          class="w-full resize-y rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm leading-relaxed text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
-        />
+        <label for="profile-bio" class="sr-only">{{ $t('label_bio') }}</label>
+        <div class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 pt-2.5 transition-colors focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:focus-within:border-gray-400 dark:focus-within:ring-white/10">
+          <span aria-hidden="true" class="inline-flex rounded bg-[#e4e2db] px-2 py-1 font-sans text-xs font-600 text-gray-700 dark:bg-white/[0.1] dark:text-gray-300">
+            {{ $t('label_bio') }}
+          </span>
+          <textarea
+            id="profile-bio"
+            v-model="profileForm.bio"
+            :placeholder="$t('placeholder_bio') as string"
+            rows="4"
+            class="w-full resize-y bg-transparent py-2 font-sans text-sm leading-relaxed text-gray-900 placeholder-gray-600 outline-none dark:text-gray-100 dark:placeholder-gray-400"
+          />
+        </div>
       </div>
       <div class="pt-2">
         <NButton
@@ -115,16 +121,40 @@
       <Transition name="password-form">
         <div v-if="showPasswordForm" id="password-change-form" class="space-y-6">
           <div>
-            <label for="current-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_current_password') }}</label>
-            <input ref="currentPasswordInput" id="current-password" v-model="passwordForm.currentPassword" type="password" autocomplete="current-password" :placeholder="currentPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
+            <label for="current-password" class="sr-only">{{ $t('label_current_password') }}</label>
+            <div class="flex min-h-11 w-full items-center gap-2 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 transition-colors focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:focus-within:border-gray-400 dark:focus-within:ring-white/10">
+              <span aria-hidden="true" class="hidden shrink-0 rounded bg-[#e4e2db] px-2 py-1 font-sans text-xs font-600 text-gray-700 sm:inline-flex dark:bg-white/[0.1] dark:text-gray-300">{{ $t('label_current_password') }}</span>
+              <NTooltip :content="$t('label_current_password') as string" :_tooltip-content="{ side: 'top', sideOffset: 8 }">
+                <span class="inline-flex h-7 w-7 shrink-0 cursor-help items-center justify-center rounded bg-[#e4e2db] text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/25 sm:hidden dark:bg-white/[0.1] dark:text-gray-300 dark:focus-visible:ring-white/30" tabindex="0" :aria-label="$t('label_current_password') as string">
+                  <NIcon name="i-ph-lock-key" class="h-4 w-4" />
+                </span>
+              </NTooltip>
+              <input ref="currentPasswordInput" id="current-password" v-model="passwordForm.currentPassword" type="password" autocomplete="current-password" :placeholder="currentPasswordPlaceholder" class="min-w-0 flex-1 bg-transparent py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 outline-none dark:text-gray-100 dark:placeholder-gray-400" />
+            </div>
           </div>
           <div>
-            <label for="new-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_new_password') }}</label>
-            <input id="new-password" v-model="passwordForm.newPassword" type="password" autocomplete="new-password" :placeholder="newPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
+            <label for="new-password" class="sr-only">{{ $t('label_new_password') }}</label>
+            <div class="flex min-h-11 w-full items-center gap-2 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 transition-colors focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:focus-within:border-gray-400 dark:focus-within:ring-white/10">
+              <span aria-hidden="true" class="hidden shrink-0 rounded bg-[#e4e2db] px-2 py-1 font-sans text-xs font-600 text-gray-700 sm:inline-flex dark:bg-white/[0.1] dark:text-gray-300">{{ $t('label_new_password') }}</span>
+              <NTooltip :content="$t('label_new_password') as string" :_tooltip-content="{ side: 'top', sideOffset: 8 }">
+                <span class="inline-flex h-7 w-7 shrink-0 cursor-help items-center justify-center rounded bg-[#e4e2db] text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/25 sm:hidden dark:bg-white/[0.1] dark:text-gray-300 dark:focus-visible:ring-white/30" tabindex="0" :aria-label="$t('label_new_password') as string">
+                  <NIcon name="i-ph-lock" class="h-4 w-4" />
+                </span>
+              </NTooltip>
+              <input id="new-password" v-model="passwordForm.newPassword" type="password" autocomplete="new-password" :placeholder="newPasswordPlaceholder" class="min-w-0 flex-1 bg-transparent py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 outline-none dark:text-gray-100 dark:placeholder-gray-400" />
+            </div>
           </div>
           <div>
-            <label for="confirm-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_confirm_password') }}</label>
-            <input id="confirm-password" v-model="passwordForm.confirmPassword" type="password" autocomplete="new-password" :placeholder="confirmPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
+            <label for="confirm-password" class="sr-only">{{ $t('label_confirm_password') }}</label>
+            <div class="flex min-h-11 w-full items-center gap-2 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 transition-colors focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:focus-within:border-gray-400 dark:focus-within:ring-white/10">
+              <span aria-hidden="true" class="hidden shrink-0 rounded bg-[#e4e2db] px-2 py-1 font-sans text-xs font-600 text-gray-700 sm:inline-flex dark:bg-white/[0.1] dark:text-gray-300">{{ $t('label_confirm_password') }}</span>
+              <NTooltip :content="$t('label_confirm_password') as string" :_tooltip-content="{ side: 'top', sideOffset: 8 }">
+                <span class="inline-flex h-7 w-7 shrink-0 cursor-help items-center justify-center rounded bg-[#e4e2db] text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/25 sm:hidden dark:bg-white/[0.1] dark:text-gray-300 dark:focus-visible:ring-white/30" tabindex="0" :aria-label="$t('label_confirm_password') as string">
+                  <NIcon name="i-ph-lock-key-open" class="h-4 w-4" />
+                </span>
+              </NTooltip>
+              <input id="confirm-password" v-model="passwordForm.confirmPassword" type="password" autocomplete="new-password" :placeholder="confirmPasswordPlaceholder" class="min-w-0 flex-1 bg-transparent py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 outline-none dark:text-gray-100 dark:placeholder-gray-400" />
+            </div>
           </div>
           <p v-if="passwordError" class="font-sans text-xs text-red-700 dark:text-red-400" role="alert">{{ passwordError }}</p>
           <p v-else-if="passwordMessage" class="font-sans text-xs text-gray-700 dark:text-gray-300" role="status">{{ passwordMessage }}</p>
