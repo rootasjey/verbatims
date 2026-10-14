@@ -17,6 +17,13 @@
   "empty_desc": "Créez une liste à partir de n'importe quelle citation en appuyant sur \"Ajouter à une collection\".",
   "delete_dialog_title": "Supprimer la liste",
   "delete_dialog_body": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible.",
+  "select_button": "Sélectionner les listes",
+  "select_this_list": "Sélectionner cette liste",
+  "select_list": "Sélectionner la liste : {name}",
+  "delete_selected_action": "Supprimer les listes sélectionnées",
+  "delete_selected_title": "Supprimer {count} listes ?",
+  "delete_selected_body": "Les listes sélectionnées et leurs associations aux citations seront supprimées. Les citations elles-mêmes seront conservées.",
+  "delete_selected_error": "Impossible de supprimer les listes sélectionnées. Veuillez réessayer.",
   "label_edit": "Modifier",
   "label_delete": "Supprimer",
   "action_view": "Voir la collection"

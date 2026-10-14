@@ -17,6 +17,13 @@
   "empty_desc": "Create a list from any quote by tapping \"Add to collection\".",
   "delete_dialog_title": "Delete List",
   "delete_dialog_body": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "select_button": "Select lists",
+  "select_this_list": "Select this list",
+  "select_list": "Select list: {name}",
+  "delete_selected_action": "Delete selected lists",
+  "delete_selected_title": "Delete {count} lists?",
+  "delete_selected_body": "The selected lists and their saved list memberships will be deleted. The quotes themselves will remain.",
+  "delete_selected_error": "Could not delete the selected lists. Please try again.",
   "label_edit": "Edit",
   "label_delete": "Delete",
   "action_view": "View Collection"
