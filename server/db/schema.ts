@@ -349,6 +349,20 @@ export const emailVerificationTokens = sqliteTable('email_verification_tokens', 
   expiresIdx: index('idx_email_verification_tokens_expires').on(table.expiresAt),
 }))
 
+export const emailChangeTokens = sqliteTable('email_change_tokens', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  newEmail: text('new_email').notNull(),
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  userIdx: index('idx_email_change_tokens_user').on(table.userId),
+  emailIdx: index('idx_email_change_tokens_email').on(table.newEmail),
+  expiresIdx: index('idx_email_change_tokens_expires').on(table.expiresAt),
+}))
+
 export const userSessions = sqliteTable('user_sessions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
