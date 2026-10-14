@@ -624,6 +624,7 @@
     },
     "user_menu": {
       "home": "Home",
+      "my_space": "My space",
       "dashboard": "Dashboard",
       "collections": "My Collections",
       "submissions": "My Submissions",

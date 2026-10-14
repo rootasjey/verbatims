@@ -51,7 +51,6 @@
         </div>
 
         <span class="flex-1" aria-hidden="true" />
-        <UserMenu v-if="isDashboardPage && user" :user="user" />
         <NButton
           v-if="route.path === '/' && homeTheme"
           icon
@@ -140,9 +139,46 @@
           <NuxtLink v-for="(item, index) in mobileMenuItems.filter(item => item.to)" :key="item.to" :to="item.to!" class="mobile-site-menu-link" :style="{ '--menu-index': index }" @click="closeMobileMenu">
             {{ item.label }}
           </NuxtLink>
-          <button type="button" class="mobile-site-menu-link text-left" style="--menu-index: 4" @click="openContribution">
-            {{ $t('nav.contribute') }}
-          </button>
+          <details class="group border-t border-black/10 pt-5 dark:border-white/15" style="--menu-index: 4">
+            <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between font-sans text-xl font-500 text-gray-900 dark:text-gray-100">
+              {{ $t('nav.contribute') }}
+              <span class="flex items-center gap-3">
+                <NAvatar v-if="user" size="2" :src="user.avatar_url" :alt="user.name">
+                  <template #fallback><NIcon name="i-ph-user-circle" class="h-6 w-6" /></template>
+                </NAvatar>
+                <NIcon name="i-ph-caret-down" class="transition-transform group-open:rotate-180" />
+              </span>
+            </summary>
+            <div class="mt-3 grid gap-1 pl-1">
+              <button v-if="user" type="button" class="flex min-h-11 items-center gap-3 py-2 font-sans text-base text-gray-700 dark:text-gray-300" @click="openContribution">
+                <NIcon name="i-ph-quotes-duotone" />{{ $t('nav.add_quote') }}
+              </button>
+              <button type="button" class="flex min-h-11 items-center gap-3 py-2 font-sans text-base text-gray-700 dark:text-gray-300" @click="openMobileReport">
+                <NIcon name="i-ph-bug-duotone" />{{ $t('nav.report_issue') }}
+              </button>
+              <NuxtLink to="/sponsor" class="flex min-h-11 items-center gap-3 py-2 font-sans text-base text-gray-700 dark:text-gray-300" @click="closeMobileMenu">
+                <NIcon name="i-ph-megaphone-duotone" />{{ $t('components.masthead.sponsor') }}
+              </NuxtLink>
+              <NuxtLink v-if="!user" to="/login" class="flex min-h-11 items-center gap-3 py-2 font-sans text-base text-gray-700 dark:text-gray-300" @click="closeMobileMenu">
+                <NIcon name="i-ph-sign-in" />{{ $t('nav.sign_in') }}
+              </NuxtLink>
+
+              <details v-if="user" class="group mt-3 border-t border-black/10 pt-3 dark:border-white/15">
+                <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between font-sans text-base font-600 text-gray-700 dark:text-gray-300">
+                  {{ $t('components.user_menu.my_space') }}
+                  <NIcon name="i-ph-caret-down" class="transition-transform group-open:rotate-180" />
+                </summary>
+                <div class="mt-2 grid gap-1">
+                  <NuxtLink v-for="item in mobileAccountLinks" :key="item.to" :to="item.to" class="flex min-h-11 items-center gap-3 py-2 font-sans text-base text-gray-700 dark:text-gray-300" @click="closeMobileMenu">
+                    <NIcon :name="item.icon" />{{ item.label }}
+                  </NuxtLink>
+                </div>
+              </details>
+              <button v-if="user" type="button" class="mt-2 flex min-h-11 items-center gap-3 border-t border-black/10 pt-3 text-left font-sans text-base text-gray-700 dark:border-white/15 dark:text-gray-300" @click="signOutMobile">
+                <NIcon name="i-ph-sign-out" />{{ $t('components.user_menu.sign_out') }}
+              </button>
+            </div>
+          </details>
         </nav>
 
         <details class="group mt-10 border-t border-black/10 pt-5 dark:border-white/15">
@@ -260,7 +296,7 @@ const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
 const { locale } = useI18nLocale()
-const { user } = useUserSession()
+const { user, clear } = useUserSession()
 
 watch(() => route.path, (path, previousPath) => {
   if (!path.startsWith('/dashboard') || !previousPath.startsWith('/dashboard')) return
@@ -284,7 +320,17 @@ const mobileMenuItems = computed(() => [
   { label: String($t('nav.authors')), leading: 'i-ph-users-three', to: '/authors' },
   { label: String($t('nav.references')), leading: 'i-ph-book-open-text', to: '/references' },
   { label: String($t('nav.about')), leading: 'i-ph-info', to: '/about' },
-  { label: String($t('nav.contribute')), leading: 'i-ph-plus-circle', onclick: () => { showAddQuote.value = true } },
+])
+
+const mobileAccountLinks = computed(() => [
+  { to: '/dashboard', icon: 'i-ph-house', label: String($t('components.user_menu.dashboard')) },
+  { to: '/dashboard/lists', icon: 'i-ph-bookmark', label: String($t('components.user_menu.collections')) },
+  { to: '/dashboard/my-quotes/pending', icon: 'i-ph-file-text', label: String($t('components.user_menu.submissions')) },
+  { to: '/dashboard/favourites', icon: 'i-ph-heart', label: String($t('components.user_menu.liked')) },
+  { to: '/dashboard/settings', icon: 'i-ph-gear', label: String($t('components.user_menu.settings')) },
+  ...((user.value?.role === 'admin' || user.value?.role === 'moderator')
+    ? [{ to: '/admin', icon: 'i-ph-shield-check', label: String($t('components.user_menu.admin')) }]
+    : [])
 ])
 
 const mobileInformationLinks = computed(() => [
@@ -351,6 +397,17 @@ const closeMobileMenu = () => {
 const openContribution = () => {
   closeMobileMenu()
   showAddQuote.value = true
+}
+
+const openMobileReport = () => {
+  closeMobileMenu()
+  showReportDrawer.value = true
+}
+
+const signOutMobile = async () => {
+  closeMobileMenu()
+  await clear()
+  await navigateTo('/')
 }
 
 const handleMobileMenuKeydown = (event: KeyboardEvent) => {
