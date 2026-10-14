@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
+  <div data-admin-workbench class="min-h-screen bg-[#FAFAF9] text-gray-950 dark:bg-[#0C0A09] dark:text-gray-50">
     <AppHeader 
       :left-pad-class="[(sidebarOpen ? 'lg:pl-64 md:pl-12 pl-12' : ''), (sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64')].join(' ')" 
     />
@@ -10,7 +10,7 @@
       <aside
         id="admin-sidebar"
         :class="[
-          'fixed inset-y-0 left-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r border-gray-200 dark:border-gray-800 pt-16 transition-all duration-300 ease-in-out z-40',
+          'fixed inset-y-0 left-0 border-r border-gray-200 pt-16 transition-all duration-300 ease-in-out z-40 dark:border-white/10',
           sidebarCollapsed ? 'w-16' : 'w-64',
           'lg:translate-x-0',
           sidebarOpen ? 'translate-x-0 mt-0' : '-translate-x-full mt-1.5',
@@ -18,7 +18,7 @@
       >
         <div class="flex flex-col h-full overflow-hidden">
           <!-- Sidebar Header (mobile) -->
-          <div class="flex items-center justify-between px-3 py-4 border-b border-gray-100 dark:border-gray-800 lg:hidden">
+          <div class="flex items-center justify-between px-3 py-4 border-b border-gray-200 dark:border-white/10 lg:hidden">
             <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">{{ $t('admin.title') }}</h2>
             <button @click="sidebarOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               <NIcon name="i-ph-x" class="w-4 h-4" />
@@ -26,12 +26,12 @@
           </div>
 
           <!-- Desktop Collapse Toggle -->
-          <div class="hidden lg:flex justify-center py-3 border-b border-gray-100 dark:border-gray-800">
+          <div class="hidden lg:flex justify-center py-3 border-b border-gray-200 dark:border-white/10">
             <button
               :title="sidebarCollapsed ? ($t('admin.expand_sidebar') as string) : ($t('admin.collapse_sidebar') as string)"
               :aria-expanded="!sidebarCollapsed"
               aria-controls="admin-sidebar"
-              class="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+              class="grid h-8 w-8 place-items-center rounded-md text-gray-500 transition-colors hover:bg-black/5 hover:text-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
               @click="sidebarCollapsed = !sidebarCollapsed"
             >
               <NIcon :name="sidebarCollapsed ? 'i-ph-caret-right' : 'i-ph-caret-left'" class="w-4 h-4" />
@@ -442,9 +442,9 @@
       />
 
       <!-- Main Content -->
-    <main :class="['min-w-0 flex-1 transition-all duration-300 pb-28 md:pb-0', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
+    <main :class="['admin-main min-w-0 flex-1 transition-all duration-300 pb-28 md:pb-0', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
-        <div class="lg:hidden bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+        <div class="lg:hidden border-b border-gray-200 px-4 py-3 dark:border-white/10">
           <div class="flex items-center justify-between">
             <button @click="sidebarOpen = true" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
               <NIcon name="i-ph-list-bold" class="w-5 h-5" />
@@ -454,7 +454,7 @@
         </div>
 
         <!-- Page Content -->
-        <div class="p-4 sm:p-6 lg:p-8">
+        <div data-admin-content class="p-4 sm:p-6 lg:p-8">
           <slot />
         </div>
       </main>
@@ -533,5 +533,98 @@ watch(sidebarCollapsed, (val) => {
 <style>
 [data-highlighted="true"] {
   scroll-margin-top: 5rem;
+}
+
+[data-admin-workbench] {
+  --admin-sidebar-surface: #f0efe9;
+  --admin-control-surface: #f0efe9;
+  --admin-table-surface: #f0efe9;
+  --admin-table-header: #e6e4dd;
+  --admin-border: #d8d4cb;
+  --admin-nav-hover: #eae8e1;
+  --admin-nav-active: #e6e4dd;
+  --admin-focus: #57534e;
+}
+
+.dark [data-admin-workbench] {
+  --admin-sidebar-surface: #17191e;
+  --admin-control-surface: rgb(255 255 255 / 6%);
+  --admin-table-surface: #17191e;
+  --admin-table-header: #202126;
+  --admin-border: rgb(255 255 255 / 10%);
+  --admin-nav-hover: rgb(255 255 255 / 7%);
+  --admin-nav-active: rgb(255 255 255 / 11%);
+  --admin-focus: #a8a29e;
+}
+
+[data-admin-workbench] #admin-sidebar {
+  background-color: var(--admin-sidebar-surface);
+  border-color: var(--admin-border);
+}
+
+[data-admin-workbench] .admin-navigation a {
+  min-height: 2.5rem;
+  border-radius: 0.5rem;
+}
+
+[data-admin-workbench] .admin-navigation a:hover {
+  background-color: var(--admin-nav-hover);
+}
+
+[data-admin-workbench] .admin-navigation a[aria-current="page"] {
+  background-color: var(--admin-nav-active);
+  color: #1c1917;
+  font-weight: 600;
+}
+
+.dark [data-admin-workbench] .admin-navigation a[aria-current="page"] {
+  color: #fafaf9;
+}
+
+[data-admin-workbench] .admin-navigation a:focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 2px;
+}
+
+[data-admin-workbench] .admin-navigation > div:not(:first-child) {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--admin-border);
+  padding-top: 1rem;
+}
+
+[data-admin-content] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-color: var(--admin-border);
+  border-radius: 0.5rem;
+  background-color: var(--admin-control-surface);
+}
+
+[data-admin-content] :is(input, select, textarea):focus-visible {
+  border-color: var(--admin-focus);
+  outline: 2px solid color-mix(in srgb, var(--admin-focus) 24%, transparent);
+  outline-offset: 1px;
+}
+
+[data-admin-content] div:has(> table),
+[data-admin-content] table {
+  background-color: var(--admin-table-surface);
+  border-color: var(--admin-border);
+}
+
+[data-admin-content] table thead tr {
+  background-color: var(--admin-table-header) !important;
+}
+
+[data-admin-content] div[class*="bottom-0"][class*="z-20"] {
+  background-color: var(--admin-sidebar-surface);
+  border-color: var(--admin-border);
+  box-shadow: 0 -6px 18px rgb(12 10 9 / 6%);
+}
+
+.dark [data-admin-content] div[class*="bottom-0"][class*="z-20"] {
+  box-shadow: 0 -6px 18px rgb(0 0 0 / 24%);
+}
+
+[data-admin-content] div[class*="bottom-0"][class*="z-20"] button {
+  border-radius: 9999px;
 }
 </style>

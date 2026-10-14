@@ -17,6 +17,8 @@ The audit found three areas that should be treated as defects or operational haz
 
 The app-level export is not a duplicate of Cloudflare D1 export: it is a selective Verbatims data export with app history/backups, while Wrangler's D1 export is database-level SQL. Keep both roles distinct. Keep AI theme suggestions available for now as an optional, reviewed aid; the code does not provide enough usage or quality evidence to justify removing it. The manifest-based API/SDK/CLI path is a more reproducible curation mechanism, but does not itself prove the in-admin AI workflow is unused.
 
+**Product decisions recorded during review:** Harvest and Social are needed and should remain. The Sponsors capability is undecided and is deferred to a future product brainstorming session; do not remove it based on this audit.
+
 ## Route inventory and recommendation
 
 | Admin route | Current purpose found in code | Recommendation | Confidence |
@@ -29,11 +31,11 @@ The app-level export is not a duplicate of Cloudflare D1 export: it is a selecti
 | `/admin/references` | Reference CRUD, merge, enrichment preview/apply, public-page access. | **Keep.** Same rationale as authors. | High |
 | `/admin/tags` | Tag taxonomy CRUD, color updates, bulk selection and quote-tag backfill. | **Keep.** The backfill is a maintenance tool; retain it behind an explicit operation. | High |
 | `/admin/themes` | Curate homepage/editorial themes, translations and filters; activate/default; optional AI naming/suggestions and provider settings. | **Keep the theme editor.** Keep AI optional pending real quality/usage evidence and an explicit deprecation decision. Prefer the manifest workflow for repeatable authored themes. | High |
-| `/admin/harvest` | Search supported quote sources, inspect/select candidates, detect duplicates and import candidates. | **Conditional keep.** Distinct from backup/data import, but its value depends on permitted source coverage, duplicate quality, and actual use. Track these before considering removal. | Medium |
+| `/admin/harvest` | Search supported quote sources, inspect/select candidates, detect duplicates and import candidates. | **Keep — user confirmed it is needed.** Continue monitoring source reliability, terms and duplicate quality. | High |
 | `/admin/enrichment` | Configure and process author/reference enrichment jobs; inspect and apply proposed changes. | **Keep if enrichment remains part of editorial operations.** | High |
 | `/admin/enrichment-audit` | Audit missing/weak author/reference data and download audit results. | **Keep, but group with Enrichment.** It answers a quality-audit question; the queue applies changes, so these are related rather than duplicates. | High |
-| `/admin/social-queue` | Configure supported social providers, design images, manage queued posts, reorder/retry/run/clear items. | **Conditional keep.** Keep while the social publishing workflow is used; consider separating provider configuration from queue operations if the page becomes hard to navigate. | High |
-| `/admin/sponsors` | Create, schedule, approve and manage sponsor messages shown within the application. | **Conditional keep.** Keep while sponsorship messages are an active product capability; actual use is not inferable from source alone. | High |
+| `/admin/social-queue` | Configure supported social providers, design images, manage queued posts, reorder/retry/run/clear items. | **Keep — user confirmed it is needed.** Consider separating provider configuration from queue operations only if the page becomes hard to navigate. | High |
+| `/admin/sponsors` | Create, schedule, approve and manage sponsor messages shown within the application. | **Defer.** Revisit prominence and keep/remove decision in a future product brainstorming session; do not remove it now. | High |
 | `/admin/messages` | Triage user feedback/reports by status, category and target; bulk status updates. | **Keep — support and moderation inbox.** | High |
 | `/admin/users` | Search accounts, create/update roles and account state, bulk or individual deletion. | **Keep — essential account administration.** Preserve strong admin-only guards for destructive/privileged changes. | High |
 | `/admin/api-keys` | Manage application API keys, permissions, tiers and rate limits. | **Keep if the public API is supported.** This is distinct from user self-service keys by scope; clarify the distinction in navigation/copy. | High |
@@ -97,6 +99,7 @@ Backup list, statistics, bulk-delete, and expired-cleanup endpoints exist, while
 - Quote moderation and catalogue maintenance.
 - Author/reference/tag curation and merge operations.
 - Theme curation and selective Verbatims export.
+- Harvest and Social workflows (user-confirmed needs).
 - User administration, support/report inbox, and API-key management where the public API is supported.
 - Import/export as separate data portability workflows, once import-history safety defects are fixed.
 
@@ -113,9 +116,9 @@ Keep individual routes/bookmarks and role checks intact if navigation is reorgan
 
 ### Defer pending evidence or an explicit product decision
 
-- **Harvest:** Check source reliability/terms, duplicate rate, accepted quote rate, and last use. No code-only signal proves it is dispensable.
-- **Social queue:** Check whether configured provider connections and queue completion/failure logs show ongoing use. Separate connection setup from queue editing only if the page complexity warrants it.
-- **Sponsor messages:** Check if the sponsorship feature is active and has current/future messages before retaining its prominence.
+- **Harvest:** Keep; continue checking source reliability/terms, duplicate rate, accepted quote rate, and last use to improve the workflow.
+- **Social queue:** Keep; review whether provider configuration and queue controls should be separated only if the page complexity warrants it.
+- **Sponsor messages:** Defer the keep/remove and navigation-prominence discussion to a future brainstorming session. Preserve the capability in the meantime.
 - **AI theme generation/suggestions:** Keep optional and human-reviewed. Compare accepted/edited/discarded suggestions and failure rates with manually authored manifest themes before deciding whether to retire it. The existing `/api/v1/themes/apply` + SDK/CLI manifest route is the more deterministic authoring path, but it is complementary until the old workflow is explicitly deprecated.
 - **Orphan admin endpoints:** Search access logs and deployment/SDK scripts before removal. Repository-only absence is not proof of no external caller.
 
@@ -123,11 +126,11 @@ Keep individual routes/bookmarks and role checks intact if navigation is reorgan
 
 Source code shows capability, guards, and in-repository callers; it does not show which admin tools people actually use, whether external automation calls an endpoint, whether a provider is actively configured in production, or whether AI output is good enough. A usage-based keep/remove decision needs privacy-conscious event counts and outcome signals (for example, last successful run, jobs completed, candidates accepted/rejected, export/import frequency), not assumptions from route names.
 
-This is a product/functionality audit, not a complete penetration test, authorization audit, production-data audit, or browser test of every admin workflow. The recent visual spot-check covered the overview and themes at a desktop viewport; it does not certify every admin route or mobile layout.
+This is a product/functionality audit, not a complete penetration test, authorization audit, production-data audit, or browser test of every admin workflow. The visual spot-check covered the overview at desktop and the authors table with loaded records at desktop and mobile viewports; it does not certify every admin route or mobile layout.
 
 ## Suggested order of work
 
 1. Fix/guard the import-history contract and no-op actions; repair rollback as a separately tested destructive workflow.
 2. Reconcile database reset semantics with the actual schema and make it explicitly break-glass.
-3. Add minimal usage/outcome telemetry or inspect existing operational logs for Harvest, Social, Sponsors, and AI themes.
-4. Use that evidence to make explicit keep/retire decisions, then regroup the sidebar without removing route/API compatibility prematurely.
+3. Add minimal usage/outcome telemetry or inspect existing operational logs for Harvest, Social, and AI themes; discuss Sponsors separately in a future brainstorming session.
+4. Regroup the sidebar without removing route/API compatibility prematurely; preserve Harvest and Social, and revisit Sponsors only after the product discussion.
