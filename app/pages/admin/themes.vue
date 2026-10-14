@@ -1,14 +1,14 @@
 <template>
   <div>
     <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+    <div class="pb-6 mb-6 border-b border-gray-200 dark:border-gray-800">
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">{{ $t('title') }}</h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalThemes }} {{ totalThemes === 1 ? 'theme' : 'themes' }}</p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48" />
+          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 w-56" />
           <NCombobox
             v-model="selectedSort"
             :items="sortOptions"
@@ -20,19 +20,30 @@
               btn: 'ghost-gray',
               size: 'sm',
               trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              class: 'gap-1 px-3 text-sm font-normal w-fit min-w-0 rounded-lg border border-gray-200 dark:border-gray-700',
             }"
           >
             <template #trigger="{ modelValue }">
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
-          <OutlinedButton size="md" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
+          <OutlinedButton size="md" class="rounded-lg" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
         </div>
       </div>
-      <div class="md:hidden mt-4 flex items-center gap-3">
-        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="min-w-0 flex-1 font-sans text-sm bg-transparent border-b border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
-        <OutlinedButton size="sm" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
+      <div class="md:hidden mt-4 space-y-3">
+        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500" />
+        <div class="flex items-center justify-between gap-3">
+          <NCombobox
+            v-model="selectedSort"
+            :items="sortOptions"
+            by="value"
+            :_combobox-list="{ class: 'min-w-[180px]' }"
+            :_combobox-trigger="{ btn: 'ghost-gray', size: 'sm', trailing: '', class: 'gap-1 px-3 text-sm font-normal w-fit min-w-0 rounded-lg border border-gray-200 dark:border-gray-700' }"
+          >
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
+          <OutlinedButton size="sm" class="rounded-lg" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
+        </div>
       </div>
     </div>
 
@@ -44,7 +55,7 @@
     </div>
 
     <!-- Empty -->
-    <div v-else-if="themes.length === 0 && !loading" class="py-16 text-center border border-gray-200 dark:border-gray-700 rounded-xl">
+    <div v-else-if="themes.length === 0 && !loading" class="py-12 md:py-16 px-6 text-center border border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-gray-900/30">
       <NIcon name="i-ph-palette" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}</p>
@@ -76,7 +87,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(theme, idx) in themes" :key="theme.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[theme.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+            <tr v-for="(theme, idx) in themes" :key="theme.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-gray-100 dark:bg-gray-800/70': !!rowSelection[theme.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
               <td class="px-3 py-3">
                 <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
                   <NCheckbox checkbox="gray" :model-value="!!rowSelection[theme.id]" @click="rowSelection[theme.id] = !rowSelection[theme.id]" />
@@ -101,16 +112,16 @@
               <td class="px-3 py-3">
                 <div class="flex items-center gap-1.5">
                   <NDropdownMenu v-if="theme.isActive" :items="getStatusActions(theme, 'active')">
-                    <span class="font-sans text-xs px-1.5 py-0.5 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-pointer">{{ $t('status_active') }}</span>
+                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-pointer">{{ $t('status_active') }}</span>
                   </NDropdownMenu>
                   <NDropdownMenu v-else-if="theme.isDefault" :items="getStatusActions(theme, 'default')">
-                    <span class="font-sans text-xs px-1.5 py-0.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-pointer">{{ $t('status_default') }}</span>
+                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-pointer">{{ $t('status_default') }}</span>
                   </NDropdownMenu>
                   <NDropdownMenu v-else-if="theme.scheduledDate" :items="getStatusActions(theme, 'scheduled')">
-                    <span class="font-sans text-xs px-1.5 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 cursor-pointer">{{ $t('status_scheduled') }}</span>
+                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 cursor-pointer">{{ $t('status_scheduled') }}</span>
                   </NDropdownMenu>
                   <NDropdownMenu v-else :items="getStatusActions(theme, 'inactive')">
-                    <span class="font-sans text-xs px-1.5 py-0.5 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-pointer">{{ $t('status_inactive') }}</span>
+                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-pointer">{{ $t('status_inactive') }}</span>
                   </NDropdownMenu>
                 </div>
               </td>
