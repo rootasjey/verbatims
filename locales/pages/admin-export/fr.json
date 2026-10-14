@@ -1,6 +1,7 @@
 {
   "meta_title": "VERBATIMS - Export - Admin",
   "title": "Export de données",
+  "export_scope_note": "Ces exports regroupent une sélection de contenus Verbatims pour les transférer ou les réutiliser. Ce n’est pas une sauvegarde complète de la base ; utilisez l’export SQL D1 de Wrangler pour cela.",
   "tab_export": "Export",
   "tab_history": "Historique",
   "dialog_in_progress": "Export en cours",

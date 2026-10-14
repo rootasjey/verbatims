@@ -1,9 +1,9 @@
 <template>
-  <div class="pt-6">
+  <div class="export-create pt-6">
     <div class="space-y-7">
-      <div class="flex md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <!-- Export -->
-        <div class="max-w-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <section class="min-w-0 rounded-xl border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-900/30 sm:p-5">
           <div class="flex items-center gap-3 mb-4">
             <div>
               <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_create.title') }}</h3>
@@ -44,10 +44,10 @@
               <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $ts('export_create.download_after_export') }}</span>
             </label>
           </div>
-        </div>
+        </section>
 
         <!-- Preview Export -->
-        <div class="max-w-2xl min-w-md border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <section class="min-w-0 rounded-xl border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-900/30 sm:p-5">
           <div class="flex items-center gap-3 mb-4">
             <div>
               <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_create.preview_title') }}</h3>
@@ -67,7 +67,7 @@
             </div>
 
             <!-- Export Preview Results -->
-            <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div class="rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-950/50 sm:p-4">
               <div class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -106,12 +106,12 @@
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
 
-      <div class="flex md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <!-- Export Configuration -->
-        <div class="max-w-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <section class="min-w-0 rounded-xl border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-900/30 sm:p-5">
           <div class="flex items-center gap-3 mb-4">
             <div>
               <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_create.config_title') }}</h3>
@@ -129,10 +129,10 @@
                   v-for="dataType in dataTypeOptions"
                   :key="dataType.value"
                   :disabled="!dataType.available"
-                  class="flex flex-col items-start gap-1 min-w-0 overflow-hidden p-4 text-left border border-dashed active:scale-99 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  class="flex min-w-0 flex-col items-start gap-1 overflow-hidden rounded-lg border p-3 text-left transition-colors active:scale-99 disabled:cursor-not-allowed disabled:opacity-40 sm:p-4"
                   :class="dataExport.exportOptions.value.data_type.value === dataType.value
-                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+                    ? 'border-gray-400 bg-gray-100 text-gray-900 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-100'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60'"
                   @click="dataExport.setDataType({ label: dataType.label, value: dataType.value, available: dataType.available })"
                 >
                   <div class="flex items-center gap-2">
@@ -153,7 +153,7 @@
                   <select
                     :value="dataExport.exportOptions.value.format?.label || ''"
                     @change="formatModel = dataExport.formatOptions.find(o => o.label === ($event.target as HTMLSelectElement).value) ?? dataExport.exportOptions.value.format"
-                    class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer"
+                    class="w-full max-w-sm cursor-pointer rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-300/60 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700/60"
                   >
                     <option value="" disabled>{{ $ts('export_create.select_format') }}</option>
                     <option v-for="opt in dataExport.formatOptions" :key="opt.label" :value="opt.label">{{ opt.label }}</option>
@@ -173,7 +173,7 @@
                   type="number"
                   min="0"
                   placeholder="0"
-                  class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 w-24 focus:outline-none"
+                  class="w-full max-w-sm rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-300/60 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700/60"
                 />
               </div>
             </div>
@@ -206,10 +206,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Filters -->
-        <div class="max-w-2xl min-w-md border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <section class="min-w-0 rounded-xl border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-900/30 sm:p-5">
           <NCollapsible>
             <NCollapsibleTrigger class="w-full">
               <div class="flex items-center justify-between w-full">
@@ -225,7 +225,7 @@
 
             <NCollapsibleContent>
               <div class="pt-4 space-y-6">
-                <div v-if="dataExport.isAllSelected.value" class="rounded-md border border-dashed border-gray-200 dark:border-gray-700 p-3 font-sans text-xs text-gray-500 dark:text-gray-400">
+                <div v-if="dataExport.isAllSelected.value" class="rounded-lg border border-gray-200 bg-gray-50/70 p-3 font-sans text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-950/50 dark:text-gray-400">
                   {{ $ts('export_create.filters_saved_hint') }}
                 </div>
                 <!-- Dynamic Filters based on Data Type -->
@@ -264,7 +264,7 @@
               </div>
             </NCollapsibleContent>
           </NCollapsible>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -337,3 +337,30 @@ const onKeydown = (keyEvent: KeyboardEvent) => {
   }
 }
 </script>
+
+<style scoped>
+.export-create :deep(input:not([type="checkbox"]):not([type="file"])),
+.export-create :deep(select) {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.625rem;
+  background-color: #f9fafb;
+}
+
+.export-create :deep(input:not([type="checkbox"]):not([type="file"]):focus),
+.export-create :deep(select:focus) {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgb(209 213 219 / 0.65);
+}
+
+:global(.dark) .export-create :deep(input:not([type="checkbox"]):not([type="file"])),
+:global(.dark) .export-create :deep(select) {
+  background-color: #030712;
+}
+
+:global(.dark) .export-create :deep(input:not([type="checkbox"]):not([type="file"]):focus),
+:global(.dark) .export-create :deep(select:focus) {
+  box-shadow: 0 0 0 2px rgb(75 85 99 / 0.65);
+}
+</style>

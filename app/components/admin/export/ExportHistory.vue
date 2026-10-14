@@ -1,14 +1,14 @@
 <template>
   <div class="pt-6">
     <div class="space-y-6">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_history.title') }}</h2>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
             {{ $ts('export_history.description') }}
           </p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2">
           <OutlinedButton size="sm" @click="refresh">
             <NIcon name="i-ph-arrow-clockwise" />
             {{ $ts('common.refresh') }}
@@ -48,12 +48,12 @@
           <NCollapsible v-model:open="bulkOpen">
             <NCollapsibleContent>
               <div class="flex-shrink-0 mb-4">
-                <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-                  <div class="flex items-center justify-between">
+                <div class="rounded-xl border border-gray-200 bg-gray-50/80 p-4 dark:border-gray-700 dark:bg-gray-950/50">
+                  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <span class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">
                       {{ selectedEntries.length === 1 ? $ts('export_history.entry_selected', { count: selectedEntries.length }) : $ts('export_history.entries_selected', { count: selectedEntries.length }) }}
                     </span>
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
                       <OutlinedButton size="sm" :loading="bulkDownloading" @click="bulkDownload">
                         <NIcon name="i-ph-download" />
                         {{ $ts('export_history.download_selected') }}
@@ -78,7 +78,7 @@
           <div class="flex-1 overflow-auto">
             <table class="w-full border-collapse">
               <thead>
-                <tr class="border-b border-dashed border-gray-200 dark:border-gray-700">
+                <tr class="border-b border-gray-200 dark:border-gray-700">
                   <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-6">
                     <div class="flex items-center justify-center gap-1">
                       <template v-if="selectionMode">
@@ -106,7 +106,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="entry in dataExport.state.exportHistory" :key="entry.id" class="border-b border-dashed border-gray-100 dark:border-gray-800">
+                <tr v-for="entry in dataExport.state.exportHistory" :key="entry.id" class="border-b border-gray-100 transition-colors hover:bg-gray-50/80 dark:border-gray-800 dark:hover:bg-gray-900/60">
                   <td class="px-3 py-2">
                     <template v-if="!selectionMode">
                       <NDropdownMenu :items="getEntryActions(entry)">
@@ -170,7 +170,7 @@
             </table>
           </div>
 
-          <div class="flex-shrink-0 flex items-center justify-between mt-4 p-4 border border-dashed border-gray-200 dark:border-gray-700">
+          <div class="flex flex-shrink-0 flex-col gap-3 rounded-xl border border-gray-200 bg-white/60 p-3 dark:border-gray-700 dark:bg-gray-900/30 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:p-4">
             <div class="font-sans text-xs text-gray-500 dark:text-gray-400">
               {{ $ts('export_history.page_info', { page: dataExport.state.historyPagination.page, totalPages: dataExport.state.historyPagination.totalPages, total: dataExport.state.historyPagination.total }) }}
             </div>
@@ -190,7 +190,7 @@
     </div>
 
     <NDialog v-model:open="showBulkDeleteModal">
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 sm:p-6">
         <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 mb-4">{{ $ts('export_history.bulk_delete_title', { count: selectedEntries.length }) }}</h3>
 
         <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4">
@@ -205,7 +205,7 @@
     </NDialog>
 
     <NDialog v-model:open="showClearHistoryDialog">
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 sm:p-6">
         <h3 class="font-sans text-sm font-600 text-red-600 dark:text-red-400 mb-4">{{ $ts('export_history.clear_dialog_title') }}</h3>
 
         <div class="space-y-4">
@@ -225,7 +225,7 @@
     </NDialog>
 
     <NDialog v-model:open="showDeleteEntryDialog">
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 sm:p-6">
         <h3 class="font-sans text-sm font-600 text-red-600 dark:text-red-400 mb-4">{{ $ts('export_history.delete_entry_title') }}</h3>
 
         <div class="space-y-4">

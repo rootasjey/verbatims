@@ -7,19 +7,19 @@
       </h1>
     </div>
 
-    <aside class="mb-6 flex max-w-4xl items-start gap-3 border-y border-gray-200 py-4 text-sm leading-6 text-gray-600 dark:border-gray-800 dark:text-gray-400">
+    <aside class="mb-6 flex max-w-4xl items-start gap-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4 text-sm leading-6 text-gray-600 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-400">
       <NIcon name="i-ph-info" class="mt-1 h-4 w-4 shrink-0" />
       <p>{{ $t('export_scope_note') }}</p>
     </aside>
 
     <!-- Alert Messages -->
     <div class="mb-6 space-y-4">
-      <div v-if="dataExport.state.successMessage" class="font-sans text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 border border-dashed border-green-200 dark:border-green-700 flex items-center justify-between gap-2">
+      <div v-if="dataExport.state.successMessage" class="flex items-center justify-between gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 font-sans text-xs text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
         <span>{{ dataExport.state.successMessage }}</span>
         <button class="text-green-600 dark:text-green-400 hover:text-green-800 flex-shrink-0" @click="clearMessages"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
       </div>
 
-      <div v-if="dataExport.state.errorMessage" class="font-sans text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 border border-dashed border-red-200 dark:border-red-700 flex items-center justify-between gap-2">
+      <div v-if="dataExport.state.errorMessage" class="flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-sans text-xs text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
         <span>{{ dataExport.state.errorMessage }}</span>
         <button class="text-red-600 dark:text-red-400 hover:text-red-800 flex-shrink-0" @click="clearMessages"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
       </div>
@@ -38,7 +38,7 @@
     </NTabs>
 
     <NDialog v-model:open="dataExport.state.showProgressDialog">
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 p-6">
+      <div class="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
         <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 mb-4">{{ $t('dialog_in_progress') }}</h3>
 
         <div class="text-center py-8">
