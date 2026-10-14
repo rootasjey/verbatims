@@ -15,6 +15,7 @@
   "col_permissions": "Permissions",
   "col_owner": "Propriétaire",
   "col_created": "Créé le",
+  "row_actions": "Actions pour {name}",
   "dialog_edit_title": "Modifier la clé API",
   "dialog_create_title": "Créer une clé API",
   "label_name": "Nom",
