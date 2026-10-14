@@ -94,8 +94,11 @@
               </template>
             </NAvatar>
           </template>
-          <template #item-content="{ items: menuItems }">
-            <ul class="grid gap-1 p-3 min-w-64 max-w-80">
+          <template #item-content="{ items: menuItems, item }">
+            <ul
+              class="grid gap-1 p-3 min-w-64 max-w-80"
+              :style="item?.label === $t('nav.about') ? { minWidth: '17rem' } : undefined"
+            >
               <li
                 v-for="child in menuItems"
                 :key="child.label"
