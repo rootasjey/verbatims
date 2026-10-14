@@ -3,7 +3,7 @@
     <!-- Editorial Header -->
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <div class="flex items-start justify-between gap-4">
-        <div>
+        <div class="min-w-0">
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             {{ $t('title') }}
           </h1>
@@ -11,8 +11,8 @@
             {{ totalUsers }} {{ totalUsers === 1 ? 'user' : 'users' }}
           </p>
         </div>
-        <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
+        <div class="hidden md:flex flex-wrap items-center justify-end gap-2.5">
+          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 w-56" />
           <NCombobox
             v-model="selectedRoleFilter"
             :items="roleFilterOptions"
@@ -24,7 +24,7 @@
               btn: 'ghost-gray',
               size: 'sm',
               trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              class: 'gap-1 px-2 text-sm font-normal w-fit min-w-0 rounded-lg',
             }"
           >
             <template #trigger="{ modelValue }">
@@ -42,7 +42,7 @@
               btn: 'ghost-gray',
               size: 'sm',
               trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              class: 'gap-1 px-2 text-sm font-normal w-fit min-w-0 rounded-lg',
             }"
           >
             <template #trigger="{ modelValue }">
@@ -51,20 +51,28 @@
           </NCombobox>
         </div>
       </div>
-      <div class="md:hidden mt-4">
-        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder_mobile') as string" class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400" />
+      <div class="md:hidden mt-4 space-y-2">
+        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder_mobile') as string" class="w-full font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400" />
+        <div class="flex flex-wrap items-center gap-2">
+          <NCombobox v-model="selectedRoleFilter" :items="roleFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg' }">
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
+          <NCombobox v-model="selectedStatusFilter" :items="statusFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg' }">
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
+        </div>
       </div>
     </div>
 
     <!-- Loading -->
     <div v-if="loading && users.length === 0" class="space-y-5">
-      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-gray-100 dark:border-gray-800">
         <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
       </div>
     </div>
 
     <!-- Empty -->
-    <div v-else-if="users.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+    <div v-else-if="users.length === 0 && !loading" class="py-16 text-center border border-gray-200 dark:border-gray-800 rounded-xl">
       <NIcon name="i-ph-users" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}</p>
@@ -72,16 +80,16 @@
 
     <!-- Table -->
     <div v-else>
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+      <div v-if="selectedIds.length > 0" class="flex flex-wrap items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
         <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
         <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">{{ $t('common.delete') }}</button>
         <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">{{ $t('common.clear') }}</button>
       </div>
 
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
-        <table class="w-full">
+      <div role="region" tabindex="0" :aria-label="$t('title') as string" class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-x-auto overscroll-x-contain focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500">
+        <table class="w-full min-w-[960px]">
           <thead>
-            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+            <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_user') }}</th>
               <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_role') }}</th>
@@ -161,8 +169,8 @@
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(user.created_at) }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ user.last_login_at ? formatRelativeTime(user.last_login_at) : '\u2014' }}</td>
               <td class="px-3 py-3">
-                <NDropdownMenu :items="getUserActions(user)">
-                  <button @click.stop class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+                <NDropdownMenu :items="getUserActions(user)" :modal="false">
+                  <button @click.stop class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                 </NDropdownMenu>
               </td>
             </tr>
@@ -171,33 +179,27 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="h-20" />
+      <div v-if="totalPages > 1" class="hidden md:block h-20" />
     </div>
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
-      :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
+      class="relative md:fixed md:bottom-0 z-20 mb-24 md:mb-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 rounded-t-2xl px-3 sm:px-6 lg:px-8 py-2 md:py-3 flex items-center justify-between gap-2 shadow-sm transition-all duration-300 ease-in-out"
+      :style="isDesktopViewport ? { left: footerLeftOffset + 'px', width: footerWidth } : undefined"
     >
-      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+      <span class="font-sans text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
         Page
         <button
-          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-gray-300 dark:decoration-gray-600"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }}
         </button>
-        of {{ totalPages }} &middot; {{ totalUsers }} {{ totalUsers === 1 ? 'user' : 'users' }}
+        of {{ totalPages }} <span class="hidden sm:inline">&middot; {{ totalUsers }} {{ totalUsers === 1 ? 'user' : 'users' }}</span>
       </span>
       <div class="flex items-center gap-3">
         <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
         <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-        <button
-          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
-          @click="showPageJumpDialog = true"
-        >
-          {{ currentPage }} / {{ totalPages }}
-        </button>
         <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
         <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
@@ -241,6 +243,7 @@ const searchQuery = ref('')
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
+const isDesktopViewport = ref(false)
 const selectedRoleFilter = ref({ label: $t('filter_all_roles') as string, value: '' })
 const selectedStatusFilter = ref({ label: $t('filter_all_status') as string, value: '' })
 
@@ -443,8 +446,9 @@ const onPageJump = (page: number) => {
 let footerObserver: ResizeObserver | null = null
 
 const updateFooterPosition = () => {
+  isDesktopViewport.value = window.matchMedia('(min-width: 768px)').matches
   const mainEl = document.querySelector('main')
-  if (!mainEl) {
+  if (!mainEl || !isDesktopViewport.value) {
     footerLeftOffset.value = 0
     footerWidth.value = '100%'
     return
