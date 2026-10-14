@@ -102,7 +102,7 @@
           <NButton
             v-if="!showPasswordForm"
             btn="outline-gray"
-            class="min-h-10 justify-center bg-[#f0efe9] px-4 font-sans text-sm font-600 text-gray-700 transition-[background-color,color,box-shadow] duration-200 hover:bg-[#fbfaf7] hover:text-gray-950 hover:shadow-[0_4px_14px_rgba(28,25,23,0.16)] dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/[0.12] dark:hover:text-white dark:hover:shadow-[0_4px_14px_rgba(0,0,0,0.45)]"
+            class="min-h-10 justify-center bg-[#f0efe9] px-4 font-sans text-sm font-600 text-gray-700 transition-[background-color,color,box-shadow] duration-200 hover:bg-[#fbfaf7] hover:text-gray-950 hover:shadow-[0_4px_14px_rgba(28,25,23,0.16)] active:!shadow-none dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/[0.12] dark:hover:text-white dark:hover:shadow-[0_4px_14px_rgba(0,0,0,0.45)] dark:active:!shadow-none"
             :aria-expanded="showPasswordForm"
             aria-controls="password-change-form"
             @click="openPasswordForm"
