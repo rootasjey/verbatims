@@ -647,6 +647,7 @@
     },
     "user_menu": {
       "home": "Accueil",
+      "my_space": "Mon espace",
       "dashboard": "Tableau de bord",
       "collections": "Mes collections",
       "submissions": "Mes soumissions",

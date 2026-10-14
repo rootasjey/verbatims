@@ -80,13 +80,27 @@
           :items="navMenuItems"
           indicator
         >
+          <template #trigger="{ item }">
+            <span>{{ item.label }}</span>
+            <NAvatar
+              v-if="item.label === $t('nav.contribute') && user"
+              size="2"
+              :src="user.avatar_url"
+              :alt="user.name"
+              class="ml-1.5"
+            >
+              <template #fallback>
+                <NIcon name="i-ph-user-circle" class="h-6 w-6" />
+              </template>
+            </NAvatar>
+          </template>
           <template #item-content="{ items: menuItems }">
             <ul class="grid gap-1 p-3 min-w-64 max-w-80">
               <li
                 v-for="child in menuItems"
                 :key="child.label"
                 class="w-full"
-                :class="child.label === $t('nav.contact') ? 'mt-2 border-t border-gray-200 pt-2 dark:border-white/10' : ''"
+                :class="child.label === $t('nav.contact') || ['my-space', 'sign-out'].includes((child as any).slot) ? 'mt-2 border-t border-gray-200 pt-2 dark:border-white/10' : ''"
               >
                 <template v-if="(child as any).slot === 'language'">
                   <button type="button" class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-white/10" :aria-expanded="showLanguageMenu" @click.stop.prevent="showLanguageMenu = !showLanguageMenu">
@@ -110,6 +124,33 @@
                     </div>
                   </Transition>
                 </template>
+                <template v-else-if="(child as any).slot === 'my-space'">
+                  <button type="button" class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-white/10" :aria-expanded="showMySpaceMenu" @click.stop.prevent="showMySpaceMenu = !showMySpaceMenu">
+                    <NIcon :name="child.leading" class="h-5 w-5 shrink-0" />
+                    <span class="min-w-0 flex-1 text-sm">{{ child.label }}</span>
+                    <NIcon name="i-lucide-chevron-right" class="h-4 w-4 shrink-0 transition-transform" :class="showMySpaceMenu ? 'rotate-90' : ''" />
+                  </button>
+                  <Transition name="language-submenu">
+                    <div v-if="showMySpaceMenu" class="ml-8 mt-1 grid gap-1 border-l border-gray-200 pl-2 dark:border-white/15">
+                      <NNavigationMenuContentItem
+                        v-for="destination in (child as any).items"
+                        :key="destination.label"
+                        v-bind="destination"
+                        class="w-full"
+                        @select="showMySpaceMenu = false"
+                      />
+                    </div>
+                  </Transition>
+                </template>
+                <button
+                  v-else-if="(child as any).slot === 'sign-out'"
+                  type="button"
+                  class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+                  @click="signOut"
+                >
+                  <NIcon :name="child.leading" class="h-5 w-5 shrink-0" />
+                  <span>{{ child.label }}</span>
+                </button>
                 <NNavigationMenuContentItem v-else-if="(child as any).slot === 'search'" v-bind="child" class="w-full">
                   <div class="flex items-center justify-between gap-3">
                     <span class="text-sm">{{ child.label }}</span>
@@ -125,7 +166,6 @@
           </template>
         </NNavigationMenu>
 
-        <UserMenu v-if="user" :user="user" />
       </div>
     </div>
   </div>
@@ -152,13 +192,14 @@ const { $t, $switchLocale } = useI18n() as any
 const { locale } = useI18nLocale()
 const route = useRoute()
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || route.path.startsWith('/dashboard') || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || route.path === '/login' || route.path === '/signup')
-const { user } = useUserSession()
+const { user, clear } = useUserSession()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
 const scrollY = ref(0)
 const showSearch = ref(false)
 const showThemePopover = ref(false)
 const showLanguageMenu = ref(false)
+const showMySpaceMenu = ref(false)
 const showAddQuote = useState('app-add-quote-dialog-open', () => false)
 const showReportDrawer = ref(false)
 const reportTargetType: Ref<ReportTargetType> = ref('general')
@@ -171,6 +212,11 @@ const currentDate = computed(() => {
 
 const switchLocale = (value: string) => {
   $switchLocale(value)
+}
+
+const signOut = async () => {
+  await clear()
+  await navigateTo('/')
 }
 
 const shareTheme = async () => {
@@ -251,6 +297,26 @@ const navMenuItems = computed((): any[] => [
         description: $t('components.masthead.sponsor_desc'),
         to: '/sponsor'
       },
+      ...(user.value ? [{
+        slot: 'my-space',
+        label: $t('components.user_menu.my_space'),
+        leading: 'i-ph-books-duotone',
+        items: [
+          { label: $t('components.user_menu.dashboard'), leading: 'i-ph-house', to: '/dashboard' },
+          { label: $t('components.user_menu.collections'), leading: 'i-ph-bookmark', to: '/dashboard/lists' },
+          { label: $t('components.user_menu.submissions'), leading: 'i-ph-file-text', to: '/dashboard/my-quotes/pending' },
+          { label: $t('components.user_menu.liked'), leading: 'i-ph-heart', to: '/dashboard/favourites' },
+          { label: $t('components.user_menu.settings'), leading: 'i-ph-gear', to: '/dashboard/settings' },
+          ...(user.value.role === 'admin' || user.value.role === 'moderator' ? [
+            { label: $t('components.user_menu.admin'), leading: 'i-ph-shield-check', to: '/admin' }
+          ] : [])
+        ]
+      }] : []),
+      ...(user.value ? [{
+        slot: 'sign-out',
+        label: $t('components.user_menu.sign_out'),
+        leading: 'i-ph-sign-out'
+      }] : [])
     ]
   },
   {
