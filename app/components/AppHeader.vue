@@ -88,8 +88,6 @@
 </template>
 
 <script lang="ts" setup>
-  import { useStorage } from '@vueuse/core'
-
 const { $t, $ts } = useI18n()
 const { locale } = useI18nLocale()
 
@@ -112,7 +110,6 @@ const { user } = useUserSession()
 const scrollY = ref(0)
 const route = useRoute()
 const pageHeader = usePageHeader()
-const showHomeTitle = useStorage('verbatims.show_home_title', true)
 
 const showSearch = ref(false)
 const showAddQuote = ref(false)
@@ -251,10 +248,7 @@ const handleLogoClick = (event: MouseEvent) => {
   // If we're on the home page, prevent navigation.
   event.preventDefault()
 
-  if (scrollY.value === 0) {
-    showHomeTitle.value = !showHomeTitle.value
-    return
-  }
+  if (scrollY.value === 0) return
 
   window.scrollTo({
     top: 0,
