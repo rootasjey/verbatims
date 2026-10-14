@@ -22,13 +22,29 @@
     <!-- Profile Tab -->
     <div v-if="activeTab === 'profile'" key="profile" class="max-w-xl space-y-6">
       <div>
-        <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_display_name') }}</label>
-        <input
-          v-model="profileForm.name"
-          type="text"
-          :placeholder="$t('placeholder_display_name') as string"
-          class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
-        />
+        <label for="display-name" class="sr-only">{{ $t('label_display_name') }}</label>
+        <div class="flex min-h-11 w-full items-center gap-2 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 transition-colors focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:focus-within:border-gray-400 dark:focus-within:ring-white/10">
+          <span v-if="profileForm.name.length <= 24" class="hidden shrink-0 rounded bg-[#e4e2db] px-2 py-1 font-sans text-xs font-600 text-gray-700 sm:inline-flex dark:bg-white/[0.1] dark:text-gray-300">
+            {{ $t('label_display_name') }}
+          </span>
+          <NTooltip :content="$t('label_display_name') as string" :_tooltip-content="{ side: 'top', sideOffset: 8 }">
+            <span
+              :class="profileForm.name.length > 24 ? 'inline-flex' : 'inline-flex sm:hidden'"
+              class="h-7 w-7 shrink-0 cursor-help items-center justify-center rounded bg-[#e4e2db] text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/25 dark:bg-white/[0.1] dark:text-gray-300 dark:focus-visible:ring-white/30"
+              tabindex="0"
+              :aria-label="$t('label_display_name') as string"
+            >
+              <NIcon name="i-ph-user" class="h-4 w-4" />
+            </span>
+          </NTooltip>
+          <input
+            id="display-name"
+            v-model="profileForm.name"
+            type="text"
+            :placeholder="$t('placeholder_display_name') as string"
+            class="min-w-0 flex-1 bg-transparent py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 outline-none dark:text-gray-100 dark:placeholder-gray-400"
+          />
+        </div>
       </div>
       <div>
         <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_email') }}</label>
