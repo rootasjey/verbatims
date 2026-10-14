@@ -7,9 +7,9 @@
     <NTabs v-model="activeTab" :items="tabs" class="w-full">
       <template #content="{ item }">
         <div v-if="item.value === 'import'" class="mt-6 space-y-6">
-          <NCollapsible v-model:open="openUpload" :title="$t('section_upload')" :ui="{ base: 'border border-dashed rounded-xl' }">
-            <div class="flex items-center justify-between px-4 space-x-4">
-              <h2 class="text-xl font-semibold">{{ $t('heading_upload') }}</h2>
+          <NCollapsible v-model:open="openUpload" :title="$t('section_upload')" :ui="{ base: 'overflow-hidden rounded-xl border border-gray-200 bg-white/60 dark:border-gray-700 dark:bg-gray-900/30' }">
+            <div class="flex items-center justify-between gap-4 px-4 py-3">
+              <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $t('heading_upload') }}</h2>
               <NCollapsibleTrigger as-child>
                 <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
@@ -18,9 +18,9 @@
             </div>
 
             <NCollapsibleContent>
-              <div class="space-y-6 p-4">
-                <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-                  <div class="space-y-4">
+              <div class="space-y-6 p-4 sm:p-6">
+                <div class="space-y-6">
+                  <div class="space-y-6">
                     <!-- File Upload -->
                     <div>
                       <label class="block text-sm font-medium mb-2">{{ $t('label_select_file') }}</label>
@@ -29,7 +29,7 @@
                         type="file"
                         accept=".json,.csv,.xml,.zip"
                         @change="handleFileSelect"
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                        class="block w-full min-w-0 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-600 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:font-semibold file:text-gray-800 hover:file:bg-gray-300 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:file:bg-gray-800 dark:file:text-gray-100 dark:hover:file:bg-gray-700"
                       />
                       <p class="mt-1 text-sm text-gray-500">
                         {{ $t('hint_formats') }}
@@ -57,7 +57,7 @@
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
-                        <select v-model="selectedFormat" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer">
+                        <select v-model="selectedFormat" class="w-full max-w-sm rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-300/60 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700/60">
                           <option v-for="opt in formatOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
                         </select>
                       </div>
@@ -87,7 +87,7 @@
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
-                        <select v-model="selectedDataType" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer">
+                        <select v-model="selectedDataType" class="w-full max-w-sm rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-300/60 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700/60">
                           <option v-for="opt in dataTypeOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
                         </select>
                       </div>
@@ -96,37 +96,37 @@
                     <!-- Import Options -->
                     <div class="space-y-3">
                       <h3 class="text-sm font-medium">{{ $t('heading_options') }}</h3>
-                      <label class="flex items-center gap-2">
+                      <label class="flex items-start gap-3 rounded-lg px-3 py-2 transition hover:bg-gray-100/80 dark:hover:bg-gray-800/60">
                         <input type="checkbox" v-model="importOptions.createBackup" class="accent-gray-700 dark:accent-gray-300" />
                         <span class="text-sm">{{ $t('checkbox_backup') }}</span>
                       </label>
                       <p class="text-xs text-gray-500 ml-6 -mt-2">{{ $t('hint_backup') }}</p>
-                      <label class="flex items-center gap-2">
+                      <label class="flex items-start gap-3 rounded-lg px-3 py-2 transition hover:bg-gray-100/80 dark:hover:bg-gray-800/60">
                         <input type="checkbox" v-model="importOptions.ignoreValidationErrors" class="accent-gray-700 dark:accent-gray-300" />
                         <span class="text-sm">{{ $t('checkbox_ignore_validation') }}</span>
                       </label>
                       <p class="text-xs text-gray-500 ml-6 -mt-2">{{ $t('hint_ignore_validation') }}</p>
-                      <label class="flex items-center gap-2">
+                      <label class="flex items-start gap-3 rounded-lg px-3 py-2 transition hover:bg-gray-100/80 dark:hover:bg-gray-800/60">
                         <input type="checkbox" v-model="importOptions.preserveIds" class="accent-gray-700 dark:accent-gray-300" />
                         <span class="text-sm">{{ $t('checkbox_preserve_ids') }}</span>
                       </label>
                       <p class="text-xs text-gray-500 ml-6 -mt-2">{{ $t('hint_preserve_ids') }}</p>
                       <div>
-                        <label class="block text-sm font-medium mb-1">{{ $t('label_batch_size') }}</label>
+                        <label class="block text-sm font-medium mb-2">{{ $t('label_batch_size') }}</label>
                         <NNumberField v-model="importOptions.batchSize" :min="1" :max="1000" />
                         <p class="mt-1 text-xs text-gray-500">{{ $t('hint_batch_size') }}</p>
                       </div>
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex gap-3 pt-4">
+                    <div class="flex flex-col-reverse gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end dark:border-gray-700">
                       <OutlinedButton variant="primary" :disabled="!selectedFile || !selectedFormat" :loading="isValidating" @click="validateData">{{ $t('button_validate') }}</OutlinedButton>
                       <OutlinedButton v-if="validationResult" variant="primary" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" @click="startImport">{{ $t('button_start') }}</OutlinedButton>
                     </div>
                   </div>
                 </div>
 
-                <div v-if="validationResult" class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+                <div v-if="validationResult" class="rounded-xl border border-gray-200 bg-gray-50/80 p-4 dark:border-gray-700 dark:bg-gray-950/50 sm:p-5">
                   <div class="flex items-center gap-2 mb-4">
                     <NIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
                     <h3 class="text-lg font-semibold">{{ validationResult.isValid ? $t('status_passed') : $t('status_failed') }}</h3>
@@ -175,9 +175,9 @@
           </NCollapsible>
 
           <!-- Import Progress -->
-          <NCollapsible v-model:open="openProgress" :title="$t('heading_progress_1')" :ui="{ base: 'border border-dashed rounded-xl' }">
-            <div class="flex items-center justify-between px-4 space-x-4">
-              <h2 class="text-xl font-semibold">{{ $t('heading_progress_1') }}</h2>
+          <NCollapsible v-model:open="openProgress" :title="$t('heading_progress_1')" :ui="{ base: 'overflow-hidden rounded-xl border border-gray-200 bg-white/60 dark:border-gray-700 dark:bg-gray-900/30' }">
+            <div class="flex items-center justify-between gap-4 px-4 py-3">
+              <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $t('heading_progress_1') }}</h2>
               <NCollapsibleTrigger as-child>
                 <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
@@ -198,9 +198,9 @@
           </NCollapsible>
 
           <!-- Relink Relations -->
-          <NCollapsible v-model:open="openRelink" :title="$t('heading_progress_2')" :ui="{ base: 'border border-dashed rounded-xl' }">
-            <div class="flex items-center justify-between px-4 space-x-4">
-              <h2 class="text-xl font-semibold">{{ $t('heading_progress_2') }}</h2>
+          <NCollapsible v-model:open="openRelink" :title="$t('heading_progress_2')" :ui="{ base: 'overflow-hidden rounded-xl border border-gray-200 bg-white/60 dark:border-gray-700 dark:bg-gray-900/30' }">
+            <div class="flex items-center justify-between gap-4 px-4 py-3">
+              <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $t('heading_progress_2') }}</h2>
               <NCollapsibleTrigger as-child>
                 <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
@@ -209,10 +209,10 @@
             </div>
             <NCollapsibleContent>
               <div class="space-y-6 p-4">
-                <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+                <div class="space-y-5 p-4 sm:p-6">
                   <div class="flex items-center gap-2 mb-4">
                     <NIcon name="i-ph-link-simple" />
-                    <h2 class="text-xl font-semibold">{{ $t('heading_relink') }}</h2>
+                    <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $t('heading_relink') }}</h2>
                   </div>
 
                   <div class="space-y-4">
@@ -233,7 +233,7 @@
                         type="file"
                         accept=".json,.zip"
                         @change="handleRelinkFileSelect"
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                        class="block w-full min-w-0 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-600 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:font-semibold file:text-gray-800 hover:file:bg-gray-300 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:file:bg-gray-800 dark:file:text-gray-100 dark:hover:file:bg-gray-700"
                       />
                       <p class="mt-1 text-xs text-gray-500">
                         {{ $t('hint_relink') }}
@@ -249,7 +249,7 @@
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex gap-3 pt-2">
+                    <div class="flex justify-end border-t border-gray-200 pt-4 dark:border-gray-700">
                       <OutlinedButton variant="primary" :disabled="!selectedRelinkFile" :loading="isRelinking" @click="startRelink">
                         {{ $t('button_start_relink') }}
                       </OutlinedButton>

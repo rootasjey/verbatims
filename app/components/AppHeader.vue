@@ -17,7 +17,13 @@
         </NuxtLink>
 
         <!-- Page Title for Admin/Dashboard -->
-        <div v-if="shouldShowPageTitle && !(isMobile && pageHeader.section.value === 'admin')" class="flex items-center gap-3">
+        <div
+          v-if="shouldShowPageTitle"
+          :class="[
+            'flex items-center gap-3',
+            pageHeader.section.value === 'admin' ? 'admin-page-header-title' : ''
+          ]"
+        >
           <div class="h-5 w-px bg-gray-300 dark:bg-gray-600" />
           <h1 class="font-sans text-xs uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400 whitespace-nowrap">
             {{ pageHeader.title }}
@@ -308,3 +314,11 @@ onMounted(() => {
   })
 })
 </script>
+
+<style scoped>
+@media (max-width: 639px) {
+  .admin-page-header-title {
+    display: none;
+  }
+}
+</style>
