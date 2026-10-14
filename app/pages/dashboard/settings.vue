@@ -102,7 +102,7 @@
           <NButton
             v-if="!showPasswordForm"
             btn="outline-gray"
-            class="min-h-10 justify-center px-4 font-sans text-sm font-600"
+            class="min-h-10 justify-center bg-[#f0efe9] px-4 font-sans text-sm font-600 hover:bg-[#eae8e1] dark:bg-white/[0.06] dark:hover:bg-white/10"
             :aria-expanded="showPasswordForm"
             aria-controls="password-change-form"
             @click="openPasswordForm"
