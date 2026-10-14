@@ -111,25 +111,42 @@
           {{ $t('section_security') }}
         </h2>
         <div class="max-w-xl space-y-6">
-          <div>
-            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_current_password') }}</label>
-            <input v-model="passwordForm.currentPassword" type="password" :placeholder="currentPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
-          </div>
-          <div>
-            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_new_password') }}</label>
-            <input v-model="passwordForm.newPassword" type="password" :placeholder="newPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
-          </div>
-          <div>
-            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_confirm_password') }}</label>
-            <input v-model="passwordForm.confirmPassword" type="password" :placeholder="confirmPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
-          </div>
-          <p v-if="passwordError" class="font-sans text-xs text-red-700 dark:text-red-400">{{ passwordError }}</p>
-          <p v-else-if="passwordMessage" class="font-sans text-xs text-gray-700 dark:text-gray-300">{{ passwordMessage }}</p>
-          <div class="pt-2">
-            <NButton :disabled="savingPassword" btn="solid-black" class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300" @click="savePassword">
-              {{ savingPassword ? $t('saving') : $t('change_password') }}
-            </NButton>
-          </div>
+          <NButton
+            v-if="!showPasswordForm"
+            btn="outline-gray"
+            class="min-h-10 justify-center px-4 font-sans text-sm font-600"
+            :aria-expanded="showPasswordForm"
+            aria-controls="password-change-form"
+            @click="openPasswordForm"
+          >
+            {{ $t('change_password_prompt') }}
+          </NButton>
+          <Transition name="password-form">
+            <div v-if="showPasswordForm" id="password-change-form" class="space-y-6">
+              <div>
+                <label for="current-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_current_password') }}</label>
+                <input ref="currentPasswordInput" id="current-password" v-model="passwordForm.currentPassword" type="password" autocomplete="current-password" :placeholder="currentPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
+              </div>
+              <div>
+                <label for="new-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_new_password') }}</label>
+                <input id="new-password" v-model="passwordForm.newPassword" type="password" autocomplete="new-password" :placeholder="newPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
+              </div>
+              <div>
+                <label for="confirm-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_confirm_password') }}</label>
+                <input id="confirm-password" v-model="passwordForm.confirmPassword" type="password" autocomplete="new-password" :placeholder="confirmPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
+              </div>
+              <p v-if="passwordError" class="font-sans text-xs text-red-700 dark:text-red-400" role="alert">{{ passwordError }}</p>
+              <p v-else-if="passwordMessage" class="font-sans text-xs text-gray-700 dark:text-gray-300" role="status">{{ passwordMessage }}</p>
+              <div class="flex flex-wrap items-center gap-3 pt-2">
+                <NButton :disabled="savingPassword" btn="solid-black" class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300" @click="savePassword">
+                  {{ savingPassword ? $t('saving') : $t('change_password_now') }}
+                </NButton>
+                <NButton btn="text-gray-600" class="min-h-10 px-3 font-sans text-sm" :disabled="savingPassword" @click="closePasswordForm">
+                  {{ $t('common.cancel') }}
+                </NButton>
+              </div>
+            </div>
+          </Transition>
         </div>
       </div>
     </div>
@@ -142,13 +159,6 @@
           <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_theme') }}</label>
           <p class="mb-4 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_theme') }}</p>
           <ThemeSelector />
-        </div>
-        <div class="mt-6 flex max-w-2xl items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
-          <div>
-            <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_home_title') }}</h3>
-            <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_show_home_title') }}</p>
-          </div>
-          <NSwitch v-model="showHomeTitle" switch-checked="indigo" />
         </div>
       </div>
     </div>
@@ -196,7 +206,7 @@
           <p class="mb-4 max-w-lg font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">
             {{ $t('desc_delete_account') }}
           </p>
-          <NButton btn="outline-gray" class="min-h-10 justify-center border-gray-500/40 px-4 font-sans text-sm font-600 text-gray-800 transition-colors hover:bg-black/5 dark:border-white/20 dark:text-gray-100 dark:hover:bg-white/10" @click="showDeleteModal = true">
+          <NButton btn="outline-gray" class="min-h-10 justify-center border border-[#d9c5bf] bg-[#F1E8E5] px-4 font-sans text-sm font-600 text-[#7F3029] transition-colors hover:bg-[#EBDDD8] dark:border-red-200/20 dark:bg-red-950/30 dark:text-red-200 dark:hover:bg-red-950/50" @click="showDeleteModal = true">
             {{ $t('button_delete_account') }}
           </NButton>
         </div>
@@ -239,8 +249,6 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from '@vueuse/core'
-
 interface ProfileForm {
   name: string
   email: string
@@ -325,6 +333,21 @@ const confirmPasswordPlaceholder = useMountedTranslation('placeholder_confirm_pa
 const savingPassword = ref(false)
 const passwordError = ref('')
 const passwordMessage = ref('')
+const showPasswordForm = ref(false)
+const currentPasswordInput = ref<HTMLInputElement | null>(null)
+
+const openPasswordForm = async () => {
+  showPasswordForm.value = true
+  await nextTick()
+  currentPasswordInput.value?.focus()
+}
+
+const closePasswordForm = () => {
+  showPasswordForm.value = false
+  passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' }
+  passwordError.value = ''
+  passwordMessage.value = ''
+}
 
 const savePassword = async () => {
   passwordError.value = ''
@@ -361,8 +384,6 @@ const savePassword = async () => {
     savingPassword.value = false
   }
 }
-
-const showHomeTitle = useStorage('verbatims.show_home_title', true)
 
 // Auto-save privacy and notification settings on toggle
 let privacyTimer: ReturnType<typeof setTimeout> | null = null
@@ -476,14 +497,32 @@ onMounted(async () => {
   transform: translateX(-4px);
 }
 
+.password-form-enter-active,
+.password-form-leave-active {
+  transition: opacity 180ms cubic-bezier(0.16, 1, 0.3, 1), transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.password-form-enter-from,
+.password-form-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dashboard-tab-enter-active,
-  .dashboard-tab-leave-active {
+  .dashboard-tab-leave-active,
+  .password-form-enter-active,
+  .password-form-leave-active {
     transition-duration: 100ms;
   }
 
   .dashboard-tab-enter-from,
   .dashboard-tab-leave-to {
+    transform: none;
+  }
+
+  .password-form-enter-from,
+  .password-form-leave-to {
     transform: none;
   }
 }
