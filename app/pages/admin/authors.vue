@@ -3,7 +3,7 @@
     <!-- Editorial Header -->
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <div class="flex items-start justify-between gap-4">
-        <div>
+        <div class="min-w-0">
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             {{ $t('title') }}
           </h1>
@@ -11,15 +11,15 @@
             {{ totalAuthors }} {{ totalAuthors === 1 ? 'author' : 'authors' }}
           </p>
         </div>
-        <div class="hidden md:flex items-center gap-3">
-          <button class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" @click="openAddAuthorDialog">
+        <div class="hidden md:flex flex-wrap items-center justify-end gap-2.5">
+          <button class="font-sans text-sm font-medium bg-gray-900 dark:bg-gray-100 px-3 py-2 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-white transition-colors rounded-lg" @click="openAddAuthorDialog">
             {{ $t('add_button') }}
           </button>
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="$t('search_placeholder') as string"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
+            class="font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 w-48"
           />
           <NCombobox
             v-model="selectedFictionalFilter"
@@ -57,41 +57,50 @@
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
-          <div class="flex items-center gap-1 border-l border-dashed border-gray-200 dark:border-gray-700 pl-3">
+          <div class="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-3">
             <button
-              :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', !isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']"
+              :class="['font-sans text-xs px-2.5 py-1.5 transition-colors rounded-lg', !isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300']"
               @click="isCardView = false"
             >{{ $t('view_table') }}</button>
             <button
-              :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']"
+              :class="['font-sans text-xs px-2.5 py-1.5 transition-colors rounded-lg', isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300']"
               @click="isCardView = true"
             >{{ $t('view_cards') }}</button>
           </div>
         </div>
       </div>
-      <div class="md:hidden mt-4 flex gap-2">
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="$t('search_placeholder') as string"
-          class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
-        />
-        <div class="flex items-center gap-1">
-          <button
-            :class="['font-sans text-xs px-2 py-1 transition-colors', !isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']"
-            @click="isCardView = false"
-          >{{ $t('view_table') }}</button>
-          <button
-            :class="['font-sans text-xs px-2 py-1 transition-colors', isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']"
-            @click="isCardView = true"
-          >{{ $t('view_cards') }}</button>
+      <div class="md:hidden mt-4 space-y-2">
+        <div class="flex gap-2">
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="$t('search_placeholder') as string"
+            class="min-w-0 flex-1 font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+          />
+          <NTooltip :content="$t('add_button') as string">
+            <button type="button" class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900" :aria-label="$t('add_button') as string" @click="openAddAuthorDialog">
+              <NIcon name="i-ph-plus" class="h-4 w-4" />
+            </button>
+          </NTooltip>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <NCombobox v-model="selectedFictionalFilter" :items="fictionalFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg' }">
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
+          <NCombobox v-model="selectedSort" :items="sortOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg' }">
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
+          <div class="ml-auto flex items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-900">
+            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-md', !isCardView ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-500 dark:text-gray-400']" @click="isCardView = false">{{ $t('view_table') }}</button>
+            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-md', isCardView ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-500 dark:text-gray-400']" @click="isCardView = true">{{ $t('view_cards') }}</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Card View -->
     <div v-if="isCardView">
-      <div v-if="filteredAuthors.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+      <div v-if="filteredAuthors.length === 0" class="py-16 text-center border border-gray-200 dark:border-gray-800 rounded-xl">
         <NIcon name="i-ph-user" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
         <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
           {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
@@ -104,7 +113,7 @@
         <div
           v-for="author in filteredAuthors"
           :key="author.id"
-          class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors rounded-sm"
+          class="bg-white dark:bg-[#0C0A09] border border-gray-200 dark:border-gray-800 p-4 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors rounded-xl"
         >
           <div class="flex items-start gap-3">
             <div class="flex-shrink-0">
@@ -131,7 +140,7 @@
               </div>
             </div>
           </div>
-          <div class="mt-3 flex justify-end gap-2 border-t border-dashed border-gray-100 dark:border-gray-800 pt-3">
+          <div class="mt-3 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-800 pt-3">
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" :disabled="enrichmentLoading && enrichmentAuthorTarget?.id === author.id" @click="openEnrichmentPreview(author)">{{ $t('action_enrich') }}</button>
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editAuthorLinks(author)">{{ $t('action_edit_links') }}</button>
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editAuthor(author)">{{ $t('action_edit') }}</button>
@@ -144,7 +153,7 @@
     <!-- Table View -->
     <div v-else>
       <!-- Bulk action bar -->
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+      <div v-if="selectedIds.length > 0" class="flex flex-wrap items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
         <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
         <button v-if="selectedIds.length === 2" class="font-sans text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" @click="mergeSelectedAuthors">{{ $t('bulk_merge') }}</button>
         <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">{{ $t('bulk_delete') }}</button>
@@ -158,7 +167,7 @@
         </div>
       </div>
 
-      <div v-else-if="hasLoadedOnce && filteredAuthors.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+      <div v-else-if="hasLoadedOnce && filteredAuthors.length === 0" class="py-16 text-center border border-gray-200 dark:border-gray-800 rounded-xl">
         <NIcon name="i-ph-user" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
         <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
           {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
@@ -168,10 +177,10 @@
         </p>
       </div>
 
-      <div v-else-if="hasLoadedOnce" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
-        <table class="w-full">
+      <div v-else-if="hasLoadedOnce" class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-x-auto">
+        <table class="w-full min-w-[720px]">
           <thead>
-            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+            <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_author') }}</th>
               <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_type') }}</th>
@@ -244,35 +253,29 @@
         </table>
       </div>
 
-      <div v-if="totalPages > 1" class="h-20" />
+      <div v-if="totalPages > 1" class="hidden md:block h-20" />
     </div>
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
-      :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
+      class="relative md:fixed md:bottom-0 z-20 mb-24 md:mb-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 rounded-t-2xl px-3 sm:px-6 lg:px-8 py-2 md:py-3 flex items-center justify-between gap-2 shadow-sm transition-all duration-300 ease-in-out"
+      :style="isDesktopViewport ? { left: footerLeftOffset + 'px', width: footerWidth } : undefined"
     >
-      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+      <span class="font-sans text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
         Page
         <button
-          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-gray-300 dark:decoration-gray-600"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }}
         </button>
-        of {{ totalPages }} &middot; {{ totalAuthors }} {{ totalAuthors === 1 ? 'author' : 'authors' }}
+        of {{ totalPages }} <span class="hidden sm:inline">&middot; {{ totalAuthors }} {{ totalAuthors === 1 ? 'author' : 'authors' }}</span>
       </span>
       <div class="flex items-center gap-3">
         <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-        <button
-          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
-          @click="showPageJumpDialog = true"
-        >
-          {{ currentPage }} / {{ totalPages }}
-        </button>
+        <span v-else class="hidden sm:inline font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
         <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+        <span v-else class="hidden sm:inline font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
     </div>
 
@@ -387,6 +390,7 @@ const bulkDeleteStrategy = ref<'delete' | 'anonymize'>('anonymize')
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
+const isDesktopViewport = ref(false)
 const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
 watch(selectedIds, () => {}, { immediate: true })
 const visibleIds = computed<number[]>(() => filteredAuthors.value.map(a => a.id))
@@ -666,8 +670,9 @@ const confirmBulkDelete = async () => {
 let footerObserver: ResizeObserver | null = null
 
 const updateFooterPosition = () => {
+  isDesktopViewport.value = window.matchMedia('(min-width: 768px)').matches
   const mainEl = document.querySelector('main')
-  if (!mainEl) {
+  if (!mainEl || !isDesktopViewport.value) {
     footerLeftOffset.value = 0
     footerWidth.value = '100%'
     return
