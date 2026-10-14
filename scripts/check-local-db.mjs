@@ -11,7 +11,11 @@ const expectedUrl = 'file:.data/db/sqlite.db'
 console.log('Preparing NuxtHub database configuration...')
 const prepare = spawnSync(process.execPath, [nuxi, 'prepare'], {
   cwd: root,
-  env: { ...process.env, NUXT_HUB_LOCAL_DB: '1' },
+  env: {
+    ...process.env,
+    NUXT_HUB_LOCAL_DB: '1',
+    NITRO_PRESET: 'node-server',
+  },
   stdio: 'inherit',
 })
 
@@ -26,18 +30,21 @@ if (!existsSync(configPath) || !existsSync(generatedDbPath)) {
 
 const config = JSON.parse(readFileSync(configPath, 'utf8'))
 const generatedDb = readFileSync(generatedDbPath, 'utf8')
+const actualHosting = config.hosting
 const actualDriver = config.db?.driver
 const actualUrl = config.db?.connection?.url
 
 if (
-  actualDriver !== 'libsql'
+  actualHosting !== 'node-server'
+  || actualDriver !== 'libsql'
   || actualUrl !== expectedUrl
   || !generatedDb.includes("drizzle-orm/libsql")
+  || generatedDb.includes("drizzle-orm/d1")
   || !generatedDb.includes(expectedUrl)
 ) {
   console.error('Local database check failed.')
-  console.error(`Expected: libsql driver with ${expectedUrl}`)
-  console.error(`Generated: ${actualDriver || 'unknown'} driver with ${actualUrl || 'no URL'}`)
+  console.error(`Expected: node-server hosting with libsql driver and ${expectedUrl}`)
+  console.error(`Generated: ${actualHosting || 'unknown'} hosting, ${actualDriver || 'unknown'} driver with ${actualUrl || 'no URL'}`)
   console.error('Refusing to start so the local server cannot silently switch to D1.')
   process.exit(1)
 }
