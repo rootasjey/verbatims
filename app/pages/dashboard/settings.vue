@@ -47,15 +47,27 @@
         </div>
       </div>
       <div>
-        <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_email') }}</label>
-        <input
-          v-model="profileForm.email"
-          type="email"
-          :placeholder="$t('placeholder_email') as string"
-          disabled
-          class="w-full cursor-not-allowed rounded-md border border-[#d2cfc6] bg-[#eae8e1] px-3 py-2.5 font-sans text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-400"
-        />
-        <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_email') }}</p>
+        <label for="account-email" class="sr-only">{{ $t('label_email') }}</label>
+        <div class="flex min-h-11 w-full items-center gap-2 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 transition-colors focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:focus-within:border-gray-400 dark:focus-within:ring-white/10">
+          <span class="hidden shrink-0 rounded bg-[#e4e2db] px-2 py-1 font-sans text-xs font-600 text-gray-700 sm:inline-flex dark:bg-white/[0.1] dark:text-gray-300">{{ $t('label_email') }}</span>
+          <NTooltip :content="$t('label_email') as string" :_tooltip-content="{ side: 'top', sideOffset: 8 }">
+            <span class="inline-flex h-7 w-7 shrink-0 cursor-help items-center justify-center rounded bg-[#e4e2db] text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/25 sm:hidden dark:bg-white/[0.1] dark:text-gray-300 dark:focus-visible:ring-white/30" tabindex="0" :aria-label="$t('label_email') as string">
+              <NIcon name="i-ph-envelope-simple" class="h-4 w-4" />
+            </span>
+          </NTooltip>
+          <input id="account-email" v-model="emailForm" type="email" autocomplete="email" required :placeholder="$t('placeholder_email') as string" class="min-w-0 flex-1 bg-transparent py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 outline-none dark:text-gray-100 dark:placeholder-gray-400" />
+        </div>
+        <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+          {{ $t('helper_email_current') }} <span class="break-all font-500 text-gray-800 dark:text-gray-200">{{ currentEmail }}</span>. {{ $t('helper_email_verification') }}
+        </p>
+        <p v-if="pendingEmail" class="mt-2 font-sans text-sm leading-relaxed text-amber-800 dark:text-amber-300" role="status">
+          {{ $t('email_change_pending') }} <span class="break-all font-600">{{ pendingEmail }}</span>.
+        </p>
+        <p v-if="emailChangeMessage" class="mt-2 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-300" role="status">{{ emailChangeMessage }}</p>
+        <p v-if="emailChangeError" class="mt-2 font-sans text-sm leading-relaxed text-red-700 dark:text-red-300" role="alert">{{ emailChangeError }}</p>
+        <NButton :disabled="sendingEmailChange || !emailForm.trim() || emailForm.trim().toLowerCase() === currentEmail.toLowerCase()" btn="outline-gray" class="mt-3 min-h-10 justify-center px-4 font-sans text-sm font-600" @click="requestEmailChange">
+          {{ sendingEmailChange ? $t('sending') : emailForm.trim().toLowerCase() === pendingEmail?.toLowerCase() ? $t('resend_email_confirmation') : $t('change_email_button') }}
+        </NButton>
       </div>
       <div>
         <label for="profile-bio" class="sr-only">{{ $t('label_bio') }}</label>
@@ -283,7 +295,6 @@
 <script setup lang="ts">
 interface ProfileForm {
   name: string
-  email: string
   bio: string
 }
 
@@ -349,9 +360,14 @@ const selectTab = (tab: SettingsTab) => {
 
 const profileForm = ref<ProfileForm>({
   name: user.value?.name || '',
-  email: user.value?.email || '',
   bio: (user.value as any)?.bio || ''
 })
+const currentEmail = computed(() => user.value?.email || '')
+const emailForm = ref(user.value?.email || '')
+const pendingEmail = ref<string | null>(null)
+const sendingEmailChange = ref(false)
+const emailChangeMessage = ref('')
+const emailChangeError = ref('')
 
 const notificationSettings = ref<NotificationSettings>({
   quote_approval: true,
@@ -382,6 +398,43 @@ const passwordError = ref('')
 const passwordMessage = ref('')
 const showPasswordForm = ref(false)
 const currentPasswordInput = ref<HTMLInputElement | null>(null)
+
+const loadPendingEmailChange = async () => {
+  try {
+    const result = await $fetch<{ pendingEmail: string | null }>('/api/user/email-change')
+    pendingEmail.value = result.pendingEmail
+    if (result.pendingEmail) emailForm.value = result.pendingEmail
+  } catch (error) {
+    console.error('Failed to load pending email change:', error)
+  }
+}
+
+const requestEmailChange = async () => {
+  const nextEmail = emailForm.value.trim().toLowerCase()
+  emailChangeError.value = ''
+  emailChangeMessage.value = ''
+  if (!nextEmail || nextEmail === currentEmail.value.toLowerCase()) return
+
+  sendingEmailChange.value = true
+  try {
+    const result = await $fetch<{ pendingEmail: string }>('/api/user/email-change', {
+      method: 'POST',
+      body: { email: nextEmail },
+    })
+    pendingEmail.value = result.pendingEmail
+    emailForm.value = result.pendingEmail
+    emailChangeMessage.value = $t('email_change_sent') as string
+  } catch (error: any) {
+    const statusCode = error?.statusCode || error?.status
+    emailChangeError.value = statusCode === 409
+      ? $t('error_email_in_use') as string
+      : statusCode === 400
+        ? $t('error_email_same') as string
+        : $t('error_email_change') as string
+  } finally {
+    sendingEmailChange.value = false
+  }
+}
 
 const openPasswordForm = async () => {
   showPasswordForm.value = true
@@ -437,7 +490,7 @@ const saveProfile = async () => {
   try {
     await $fetch('/api/user/profile', {
       method: 'PUT',
-      body: profileForm.value
+      body: { name: profileForm.value.name, bio: profileForm.value.bio }
     })
   } catch (error) {
     console.error('Failed to save profile:', error)
@@ -463,6 +516,7 @@ const deleteAccount = async () => {
 }
 
 onMounted(async () => {
+  void loadPendingEmailChange()
   try {
     const [notificationData, privacyData] = await Promise.all([
       $fetch('/api/user/notifications'),

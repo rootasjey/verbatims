@@ -1,0 +1,13 @@
+{
+  "meta_title": "Confirm Email Change - Verbatims",
+  "title": "Confirm your new email address",
+  "body": "Your current address will stay active until you confirm the new one.",
+  "confirm_button": "Confirm new email",
+  "confirming": "Confirming...",
+  "success_title": "Email address updated",
+  "success_body": "Your Verbatims account now uses",
+  "settings_button": "Back to settings",
+  "error_invalid": "This link is invalid, expired, or has already been used. Request a new confirmation from your settings.",
+  "error_conflict": "This email address is already linked to another account. Request a different address.",
+  "error_generic": "We couldn't update your email address. Please try again."
+}

@@ -123,6 +123,27 @@ export async function sendVerificationEmail(event: H3Event, toEmail: string, tok
   })
 }
 
+export async function sendEmailChangeVerificationEmail(event: H3Event, toEmail: string, token: string): Promise<void> {
+  const origin = resolveAppOrigin(event)
+  const confirmationUrl = `${origin}/verify-email-change?token=${encodeURIComponent(token)}`
+
+  await sendEmail(event, {
+    to: toEmail,
+    subject: 'Confirm your new Verbatims email address',
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px; color: #292722;">
+        <h2 style="margin-bottom: 16px;">Confirm your new email address</h2>
+        <p style="margin-bottom: 24px; line-height: 1.6;">A request was made to use this address for a Verbatims account. Your current email will remain unchanged until you confirm this request.</p>
+        <a href="${confirmationUrl}" style="display: inline-block; background: #171614; color: #F7F5EF; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">Confirm email address</a>
+        <p style="margin-top: 24px; color: #6B6861; font-size: 14px; line-height: 1.5;">This link expires in one hour and can only be used once. If you did not request this change, you can ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #E5E2DA; margin: 24px 0;" />
+        <p style="color: #8A877F; font-size: 12px;">Verbatims</p>
+      </div>
+    `,
+    text: `Confirm your new Verbatims email address. Your current email will remain unchanged until you confirm this request.\n\nConfirm it here: ${confirmationUrl}\n\nThis link expires in one hour and can only be used once. If you did not request this change, you can ignore this email.`,
+  })
+}
+
 export async function sendSponsorStatusEmail(
   event: H3Event,
   toEmail: string,
