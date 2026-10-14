@@ -20,123 +20,100 @@
 
     <Transition name="dashboard-tab" mode="out-in">
     <!-- Profile Tab -->
-    <div v-if="activeTab === 'profile'" key="profile" class="space-y-10">
-      <!-- Profile Information -->
-      <div class="border-b border-gray-200 pb-8 dark:border-white/10">
-        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
-          {{ $t('section_profile') }}
-        </h2>
-        <div class="max-w-xl space-y-6">
+    <div v-if="activeTab === 'profile'" key="profile" class="max-w-xl space-y-6">
+      <div>
+        <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_display_name') }}</label>
+        <input
+          v-model="profileForm.name"
+          type="text"
+          :placeholder="$t('placeholder_display_name') as string"
+          class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
+        />
+      </div>
+      <div>
+        <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_email') }}</label>
+        <input
+          v-model="profileForm.email"
+          type="email"
+          :placeholder="$t('placeholder_email') as string"
+          disabled
+          class="w-full cursor-not-allowed rounded-md border border-[#d2cfc6] bg-[#eae8e1] px-3 py-2.5 font-sans text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-400"
+        />
+        <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_email') }}</p>
+      </div>
+      <div>
+        <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_bio') }}</label>
+        <textarea
+          v-model="profileForm.bio"
+          :placeholder="$t('placeholder_bio') as string"
+          rows="4"
+          class="w-full resize-y rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm leading-relaxed text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
+        />
+      </div>
+      <div class="pt-2">
+        <NButton
+          :disabled="savingProfile"
+          btn="solid-black"
+          class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
+          @click="saveProfile"
+        >
+          {{ savingProfile ? $t('saving') : $t('save_profile') }}
+        </NButton>
+      </div>
+    </div>
+    <div v-else-if="activeTab === 'privacy'" key="privacy" class="max-w-xl space-y-1">
+      <div class="flex items-center justify-between gap-4 border-b border-gray-500/20 py-4 dark:border-white/10">
+        <div>
+          <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_public_profile') }}</h3>
+          <p class="mt-1 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">{{ $t('desc_public_profile') }}</p>
+        </div>
+        <NSwitch v-model="privacySettings.public_profile" switch-checked="indigo" />
+      </div>
+      <div class="flex items-center justify-between gap-4 border-b border-gray-500/20 py-4 dark:border-white/10">
+        <div>
+          <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_attribution') }}</h3>
+          <p class="mt-1 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">{{ $t('desc_show_attribution') }}</p>
+        </div>
+        <NSwitch v-model="privacySettings.show_attribution" switch-checked="indigo" />
+      </div>
+    </div>
+    <div v-else-if="activeTab === 'security'" key="security" class="max-w-xl space-y-6">
+      <NButton
+        v-if="!showPasswordForm"
+        btn="outline-gray"
+        class="min-h-10 justify-center bg-[#f0efe9] px-4 font-sans text-sm font-600 text-gray-700 transition-[background-color,color,box-shadow] duration-200 hover:bg-[#fbfaf7] hover:text-gray-950 hover:shadow-[0_4px_14px_rgba(28,25,23,0.16)] active:!shadow-none dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/[0.12] dark:hover:text-white dark:hover:shadow-[0_4px_14px_rgba(0,0,0,0.45)] dark:active:!shadow-none"
+        :aria-expanded="showPasswordForm"
+        aria-controls="password-change-form"
+        @click="openPasswordForm"
+      >
+        {{ $t('change_password_prompt') }}
+      </NButton>
+      <Transition name="password-form">
+        <div v-if="showPasswordForm" id="password-change-form" class="space-y-6">
           <div>
-            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_display_name') }}</label>
-            <input
-              v-model="profileForm.name"
-              type="text"
-              :placeholder="$t('placeholder_display_name') as string"
-              class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
-            />
+            <label for="current-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_current_password') }}</label>
+            <input ref="currentPasswordInput" id="current-password" v-model="passwordForm.currentPassword" type="password" autocomplete="current-password" :placeholder="currentPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
           </div>
           <div>
-            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_email') }}</label>
-            <input
-              v-model="profileForm.email"
-              type="email"
-              :placeholder="$t('placeholder_email') as string"
-              disabled
-              class="w-full cursor-not-allowed rounded-md border border-[#d2cfc6] bg-[#eae8e1] px-3 py-2.5 font-sans text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-400"
-            />
-            <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_email') }}</p>
+            <label for="new-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_new_password') }}</label>
+            <input id="new-password" v-model="passwordForm.newPassword" type="password" autocomplete="new-password" :placeholder="newPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
           </div>
           <div>
-            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_bio') }}</label>
-            <textarea
-              v-model="profileForm.bio"
-              :placeholder="$t('placeholder_bio') as string"
-              rows="4"
-              class="w-full resize-y rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm leading-relaxed text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
-            />
+            <label for="confirm-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_confirm_password') }}</label>
+            <input id="confirm-password" v-model="passwordForm.confirmPassword" type="password" autocomplete="new-password" :placeholder="confirmPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
           </div>
-          <div class="pt-2">
-            <NButton
-              :disabled="savingProfile"
-              btn="solid-black"
-              class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
-              @click="saveProfile"
-            >
-              {{ savingProfile ? $t('saving') : $t('save_profile') }}
+          <p v-if="passwordError" class="font-sans text-xs text-red-700 dark:text-red-400" role="alert">{{ passwordError }}</p>
+          <p v-else-if="passwordMessage" class="font-sans text-xs text-gray-700 dark:text-gray-300" role="status">{{ passwordMessage }}</p>
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <NButton :disabled="savingPassword" btn="solid-black" class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300" @click="savePassword">
+              {{ savingPassword ? $t('saving') : $t('change_password_now') }}
+            </NButton>
+            <NButton btn="text-gray-600" class="min-h-10 px-3 font-sans text-sm" :disabled="savingPassword" @click="closePasswordForm">
+              {{ $t('common.cancel') }}
             </NButton>
           </div>
         </div>
-      </div>
-
-    </div>
-    <div v-else-if="activeTab === 'privacy'" key="privacy" class="space-y-8">
-      <div>
-        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
-          {{ $t('section_privacy') }}
-        </h2>
-        <div class="max-w-xl space-y-1">
-          <div class="flex items-center justify-between gap-4 border-b border-gray-500/20 py-4 dark:border-white/10">
-            <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_public_profile') }}</h3>
-              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">{{ $t('desc_public_profile') }}</p>
-            </div>
-            <NSwitch v-model="privacySettings.public_profile" switch-checked="indigo" />
-          </div>
-          <div class="flex items-center justify-between gap-4 border-b border-gray-500/20 py-4 dark:border-white/10">
-            <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_attribution') }}</h3>
-              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">{{ $t('desc_show_attribution') }}</p>
-            </div>
-            <NSwitch v-model="privacySettings.show_attribution" switch-checked="indigo" />
-          </div>
-        </div>
-      </div>
-    </div>
-    <div v-else-if="activeTab === 'security'" key="security" class="space-y-8">
-      <div>
-        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
-          {{ $t('section_security') }}
-        </h2>
-        <div class="max-w-xl space-y-6">
-          <NButton
-            v-if="!showPasswordForm"
-            btn="outline-gray"
-            class="min-h-10 justify-center bg-[#f0efe9] px-4 font-sans text-sm font-600 text-gray-700 transition-[background-color,color,box-shadow] duration-200 hover:bg-[#fbfaf7] hover:text-gray-950 hover:shadow-[0_4px_14px_rgba(28,25,23,0.16)] active:!shadow-none dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/[0.12] dark:hover:text-white dark:hover:shadow-[0_4px_14px_rgba(0,0,0,0.45)] dark:active:!shadow-none"
-            :aria-expanded="showPasswordForm"
-            aria-controls="password-change-form"
-            @click="openPasswordForm"
-          >
-            {{ $t('change_password_prompt') }}
-          </NButton>
-          <Transition name="password-form">
-            <div v-if="showPasswordForm" id="password-change-form" class="space-y-6">
-              <div>
-                <label for="current-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_current_password') }}</label>
-                <input ref="currentPasswordInput" id="current-password" v-model="passwordForm.currentPassword" type="password" autocomplete="current-password" :placeholder="currentPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
-              </div>
-              <div>
-                <label for="new-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_new_password') }}</label>
-                <input id="new-password" v-model="passwordForm.newPassword" type="password" autocomplete="new-password" :placeholder="newPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
-              </div>
-              <div>
-                <label for="confirm-password" class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_confirm_password') }}</label>
-                <input id="confirm-password" v-model="passwordForm.confirmPassword" type="password" autocomplete="new-password" :placeholder="confirmPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
-              </div>
-              <p v-if="passwordError" class="font-sans text-xs text-red-700 dark:text-red-400" role="alert">{{ passwordError }}</p>
-              <p v-else-if="passwordMessage" class="font-sans text-xs text-gray-700 dark:text-gray-300" role="status">{{ passwordMessage }}</p>
-              <div class="flex flex-wrap items-center gap-3 pt-2">
-                <NButton :disabled="savingPassword" btn="solid-black" class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300" @click="savePassword">
-                  {{ savingPassword ? $t('saving') : $t('change_password_now') }}
-                </NButton>
-                <NButton btn="text-gray-600" class="min-h-10 px-3 font-sans text-sm" :disabled="savingPassword" @click="closePasswordForm">
-                  {{ $t('common.cancel') }}
-                </NButton>
-              </div>
-            </div>
-          </Transition>
-        </div>
-      </div>
+      </Transition>
     </div>
     <div v-else-if="activeTab === 'preferences'" key="preferences" class="max-w-2xl space-y-5">
       <section class="border-b border-gray-200 pb-5 dark:border-white/10">
@@ -162,34 +139,27 @@
     </div>
 
     <!-- Notifications Tab -->
-    <div v-else-if="activeTab === 'notifications'" key="notifications" class="space-y-8">
-      <div>
-        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
-          {{ $t('section_notifications') }}
-        </h2>
-        <div class="max-w-2xl space-y-1">
-          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
-            <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_quote_approval') }}</h3>
-              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_quote_approval') }}</p>
-            </div>
-            <NSwitch v-model="notificationSettings.quote_approval" switch-checked="indigo" />
-          </div>
-          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
-            <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_collection_updates') }}</h3>
-              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_collection_updates') }}</p>
-            </div>
-            <NSwitch v-model="notificationSettings.collection_updates" switch-checked="indigo" />
-          </div>
-          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
-            <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_weekly_digest') }}</h3>
-              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_weekly_digest') }}</p>
-            </div>
-            <NSwitch v-model="notificationSettings.weekly_digest" switch-checked="indigo" />
-          </div>
+    <div v-else-if="activeTab === 'notifications'" key="notifications" class="max-w-2xl space-y-1">
+      <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
+        <div>
+          <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_quote_approval') }}</h3>
+          <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_quote_approval') }}</p>
         </div>
+        <NSwitch v-model="notificationSettings.quote_approval" switch-checked="indigo" />
+      </div>
+      <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
+        <div>
+          <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_collection_updates') }}</h3>
+          <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_collection_updates') }}</p>
+        </div>
+        <NSwitch v-model="notificationSettings.collection_updates" switch-checked="indigo" />
+      </div>
+      <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
+        <div>
+          <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_weekly_digest') }}</h3>
+          <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_weekly_digest') }}</p>
+        </div>
+        <NSwitch v-model="notificationSettings.weekly_digest" switch-checked="indigo" />
       </div>
     </div>
 
