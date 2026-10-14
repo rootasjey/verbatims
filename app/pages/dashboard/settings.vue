@@ -69,18 +69,6 @@
         </div>
       </div>
 
-      <!-- Language Preferences -->
-      <div class="border-b border-gray-200 pb-8 dark:border-white/10">
-        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
-          {{ $t('section_language') }}
-        </h2>
-        <div class="max-w-xl">
-          <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_preferred_language') }}</label>
-          <LanguageSelector />
-          <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_language') }}</p>
-        </div>
-      </div>
-
     </div>
     <div v-else-if="activeTab === 'privacy'" key="privacy" class="space-y-8">
       <div>
@@ -150,17 +138,27 @@
         </div>
       </div>
     </div>
-    <div v-else-if="activeTab === 'ui'" key="ui" class="space-y-8">
-      <div>
-        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
+    <div v-else-if="activeTab === 'preferences'" key="preferences" class="max-w-2xl space-y-5">
+      <section class="border-b border-gray-200 pb-5 dark:border-white/10">
+        <h2 class="mb-4 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
+          {{ $t('section_language') }}
+        </h2>
+        <div class="max-w-xl">
+          <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_preferred_language') }}</label>
+          <LanguageSelector appearance="toolbar" />
+          <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_language') }}</p>
+        </div>
+      </section>
+      <section>
+        <h2 class="mb-4 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_ui') }}
         </h2>
-        <div class="max-w-2xl">
+        <div class="max-w-xl">
           <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_theme') }}</label>
           <p class="mb-4 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_theme') }}</p>
-          <ThemeSelector />
+          <ThemeSelector appearance="settings" />
         </div>
-      </div>
+      </section>
     </div>
 
     <!-- Notifications Tab -->
@@ -289,7 +287,7 @@ const { user } = useUserSession()
 
 const tabs = computed(() => [
   { name: $t('tab_profile'), value: 'profile' },
-  { name: $t('tab_ui'), value: 'ui' },
+  { name: $t('tab_preferences'), value: 'preferences' },
   { name: $t('section_privacy'), value: 'privacy' },
   { name: $t('tab_notifications'), value: 'notifications' },
   { name: $t('section_security'), value: 'security' },

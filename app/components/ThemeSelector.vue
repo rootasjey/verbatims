@@ -5,10 +5,11 @@
       :items="themeOptions"
       value-key="label"
       item-key="label"
-      size="xs"
+      :size="props.appearance === 'settings' ? 'sm' : 'xs'"
+      :_select-trigger="props.appearance === 'settings' ? { class: '!h-10 !min-h-10 !w-full !min-w-36 !rounded-md !border !border-[#d2cfc6] !bg-[#f0efe9] !px-3 !py-2 !text-sm !font-medium !text-gray-800 hover:!bg-[#eae8e1] dark:!border-white/15 dark:!bg-white/[0.06] dark:!text-gray-200 dark:hover:!bg-white/10' } : undefined"
       :_select-content="{ bodyLock: false }"
       select="light:soft-rose dark:soft-gray"
-      select-item="light:rose dark:gray"
+      :select-item="props.appearance === 'settings' ? 'light:gray dark:gray' : 'light:rose dark:gray'"
       @update:model-value="onThemeChange"
     >
       <template #value="{ modelValue }">
@@ -28,6 +29,12 @@
 </template>
 
 <script setup lang="ts">
+const props = withDefaults(defineProps<{
+  appearance?: 'default' | 'settings'
+}>(), {
+  appearance: 'default',
+})
+
 interface ThemeOption {
   label: string;
   value: string;
