@@ -6,20 +6,20 @@
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">Enrichment audit</h1>
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Read-only evaluation of reference matching and proposals.</p>
         </div>
-        <div class="flex items-center gap-2">
-          <NButton btn="outline-gray" :disabled="results.length === 0" @click="downloadJson">Download JSON</NButton>
-          <NButton btn="outline-gray" :disabled="results.length === 0" @click="copySummary">Copy summary</NButton>
+        <div class="flex flex-wrap items-center gap-2">
+          <NButton btn="outline-gray" size="sm" :disabled="results.length === 0" @click="downloadJson">Download JSON</NButton>
+          <NButton btn="outline-gray" size="sm" :disabled="results.length === 0" @click="copySummary">Copy summary</NButton>
         </div>
       </div>
 
       <div class="mt-6 flex flex-wrap items-end gap-3">
         <label class="text-xs text-gray-500 dark:text-gray-400">
           References
-          <input v-model.number="auditLimit" type="number" min="1" max="50" class="mt-1 block w-28 rounded-sm border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-700">
+          <input v-model.number="auditLimit" type="number" min="1" max="50" class="mt-1 block w-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
         </label>
         <label class="text-xs text-gray-500 dark:text-gray-400">
           Type
-          <select v-model="auditType" class="mt-1 block rounded-sm border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-700">
+          <select v-model="auditType" class="mt-1 block min-h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
             <option value="">All types</option>
             <option value="music">Music</option>
             <option value="tv_series">TV series</option>
@@ -32,22 +32,22 @@
     </div>
 
     <div v-if="results.length" class="grid grid-cols-2 gap-3 md:grid-cols-5">
-      <div v-for="item in summaryCards" :key="item.label" class="border border-dashed border-gray-200 p-3 dark:border-gray-700">
+      <div v-for="item in summaryCards" :key="item.label" class="rounded-xl border border-gray-200 p-3 dark:border-gray-800">
         <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ item.label }}</p>
         <p class="mt-1 font-serif text-2xl text-gray-900 dark:text-gray-100">{{ item.value }}</p>
       </div>
     </div>
 
     <div v-if="results.length" class="flex flex-wrap items-center gap-2">
-      <NButton v-for="filter in filters" :key="filter.value" :btn="activeFilter === filter.value ? 'solid-gray' : 'outline-gray'" size="sm" @click="activeFilter = filter.value">
+      <NButton v-for="filter in filters" :key="filter.value" :btn="activeFilter === filter.value ? 'solid-gray' : 'outline-gray'" size="sm" class="rounded-full" @click="activeFilter = filter.value">
         {{ filter.label }}
       </NButton>
     </div>
 
     <div v-if="loading && results.length === 0" class="py-12 text-center text-sm text-gray-500">Starting audit…</div>
-    <div v-else-if="filteredResults.length === 0" class="border border-dashed border-gray-300 py-12 text-center text-sm text-gray-500 dark:border-gray-700">No audit results yet.</div>
-    <div v-else class="overflow-x-auto border border-gray-200 dark:border-gray-800">
-      <table class="min-w-full text-left text-sm">
+    <div v-else-if="filteredResults.length === 0" class="rounded-xl border border-gray-200 py-12 text-center text-sm text-gray-500 dark:border-gray-800">No audit results yet.</div>
+    <div v-else role="region" tabindex="0" aria-label="Enrichment audit results" class="overflow-x-auto overscroll-x-contain rounded-xl border border-gray-200 dark:border-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500">
+      <table class="w-full min-w-[820px] text-left text-sm">
         <thead class="border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500 dark:border-gray-800">
           <tr>
             <th class="px-4 py-3">Reference</th>
