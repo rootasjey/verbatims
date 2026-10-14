@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+    <div class="pb-6 mb-6 border-b border-gray-200 dark:border-gray-800">
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
@@ -9,16 +9,19 @@
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
             {{ total }} {{ total === 1 ? 'key' : 'keys' }}
-            <span class="text-green-600 dark:text-green-400">&middot; {{ $t('subtitle') }}</span>
+            <span class="text-gray-500 dark:text-gray-400">&middot; {{ $t('subtitle') }}</span>
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48" />
-          <OutlinedButton @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
+          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 w-56" />
+          <OutlinedButton class="rounded-lg" @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
         </div>
       </div>
-      <div class="md:hidden mt-4">
-        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
+      <div class="md:hidden mt-4 space-y-3">
+        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500" />
+        <div class="flex justify-end">
+          <OutlinedButton class="rounded-lg" @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
+        </div>
       </div>
     </div>
 
@@ -30,7 +33,7 @@
     </div>
 
     <!-- Empty -->
-    <div v-else-if="keys.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+    <div v-else-if="keys.length === 0 && !loading" class="py-12 md:py-16 px-6 text-center border border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-gray-900/30">
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
       <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mb-4">{{ $t('empty_desc') }}</p>
       <OutlinedButton @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
@@ -38,10 +41,10 @@
 
     <!-- Table -->
     <div v-else>
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+      <div class="hidden md:block border border-gray-200 dark:border-gray-800 rounded-xl overflow-x-auto">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+            <tr class="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_name') }}</th>
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_key') }}</th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_tier') }}</th>
@@ -64,10 +67,10 @@
                 <code class="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{{ key.keyPrefix }}...</code>
               </td>
               <td class="px-3 py-3">
-                <span class="font-sans text-xs px-1.5 py-0.5" :class="tierClass(key.tier)">{{ key.tier }}</span>
+                <span class="font-sans text-xs px-1.5 py-0.5 rounded" :class="tierClass(key.tier)">{{ key.tier }}</span>
               </td>
               <td class="px-3 py-3">
-                <span class="font-sans text-xs px-1.5 py-0.5" :class="key.isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'">
+                <span class="font-sans text-xs px-1.5 py-0.5 rounded" :class="key.isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'">
                   {{ key.isActive ? $t('common.status_active') : $t('common.status_inactive') }}
                 </span>
               </td>
@@ -91,19 +94,62 @@
         </table>
       </div>
 
+      <div class="md:hidden space-y-3">
+        <article v-for="key in keys" :key="key.id" class="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h2 class="font-sans text-base font-600 text-gray-900 dark:text-gray-100 break-words">{{ key.name }}</h2>
+              <code class="inline-block mt-2 font-mono text-xs text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{{ key.keyPrefix }}...</code>
+            </div>
+            <NDropdownMenu :items="getRowActions(key)">
+              <button :aria-label="$t('row_actions', { name: key.name }) as string" class="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400 transition-colors">
+                <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
+              </button>
+            </NDropdownMenu>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+            <div>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('col_tier') }}</p>
+              <span class="mt-1 inline-flex rounded px-1.5 py-0.5 text-xs" :class="tierClass(key.tier)">{{ key.tier }}</span>
+            </div>
+            <div>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</p>
+              <span class="mt-1 inline-flex rounded px-1.5 py-0.5 text-xs" :class="key.isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'">
+                {{ key.isActive ? $t('common.status_active') : $t('common.status_inactive') }}
+              </span>
+            </div>
+            <div>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('col_rate_limit') }}</p>
+              <p class="mt-1 text-gray-800 dark:text-gray-200">{{ key.readRateLimit }}/{{ formatWindow(key.readWindowSec) }}</p>
+            </div>
+            <div>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('col_owner') }}</p>
+              <p class="mt-1 text-gray-800 dark:text-gray-200">{{ key.userName }}</p>
+            </div>
+          </div>
+          <div class="mt-4 border-t border-gray-100 dark:border-gray-800 pt-3">
+            <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $t('col_permissions') }}</p>
+            <div class="flex flex-wrap gap-1.5">
+              <span v-for="perm in key.permissions" :key="perm" class="font-mono text-[0.6875rem] text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-1">{{ perm }}</span>
+            </div>
+          </div>
+          <p class="mt-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('col_created') }} · {{ formatDate(key.createdAt) }}</p>
+        </article>
+      </div>
+
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="h-20" />
     </div>
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
         Page
         <button
-          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-gray-300 dark:decoration-gray-600"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }}
@@ -111,15 +157,15 @@
         of {{ totalPages }} &middot; {{ total }} {{ total === 1 ? 'key' : 'keys' }}
       </span>
       <div class="flex items-center gap-3">
-        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+        <OutlinedButton v-if="currentPage > 1" class="rounded-lg" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
         <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
         <button
-          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
+          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }} / {{ totalPages }}
         </button>
-        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+        <OutlinedButton v-if="currentPage < totalPages" class="rounded-lg" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
         <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
     </div>

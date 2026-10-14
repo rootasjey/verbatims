@@ -15,6 +15,7 @@
   "col_permissions": "Permissions",
   "col_owner": "Owner",
   "col_created": "Created",
+  "row_actions": "Actions for {name}",
   "dialog_edit_title": "Edit API Key",
   "dialog_create_title": "Create API Key",
   "label_name": "Name",
