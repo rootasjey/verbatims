@@ -67,14 +67,22 @@
           <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_public_profile') }}</h3>
           <p class="mt-1 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">{{ $t('desc_public_profile') }}</p>
         </div>
-        <NSwitch v-model="privacySettings.public_profile" switch-checked="indigo" />
+        <NTooltip :content="$t('coming_soon') as string">
+          <span class="inline-flex cursor-not-allowed" tabindex="0">
+            <NSwitch v-model="privacySettings.public_profile" switch-checked="gray" disabled />
+          </span>
+        </NTooltip>
       </div>
       <div class="flex items-center justify-between gap-4 border-b border-gray-500/20 py-4 dark:border-white/10">
         <div>
           <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_attribution') }}</h3>
           <p class="mt-1 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">{{ $t('desc_show_attribution') }}</p>
         </div>
-        <NSwitch v-model="privacySettings.show_attribution" switch-checked="indigo" />
+        <NTooltip :content="$t('coming_soon') as string">
+          <span class="inline-flex cursor-not-allowed" tabindex="0">
+            <NSwitch v-model="privacySettings.show_attribution" switch-checked="gray" disabled />
+          </span>
+        </NTooltip>
       </div>
     </div>
     <div v-else-if="activeTab === 'security'" key="security" class="max-w-xl space-y-6">
@@ -144,21 +152,33 @@
           <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_quote_approval') }}</h3>
           <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_quote_approval') }}</p>
         </div>
-        <NSwitch v-model="notificationSettings.quote_approval" switch-checked="indigo" />
+        <NTooltip :content="$t('coming_soon') as string">
+          <span class="inline-flex cursor-not-allowed" tabindex="0">
+            <NSwitch v-model="notificationSettings.quote_approval" switch-checked="gray" disabled />
+          </span>
+        </NTooltip>
       </div>
       <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
         <div>
           <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_collection_updates') }}</h3>
           <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_collection_updates') }}</p>
         </div>
-        <NSwitch v-model="notificationSettings.collection_updates" switch-checked="indigo" />
+        <NTooltip :content="$t('coming_soon') as string">
+          <span class="inline-flex cursor-not-allowed" tabindex="0">
+            <NSwitch v-model="notificationSettings.collection_updates" switch-checked="gray" disabled />
+          </span>
+        </NTooltip>
       </div>
       <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
         <div>
           <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_weekly_digest') }}</h3>
           <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_weekly_digest') }}</p>
         </div>
-        <NSwitch v-model="notificationSettings.weekly_digest" switch-checked="indigo" />
+        <NTooltip :content="$t('coming_soon') as string">
+          <span class="inline-flex cursor-not-allowed" tabindex="0">
+            <NSwitch v-model="notificationSettings.weekly_digest" switch-checked="gray" disabled />
+          </span>
+        </NTooltip>
       </div>
     </div>
 
@@ -168,12 +188,11 @@
         <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_danger_zone') }}
         </h2>
-        <div class="border-t border-gray-500/20 py-5 dark:border-white/10">
-          <h3 class="mb-1 font-serif text-lg font-500 text-gray-900 dark:text-gray-100">{{ $t('heading_delete_account') }}</h3>
+        <div>
           <p class="mb-4 max-w-lg font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">
             {{ $t('desc_delete_account') }}
           </p>
-          <NButton btn="outline-gray" class="min-h-10 justify-center border border-[#d9c5bf] bg-[#F1E8E5] px-4 font-sans text-sm font-600 text-[#7F3029] transition-colors hover:bg-[#EBDDD8] dark:border-red-200/20 dark:bg-red-950/30 dark:text-red-200 dark:hover:bg-red-950/50" @click="showDeleteModal = true">
+          <NButton btn="solid-black" class="!min-h-10 justify-center !bg-[#171614] px-4 font-sans text-sm font-600 !text-[#F7F5EF] transition-[transform,background-color] hover:!bg-[#302E2B] active:scale-99 dark:!bg-[#F3F1EC] dark:!text-[#171614] dark:hover:!bg-white" @click="showDeleteModal = true">
             {{ $t('button_delete_account') }}
           </NButton>
         </div>
@@ -300,8 +319,6 @@ const privacySettings = ref<PrivacySettings>({
 })
 
 const savingProfile = ref(false)
-const savingNotifications = ref(false)
-const savingPrivacy = ref(false)
 const deleting = ref(false)
 
 const showDeleteModal = ref(false)
@@ -369,19 +386,6 @@ const savePassword = async () => {
   }
 }
 
-// Auto-save privacy and notification settings on toggle
-let privacyTimer: ReturnType<typeof setTimeout> | null = null
-watch(privacySettings, () => {
-  if (privacyTimer) clearTimeout(privacyTimer)
-  privacyTimer = setTimeout(() => savePrivacy(), 500)
-}, { deep: true })
-
-let notificationTimer: ReturnType<typeof setTimeout> | null = null
-watch(notificationSettings, () => {
-  if (notificationTimer) clearTimeout(notificationTimer)
-  notificationTimer = setTimeout(() => saveNotifications(), 500)
-}, { deep: true })
-
 const saveProfile = async () => {
   savingProfile.value = true
   try {
@@ -394,36 +398,6 @@ const saveProfile = async () => {
     showErrorToast(error, $t('error_save_profile') as string)
   } finally {
     savingProfile.value = false
-  }
-}
-
-const saveNotifications = async () => {
-  savingNotifications.value = true
-  try {
-    await $fetch('/api/user/notifications', {
-      method: 'PUT',
-      body: notificationSettings.value
-    })
-  } catch (error) {
-    console.error('Failed to save notification settings:', error)
-    showErrorToast(error, $t('error_save_notifications') as string)
-  } finally {
-    savingNotifications.value = false
-  }
-}
-
-const savePrivacy = async () => {
-  savingPrivacy.value = true
-  try {
-    await $fetch('/api/user/privacy', {
-      method: 'PUT',
-      body: privacySettings.value
-    })
-  } catch (error) {
-    console.error('Failed to save privacy settings:', error)
-    showErrorToast(error, $t('error_save_privacy') as string)
-  } finally {
-    savingPrivacy.value = false
   }
 }
 

@@ -33,6 +33,7 @@
   "error_password_mismatch": "New passwords do not match.",
   "error_save_password": "Failed to update password.",
   "section_privacy": "Privacy & Visibility",
+  "coming_soon": "Coming soon",
   "label_public_profile": "Public Profile",
   "desc_public_profile": "Allow others to see your profile and public collections.",
   "label_show_attribution": "Show Quote Attribution",
@@ -48,9 +49,8 @@
   "label_weekly_digest": "Weekly Digest",
   "desc_weekly_digest": "Receive a weekly summary of new quotes and activity.",
   "section_danger_zone": "Account & Data",
-  "heading_delete_account": "Delete Account",
   "desc_delete_account": "Permanently delete your account and all associated data. This action cannot be undone.",
-  "button_delete_account": "Delete Account",
+  "button_delete_account": "Delete my account",
   "dialog_delete_title": "Delete Account",
   "dialog_delete_body": "Are you sure you want to delete your account? This will permanently remove:",
   "dialog_delete_item_profile": "Your profile and account information",
@@ -61,7 +61,5 @@
   "dialog_delete_warning": "This action cannot be undone.",
   "dialog_delete_confirm": "Delete My Account",
   "error_save_profile": "Failed to save profile information.",
-  "error_save_notifications": "Failed to save notification settings.",
-  "error_save_privacy": "Failed to save privacy settings.",
   "error_delete_account": "Failed to delete account."
 }
