@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, desc, count, inArray } from 'drizzle-orm'
+import { sanitizeThemeAiSuggestions } from '../../../utils/theme-ai-suggestions'
 
 function slugify(text: string): string {
   return text.toLowerCase()
@@ -230,6 +231,7 @@ async function generateAISuggestions(
   topAuthors: { name: string; count: number }[],
   topReferences: { name: string; count: number }[],
   suggestionCount: number,
+  existingSlugs: ReadonlySet<string>,
   context?: string,
   seedTags?: string[]
 ): Promise<any[] | null> {
@@ -292,20 +294,20 @@ Rules:
       const content = json.choices?.[0]?.message?.content
       if (!content) return null
 
-      const parsed = JSON.parse(content)
-      const items = Array.isArray(parsed) ? parsed : (parsed.suggestions || [])
-      if (!items.length) return null
+      const suggestions = sanitizeThemeAiSuggestions(JSON.parse(content), {
+        tags: topTags.map(tag => tag.name),
+        authors: topAuthors.map(author => author.name),
+        references: topReferences.map(reference => reference.name),
+      }, existingSlugs, Math.min(MAX_SUGGESTIONS, suggestionCount))
+      if (!suggestions.length) return null
 
-      return items.slice(0, MAX_SUGGESTIONS).map((s: any, i: number) => {
+      return suggestions.map((s, i) => {
         const pair = colorPairs[i % colorPairs.length]!
         return {
-          type: s.type || 'tag',
-          name: s.name || 'Untitled',
-          slug: slugify(s.name || 'untitled'),
-          description: s.description || '',
-          color_primary: s.color_primary || pair[0],
-          color_secondary: s.color_secondary || pair[1],
-          filters: (s.filters || []).slice(0, 4),
+          ...s,
+          slug: slugify(s.name),
+          color_primary: pair[0],
+          color_secondary: pair[1],
         }
       })
     } catch (error: any) {
@@ -406,8 +408,8 @@ export default defineEventHandler(async (event) => {
     if (useAI) {
       let context = await buildContext(event)
       if (language) context += `\n\nLanguage: ${getLanguageName(language)}. Generate theme names and descriptions in ${getLanguageName(language)} and focus on quotes in this language.`
-      const aiSuggestions = await generateAISuggestions(topTags, topAuthors, topReferences, MAX_SUGGESTIONS, context, seedTags)
-      if (aiSuggestions) return { success: true, data: aiSuggestions }
+      const aiSuggestions = await generateAISuggestions(topTags, topAuthors, topReferences, MAX_SUGGESTIONS, existingSlugs, context, seedTags)
+      if (aiSuggestions?.length) return { success: true, data: aiSuggestions }
     }
 
     const suggestions: any[] = []
