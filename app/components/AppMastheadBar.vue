@@ -90,7 +90,7 @@
               class="ml-1.5"
             >
               <template #fallback>
-                <NIcon name="i-ph-user-circle" class="h-6 w-6" />
+                <BrandAvatarFallback />
               </template>
             </NAvatar>
           </template>
