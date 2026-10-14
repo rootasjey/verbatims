@@ -3,7 +3,7 @@
     <!-- Editorial Header -->
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <div class="flex items-start justify-between gap-4 mb-4">
-        <div>
+        <div class="min-w-0">
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             {{ $t('title') }}
           </h1>
@@ -21,7 +21,7 @@
               btn: 'ghost-gray',
               size: 'sm',
               trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              class: 'gap-1 px-2 text-sm font-normal w-fit min-w-0 rounded-lg',
             }"
           >
             <template #trigger="{ modelValue }">
@@ -39,14 +39,14 @@
               btn: 'ghost-gray',
               size: 'sm',
               trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              class: 'gap-1 px-2 text-sm font-normal w-fit min-w-0 rounded-lg',
             }"
           >
             <template #trigger="{ modelValue }">
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
-          <div v-if="selectedEntityId" class="flex items-center gap-2 font-sans text-xs text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/20 border border-dashed border-cyan-200 dark:border-cyan-700 px-2 py-1">
+          <div v-if="selectedEntityId" class="flex items-center gap-2 font-sans text-xs text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-700 px-2 py-1 rounded-lg">
             <span>{{ $t('filter_label', { entity: selectedEntityType.label, id: selectedEntityId }) }}</span>
             <button class="hover:underline" @click="clearEntityFilter">{{ $t('clear') }}</button>
           </div>
@@ -55,7 +55,7 @@
           <OutlinedButton @click="openEnrichmentConfigDialog">{{ $t('settings') }}</OutlinedButton>
         </div>
       </div>
-      <div class="md:hidden flex gap-2 flex-wrap">
+      <div class="md:hidden flex flex-wrap items-center gap-2">
         <NCombobox
           v-model="selectedEntityType"
           :items="entityTypeOptions"
@@ -67,7 +67,7 @@
             btn: 'ghost-gray',
             size: 'xs',
             trailing: '',
-            class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg',
           }"
         >
           <template #trigger="{ modelValue }">
@@ -85,30 +85,41 @@
             btn: 'ghost-gray',
             size: 'xs',
             trailing: '',
-            class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg',
           }"
         >
           <template #trigger="{ modelValue }">
             <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
           </template>
         </NCombobox>
+        <div class="ml-auto flex items-center gap-1">
+          <NTooltip :content="$t('refresh') as string">
+            <button type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" :aria-label="$t('refresh') as string" :disabled="loading" @click="loadQueue"><NIcon name="i-ph-arrow-clockwise" class="h-4 w-4" /></button>
+          </NTooltip>
+          <NTooltip :content="$t('process_queued') as string">
+            <button type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-gray-300 text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800" :aria-label="$t('process_queued') as string" :disabled="processing" @click="processQueuedJobs"><NIcon name="i-ph-play" class="h-4 w-4" /></button>
+          </NTooltip>
+          <NTooltip :content="$t('settings') as string">
+            <button type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" :aria-label="$t('settings') as string" @click="openEnrichmentConfigDialog"><NIcon name="i-ph-gear" class="h-4 w-4" /></button>
+          </NTooltip>
+        </div>
       </div>
 
       <!-- Stats Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <div class="border border-gray-200 dark:border-gray-800 rounded-xl p-4">
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_queued') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.jobs.queued }}</p>
         </div>
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <div class="border border-gray-200 dark:border-gray-800 rounded-xl p-4">
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_processing') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.jobs.processing }}</p>
         </div>
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <div class="border border-gray-200 dark:border-gray-800 rounded-xl p-4">
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_review') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.states.review }}</p>
         </div>
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <div class="border border-gray-200 dark:border-gray-800 rounded-xl p-4">
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_verified') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.states.verified }}</p>
         </div>
@@ -117,12 +128,12 @@
 
     <!-- Table -->
     <div v-if="loading && jobs.length === 0" class="space-y-5">
-      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-gray-100 dark:border-gray-800">
         <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
       </div>
     </div>
 
-    <div v-else-if="jobs.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+    <div v-else-if="jobs.length === 0 && !loading" class="py-16 text-center border border-gray-200 dark:border-gray-800 rounded-xl">
       <NIcon name="i-ph-magic-wand" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
         {{ selectedStatus.value || selectedEntityType.value ? $t('empty_search_title') : $t('empty_title') }}
@@ -133,10 +144,10 @@
     </div>
 
     <div v-else>
-      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
-        <table class="w-full">
+      <div role="region" tabindex="0" :aria-label="$t('title') as string" class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-x-auto overscroll-x-contain focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500">
+        <table class="w-full min-w-[900px]">
           <thead>
-            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+            <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_entity') }}</th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_trigger') }}</th>
@@ -163,8 +174,8 @@
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatTimestamp(job.createdAt) }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatTimestamp(job.updatedAt) }}</td>
               <td class="px-3 py-3">
-                <NDropdownMenu :items="rowActionItems(job)">
-                  <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+                <NDropdownMenu :items="rowActionItems(job)" :modal="false">
+                  <button @click.stop class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                 </NDropdownMenu>
               </td>
             </tr>
@@ -172,33 +183,27 @@
         </table>
       </div>
 
-      <div v-if="totalPages > 1" class="h-20" />
+      <div v-if="totalPages > 1" class="hidden md:block h-20" />
     </div>
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
-      :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
+      class="relative md:fixed md:bottom-0 z-20 mb-24 md:mb-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 rounded-t-2xl px-3 sm:px-6 lg:px-8 py-2 md:py-3 flex items-center justify-between gap-2 shadow-sm transition-all duration-300 ease-in-out"
+      :style="isDesktopViewport ? { left: footerLeftOffset + 'px', width: footerWidth } : undefined"
     >
-      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+      <span class="font-sans text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
         Page
         <button
-          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-gray-300 dark:decoration-gray-600"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }}
         </button>
-        of {{ totalPages }} &middot; {{ totalItems }} {{ $t(totalItems === 1 ? 'common.quote_singular' : 'common.quote_plural') }}
+        of {{ totalPages }} <span class="hidden sm:inline">&middot; {{ totalItems }} {{ $t(totalItems === 1 ? 'common.quote_singular' : 'common.quote_plural') }}</span>
       </span>
       <div class="flex items-center gap-3">
         <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
         <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-        <button
-          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
-          @click="showPageJumpDialog = true"
-        >
-          {{ currentPage }} / {{ totalPages }}
-        </button>
         <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
         <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
@@ -236,6 +241,7 @@ const pageSize = ref(20)
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
+const isDesktopViewport = ref(false)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / pageSize.value)))
 
 const selectedStatus = ref<FilterOption>({ label: String($t('filter_all_statuses')), value: '' })
@@ -383,8 +389,9 @@ onMounted(() => { syncFiltersFromRoute(); loadQueue() })
 let footerObserver: ResizeObserver | null = null
 
 const updateFooterPosition = () => {
+  isDesktopViewport.value = window.matchMedia('(min-width: 768px)').matches
   const mainEl = document.querySelector('main')
-  if (!mainEl) {
+  if (!mainEl || !isDesktopViewport.value) {
     footerLeftOffset.value = 0
     footerWidth.value = '100%'
     return
