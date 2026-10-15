@@ -1,10 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'default',
-  middleware: 'auth'
+  middleware: ['auth', 'dashboard-home']
 })
-
-await navigateTo('/dashboard/favourites', { replace: true })
 </script>
 
 <template>
