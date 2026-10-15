@@ -130,14 +130,9 @@
             {{ $ts('import_progress.download_report') }}
           </NButton>
 
-          <NButton
-            v-if="progress.status === 'failed'"
-            btn="outline"
-            color="blue"
-            @click="retryImport"
-          >
-            {{ $ts('import_progress.retry_import') }}
-          </NButton>
+          <p v-if="progress.status === 'failed'" class="text-sm text-gray-600 dark:text-gray-400">
+            {{ $ts('import_progress.retry_requires_new_upload') }}
+          </p>
         </div>
       </div>
 
@@ -394,11 +389,6 @@ const cancelImport = async () => {
   } catch (error) {
     console.error('Failed to cancel import:', error)
   }
-}
-
-const retryImport = async () => {
-  // TODO: Implement retry logic
-  console.log('Retry import not implemented yet')
 }
 
 const downloadUnresolved = async () => {

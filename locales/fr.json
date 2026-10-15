@@ -327,6 +327,15 @@
     "fr": "Français"
   },
   "admin": {
+    "workspace_title": "Administration",
+    "workspace_description": "Modérer, enrichir et administrer Verbatims.",
+    "sections": {
+      "moderation": "Modération",
+      "editorial": "Éditorial",
+      "people": "Comptes et accès",
+      "operations": "Opérations",
+      "data": "Données"
+    },
     "nav": {
       "overview": "Aperçu",
       "quotes_management": "Gestion des citations",
@@ -338,6 +347,7 @@
       "authors": "Auteurs",
       "references": "Références",
       "enrichment_queue": "File d'enrichissement",
+      "enrichment_audit": "Audit d'enrichissement",
       "harvest_quotes": "Récolter des citations",
       "tags": "Tags",
       "sponsors": "Sponsors",
@@ -1031,6 +1041,52 @@
       },
       "report_prefer_email": "Vous préférez un email ?"
     }
+  },
+  "import_progress": {
+    "retry_requires_new_upload": "Cet import ne peut pas être repris. Lancez-en un nouveau à partir du fichier source."
+  },
+  "import_history": {
+    "title": "Historique des imports",
+    "description": "Consulter les imports et leurs fichiers sources conservés",
+    "clear_finished": "Effacer les imports terminés",
+    "load_failed": "Impossible de charger l’historique des imports. Réessayez.",
+    "details_load_failed": "Certains détails n’ont pas pu être chargés. La progression temporaire peut expirer à la fin du processus d’import.",
+    "clear_failed": "Impossible d’effacer l’historique. Les entrées restantes ont été conservées pour permettre une nouvelle tentative.",
+    "clear_partial": "{deleted} imports supprimés. {failed} n’ont pas pu être entièrement supprimés ; leur historique est conservé pour réessayer.",
+    "no_history_title": "Aucun historique d’import",
+    "no_history_desc": "L’historique apparaîtra ici après le premier import.",
+    "empty_text": "Aucun historique d’import",
+    "page_info": "Page {page} sur {totalPages} • {total} imports au total",
+    "details_title": "Détails de l’import - {id}",
+    "details_status": "Statut :",
+    "details_type": "Type :",
+    "details_total_records": "Total :",
+    "details_successful": "Réussis :",
+    "details_failed": "Échoués :",
+    "details_warnings": "Avertissements :",
+    "warnings_subheading": "Avertissements",
+    "errors_subheading": "Erreurs",
+    "import_files": "Fichiers conservés pour cet import",
+    "import_files_note": "Il s’agit du fichier source et des rapports d’import, pas d’instantanés de la base. Effacer cet historique supprime aussi ses fichiers, sans annuler les données importées.",
+    "source_file": "Fichier source",
+    "report_file": "Rapport d’import",
+    "no_backups": "Aucun fichier conservé pour cet import.",
+    "download": "Télécharger",
+    "clear_dialog_title": "Effacer les imports terminés",
+    "clear_dialog_confirm": "Cette action supprime définitivement l’historique des imports terminés ou échoués et leurs fichiers source/rapport. Les imports actifs sont conservés. Les données déjà importées dans la base ne changent pas.",
+    "clear_dialog_delete_count": "{count} entrées d’import terminées seront supprimées.",
+    "clear_dialog_confirm_button": "Effacer les imports terminés",
+    "delete_dialog_title": "Supprimer l’historique de cet import",
+    "delete_dialog_confirm": "Cette action supprime l’entrée terminée et ses fichiers source/rapport. Elle n’annule ni ne supprime les données importées.",
+    "delete_dialog_confirm_button": "Supprimer l’historique et les fichiers",
+    "delete_failed": "Impossible de supprimer entièrement cet import et ses fichiers. L’historique a été conservé pour permettre une nouvelle tentative.",
+    "action_view_details": "Voir les détails",
+    "action_delete_record": "Supprimer l’entrée",
+    "column_status": "Statut",
+    "column_type": "Type",
+    "column_records": "Enregistrements",
+    "column_started": "Démarré",
+    "column_completed": "Terminé"
   },
   "export_create": {
     "title": "Export de données",

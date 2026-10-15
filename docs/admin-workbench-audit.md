@@ -9,7 +9,7 @@
 
 The admin area supports four real product needs: curate/moderate the quote catalogue, operate editorial/publishing workflows, manage accounts/support, and move or maintain application data. Most tools have a distinct domain purpose and should remain available. The main opportunity is to reduce navigation fragmentation by grouping related workflows, not deleting them.
 
-The audit found three areas that should be treated as defects or operational hazards before relying on them:
+The audit found three areas that were defects or operational hazards before this follow-up:
 
 1. **Import history does not agree with its API contract.** The API returns camelCase import fields while the view renders snake_case export-history fields. Several visible history actions are also explicit TODOs.
 2. **Import rollback has an identifier mismatch and unsafe partial-restore behavior.** The view sends an import ID where the endpoint expects a backup-file ID; the endpoint may skip failed rows and still report success.
@@ -56,7 +56,7 @@ The app-level export is not a duplicate of Cloudflare D1 export: it is a selecti
 
 `server/api/admin/import/list.get.ts` returns fields such as `dataType`, `totalRecords`, `startedAt`, and `completedAt`. `app/components/admin/import/ImportHistory.vue` binds table columns and details to `data_type`, `record_count`, `created_at`, and `completed_at`, and types the rows as `ExportHistoryEntryWithBackup`. Those are export-history fields, not the import API's response shape. As a result, type/count/date details can render blank or incorrectly, and the import identity is conflated with an export/backup shape.
 
-**Recommendation:** Define an import-specific response type and align the API/view contract end-to-end before polishing or trusting import history.
+**Status (2026-10-14): fixed.** The history view now uses the import API's camelCase shape, including dates and record counts, and the list endpoint returns a bounded pagination limit plus the number of deletable finished imports.
 
 Evidence: [`ImportHistory.vue`](../app/components/admin/import/ImportHistory.vue), [`list.get.ts`](../server/api/admin/import/list.get.ts), [`export.d.ts`](../shared/types/export.d.ts).
 
@@ -66,7 +66,7 @@ The history view sets `selectedImport` from an import log row and posts `selecte
 
 The rollback endpoint then deletes tables present in the backup payload, attempts inserts row-by-row, catches and skips individual failures, and still returns `success: true` with “Rollback completed.” That is not a reliable rollback guarantee.
 
-**Recommendation:** Do not rely on this UI rollback until it is repaired. Require explicit selection of a linked backup file, validate its import/type/manifest, preview affected tables and counts, and fail visibly on any incomplete restore. For D1's transaction limits, use a carefully designed staged/compensating restore and test against an isolated copy; do not imply atomicity unless it is demonstrated.
+**Status (2026-10-14): made safe by disabling the unsupported operation.** The rollback UI action is gone, and the endpoint now returns `409` after admin authorization. Import payloads are source files or reports, not restorable database snapshots. A future rollback feature needs a separately designed snapshot format and isolated-copy tests.
 
 Evidence: [`ImportHistory.vue`](../app/components/admin/import/ImportHistory.vue), [`backups/[id].get.ts`](../server/api/admin/import/backups/[id].get.ts), [`rollback.post.ts`](../server/api/admin/import/rollback.post.ts).
 
@@ -74,7 +74,7 @@ Evidence: [`ImportHistory.vue`](../app/components/admin/import/ImportHistory.vue
 
 The Clear All handler only closes the dialog and reloads. Retry and Delete Record handlers only log TODO messages; the import-progress Retry handler is also a TODO. These controls currently promise actions they do not perform.
 
-**Recommendation:** Until implementation is approved, hide/disable the no-op controls and label unsupported retry/rollback behavior clearly. Implement history deletion separately from deleting stored backup files, with explicit retention semantics.
+**Status (2026-10-14): implemented or removed.** Individual and bulk deletion now remove only completed/failed history, delete linked R2 files before their database records, and keep a log entry if its file cleanup fails. Processing/pending imports are not eligible. Retry controls were removed because execution state is memory-only and cannot safely be resumed; the UI directs admins to start a new import from the source file.
 
 Evidence: [`ImportHistory.vue`](../app/components/admin/import/ImportHistory.vue), [`ImportProgress.vue`](../app/components/admin/import/ImportProgress.vue).
 
@@ -82,7 +82,7 @@ Evidence: [`ImportHistory.vue`](../app/components/admin/import/ImportHistory.vue
 
 The reset handler manually lists 18 tables. The current Drizzle schema defines additional independent tables, including themes/filters/translations, social queue/posts, sponsor messages, API keys/usage, harvest state, enrichment jobs/proposals/history, activity logs, settings, and auth-token tables. Some child tables may be cleared by foreign-key cascades, but the handler does not explicitly cover the full schema and cannot guarantee the UI's stated “all data” semantics. The reset is admin-only, but its confirmation token is a constant embedded in the client, so the real boundary is the authenticated admin role and confirmation UI—not a secret token.
 
-**Recommendation:** Keep this as break-glass only. Before use, define precisely whether reset means user/content data, all application data, or schema reinitialization. Build and test a complete FK-aware clear plan against an isolated local DB; add a server-enforced environment/safety policy and an audit record. Make the UI warning match the exact tables affected. Do not run it against production during this audit.
+**Status (2026-10-14): scope and implementation corrected; operation not executed.** Reset clears user accounts, user-owned catalogue records, direct interactions, and entity-enrichment state. It preserves schema/configuration, themes, sponsors, harvest and import/export history, general activity logs, and archived import/export files. Those archives may still contain copies of cleared data, so this is not secure erasure. The endpoint now requires explicit `USER_PASSWORD` configuration before mutation, clears/recreates the admin in one `db.batch`, and does not reset sequences for retained operational tables. The UI warning and confirmation match this limited scope. Do not run it against production as part of this review.
 
 Evidence: [`reset-database.post.ts`](../server/api/admin/reset-database.post.ts), [`schema.ts`](../server/db/schema.ts), [`maintenance/index.vue`](../app/pages/admin/maintenance/index.vue).
 
@@ -126,7 +126,16 @@ Keep individual routes/bookmarks and role checks intact if navigation is reorgan
 
 Source code shows capability, guards, and in-repository callers; it does not show which admin tools people actually use, whether external automation calls an endpoint, whether a provider is actively configured in production, or whether AI output is good enough. A usage-based keep/remove decision needs privacy-conscious event counts and outcome signals (for example, last successful run, jobs completed, candidates accepted/rejected, export/import frequency), not assumptions from route names.
 
-This is a product/functionality audit, not a complete penetration test, authorization audit, production-data audit, or browser test of every admin workflow. The visual spot-check covered the overview at desktop and the authors table with loaded records at desktop and mobile viewports; it does not certify every admin route or mobile layout.
+This is a product/functionality audit, not a complete penetration test, authorization audit, production-data audit, or browser test of every admin workflow. The initial visual spot-check covered the overview at desktop and the authors table with loaded records at desktop and mobile viewports; it does not certify every admin route or mobile layout.
+
+## Implementation follow-up — 2026-10-14
+
+- The admin layout now uses the dashboard's centered editorial workspace composition: one page identity, primary section tabs, a contextual second row, and horizontally scrollable navigation on narrow screens. All admin destinations remain available, including Harvest, Social, and Sponsors.
+- Import history now reflects the actual API contract. Linked file downloads use the API-provided URL; malformed metadata no longer breaks the file list; expired in-memory progress is tolerated.
+- Rollback and retry are not represented as working actions. Import source/report archives are explicitly labeled as non-snapshots.
+- Individual and bulk cleanup are real, bounded server operations. They target finished imports only. R2 files are removed before import logs; a failure leaves the corresponding log available for a later cleanup attempt. Bulk cleanup may therefore be partial and reports the remaining failures.
+- Reset clears user/content tables and their directly tied state only; it preserves operational records and archived export/import files. A configured admin password is required before any destructive statement, and account recreation is part of the same database batch. The reset endpoint was not invoked during this work.
+- Verification status: see the implementation handoff for automated checks and the exact browser routes/viewports inspected. No production data or external deployment was changed.
 
 ## Suggested order of work
 

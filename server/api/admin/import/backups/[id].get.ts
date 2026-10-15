@@ -40,7 +40,17 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.backupFiles.importLogId, importLog.id))
       .orderBy(desc(schema.backupFiles.createdAt))
 
-    const files = results.map((r: any) => ({
+    const files = results.map((r: any) => {
+      let metadata = null
+      if (r.metadata) {
+        try {
+          metadata = JSON.parse(r.metadata)
+        } catch {
+          metadata = null
+        }
+      }
+
+      return {
       id: r.id,
       filename: r.filename,
       file_path: r.filePath,
@@ -51,9 +61,10 @@ export default defineEventHandler(async (event) => {
       created_at: r.createdAt,
       uploaded_at: r.uploadedAt,
       expires_at: r.expiresAt,
-      metadata: r.metadata ? JSON.parse(r.metadata) : null,
+      metadata,
       downloadUrl: `/api/admin/backup/download/${r.id}`,
-    }))
+      }
+    })
 
     return {
       success: true,
