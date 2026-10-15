@@ -27,7 +27,9 @@
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
-          <OutlinedButton size="md" class="rounded-lg" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
+          <NButton btn="solid-black" size="sm" trailing="i-lucide-grid-2x2-plus" class="gap-2 rounded-lg" @click="openCreate">
+            {{ $t('new_theme') }}
+          </NButton>
         </div>
       </div>
       <div class="md:hidden mt-4 space-y-3">
@@ -42,7 +44,9 @@
           >
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
-          <OutlinedButton size="sm" class="rounded-lg" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
+          <NButton btn="solid-black" size="sm" trailing="i-lucide-grid-2x2-plus" class="gap-2 rounded-lg" @click="openCreate">
+            {{ $t('new_theme') }}
+          </NButton>
         </div>
       </div>
     </div>
