@@ -1,8 +1,7 @@
 <template>
   <div class="mobile-home-feed bg-[#F7F5EF] dark:bg-[#0C0A09]">
-    <div class="homepage-v3-hero-stage">
-      <!-- ── Featured Quote ── -->
-      <div class="homepage-v3-cover homepage-v3-cover--hero px-6 py-16 animate-fade-in-up shadow-sm" style="animation-delay: 0s">
+    <!-- ── Featured Quote ── -->
+    <div class="homepage-v3-cover mx-4 mt-2 mb-4 rounded-2xl px-6 py-16 animate-fade-in-up shadow-sm" style="animation-delay: 0s">
         <div v-if="featuredQuote" class="homepage-v3-author-wrap mb-2">
           <div class="homepage-v3-author">
             <button
@@ -82,7 +81,6 @@
           </NTooltip>
         </div>
       </div>
-    </div>
 
     <!-- ── Editorial Introduction ── -->
     <section v-if="quotesList.length > 1" id="home-exploration" class="homepage-v3-editorial mb-16 px-6 py-14 scroll-mt-20">

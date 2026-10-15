@@ -4,8 +4,8 @@
     <div class="mx-auto w-full max-w-[1440px] px-4 lg:px-8">
       <!-- Center content -->
       <div class="w-full">
-        <div class="homepage-v3-hero-stage">
-          <div class="homepage-v3-cover homepage-v3-cover--hero px-6 py-16 shadow-sm lg:px-10 lg:py-24" @mousemove="trackCoverPointer" @mouseleave="resetCoverPointer">
+        <!-- Featured quote (Philosophy section) -->
+        <div class="homepage-v3-cover mb-4 rounded-2xl px-6 py-16 lg:px-10 lg:py-24 shadow-sm" @mousemove="trackCoverPointer" @mouseleave="resetCoverPointer">
             <template v-if="featuredQuote">
               <NuxtLink
                 :to="`/quotes/${featuredQuote.id}`"
@@ -61,8 +61,8 @@
               <div class="mx-auto mt-10 h-6 w-48 rounded bg-black/10 dark:bg-white/10" />
               <div class="mx-auto h-3 w-28 rounded bg-black/10 dark:bg-white/10" />
             </div>
-          </div>
-          <div class="homepage-v3-cover-actions relative mx-auto mb-16 flex w-full max-w-[1440px] items-center justify-center gap-4 px-4 lg:px-8">
+        </div>
+        <div class="homepage-v3-cover-actions relative mx-4 mb-16 flex items-center justify-center gap-4">
             <a
               :href="hasScrolled ? '#top' : '#home-exploration'"
               :class="hasScrolled ? 'w-48' : 'w-44'"
@@ -96,7 +96,6 @@
               </NTooltip>
             </div>
           </div>
-        </div>
 
         <!-- Editorial introduction -->
         <section v-if="opinionQuotes.length" id="home-exploration" class="homepage-v3-editorial mx-4 mb-24 scroll-mt-24 pt-14">
