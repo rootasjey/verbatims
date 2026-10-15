@@ -115,7 +115,8 @@ const onFileSelected = async (event: Event) => {
 const saveImage = async () => {
   submitting.value = true
   try {
-    await $fetch(`/api/admin/references/${props.referenceId}`, {
+    const referencePath = `/api/admin/references/${props.referenceId}` as '/api/admin/references/:id'
+    await $fetch<{ success: boolean }, '/api/admin/references/:id'>(referencePath, {
       method: 'PUT',
       body: {
         image_url: imageUrl.value.trim() || null

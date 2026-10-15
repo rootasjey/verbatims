@@ -107,7 +107,7 @@ const formatReferenceType = (type: string): string => {
 const fetchRecentReferences = async () => {
   try {
     loading.value = true
-    const response = await $fetch<ApiResponse<QuoteReference[]>>('/api/references', {
+    const response = await $fetch<ApiResponse<QuoteReference[]>, '/api/references'>('/api/references', {
       query: {
         limit: 4,
         sort_by: 'created_at',

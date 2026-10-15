@@ -43,7 +43,8 @@ const confirm = async () => {
   if (!user.value) return
   submitting.value = true
   try {
-    await $fetch(`/api/admin/users/${user.value.id}`, { method: 'DELETE' })
+    const deleteUserPath = `/api/admin/users/${user.value.id}` as '/api/admin/users/:id'
+    await $fetch<{ success: boolean }, '/api/admin/users/:id'>(deleteUserPath, { method: 'DELETE' })
     useToast().toast({ toast: 'soft-success', title: String($t('components.dialogs.delete_user')), description: `${user.value.name} has been deleted.` })
     emit('user-deleted')
     isOpen.value = false

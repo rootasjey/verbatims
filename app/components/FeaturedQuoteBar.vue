@@ -87,8 +87,16 @@ const { $t } = useI18n()
 
 const ROTATION_INTERVAL = 30_000
 
-const { data: featuredData, pending: loading } = await useFetch<ApiResponse<ProcessedQuoteResult>>('/api/quotes/featured')
-const { data: randomData } = await useFetch<ApiResponse<ProcessedQuoteResult[]>>('/api/quotes/random?count=10')
+const { data: featuredData, pending: loading } = await useFetch<
+  ApiResponse<ProcessedQuoteResult>,
+  unknown,
+  '/api/quotes/featured'
+>('/api/quotes/featured')
+const { data: randomData } = await useFetch<
+  ApiResponse<ProcessedQuoteResult[]>,
+  unknown,
+  '/api/quotes/random'
+>('/api/quotes/random', { query: { count: 10 } })
 
 const pool = computed<ProcessedQuoteResult[]>(() => {
   const quotes: ProcessedQuoteResult[] = []

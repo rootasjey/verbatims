@@ -77,7 +77,11 @@ const { showErrorToast } = useErrorToast()
 watch(() => props.author?.id, async (newId) => {
   if (!newId) return
   try {
-    const res: any = await $fetch(`/api/admin/authors/${newId}`)
+    const authorPath = `/api/admin/authors/${newId}` as '/api/admin/authors/:id'
+    const res = await $fetch<
+      { success: boolean; data: { quotes_count?: number } },
+      '/api/admin/authors/:id'
+    >(authorPath)
     quotesCount.value = Number(res?.data?.quotes_count || 0)
     if (quotesCount.value === 0) strategy.value = 'delete'
   } catch (e) {
@@ -89,7 +93,8 @@ const confirmDeletion = async () => {
   if (!props.author) return
   submitting.value = true
   try {
-    await $fetch(`/api/admin/authors/${props.author.id}`, {
+    const deleteAuthorPath = `/api/admin/authors/${props.author.id}` as '/api/admin/authors/:id'
+    await $fetch<{ success: boolean }, '/api/admin/authors/:id'>(deleteAuthorPath, {
       method: 'DELETE',
       body: quotesCount.value > 0 ? { strategy: strategy.value } : undefined
     })

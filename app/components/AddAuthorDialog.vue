@@ -297,7 +297,7 @@ const searchAuthors = useDebounceFn(async () => {
   }
 
   try {
-    const response = await $fetch<ApiResponse<Author[]>>('/api/authors/search', {
+    const response = await $fetch('/api/authors/search', {
       query: { q: nameQuery.value, limit: 5 }
     })
     nameSuggestions.value = response.data || []
@@ -472,7 +472,8 @@ const submitAuthor = async () => {
     }
 
     if (isEditMode.value && props.editAuthor) {
-      await $fetch(`/api/admin/authors/${props.editAuthor.id}`, {
+      const updateAuthorPath = `/api/admin/authors/${props.editAuthor.id}` as '/api/admin/authors/:id'
+      await $fetch<{ success: boolean }, '/api/admin/authors/:id'>(updateAuthorPath, {
         method: 'PUT',
         body: payload
       })
@@ -485,7 +486,7 @@ const submitAuthor = async () => {
 
       emit('author-updated')
     } else {
-      await $fetch('/api/admin/authors', {
+      await $fetch<{ success: boolean }, '/api/admin/authors'>('/api/admin/authors', {
         method: 'POST',
         body: payload
       })

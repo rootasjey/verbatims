@@ -874,7 +874,7 @@ const loadSimilarAuthors = async () => {
   if (!currentAuthor) return
 
   try {
-    const similarRes = await $fetch<ApiResponse<Author[]>>(`/api/authors/${currentAuthor.id}/similar`, {
+    const similarRes = await $fetch(`/api/authors/${currentAuthor.id}/similar`, {
       query: { limit: 6 }
     })
     similarAuthors.value = similarRes?.data || []

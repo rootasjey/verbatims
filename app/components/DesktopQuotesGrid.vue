@@ -312,7 +312,8 @@ const closeEditAfterUpdate = async () => {
 
   try {
     if (!selectedQuote.value?.id) return
-    const res = await $fetch<{ success: boolean; data: ProcessedQuoteResult }>(`/api/quotes/${selectedQuote.value.id}`)
+    const quotePath = `/api/quotes/${selectedQuote.value.id}` as '/api/quotes/:id'
+    const res = await $fetch<{ success: boolean; data: ProcessedQuoteResult }, '/api/quotes/:id'>(quotePath)
     const updated = res.data
     if (updated) props.feed.updateQuoteInFeed(updated)
   } catch (e) { console.error('Failed to update quote:', e) }

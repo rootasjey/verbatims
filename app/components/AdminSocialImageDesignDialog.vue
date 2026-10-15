@@ -206,9 +206,12 @@ watch(isOpen, async (open) => {
       for (const { url, set } of [
         { url: '/api/authors/184', set: (d: any) => { if (d?.image_url) authorExampleImage.value = d.image_url } },
         { url: '/api/references/82', set: (d: any) => { if (d?.image_url) referenceExampleImage.value = d.image_url } },
-      ]) {
+      ] as const) {
         try {
-          const res = await $fetch<{ success: boolean; data: any }>(url)
+          const res = await $fetch<
+            { success: boolean; data: any },
+            '/api/authors/:id' | '/api/references/:id'
+          >(url as '/api/authors/:id' | '/api/references/:id')
           if (res?.data) set(res.data)
         } catch {
           // Fallback to CSS gradients

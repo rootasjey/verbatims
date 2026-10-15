@@ -132,7 +132,10 @@ const submit = async () => {
   if (!canSubmit.value || submitting.value) return
   submitting.value = true
   try {
-    await $fetch('/api/admin/users', { method: 'POST', body: form.value })
+    await $fetch<{ success: boolean }, '/api/admin/users'>('/api/admin/users', {
+      method: 'POST',
+      body: form.value
+    })
     useToast().toast({ toast: 'success', title: String($t('components.dialogs.toast_created')), description: `${form.value.name} ${String($t('common.created'))}` })
     emit('user-added')
     isOpen.value = false

@@ -165,7 +165,8 @@ const addAllToCollection = async (collection: any) => {
       await Promise.all(
         batch.map(async (id) => {
           try {
-            await $fetch(`/api/collections/${collection.id}/quotes`, {
+            const addQuotePath = `/api/collections/${collection.id}/quotes` as '/api/collections/:id/quotes'
+            await $fetch<{ success: boolean }, '/api/collections/:id/quotes'>(addQuotePath, {
               method: 'POST',
               body: { quote_id: id }
             })
@@ -198,7 +199,10 @@ const createAndAddToCollection = async () => {
     creating.value = true
     processedCount.value = 0
 
-    const createResponse: any = await $fetch('/api/collections', {
+    const createResponse = await $fetch<
+      { success: boolean; data: { id: number; name: string } },
+      '/api/collections'
+    >('/api/collections', {
       method: 'POST',
       body: {
         name: newCollectionName.value.trim(),
@@ -216,7 +220,8 @@ const createAndAddToCollection = async () => {
       await Promise.all(
         batch.map(async (id) => {
           try {
-            await $fetch(`/api/collections/${collection.id}/quotes`, {
+            const addQuotePath = `/api/collections/${collection.id}/quotes` as '/api/collections/:id/quotes'
+            await $fetch<{ success: boolean }, '/api/collections/:id/quotes'>(addQuotePath, {
               method: 'POST',
               body: { quote_id: id }
             })

@@ -96,7 +96,7 @@ const showMoreAuthors = () => {
 const fetchRecentAuthors = async () => {
   try {
     loading.value = true
-    const response = await $fetch<ApiResponse<Author[]>>('/api/authors', {
+    const response = await $fetch('/api/authors', {
       query: {
         limit: 8,
         sort_by: 'updated_at',

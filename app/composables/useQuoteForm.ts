@@ -132,7 +132,10 @@ export function useQuoteForm() {
     }
 
     try {
-      const response = await $fetch<{ language: string; confidence: number }>('/api/detect-language', {
+      const response = await $fetch<
+        { language: string; confidence: number },
+        '/api/detect-language'
+      >('/api/detect-language', {
         method: 'POST',
         body: { text: content },
       })

@@ -213,9 +213,16 @@ const submit = async () => {
     }
 
     if (isEdit.value && props.editMessage) {
-      await $fetch(`/api/admin/sponsors/${props.editMessage.id}`, { method: 'PUT', body: payload })
+      const updateMessagePath = `/api/admin/sponsors/${props.editMessage.id}` as '/api/admin/sponsors/:id'
+      await $fetch<{ success: boolean }, '/api/admin/sponsors/:id'>(updateMessagePath, {
+        method: 'PUT',
+        body: payload
+      })
     } else {
-      await $fetch('/api/admin/sponsors', { method: 'POST', body: payload })
+      await $fetch<{ success: boolean }, '/api/admin/sponsors'>('/api/admin/sponsors', {
+        method: 'POST',
+        body: payload
+      })
     }
     emit('saved')
     close()

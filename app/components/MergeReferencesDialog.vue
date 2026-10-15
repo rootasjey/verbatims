@@ -387,7 +387,7 @@ const loadSearchResults = async () => {
     return
   }
   try {
-    const res = await $fetch<ApiResponse<ReferenceWithQuotes[]>>('/api/admin/references', {
+    const res = await $fetch<ApiResponse<ReferenceWithQuotes[]>, '/api/admin/references'>('/api/admin/references', {
       query: { search: q, limit: 10, sort_by: 'quotes', sort_order: 'DESC' },
     })
     searchResults.value = (res.data || []).filter(
@@ -446,7 +446,7 @@ const confirmMerge = async () => {
   if (!localSourceReference.value || !selectedTarget.value) return
   submitting.value = true
   try {
-    await $fetch('/api/admin/references/merge', {
+    await $fetch<{ success: boolean }, '/api/admin/references/merge'>('/api/admin/references/merge', {
       method: 'POST',
       body: {
         source_id: localSourceReference.value.id,

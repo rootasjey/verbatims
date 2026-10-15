@@ -102,9 +102,15 @@ const save = async () => {
   loading.value = true
   try {
     const body = { name: state.value.name.trim(), description: state.value.description.trim() || null, is_public: state.value.is_public }
-    const method = isEdit.value && props.collection ? 'PUT' : 'POST'
-    const url = isEdit.value && props.collection ? `/api/collections/${props.collection.id}` : '/api/collections'
-    const response = await $fetch<{ success: boolean; data: CollectionData }>(url, { method, body })
+    const response = isEdit.value && props.collection
+      ? await $fetch<{ success: boolean; data: CollectionData }, '/api/collections/:id'>(
+          `/api/collections/${props.collection.id}` as '/api/collections/:id',
+          { method: 'PUT', body }
+        )
+      : await $fetch<{ success: boolean; data: CollectionData }, '/api/collections'>(
+          '/api/collections',
+          { method: 'POST', body }
+        )
     emit('saved', response.data)
     isOpen.value = false
     state.value = { name: '', description: '', is_public: false }

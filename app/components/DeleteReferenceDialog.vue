@@ -79,7 +79,11 @@ const { showErrorToast } = useErrorToast()
 watch(() => props.reference?.id, async (newId) => {
   if (!newId) return
   try {
-    const res: any = await $fetch(`/api/admin/references/${newId}`)
+    const referencePath = `/api/admin/references/${newId}` as '/api/admin/references/:id'
+    const res = await $fetch<
+      { success: boolean; data: { quotes_count?: number } },
+      '/api/admin/references/:id'
+    >(referencePath)
     quotesCount.value = Number(res?.data?.quotes_count || 0)
     if (quotesCount.value === 0) strategy.value = 'delete'
   } catch (e) {
@@ -91,7 +95,8 @@ const confirmDeletion = async () => {
   if (!props.reference) return
   submitting.value = true
   try {
-    await $fetch(`/api/admin/references/${props.reference.id}`, {
+    const deleteReferencePath = `/api/admin/references/${props.reference.id}` as '/api/admin/references/:id'
+    await $fetch<{ success: boolean }, '/api/admin/references/:id'>(deleteReferencePath, {
       method: 'DELETE',
       body: quotesCount.value > 0 ? { strategy: strategy.value } : undefined
     })
