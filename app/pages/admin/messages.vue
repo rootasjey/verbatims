@@ -413,7 +413,12 @@ const isAnyDialogOpen = computed(() => false)
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => messages.value.length,
   onSelectRow: (index: number) => { const msg = messages.value[index]; if (msg) { rowSelection.value[msg.id] = !rowSelection.value[msg.id]; lastSelectedIndex.value = null } },
-  isDialogOpen: () => isAnyDialogOpen.value, isDropdownOpen: () => false
+  isDialogOpen: () => isAnyDialogOpen.value, isDropdownOpen: () => false,
+  pagination: {
+    currentPage: () => currentPage.value,
+    totalPages: () => totalPages.value,
+    setPage: page => { currentPage.value = page }
+  }
 })
 
 const highlightedMessage = computed<AdminUserMessage | null>(() => { if (highlightedRowIndex.value === null) return null; return messages.value[highlightedRowIndex.value] ?? null })

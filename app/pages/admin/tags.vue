@@ -272,7 +272,12 @@ const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => tags.value.length,
   onSelectRow: (index: number) => { const tag = tags.value[index]; if (tag) { rowSelection.value[tag.id] = !rowSelection.value[tag.id]; lastSelectedIndex.value = null } },
   isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => false
+  isDropdownOpen: () => false,
+  pagination: {
+    currentPage: () => currentPage.value,
+    totalPages: () => totalPages.value,
+    setPage: page => { currentPage.value = page }
+  }
 })
 
 const highlightedTag = computed<any | null>(() => { if (highlightedRowIndex.value === null) return null; return tags.value[highlightedRowIndex.value] ?? null })

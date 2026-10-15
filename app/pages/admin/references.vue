@@ -378,7 +378,12 @@ const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => filteredReferences.value.length,
   onSelectRow: (index: number) => { const ref = filteredReferences.value[index]; if (ref) { rowSelection.value[ref.id] = !rowSelection.value[ref.id]; lastSelectedIndex.value = null } },
   isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => isCardView.value
+  isDropdownOpen: () => isCardView.value,
+  pagination: {
+    currentPage: () => currentPage.value,
+    totalPages: () => totalPages.value,
+    setPage: page => { currentPage.value = page }
+  }
 })
 
 const highlightedReference = computed<QuoteReferenceWithMetadata | null>(() => {

@@ -266,7 +266,12 @@ const selectAllOnPage = () => {
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => messages.value.length,
   onSelectRow: (index: number) => { const msg = messages.value[index]; if (msg) { rowSelection.value[msg.id] = !rowSelection.value[msg.id]; lastSelectedIndex.value = null } },
-  isDialogOpen: () => false, isDropdownOpen: () => false
+  isDialogOpen: () => false, isDropdownOpen: () => false,
+  pagination: {
+    currentPage: () => currentPage.value,
+    totalPages: () => totalPages.value,
+    setPage: page => { currentPage.value = page }
+  }
 })
 
 const sortOptions = computed(() => [
