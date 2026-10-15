@@ -5,7 +5,7 @@
       <div class="hidden md:block">
         <div class="mx-auto w-full max-w-[1440px] px-4 lg:px-8">
           <div class="homepage-v3-hero-stage" aria-hidden="true">
-            <section class="homepage-v3-cover homepage-v3-cover--hero px-10 py-24 shadow-sm">
+            <section class="homepage-v3-cover mb-4 rounded-2xl px-6 py-16 shadow-sm lg:px-10 lg:py-24">
               <div class="w-full max-w-[1040px] space-y-5 animate-pulse">
                 <div class="mx-auto h-12 w-5/6 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
                 <div class="mx-auto h-12 w-2/3 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
@@ -13,12 +13,12 @@
                 <div class="mx-auto h-3 w-28 rounded bg-black/10 dark:bg-white/10" />
               </div>
             </section>
-            <div class="relative mx-auto mb-16 flex w-full max-w-[1440px] items-center justify-center gap-4 px-4 lg:px-8" aria-hidden="true">
-              <div class="inline-flex h-10 w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
+            <div class="homepage-v3-cover-actions relative mx-4 mb-16 flex items-center justify-center gap-4" aria-hidden="true">
+              <div class="inline-flex h-[38px] w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
                 {{ $t('home.explore_theme') }}
                 <NIcon name="i-lucide-arrow-down" class="h-3.5 w-3.5" />
               </div>
-              <div class="absolute right-4 flex gap-2 lg:right-8">
+              <div class="homepage-v3-actions absolute right-0 flex items-center gap-1">
                 <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
                 <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
               </div>
@@ -85,7 +85,7 @@
 
       <div class="md:hidden">
         <div class="homepage-v3-hero-stage" aria-hidden="true">
-          <section class="homepage-v3-cover homepage-v3-cover--hero px-6 py-16 shadow-sm">
+          <section class="homepage-v3-cover mx-4 mt-2 mb-4 rounded-2xl px-6 py-16 shadow-sm">
             <div class="w-full max-w-md space-y-3 text-center animate-pulse">
               <div class="mx-auto h-7 w-11/12 rounded bg-black/10 dark:bg-white/10" />
               <div class="mx-auto h-7 w-10/12 rounded bg-black/10 dark:bg-white/10" />
@@ -95,8 +95,8 @@
               <div class="mx-auto h-3 w-24 rounded bg-black/10 dark:bg-white/10" />
             </div>
           </section>
-          <div class="mb-14 flex items-center justify-center gap-3" aria-hidden="true">
-            <div class="inline-flex h-10 w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
+          <div class="homepage-v3-cover-actions mb-14 flex items-center justify-center gap-3" aria-hidden="true">
+            <div class="inline-flex h-[38px] w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
               {{ $t('home.explore_theme') }}
               <NIcon name="i-lucide-arrow-down" class="h-3.5 w-3.5" />
             </div>
