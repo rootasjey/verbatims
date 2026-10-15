@@ -4,6 +4,7 @@
   "search_placeholder": "Rechercher des auteurs...",
   "add_button": "Ajouter un auteur",
   "filter_all_types": "Tous les types",
+  "filter_by_type": "Filtrer les auteurs par type · {selected}",
   "filter_real": "Personnes réelles",
   "filter_fictional": "Personnages fictifs",
   "sort_name_az": "Nom A-Z",

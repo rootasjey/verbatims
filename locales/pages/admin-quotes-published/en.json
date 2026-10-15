@@ -3,6 +3,7 @@
   "title": "Published",
   "search_placeholder": "Search quotes, authors, or references...",
   "search_placeholder_mobile": "Search published...",
+  "filter_by_language": "Filter quotes by language · {selected}",
   "sort_most_recent": "Most Recent",
   "sort_oldest_first": "Oldest First",
   "sort_most_liked": "Most Liked",

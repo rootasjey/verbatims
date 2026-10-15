@@ -14,6 +14,7 @@
           </NButton>
           <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
           <NCombobox
+            v-if="isCardView"
             v-model="selectedFictionalFilter"
             :items="fictionalFilterOptions"
             by="value"
@@ -153,7 +154,30 @@
             <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_author') }}</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_type') }}</th>
+              <th class="w-24 px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-1.5">
+                  <span>{{ $t('col_type') }}</span>
+                  <NTooltip :content="$t('filter_by_type', { selected: selectedFictionalFilter.label }) as string">
+                    <NCombobox
+                      v-model="selectedFictionalFilter"
+                      :items="fictionalFilterOptions"
+                      by="value"
+                      :_combobox-list="{ class: 'min-w-[180px]' }"
+                      :_combobox-trigger="{
+                        btn: 'outline-gray',
+                        size: 'xs',
+                        class: 'relative !h-6 !min-h-6 !w-6 !min-w-6 !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
+                        ariaLabel: $t('filter_by_type', { selected: selectedFictionalFilter.label }) as string,
+                      }"
+                    >
+                      <template #trigger>
+                        <NIcon name="i-lucide-list-filter" class="h-3.5 w-3.5" aria-hidden="true" />
+                        <span v-if="selectedFictionalFilter.value" class="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-gray-900 dark:bg-gray-100" aria-hidden="true" />
+                      </template>
+                    </NCombobox>
+                  </NTooltip>
+                </div>
+              </th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quotes') }}</th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
@@ -330,7 +354,7 @@ const totalAuthors = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(50)
 const searchQuery = ref('')
-const selectedFictionalFilter = ref({ label: 'All Types', value: '' })
+const selectedFictionalFilter = ref({ label: $t('filter_all_types') as string, value: '' })
 const selectedSort = ref({ label: $t('sort_name_az') as string, value: 'name_asc' })
 const isCardView = ref(false)
 const showAddAuthorDialog = ref(false)
@@ -488,9 +512,9 @@ const onAuthorTypeChange = async (author: any, newType: { label: string; value: 
 }
 
 const fictionalFilterOptions = [
-  { label: 'All Types', value: '' },
-  { label: 'Real People', value: 'false' },
-  { label: 'Fictional Characters', value: 'true' }
+  { label: $t('filter_all_types') as string, value: '' },
+  { label: $t('filter_real') as string, value: 'false' },
+  { label: $t('filter_fictional') as string, value: 'true' }
 ]
 
 const sortOptions = computed(() => [
