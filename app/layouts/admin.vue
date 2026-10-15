@@ -604,13 +604,17 @@ watch(() => adminNavGroups.value.flatMap(group => [group.label, ...group.items.m
   justify-content: space-between;
   gap: 0.5rem;
   border: 1px solid var(--admin-border);
-  border-radius: 0.625rem;
+  border-radius: 0.375rem;
   padding: 0.5rem 0.75rem;
   background: var(--admin-control-surface);
   color: inherit;
   line-height: 1.25rem;
   vertical-align: middle;
   transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+[data-admin-content] table thead [data-slot="combobox-trigger"] {
+  border-radius: 0.375rem;
 }
 
 [data-admin-page-header] [data-slot="combobox-trigger"]:hover {
