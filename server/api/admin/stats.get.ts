@@ -11,6 +11,8 @@ export default defineEventHandler(async (event) => {
       usersStats,
       authorsStats,
       referencesStats,
+      tagsStats,
+      themesStats,
       collectionsStats,
       likesStats,
       viewsStats
@@ -53,6 +55,10 @@ export default defineEventHandler(async (event) => {
         total_likes: sum(schema.quoteReferences.likesCount),
         total_views: sum(schema.quoteReferences.viewsCount)
       }).from(schema.quoteReferences),
+
+      // Editorial navigation counts
+      db.select({ total: count() }).from(schema.tags),
+      db.select({ total: count() }).from(schema.themes),
       
       // Collections statistics
       db.select({
@@ -210,6 +216,8 @@ export default defineEventHandler(async (event) => {
           total_likes: Number(referencesStats[0]?.total_likes) || 0,
           total_views: Number(referencesStats[0]?.total_views) || 0
         },
+        tags: { total: Number(tagsStats[0]?.total) || 0 },
+        themes: { total: Number(themesStats[0]?.total) || 0 },
         collections: {
           total: Number(collectionsStats[0]?.total) || 0,
           public: Number(collectionsStats[0]?.public_collections) || 0,

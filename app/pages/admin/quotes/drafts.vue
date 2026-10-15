@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+    <div data-admin-page-header class="pb-6 mb-6">
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
@@ -9,12 +9,7 @@
           </h1>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search quotes, authors, or users..."
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
-          />
+          <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
           <NCombobox
             v-model="selectedLanguage"
             :items="languageOptions"

@@ -1,23 +1,15 @@
 <template>
   <div>
     <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+    <div data-admin-page-header class="pb-6 mb-6">
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             {{ $t('title') }}
           </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ totalQuotes }} {{ totalQuotes === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
-          </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input
-            v-model="searchQuery"
-            type="text"
-            :placeholder="$t('search_placeholder') as string"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
-          />
+          <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
           <NCombobox
             v-model="statusFilter"
             :items="statusOptions"
@@ -111,20 +103,6 @@
 
     <!-- Table -->
     <div v-else-if="hasLoadedOnce">
-      <!-- Bulk action bar -->
-      <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedQuotes.length }) }}</span>
-        <OutlinedButton size="sm" @click="showBulkEditDialog = true">{{ $t('bulk_edit') }}</OutlinedButton>
-        <OutlinedButton size="sm" variant="primary" @click="showBulkApproveModal = true">{{ $t('bulk_approve') }}</OutlinedButton>
-        <OutlinedButton size="sm" variant="destructive" @click="showBulkRejectModal = true">{{ $t('bulk_reject') }}</OutlinedButton>
-        <button
-          class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
-          @click="clearSelection"
-        >
-          {{ $t('common.clear') }}
-        </button>
-      </div>
-
       <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto">
         <table class="w-full min-w-[760px]">
           <thead>
@@ -234,20 +212,29 @@
         </table>
       </div>
 
-      <div v-if="totalPages > 1" class="h-20" />
+      <div v-if="totalPages > 1 || selectedQuotes.length > 0" class="h-20" />
     </div>
 
     <div
-      v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 rounded-t-2xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      v-if="totalPages > 1 || selectedQuotes.length > 0"
+      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 rounded-t-2xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3 shadow-sm transition-all duration-300 ease-in-out"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
         {{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
       </span>
+      <DashboardBulkSelectionControls
+        :selection-mode="selectedQuotes.length > 0"
+        :selected-count="selectedQuotes.length"
+        :visible-count="filteredQuotes.length"
+        :actions="bulkSelectionActions"
+        @toggle-visible="selectAllOnPage"
+        @clear="clearSelection"
+        @exit-mode="clearSelection"
+        @action="onBulkSelectionAction"
+      />
       <div class="flex items-center gap-3">
         <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
         <button
           class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
           @click="showPageJumpDialog = true"
@@ -255,7 +242,6 @@
           {{ currentPage }} / {{ totalPages }}
         </button>
         <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
       </div>
     </div>
 
@@ -534,6 +520,18 @@ const selectedQuotes = computed(() => Object
 const selectedQuotesData = computed(() =>
   quotes.value.filter((quote: any) => selectedQuotes.value.includes(quote.id))
 )
+
+const bulkSelectionActions = computed(() => [
+  { key: 'edit', label: $t('bulk_edit') as string, icon: 'i-tabler-edit' },
+  { key: 'approve', label: $t('bulk_approve') as string, icon: 'i-tabler-check' },
+  { key: 'reject', label: $t('bulk_reject') as string, icon: 'i-tabler-x' },
+])
+
+const onBulkSelectionAction = (key: string) => {
+  if (key === 'edit') showBulkEditDialog.value = true
+  else if (key === 'approve') showBulkApproveModal.value = true
+  else if (key === 'reject') showBulkRejectModal.value = true
+}
 
 const isAnyDialogOpen = computed(() =>
   showQuoteDialog.value || showRejectModal.value || showBulkRejectModal.value ||

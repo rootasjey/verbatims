@@ -251,6 +251,10 @@ interface AdminStatsResponse {
       draft?: number
       harvested?: number
     }
+    authors?: { total?: number }
+    references?: { total?: number }
+    tags?: { total?: number }
+    themes?: { total?: number }
   }
 }
 
@@ -301,6 +305,10 @@ const publishedCount = ref(0)
 const pendingCount = ref(0)
 const draftCount = ref(0)
 const harvestedCount = ref(0)
+const authorsCount = ref(0)
+const referencesCount = ref(0)
+const tagsCount = ref(0)
+const themesCount = ref(0)
 
 const groupTabs = ref<HTMLDivElement | null>(null)
 const itemTabs = ref<HTMLDivElement | null>(null)
@@ -339,10 +347,10 @@ const adminNavGroups = computed<AdminNavGroup[]>(() => [
     icon: 'i-ph-books',
     to: '/admin/authors',
     items: [
-      { to: '/admin/authors', label: String($t('admin.nav.authors')) },
-      { to: '/admin/references', label: String($t('admin.nav.references')) },
-      { to: '/admin/tags', label: String($t('admin.nav.tags')) },
-      { to: '/admin/themes', label: String($t('admin.nav.themes')) },
+      { to: '/admin/authors', label: String($t('admin.nav.authors')), count: authorsCount.value },
+      { to: '/admin/references', label: String($t('admin.nav.references')), count: referencesCount.value },
+      { to: '/admin/tags', label: String($t('admin.nav.tags')), count: tagsCount.value },
+      { to: '/admin/themes', label: String($t('admin.nav.themes')), count: themesCount.value },
     ],
   },
   {
@@ -474,6 +482,10 @@ async function loadQuoteCounts() {
     pendingCount.value = stats.data?.quotes?.pending ?? 0
     draftCount.value = stats.data?.quotes?.draft ?? 0
     harvestedCount.value = stats.data?.quotes?.harvested ?? 0
+    authorsCount.value = stats.data?.authors?.total ?? 0
+    referencesCount.value = stats.data?.references?.total ?? 0
+    tagsCount.value = stats.data?.tags?.total ?? 0
+    themesCount.value = stats.data?.themes?.total ?? 0
   } catch (error) {
     console.error('Failed to load admin quote counts:', error)
   }
@@ -502,7 +514,7 @@ watch(() => route.path, () => {
 
 watch(activeGroupId, revealActiveTabs, { flush: 'post' })
 
-watch(() => [activeGroupItems.value.length, pendingCount.value, publishedCount.value, draftCount.value, harvestedCount.value], async () => {
+watch(() => [activeGroupItems.value.length, pendingCount.value, publishedCount.value, draftCount.value, harvestedCount.value, authorsCount.value, referencesCount.value, tagsCount.value, themesCount.value], async () => {
   await revealActiveTabs()
 })
 
@@ -570,6 +582,39 @@ watch(() => adminNavGroups.value.flatMap(group => [group.label, ...group.items.m
 
 [data-admin-content] div[class*="bottom-0"][class*="z-20"] button {
   border-radius: 9999px;
+}
+
+[data-admin-page-header] [data-slot="combobox-trigger"] {
+  min-height: 2.5rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--admin-control-surface);
+  color: inherit;
+  line-height: 1.25rem;
+  vertical-align: middle;
+  transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+[data-admin-page-header] [data-slot="combobox-trigger"]:hover {
+  background: color-mix(in srgb, var(--admin-control-surface) 72%, var(--admin-border));
+}
+
+[data-admin-page-header] [data-slot="combobox-trigger"]:focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 2px;
+}
+
+[data-admin-page-header] [data-slot="combobox-trigger"] > span {
+  line-height: 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-admin-page-header] [data-slot="combobox-trigger"] {
+    transition: none;
+  }
 }
 
 [data-admin-workbench] {
