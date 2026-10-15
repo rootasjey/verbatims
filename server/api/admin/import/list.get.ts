@@ -1,4 +1,4 @@
-import { eq, desc, sql } from 'drizzle-orm'
+import { eq, desc, inArray, sql } from 'drizzle-orm'
 
 /**
  * Admin API: List Import History (backed by import_logs + live overlay)
@@ -8,8 +8,10 @@ export default defineEventHandler(async (event) => {
   if (!user || user.role !== 'admin') throwServer(403, 'Admin access required')
 
   const query = getQuery(event)
-  const limit = parseInt((query.limit as string) || '50')
-  const offset = parseInt((query.offset as string) || '0')
+  const requestedLimit = Number.parseInt((query.limit as string) || '50', 10)
+  const requestedOffset = Number.parseInt((query.offset as string) || '0', 10)
+  const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 50
+  const offset = Number.isFinite(requestedOffset) ? Math.max(requestedOffset, 0) : 0
   const status = (query.status as string) || ''
 
   // Build WHERE clause for status filter
@@ -89,6 +91,11 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.importLogs.status, 'completed'))
   const totalRecordsImported = Number(sumSuccess[0]?.sum ?? 0)
 
+  const deletableRes = await db.select({ total: sql<number>`COUNT(*)`.as('total') })
+    .from(schema.importLogs)
+    .where(inArray(schema.importLogs.status, ['completed', 'failed']))
+  const deletableCount = Number(deletableRes[0]?.total ?? 0)
+
   const countRes = await db.select({
     total: sql<number>`COUNT(*)`.as('total')
   })
@@ -107,6 +114,7 @@ export default defineEventHandler(async (event) => {
         completed: summaryMap['completed'] || 0,
         failed: summaryMap['failed'] || 0,
         totalRecordsImported,
+        deletableCount,
       },
       pagination: {
         limit,

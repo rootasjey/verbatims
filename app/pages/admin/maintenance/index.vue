@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <!-- Database Reset Section -->
+    <!-- Scoped user/content reset -->
     <section class="mb-8 max-w-4xl rounded-xl border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-900/30 sm:p-6">
       <div class="mb-4 flex items-center gap-3">
         <NIcon name="i-ph-warning" class="w-5 h-5 text-red-500" />
@@ -105,12 +105,13 @@ const confirmReset = async () => {
   if (!canConfirmReset.value) return
   isResetting.value = true; errorMessage.value = ''; successMessage.value = ''
   try {
-    const response = await $fetch('/api/admin/reset-database', { method: 'POST', body: { confirmationToken: 'RESET_DATABASE_CONFIRMED' } })
-    successMessage.value = String($t('success_message', { details: `${response.data.tablesCleared} tables cleared, ${response.data.rowsDeleted} rows deleted. You will be redirected shortly.` }))
+    const response = await $fetch<{ data: { tablesCleared: number } }>('/api/admin/reset-database', { method: 'POST', body: { confirmationToken: 'RESET_DATABASE_CONFIRMED' } })
+    successMessage.value = String($t('success_message', { details: `${response.data.tablesCleared} tables cleared. You will be redirected shortly.` }))
     showResetConfirmation.value = false; cancelReset()
     setTimeout(() => navigateTo('/'), 3000)
   } catch (error) {
-    errorMessage.value = error.data?.message || error.message || String($t('error_message'))
+    const apiError = error as { data?: { message?: string; statusMessage?: string }; message?: string }
+    errorMessage.value = apiError.data?.message || apiError.data?.statusMessage || apiError.message || String($t('error_message'))
     showResetConfirmation.value = false; cancelReset()
   } finally { isResetting.value = false }
 }
