@@ -664,11 +664,11 @@ const debouncedLoadCommandSuggestions = useDebounceFn(async (command: FilterComm
   filterSuggestionMessage.value = String($t('filter_suggestions_loading'))
   try {
     if (command.kind === 'author') {
-      const response = await $fetch<ApiResponse<Author[]>>('/api/authors/search', { params: { q: command.prefix, limit: 8 } })
+      const response = await $fetch('/api/authors/search', { params: { q: command.prefix, limit: 8 } })
       if (requestSequence !== suggestionRequestSequence) return
       authorSuggestions.value = (response.data || []).map(author => ({ label: author.name, value: author.id, detail: author.job || undefined, kind: 'author', imageUrl: author.image_url || undefined }))
     } else {
-      const response = await $fetch<ApiResponse<QuoteReference[]>>('/api/references/search', { params: { q: command.prefix, limit: 8 } })
+      const response = await $fetch<ApiResponse<QuoteReference[]>, '/api/references/search'>('/api/references/search', { params: { q: command.prefix, limit: 8 } })
       if (requestSequence !== suggestionRequestSequence) return
       referenceSuggestions.value = (response.data || []).map((reference) => {
         // Legacy rows may store import timestamps instead of a publication date.
@@ -819,8 +819,8 @@ function setSearchTerm(value: string) {
 
 async function loadFilterOptions() {
   const [authorsData, referencesData] = await Promise.all([
-    $fetch<ApiResponse<Author[]>>('/api/authors?limit=100'),
-    $fetch<ApiResponse<QuoteReference[]>>('/api/references?limit=100')
+    $fetch('/api/authors?limit=100'),
+    $fetch('/api/references?limit=100')
   ])
 
   authorOptions.value = (authorsData.data || []).map(author => ({

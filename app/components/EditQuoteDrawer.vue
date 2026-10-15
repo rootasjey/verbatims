@@ -315,10 +315,11 @@ const submitQuote = async () => {
 				new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value, primary_type: 'other' as const } : undefined,
 			}
 
-			await $fetch(`/api/quotes/${props.editQuote.id}`, {
+			const quotePath = `/api/quotes/${props.editQuote.id}` as '/api/quotes/:id'
+			await $fetch<{ success: boolean }, '/api/quotes/:id'>(quotePath, {
 				method: 'PUT',
 				body: payload
-			} as any)
+			})
 		} else {
 			// Create new quote
 			const payload = {
@@ -333,7 +334,7 @@ const submitQuote = async () => {
 				new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value, primary_type: 'other' as const } : undefined,
 			}
 
-			await $fetch('/api/quotes', {
+			await $fetch<{ success: boolean }, '/api/quotes'>('/api/quotes', {
 				method: 'POST',
 				body: payload
 			})

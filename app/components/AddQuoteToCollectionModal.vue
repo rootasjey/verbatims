@@ -144,7 +144,10 @@ const createAndAddToCollection = async () => {
   try {
     creating.value = true
 
-    const createResponse = await $fetch<{ success: boolean; data: CollectionWithStats }>(
+    const createResponse = await $fetch<
+      { success: boolean; data: CollectionWithStats },
+      '/api/collections'
+    >(
       '/api/collections',
       {
         method: 'POST',
@@ -155,7 +158,8 @@ const createAndAddToCollection = async () => {
         }
       })
 
-    await $fetch(`/api/collections/${createResponse.data.id}/quotes`, {
+    const addQuotePath = `/api/collections/${createResponse.data.id}/quotes` as '/api/collections/:id/quotes'
+    await $fetch<{ success: boolean }, '/api/collections/:id/quotes'>(addQuotePath, {
       method: 'POST',
       body: { quote_id: props.quote.id }
     })
@@ -179,7 +183,8 @@ const addToCollection = async (collection: CollectionWithStats) => {
   try {
     addingToCollections.value.add(collection.id)
 
-    await $fetch(`/api/collections/${collection.id}/quotes`, {
+    const addQuotePath = `/api/collections/${collection.id}/quotes` as '/api/collections/:id/quotes'
+    await $fetch<{ success: boolean }, '/api/collections/:id/quotes'>(addQuotePath, {
       method: 'POST',
       body: { quote_id: props.quote.id }
     })

@@ -937,7 +937,8 @@ const loadSimilarReferences = async () => {
   if (!reference.value) return
 
   try {
-    const similarRes = await $fetch<ApiResponse<QuoteReference[]>>(`/api/references/${reference.value.id}/similar`, {
+    const similarPath = `/api/references/${reference.value.id}/similar` as '/api/references/:id/similar'
+    const similarRes = await $fetch<ApiResponse<QuoteReference[]>, '/api/references/:id/similar'>(similarPath, {
       query: { limit: 6 }
     })
     similarReferences.value = similarRes?.data || []

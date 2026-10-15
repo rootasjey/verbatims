@@ -495,7 +495,7 @@ const submitQuote = async () => {
 			new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value, primary_type: 'other' as const } : undefined
 		}
 
-		await $fetch('/api/quotes', {
+		await $fetch<{ success: boolean }, '/api/quotes'>('/api/quotes', {
 			method: 'POST',
 			body: payload
 		})

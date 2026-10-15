@@ -94,7 +94,11 @@ export function useQuoteSearchFeed() {
     }
   )
 
-  const { data: quotesData, refresh: refreshQuotesFromAPI, pending: quotesLoading, status } = useLazyFetch('/api/quotes/search', {
+  const { data: quotesData, refresh: refreshQuotesFromAPI, pending: quotesLoading, status } = useLazyFetch<
+    { success: boolean; data: QuotesSearchPayload },
+    unknown,
+    '/api/quotes/search'
+  >('/api/quotes/search', {
     query: computed(() => {
       const isAscending = (selectedSortOrder.value?.value || 'desc') === 'asc'
       const sort = mapSort(selectedSortBy.value?.value, !!debouncedQuery.value)

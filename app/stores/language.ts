@@ -75,7 +75,10 @@ export const useLanguageStore = defineStore('language', () => {
       const { user } = useUserSession()
       if (!user.value) return
 
-      const preference = await $fetch<{ content_language: string }>('/api/user/content-language')
+      const preference = await $fetch<
+        { success: boolean; content_language: string },
+        '/api/user/content-language'
+      >('/api/user/content-language')
       const language = availableLanguages.value.find(option => option.value === preference.content_language)
       if (!language) return
 
@@ -93,7 +96,7 @@ export const useLanguageStore = defineStore('language', () => {
     const { user } = useUserSession()
     if (user.value) {
       try {
-        await $fetch('/api/user/content-language', {
+        await $fetch<{ success: boolean }, '/api/user/content-language'>('/api/user/content-language', {
           method: 'PUT',
           body: { content_language: language.value }
         })

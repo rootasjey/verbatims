@@ -43,7 +43,8 @@ const confirmDelete = async () => {
   if (!props.tag) return
   submitting.value = true
   try {
-    await $fetch(`/api/admin/tags/${props.tag.id}`, { method: 'DELETE' })
+    const deleteTagPath = `/api/admin/tags/${props.tag.id}` as '/api/admin/tags/:id'
+    await $fetch<{ success: boolean }, '/api/admin/tags/:id'>(deleteTagPath, { method: 'DELETE' })
     useToast().toast({ toast: 'soft-success', title: String($t('components.dialogs.delete_tag')) })
     emit('tag-deleted')
     isOpen.value = false
@@ -61,7 +62,8 @@ watch(isOpen, async (open) => {
     usageLoading.value = true
     try {
       type TagUsageResponse = { data?: { quotes_count?: number } }
-      const res = await $fetch<TagUsageResponse>(`/api/admin/tags/${props.tag.id}`)
+      const tagPath = `/api/admin/tags/${props.tag.id}` as '/api/admin/tags/:id'
+      const res = await $fetch<TagUsageResponse, '/api/admin/tags/:id'>(tagPath)
       usageCount.value = Number(res.data?.quotes_count || 0)
     } catch (e) {
       usageCount.value = 0

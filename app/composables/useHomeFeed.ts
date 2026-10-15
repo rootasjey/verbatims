@@ -45,14 +45,14 @@ export function useHomeFeed() {
     curatedLoading.value = true
     try {
       const [authorsRes, refsRes] = await Promise.all([
-        $fetch<ApiResponse<Author[]>>('/api/authors', {
+        $fetch('/api/authors', {
           query: {
             limit: 8,
             sort_by: 'likes_count',
             sort_order: 'DESC',
           },
         }),
-        $fetch<ApiResponse<QuoteReference[]>>('/api/references', {
+        $fetch<ApiResponse<QuoteReference[]>, '/api/references'>('/api/references', {
           query: {
             limit: 12,
             sort_by: 'likes_count',

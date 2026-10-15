@@ -288,7 +288,7 @@ const loadSearchResults = async () => {
     return
   }
   try {
-    const res = await $fetch<ApiResponse<Author[]>>('/api/admin/authors', {
+    const res = await $fetch('/api/admin/authors', {
       query: { search: q, limit: 10, sort_by: 'quotes', sort_order: 'DESC' },
     })
     searchResults.value = (res.data || []).filter(
@@ -418,7 +418,7 @@ const confirmMerge = async () => {
   if (!localSourceAuthor.value || !selectedTarget.value) return
   submitting.value = true
   try {
-    await $fetch('/api/admin/authors/merge', {
+    await $fetch<{ success: boolean }, '/api/admin/authors/merge'>('/api/admin/authors/merge', {
       method: 'POST',
       body: {
         source_id: localSourceAuthor.value.id,

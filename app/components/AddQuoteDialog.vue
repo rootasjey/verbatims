@@ -502,7 +502,7 @@ const submitQuote = async () => {
 
 const submitCreateQuote = async (payload: CreateQuoteData) => {
   const savedText = form.value.content.trim()
-  await $fetch('/api/quotes', { method: 'POST', body: payload })
+  await $fetch<{ success: boolean }, '/api/quotes'>('/api/quotes', { method: 'POST', body: payload })
   lastSavedQuote.value = savedText
   form.value.content = ''
   draftSaved.value = true
@@ -515,7 +515,11 @@ const submitUpdateQuote = async (
   editQuoteId: number,
   payload: Omit<CreateQuoteData, 'language'> & { source_type?: string | null; source_url?: string | null },
 ) => {
-  await $fetch(`/api/quotes/${editQuoteId}`, { method: 'PUT', body: payload })
+  const updateQuotePath = `/api/quotes/${editQuoteId}` as '/api/quotes/:id'
+  await $fetch<{ success: boolean }, '/api/quotes/:id'>(updateQuotePath, {
+    method: 'PUT',
+    body: payload
+  })
   emit('quote-updated')
   closeDialog()
 }

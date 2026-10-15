@@ -202,10 +202,17 @@ const submitTag = async () => {
       color: form.value.color?.trim() || '#687FE5'
     }
     if (isEditMode.value && props.editTag) {
-      await $fetch(`/api/admin/tags/${props.editTag.id}`, { method: 'PUT', body: payload })
+      const updateTagPath = `/api/admin/tags/${props.editTag.id}` as '/api/admin/tags/:id'
+      await $fetch<{ success: boolean }, '/api/admin/tags/:id'>(updateTagPath, {
+        method: 'PUT',
+        body: payload
+      })
       emit('tag-updated')
     } else {
-      await $fetch('/api/admin/tags', { method: 'POST', body: payload })
+      await $fetch<{ success: boolean }, '/api/admin/tags'>('/api/admin/tags', {
+        method: 'POST',
+        body: payload
+      })
       emit('tag-added')
     }
     closeDialog()

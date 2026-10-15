@@ -208,7 +208,7 @@ const loadInitialSuggestions = async () => {
   }
 
   try {
-    const res: any = await $fetch('/api/tags/suggest' as string, {
+    const res: any = await $fetch<any, '/api/tags/suggest'>('/api/tags/suggest', {
       method: 'POST',
       body: {
         quoteText: props.quoteText || '',
@@ -236,7 +236,8 @@ const loadInitialSuggestions = async () => {
 const loadQuoteTags = async () => {
   loading.value = true
   try {
-    const res: any = await $fetch(`/api/quotes/${props.quoteId}/tags`)
+    const quoteTagsPath = `/api/quotes/${props.quoteId}/tags` as '/api/quotes/:id/tags'
+    const res: any = await $fetch<any, '/api/quotes/:id/tags'>(quoteTagsPath)
     const payload = res?.data?.results ?? res?.results ?? res?.data ?? []
     quoteTags.value = Array.isArray(payload) ? payload : []
   } catch (e) {
@@ -320,7 +321,8 @@ const addExistingTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
   submitting.value = true
   error.value = ''
   try {
-    await $fetch(`/api/quotes/${props.quoteId}/tags`, {
+    const quoteTagsPath = `/api/quotes/${props.quoteId}/tags` as '/api/quotes/:id/tags'
+    await $fetch<{ success: boolean }, '/api/quotes/:id/tags'>(quoteTagsPath, {
       method: 'POST',
       body: { tagId: tag.id }
     })
@@ -346,7 +348,8 @@ const createAndAddTag = async () => {
   submitting.value = true
   error.value = ''
   try {
-    const res: any = await $fetch(`/api/quotes/${props.quoteId}/tags`, {
+    const quoteTagsPath = `/api/quotes/${props.quoteId}/tags` as '/api/quotes/:id/tags'
+    const res: any = await $fetch<any, '/api/quotes/:id/tags'>(quoteTagsPath, {
       method: 'POST',
       body: { name, color: defaultColor }
     })
@@ -380,7 +383,8 @@ const removeTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
   submitting.value = true
   error.value = ''
   try {
-    await $fetch(`/api/quotes/${props.quoteId}/tags/${tag.id}`, { method: 'DELETE' })
+    const quoteTagPath = `/api/quotes/${props.quoteId}/tags/${tag.id}` as '/api/quotes/:id/tags/:tagId'
+    await $fetch<{ success: boolean }, '/api/quotes/:id/tags/:tagId'>(quoteTagPath, { method: 'DELETE' })
     if (Array.isArray(quoteTags.value)) {
       quoteTags.value = quoteTags.value.filter(t => t.id !== tag.id)
     } else {

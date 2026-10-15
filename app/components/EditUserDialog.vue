@@ -86,7 +86,8 @@ const submit = async () => {
   if (!user.value) return
   submitting.value = true
   try {
-    await $fetch(`/api/admin/users/${user.value.id}/update`, { method: 'POST', body: form.value })
+    const updateUserPath = `/api/admin/users/${user.value.id}/update` as '/api/admin/users/:id/update'
+    await $fetch<any, '/api/admin/users/:id/update'>(updateUserPath, { method: 'POST', body: form.value })
     useToast().toast({ toast: 'soft-success', title: String($t('components.dialogs.toast_updated')), description: `${user.value.name} updated.` })
     emit('user-updated')
     isOpen.value = false

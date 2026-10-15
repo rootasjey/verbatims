@@ -79,7 +79,8 @@ const confirmDeletion = async () => {
   if (!props.quote?.id) return
   submitting.value = true
   try {
-    await $fetch(`/api/quotes/${props.quote.id}`, { method: 'DELETE' })
+    const deleteQuotePath = `/api/quotes/${props.quote.id}` as '/api/quotes/:id'
+    await $fetch<{ success: boolean }, '/api/quotes/:id'>(deleteQuotePath, { method: 'DELETE' })
     useToast().toast({ toast: 'soft-success', title: String($t('components.dialogs.delete_quote')) })
     emit('quote-deleted')
     isOpen.value = false

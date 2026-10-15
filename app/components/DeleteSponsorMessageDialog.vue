@@ -33,7 +33,8 @@ const confirmDelete = async () => {
   if (!props.message) return
   submitting.value = true
   try {
-    await $fetch(`/api/admin/sponsors/${props.message.id}`, { method: 'DELETE' })
+    const deleteMessagePath = `/api/admin/sponsors/${props.message.id}` as '/api/admin/sponsors/:id'
+    await $fetch<{ success: boolean }, '/api/admin/sponsors/:id'>(deleteMessagePath, { method: 'DELETE' })
     emit('deleted')
     isOpen.value = false
   } catch (error) {

@@ -212,14 +212,19 @@ const save = async () => {
   const isAuthor = props.entityType === 'author'
 
   try {
-    const url = isAuthor
-      ? `/api/admin/authors/${props.entityId}`
-      : `/api/admin/references/${props.entityId}`
-
-    await $fetch(url, {
-      method: 'PUT',
-      body: isAuthor ? { socials: record } : { urls: record },
-    })
+    if (isAuthor) {
+      const authorPath = `/api/admin/authors/${props.entityId}` as '/api/admin/authors/:id'
+      await $fetch<{ success: boolean }, '/api/admin/authors/:id'>(authorPath, {
+        method: 'PUT',
+        body: { socials: record },
+      })
+    } else {
+      const referencePath = `/api/admin/references/${props.entityId}` as '/api/admin/references/:id'
+      await $fetch<{ success: boolean }, '/api/admin/references/:id'>(referencePath, {
+        method: 'PUT',
+        body: { urls: record },
+      })
+    }
 
     useToast().toast({
       toast: 'soft-success',

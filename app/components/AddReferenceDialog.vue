@@ -312,7 +312,7 @@ const searchReferences = useDebounceFn(async () => {
   }
 
   try {
-    const response = await $fetch<ApiResponse<QuoteReference[]>>('/api/references/search', {
+    const response = await $fetch<ApiResponse<QuoteReference[]>, '/api/references/search'>('/api/references/search', {
       query: { q: titleQuery.value, limit: 5 }
     })
     titleSuggestions.value = response.data || []
@@ -494,14 +494,15 @@ const submitReference = async () => {
     }
 
     if (isEditMode.value && props.editReference) {
-      await $fetch(`/api/admin/references/${props.editReference.id}`, {
+      const updateReferencePath = `/api/admin/references/${props.editReference.id}` as '/api/admin/references/:id'
+      await $fetch<{ success: boolean }, '/api/admin/references/:id'>(updateReferencePath, {
         method: 'PUT',
         body: payload
       })
 
       emit('reference-updated')
     } else {
-      await $fetch('/api/admin/references', {
+      await $fetch<{ success: boolean }, '/api/admin/references'>('/api/admin/references', {
         method: 'POST',
         body: payload
       })
