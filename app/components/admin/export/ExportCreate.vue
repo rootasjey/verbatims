@@ -153,7 +153,7 @@
                   <select
                     :value="dataExport.exportOptions.value.format?.label || ''"
                     @change="formatModel = dataExport.formatOptions.find(o => o.label === ($event.target as HTMLSelectElement).value) ?? dataExport.exportOptions.value.format"
-                    class="w-full max-w-sm cursor-pointer rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-300/60 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700/60"
+                    class="w-full max-w-sm cursor-pointer rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-300/60 dark:border-gray-700 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700/60"
                   >
                     <option value="" disabled>{{ $ts('export_create.select_format') }}</option>
                     <option v-for="opt in dataExport.formatOptions" :key="opt.label" :value="opt.label">{{ opt.label }}</option>
@@ -173,7 +173,7 @@
                   type="number"
                   min="0"
                   placeholder="0"
-                  class="w-full max-w-sm rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-300/60 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700/60"
+                  class="w-full max-w-sm rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-300/60 dark:border-gray-700 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700/60"
                 />
               </div>
             </div>
@@ -344,7 +344,7 @@ const onKeydown = (keyEvent: KeyboardEvent) => {
   border-style: solid;
   border-width: 1px;
   border-radius: 0.625rem;
-  background-color: #f9fafb;
+  background-color: var(--admin-control-surface, #efede6);
 }
 
 .export-create :deep(input:not([type="checkbox"]):not([type="file"]):focus),
@@ -352,11 +352,6 @@ const onKeydown = (keyEvent: KeyboardEvent) => {
   outline: 2px solid transparent;
   outline-offset: 2px;
   box-shadow: 0 0 0 2px rgb(209 213 219 / 0.65);
-}
-
-:global(.dark) .export-create :deep(input:not([type="checkbox"]):not([type="file"])),
-:global(.dark) .export-create :deep(select) {
-  background-color: #030712;
 }
 
 :global(.dark) .export-create :deep(input:not([type="checkbox"]):not([type="file"]):focus),
