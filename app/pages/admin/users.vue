@@ -7,9 +7,6 @@
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             {{ $t('title') }}
           </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ totalUsers }} {{ totalUsers === 1 ? 'user' : 'users' }}
-          </p>
         </div>
         <div class="hidden md:flex flex-wrap items-center justify-end gap-2.5">
           <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
@@ -21,10 +18,10 @@
               class: 'min-w-[180px]',
             }"
             :_combobox-trigger="{
-              btn: 'ghost-gray',
+              btn: 'outline-gray',
               size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-2 text-sm font-normal w-fit min-w-0 rounded-lg',
+              trailing: 'i-lucide-chevron-down',
+              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
             }"
           >
             <template #trigger="{ modelValue }">
@@ -39,10 +36,10 @@
               class: 'min-w-[180px]',
             }"
             :_combobox-trigger="{
-              btn: 'ghost-gray',
+              btn: 'outline-gray',
               size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-2 text-sm font-normal w-fit min-w-0 rounded-lg',
+              trailing: 'i-lucide-chevron-down',
+              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
             }"
           >
             <template #trigger="{ modelValue }">
@@ -54,10 +51,10 @@
       <div class="md:hidden mt-4 space-y-2">
         <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder_mobile') as string" class="w-full font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400" />
         <div class="flex flex-wrap items-center gap-2">
-          <NCombobox v-model="selectedRoleFilter" :items="roleFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg' }">
+          <NCombobox v-model="selectedRoleFilter" :items="roleFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
-          <NCombobox v-model="selectedStatusFilter" :items="statusFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg' }">
+          <NCombobox v-model="selectedStatusFilter" :items="statusFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
         </div>

@@ -73,5 +73,9 @@
   "status_queued": "Queued",
   "status_processing": "Processing",
   "status_posted": "Posted",
-  "status_failed": "Failed"
+  "status_failed": "Failed",
+  "error_details": "View delivery error details",
+  "error_tooltip_hint": "Select to view the full error and copy it.",
+  "error_dialog_title": "Delivery error details",
+  "copy_error": "Copy error"
 }

@@ -23,10 +23,10 @@
               align: 'end',
             }"
             :_combobox-trigger="{
-              btn: 'ghost-gray',
+              btn: 'outline-gray',
               size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              trailing: 'i-lucide-chevron-down',
+              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
             }"
           >
             <template #trigger="{ modelValue }">
@@ -50,10 +50,10 @@
             class: 'min-w-[200px]',
           }"
           :_combobox-trigger="{
-            btn: 'ghost-gray',
+            btn: 'outline-gray',
             size: 'xs',
-            trailing: '',
-            class: 'gap-1 px-1 text-xs font-normal w-fit min-w-0',
+            trailing: 'i-lucide-chevron-down',
+            class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
           }"
         >
           <template #trigger="{ modelValue }">

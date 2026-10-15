@@ -7,10 +7,7 @@
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             {{ $t('title') }}
           </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ total }} {{ total === 1 ? 'key' : 'keys' }}
-            <span class="text-gray-500 dark:text-gray-400">&middot; {{ $t('subtitle') }}</span>
-          </p>
+          <p class="mt-2 font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('subtitle') }}</p>
         </div>
         <div class="hidden md:flex items-center gap-3">
           <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
@@ -78,8 +75,12 @@
                 {{ key.readRateLimit }}/{{ formatWindow(key.readWindowSec) }}
               </td>
               <td class="px-3 py-3">
-                <div class="flex gap-1 flex-wrap">
-                  <span v-for="perm in key.permissions" :key="perm" class="font-mono text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ perm }}</span>
+                <div class="flex flex-wrap gap-1.5">
+                  <NTooltip v-for="perm in key.permissions" :key="perm" :content="permissionLabel(perm)">
+                    <span tabindex="0" role="img" :aria-label="permissionLabel(perm)" class="grid h-7 min-w-7 place-items-center rounded-md border border-gray-200 bg-gray-50 px-1 text-gray-600 dark:border-gray-700 dark:bg-white/[0.06] dark:text-gray-300">
+                      <NIcon :name="permissionIcon(perm)" class="h-3.5 w-3.5" />
+                    </span>
+                  </NTooltip>
                 </div>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ key.userName }}</td>
@@ -130,7 +131,11 @@
           <div class="mt-4 border-t border-gray-100 dark:border-gray-800 pt-3">
             <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $t('col_permissions') }}</p>
             <div class="flex flex-wrap gap-1.5">
-              <span v-for="perm in key.permissions" :key="perm" class="font-mono text-[0.6875rem] text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-1">{{ perm }}</span>
+              <NTooltip v-for="perm in key.permissions" :key="perm" :content="permissionLabel(perm)">
+                <span tabindex="0" role="img" :aria-label="permissionLabel(perm)" class="grid h-8 min-w-8 place-items-center rounded-md border border-gray-200 bg-gray-50 px-1.5 text-gray-600 dark:border-gray-700 dark:bg-white/[0.06] dark:text-gray-300">
+                  <NIcon :name="permissionIcon(perm)" class="h-4 w-4" />
+                </span>
+              </NTooltip>
             </div>
           </div>
           <p class="mt-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('col_created') }} · {{ formatDate(key.createdAt) }}</p>
@@ -306,6 +311,25 @@ const availablePermissions = [
   { label: String($t('perm_social_write')), value: 'social:write' },
   { label: String($t('perm_all')), value: '*' },
 ]
+
+const permissionIcons: Record<string, string> = {
+  read: 'i-lucide-eye',
+  'write:quotes': 'i-lucide-quote',
+  'write:authors': 'i-lucide-user-round-pen',
+  'write:references': 'i-lucide-book-open-check',
+  'write:collections': 'i-lucide-library',
+  'social:read': 'i-lucide-message-circle-more',
+  'social:write': 'i-lucide-send',
+  '*': 'i-lucide-shield-check',
+}
+
+function permissionLabel(value: string) {
+  return availablePermissions.find(permission => permission.value === value)?.label ?? value
+}
+
+function permissionIcon(value: string) {
+  return permissionIcons[value] ?? 'i-lucide-key-round'
+}
 
 const tierOptions = [
   { label: String($t('tier_free')), value: 'free' },

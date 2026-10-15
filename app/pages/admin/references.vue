@@ -14,6 +14,7 @@
           </NButton>
           <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
           <NCombobox
+            v-if="isCardView"
             v-model="selectedTypeFilter"
             :items="typeFilterOptions"
             by="value"
@@ -23,8 +24,8 @@
             :_combobox-trigger="{
               btn: 'ghost-gray',
               size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              trailing: 'i-lucide-chevron-down',
+              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border border-[#d2cfc6] bg-[#f0efe9] text-gray-800 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10',
             }"
           >
             <template #trigger="{ modelValue }">
@@ -32,6 +33,7 @@
             </template>
           </NCombobox>
           <NCombobox
+            v-if="isCardView"
             v-model="selectedSort"
             :items="sortOptions"
             by="value"
@@ -41,18 +43,15 @@
             :_combobox-trigger="{
               btn: 'ghost-gray',
               size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              trailing: 'i-lucide-chevron-down',
+              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border border-[#d2cfc6] bg-[#f0efe9] text-gray-800 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10',
             }"
           >
             <template #trigger="{ modelValue }">
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
-          <div class="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-3">
-            <button :class="['font-sans text-xs px-2.5 py-1.5 transition-colors rounded-lg', !isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = false">{{ $t('view_table') }}</button>
-            <button :class="['font-sans text-xs px-2.5 py-1.5 transition-colors rounded-lg', isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = true">{{ $t('view_cards') }}</button>
-          </div>
+          <AdminViewMenu v-model="isCardView" :label="$t('view_menu_label') as string" :table-label="$t('view_table') as string" :cards-label="$t('view_cards') as string" />
         </div>
       </div>
       <div class="md:hidden mt-4 space-y-2">
@@ -63,16 +62,13 @@
           </NTooltip>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <NCombobox v-model="selectedTypeFilter" :items="typeFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg' }">
+          <NCombobox v-if="isCardView" v-model="selectedTypeFilter" :items="typeFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
-          <NCombobox v-model="selectedSort" :items="sortOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-2 text-xs font-normal w-fit min-w-0 rounded-lg' }">
+          <NCombobox v-if="isCardView" v-model="selectedSort" :items="sortOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
-          <div class="ml-auto flex items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-900">
-            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-md', !isCardView ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-500 dark:text-gray-400']" @click="isCardView = false">{{ $t('view_table') }}</button>
-            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-md', isCardView ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-500 dark:text-gray-400']" @click="isCardView = true">{{ $t('view_cards') }}</button>
-          </div>
+          <div class="ml-auto"><AdminViewMenu v-model="isCardView" :label="$t('view_menu_label') as string" :table-label="$t('view_table') as string" :cards-label="$t('view_cards') as string" /></div>
         </div>
       </div>
     </div>
@@ -92,8 +88,8 @@
         <div v-for="reference in filteredReferences" :key="reference.id" class="bg-white dark:bg-[#0C0A09] border border-gray-200 dark:border-gray-800 p-4 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors rounded-xl">
           <div class="flex items-start gap-3">
             <div class="flex-shrink-0">
-              <img v-if="reference.image_url" :src="reference.image_url" :alt="reference.name" class="w-12 h-16 object-cover grayscale hover:grayscale-0 transition-all duration-300" />
-              <div v-else class="w-12 h-16 bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><NIcon :name="getTypeIcon(reference.primary_type)" class="w-6 h-6 text-gray-500" /></div>
+              <img v-if="reference.image_url" :src="reference.image_url" :alt="reference.name" class="h-16 w-12 rounded-md border border-black/10 object-cover dark:border-white/15" />
+              <div v-else class="flex h-16 w-12 items-center justify-center rounded-md border border-black/5 bg-gray-100 dark:border-white/10 dark:bg-white/[0.06]"><NIcon :name="getTypeIcon(reference.primary_type)" class="w-6 h-6 text-gray-500" /></div>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 min-w-0">
@@ -140,8 +136,22 @@
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_reference') }}</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_type') }}</th>
+              <th class="min-w-48 px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="flex items-center justify-between gap-2">
+                  <span>{{ $t('col_reference') }}</span>
+                  <NCombobox v-model="selectedSort" :items="sortOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal max-w-40 rounded-md border-[#d2cfc6] bg-[#f0efe9] normal-case text-gray-800 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200' }">
+                    <template #trigger="{ modelValue }"><span class="max-w-24 truncate">{{ modelValue?.label }}</span></template>
+                  </NCombobox>
+                </div>
+              </th>
+              <th class="w-36 px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="flex items-center justify-between gap-2">
+                  <span>{{ $t('col_type') }}</span>
+                  <NCombobox v-model="selectedTypeFilter" :items="typeFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal max-w-32 rounded-md border-[#d2cfc6] bg-[#f0efe9] normal-case text-gray-800 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200' }">
+                    <template #trigger="{ modelValue }"><span class="max-w-16 truncate">{{ modelValue?.label }}</span></template>
+                  </NCombobox>
+                </div>
+              </th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_year') }}</th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quotes') }}</th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
@@ -159,8 +169,8 @@
                 <div class="flex items-center gap-3">
                   <div class="flex-shrink-0">
                     <ContextMenu size="xs" native-on-modifier="ctrl" :items="getReferenceActions(ref)">
-                      <img v-if="ref.image_url" :src="ref.image_url" :alt="ref.name" class="w-8 h-10 object-cover cursor-pointer" @click="editReference(ref)" />
-                      <div v-else class="w-8 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center cursor-pointer" @click="editReference(ref)"><NIcon :name="getTypeIcon(ref.primary_type)" class="w-4 h-4 text-gray-500" /></div>
+                      <img v-if="ref.image_url" :src="ref.image_url" :alt="ref.name" class="h-10 w-8 rounded-sm border border-black/10 object-cover cursor-pointer dark:border-white/15" @click="editReference(ref)" />
+                      <div v-else class="flex h-10 w-8 cursor-pointer items-center justify-center rounded-sm border border-black/5 bg-gray-100 dark:border-white/10 dark:bg-white/[0.06]" @click="editReference(ref)"><NIcon :name="getTypeIcon(ref.primary_type)" class="w-4 h-4 text-gray-500" /></div>
                     </ContextMenu>
                   </div>
                   <div class="min-w-0 flex-1">
