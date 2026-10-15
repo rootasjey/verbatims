@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-200 dark:border-gray-800">
+    <div data-admin-page-header class="pb-6 mb-6">
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
@@ -13,7 +13,7 @@
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 w-56" />
+          <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
           <OutlinedButton class="rounded-lg" @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
         </div>
       </div>
@@ -158,7 +158,6 @@
       </span>
       <div class="flex items-center gap-3">
         <OutlinedButton v-if="currentPage > 1" class="rounded-lg" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
         <button
           class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
           @click="showPageJumpDialog = true"
@@ -166,7 +165,6 @@
           {{ currentPage }} / {{ totalPages }}
         </button>
         <OutlinedButton v-if="currentPage < totalPages" class="rounded-lg" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
     </div>
 

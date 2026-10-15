@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-200 dark:border-gray-800">
+    <div data-admin-page-header class="pb-6 mb-6">
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
@@ -13,7 +13,7 @@
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-            <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 w-56" />
+            <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
           <NCombobox
             v-model="selectedSort"
             :items="sortOptions"
@@ -68,12 +68,6 @@
 
     <!-- Table -->
     <div v-else>
-      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-800">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
-        <OutlinedButton size="sm" variant="destructive" @click="showBulkDeleteDialog = true">{{ $t('common.delete') }}</OutlinedButton>
-        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">{{ $t('common.clear') }}</button>
-      </div>
-
       <div class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-x-auto">
         <table class="w-full min-w-[960px]">
           <thead>
@@ -131,11 +125,11 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="h-20" />
+      <div v-if="totalPages > 1 || selectedIds.length > 0" class="h-20" />
     </div>
 
     <div
-      v-if="totalPages > 1"
+      v-if="totalPages > 1 || selectedIds.length > 0"
       class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
@@ -149,9 +143,18 @@
         </button>
         of {{ totalPages }} &middot; {{ total }} {{ total === 1 ? 'message' : 'messages' }}
       </span>
+      <DashboardBulkSelectionControls
+        :selection-mode="selectedIds.length > 0"
+        :selected-count="selectedIds.length"
+        :visible-count="messages.length"
+        :actions="bulkSelectionActions"
+        @toggle-visible="selectAllOnPage"
+        @clear="clearSelection"
+        @exit-mode="clearSelection"
+        @action="onBulkSelectionAction"
+      />
       <div class="flex items-center gap-3">
         <OutlinedButton v-if="currentPage > 1" class="rounded-lg" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
         <button
           class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
           @click="showPageJumpDialog = true"
@@ -159,7 +162,6 @@
           {{ currentPage }} / {{ totalPages }}
         </button>
         <OutlinedButton v-if="currentPage < totalPages" class="rounded-lg" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
     </div>
 
@@ -235,6 +237,14 @@ const bulkProcessing = ref(false)
 const showBulkDeleteDialog = ref(false)
 
 const selectedIds = computed(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
+
+const bulkSelectionActions = computed(() => [
+  { key: 'delete', label: $t('common.delete') as string, icon: 'i-tabler-trash', disabled: bulkProcessing.value },
+])
+
+const onBulkSelectionAction = (key: string) => {
+  if (key === 'delete') showBulkDeleteDialog.value = true
+}
 
 const allSelected = computed<boolean | 'indeterminate'>({
   get: () => { const total = messages.value.length; const count = selectedIds.value.length; if (total === 0) return false; if (count === total) return true; if (count > 0) return 'indeterminate'; return false },

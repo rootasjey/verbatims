@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+    <div data-admin-page-header class="pb-6 mb-6">
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
@@ -12,7 +12,7 @@
           </p>
         </div>
         <div class="hidden md:flex flex-wrap items-center justify-end gap-2.5">
-          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 w-56" />
+          <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
           <NCombobox
             v-model="selectedRoleFilter"
             :items="roleFilterOptions"
@@ -80,12 +80,6 @@
 
     <!-- Table -->
     <div v-else>
-      <div v-if="selectedIds.length > 0" class="flex flex-wrap items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
-        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">{{ $t('common.delete') }}</button>
-        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">{{ $t('common.clear') }}</button>
-      </div>
-
       <div role="region" tabindex="0" :aria-label="$t('title') as string" class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-x-auto overscroll-x-contain focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500">
         <table class="w-full min-w-[960px]">
           <thead>
@@ -179,11 +173,11 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="hidden md:block h-20" />
+      <div v-if="totalPages > 1 || selectedIds.length > 0" class="hidden md:block h-20" />
     </div>
 
     <div
-      v-if="totalPages > 1"
+      v-if="totalPages > 1 || selectedIds.length > 0"
       class="relative md:fixed md:bottom-0 z-20 mb-24 md:mb-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 rounded-t-2xl px-3 sm:px-6 lg:px-8 py-2 md:py-3 flex items-center justify-between gap-2 shadow-sm transition-all duration-300 ease-in-out"
       :style="isDesktopViewport ? { left: footerLeftOffset + 'px', width: footerWidth } : undefined"
     >
@@ -197,11 +191,19 @@
         </button>
         of {{ totalPages }} <span class="hidden sm:inline">&middot; {{ totalUsers }} {{ totalUsers === 1 ? 'user' : 'users' }}</span>
       </span>
+      <DashboardBulkSelectionControls
+        :selection-mode="selectedIds.length > 0"
+        :selected-count="selectedIds.length"
+        :visible-count="users.length"
+        :actions="bulkSelectionActions"
+        @toggle-visible="selectAllOnPage"
+        @clear="clearSelection"
+        @exit-mode="clearSelection"
+        @action="onBulkSelectionAction"
+      />
       <div class="flex items-center gap-3">
         <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
         <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
     </div>
 
@@ -251,6 +253,14 @@ const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
 
 const selectedIds = computed(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
+
+const bulkSelectionActions = computed(() => [
+  { key: 'delete', label: $t('common.delete') as string, icon: 'i-tabler-trash', disabled: bulkDeleting.value },
+])
+
+const onBulkSelectionAction = (key: string) => {
+  if (key === 'delete') showBulkDeleteDialog.value = true
+}
 
 const allSelected = computed<boolean | 'indeterminate'>({
   get: () => { const total = users.value.length; const count = selectedIds.value.length; if (total === 0) return false; if (count === total) return true; if (count > 0) return 'indeterminate'; return false },
