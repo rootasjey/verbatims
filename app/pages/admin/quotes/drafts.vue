@@ -7,9 +7,6 @@
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             Drafts
           </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ totalQuotes }} {{ totalQuotes === 1 ? 'draft' : 'drafts' }}
-          </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
           <input
@@ -92,25 +89,6 @@
 
     <!-- Table -->
     <div v-else-if="hasLoadedOnce">
-      <!-- Bulk action bar -->
-      <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedQuotes.length }} selected</span>
-        <OutlinedButton size="sm" @click="showBulkEditDialog = true">Edit Selected</OutlinedButton>
-        <OutlinedButton size="sm" variant="primary" @click="showBulkSubmitModal = true">Submit All</OutlinedButton>
-        <button
-          class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors ml-auto"
-          @click="showBulkDeleteModal = true"
-        >
-          Delete All
-        </button>
-        <button
-          class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          @click="clearSelection"
-        >
-          Clear
-        </button>
-      </div>
-
       <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto">
         <table class="w-full min-w-[760px]">
           <thead>
@@ -146,7 +124,7 @@
               <td class="px-3 py-3 max-w-md">
                 <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
                   <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
-                    &ldquo;{{ quote.name }}&rdquo;
+                    {{ quote.name }}
                   </blockquote>
                 </ContextMenu>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
@@ -215,35 +193,41 @@
         </table>
       </div>
 
-      <div v-if="totalPages > 1" class="h-20" />
+      <div v-if="totalPages > 1 || selectedQuotes.length > 0" class="h-20" />
     </div>
 
     <div
-      v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 rounded-t-2xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      v-if="totalPages > 1 || selectedQuotes.length > 0"
+      class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
-      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+      <span class="shrink-0 font-sans text-xs text-gray-500 dark:text-gray-400">
         Page
         <button
-          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          class="rounded-md px-1.5 py-0.5 font-medium text-gray-800 transition-colors hover:bg-black/5 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }}
         </button>
-        of {{ totalPages }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? 'draft' : 'drafts' }}
+        of {{ totalPages }}
       </span>
-      <div class="flex items-center gap-3">
-        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-        <button
-          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
-          @click="showPageJumpDialog = true"
-        >
-          {{ currentPage }} / {{ totalPages }}
-        </button>
-        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+      <DashboardBulkSelectionControls
+        :selection-mode="selectedQuotes.length > 0"
+        :selected-count="selectedQuotes.length"
+        :visible-count="filteredQuotes.length"
+        :actions="bulkSelectionActions"
+        @toggle-visible="selectAllOnPage"
+        @clear="clearSelection"
+        @exit-mode="clearSelection"
+        @action="onBulkSelectionAction"
+      />
+      <div class="ml-auto flex shrink-0 items-center gap-2">
+        <NButton v-if="currentPage > 1" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.previous') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.max(1, currentPage - 1)">
+          <NIcon name="i-tabler-arrow-left" class="h-4 w-4" /><span class="sr-only sm:not-sr-only">{{ $t('common.previous') }}</span>
+        </NButton>
+        <NButton v-if="currentPage < totalPages" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.next') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.min(totalPages, currentPage + 1)">
+          <span class="sr-only sm:not-sr-only">{{ $t('common.next') }}</span><NIcon name="i-tabler-arrow-right" class="h-4 w-4" />
+        </NButton>
       </div>
     </div>
 
@@ -343,6 +327,18 @@ const bulkProcessing = ref(false)
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
+
+const bulkSelectionActions = computed(() => [
+  { key: 'edit', label: 'Edit Selected', icon: 'i-tabler-edit' },
+  { key: 'submit', label: 'Submit All', icon: 'i-tabler-send' },
+  { key: 'delete', label: 'Delete All', icon: 'i-tabler-trash' },
+])
+
+const onBulkSelectionAction = (key: string) => {
+  if (key === 'edit') showBulkEditDialog.value = true
+  else if (key === 'submit') showBulkSubmitModal.value = true
+  else if (key === 'delete') showBulkDeleteModal.value = true
+}
 
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
