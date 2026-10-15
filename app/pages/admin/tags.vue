@@ -31,22 +31,22 @@
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
-          <OutlinedButton @click="showAddDialog = true">{{ $t('add_button') }}</OutlinedButton>
-          <OutlinedButton @click="showBackfillDialog = true">{{ $t('backfill') }}</OutlinedButton>
+          <NButton btn="solid-black" size="sm" trailing="i-lucide-tag-plus" class="gap-2 rounded-lg" @click="showAddDialog = true">
+            {{ $t('add_button') }}
+          </NButton>
+          <NButton btn="soft-gray" size="sm" leading="i-lucide-refresh-cw" class="gap-2 rounded-lg" @click="showBackfillDialog = true">
+            {{ $t('backfill') }}
+          </NButton>
         </div>
       </div>
       <div class="md:hidden mt-4 space-y-2">
         <div class="flex gap-2">
           <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder_mobile') as string" class="min-w-0 flex-1 font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400" />
           <NTooltip :content="$t('add_button') as string">
-            <button type="button" class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900" :aria-label="$t('add_button') as string" @click="showAddDialog = true">
-              <NIcon name="i-ph-plus" class="h-4 w-4" />
-            </button>
+            <NButton btn="solid-black" icon label="i-lucide-tag-plus" size="md" class="h-10 w-10 flex-shrink-0 rounded-lg" :aria-label="$t('add_button') as string" @click="showAddDialog = true" />
           </NTooltip>
           <NTooltip :content="$t('backfill') as string">
-            <button type="button" class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" :aria-label="$t('backfill') as string" @click="showBackfillDialog = true">
-              <NIcon name="i-ph-arrows-clockwise" class="h-4 w-4" />
-            </button>
+            <NButton btn="soft-gray" icon label="i-lucide-refresh-cw" size="md" class="h-10 w-10 flex-shrink-0 rounded-lg" :aria-label="$t('backfill') as string" @click="showBackfillDialog = true" />
           </NTooltip>
         </div>
         <div class="flex items-center">

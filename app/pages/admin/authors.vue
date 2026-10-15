@@ -12,9 +12,9 @@
           </p>
         </div>
         <div class="hidden md:flex flex-wrap items-center justify-end gap-2.5">
-          <button class="font-sans text-sm font-medium bg-gray-900 dark:bg-gray-100 px-3 py-2 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-white transition-colors rounded-lg" @click="openAddAuthorDialog">
+          <NButton btn="solid-black" size="sm" trailing="i-lucide-user-plus" class="gap-2 rounded-lg" @click="openAddAuthorDialog">
             {{ $t('add_button') }}
-          </button>
+          </NButton>
           <input
             v-model="searchQuery"
             type="text"
@@ -78,9 +78,7 @@
             class="min-w-0 flex-1 font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
           />
           <NTooltip :content="$t('add_button') as string">
-            <button type="button" class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900" :aria-label="$t('add_button') as string" @click="openAddAuthorDialog">
-              <NIcon name="i-ph-plus" class="h-4 w-4" />
-            </button>
+            <NButton btn="solid-black" icon label="i-lucide-user-plus" size="md" class="h-10 w-10 flex-shrink-0 rounded-lg" :aria-label="$t('add_button') as string" @click="openAddAuthorDialog" />
           </NTooltip>
         </div>
         <div class="flex flex-wrap items-center gap-2">
