@@ -15,7 +15,11 @@ export default defineEventHandler(async (event) => {
       themesStats,
       collectionsStats,
       likesStats,
-      viewsStats
+      viewsStats,
+      socialQueueStats,
+      sponsorStats,
+      messageStats,
+      apiKeyStats
     ] = await Promise.all([
       // Quotes statistics
       db.select({
@@ -90,7 +94,12 @@ export default defineEventHandler(async (event) => {
         total: count(),
         unique_users: sql<number>`COUNT(DISTINCT ${schema.quoteViews.userId})`,
         unique_ips: sql<number>`COUNT(DISTINCT ${schema.quoteViews.ipAddress})`
-      }).from(schema.quoteViews)
+      }).from(schema.quoteViews),
+
+      db.select({ total: count() }).from(schema.socialQueue),
+      db.select({ total: count() }).from(schema.sponsorMessages),
+      db.select({ total: count() }).from(schema.userMessages),
+      db.select({ total: count() }).from(schema.apiKeys)
     ])
     
     // Get recent activity from activity_logs
@@ -218,6 +227,10 @@ export default defineEventHandler(async (event) => {
         },
         tags: { total: Number(tagsStats[0]?.total) || 0 },
         themes: { total: Number(themesStats[0]?.total) || 0 },
+        social_queue: { total: Number(socialQueueStats[0]?.total) || 0 },
+        sponsors: { total: Number(sponsorStats[0]?.total) || 0 },
+        messages: { total: Number(messageStats[0]?.total) || 0 },
+        api_keys: { total: Number(apiKeyStats[0]?.total) || 0 },
         collections: {
           total: Number(collectionsStats[0]?.total) || 0,
           public: Number(collectionsStats[0]?.public_collections) || 0,

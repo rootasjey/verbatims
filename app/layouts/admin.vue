@@ -255,6 +255,11 @@ interface AdminStatsResponse {
     references?: { total?: number }
     tags?: { total?: number }
     themes?: { total?: number }
+    social_queue?: { total?: number }
+    sponsors?: { total?: number }
+    messages?: { total?: number }
+    api_keys?: { total?: number }
+    users?: { total?: number }
   }
 }
 
@@ -309,6 +314,11 @@ const authorsCount = ref(0)
 const referencesCount = ref(0)
 const tagsCount = ref(0)
 const themesCount = ref(0)
+const socialQueueCount = ref(0)
+const usersCount = ref(0)
+const sponsorsCount = ref(0)
+const messagesCount = ref(0)
+const apiKeysCount = ref(0)
 
 const groupTabs = ref<HTMLDivElement | null>(null)
 const itemTabs = ref<HTMLDivElement | null>(null)
@@ -338,7 +348,7 @@ const adminNavGroups = computed<AdminNavGroup[]>(() => [
       { to: '/admin/quotes/pending', label: String($t('admin.nav.pending')), count: pendingCount.value },
       { to: '/admin/quotes/published', label: String($t('admin.nav.published')), count: publishedCount.value },
       { to: '/admin/quotes/drafts', label: String($t('admin.nav.drafts')), count: draftCount.value },
-      { to: '/admin/social-queue', label: String($t('admin.nav.social_queue')) },
+      { to: '/admin/social-queue', label: String($t('admin.nav.social_queue')), count: socialQueueCount.value },
     ],
   },
   {
@@ -359,10 +369,10 @@ const adminNavGroups = computed<AdminNavGroup[]>(() => [
     icon: 'i-ph-users',
     to: '/admin/users',
     items: [
-      { to: '/admin/users', label: String($t('admin.nav.users')) },
-      { to: '/admin/sponsors', label: String($t('admin.nav.sponsors')) },
-      { to: '/admin/messages', label: String($t('admin.nav.messages')) },
-      { to: '/admin/api-keys', label: String($t('admin.nav.api_keys')) },
+      { to: '/admin/users', label: String($t('admin.nav.users')), count: usersCount.value },
+      { to: '/admin/sponsors', label: String($t('admin.nav.sponsors')), count: sponsorsCount.value },
+      { to: '/admin/messages', label: String($t('admin.nav.messages')), count: messagesCount.value },
+      { to: '/admin/api-keys', label: String($t('admin.nav.api_keys')), count: apiKeysCount.value },
     ],
   },
   {
@@ -486,6 +496,11 @@ async function loadQuoteCounts() {
     referencesCount.value = stats.data?.references?.total ?? 0
     tagsCount.value = stats.data?.tags?.total ?? 0
     themesCount.value = stats.data?.themes?.total ?? 0
+    socialQueueCount.value = stats.data?.social_queue?.total ?? 0
+    usersCount.value = stats.data?.users?.total ?? 0
+    sponsorsCount.value = stats.data?.sponsors?.total ?? 0
+    messagesCount.value = stats.data?.messages?.total ?? 0
+    apiKeysCount.value = stats.data?.api_keys?.total ?? 0
   } catch (error) {
     console.error('Failed to load admin quote counts:', error)
   }
@@ -514,7 +529,7 @@ watch(() => route.path, () => {
 
 watch(activeGroupId, revealActiveTabs, { flush: 'post' })
 
-watch(() => [activeGroupItems.value.length, pendingCount.value, publishedCount.value, draftCount.value, harvestedCount.value, authorsCount.value, referencesCount.value, tagsCount.value, themesCount.value], async () => {
+watch(() => [activeGroupItems.value.length, pendingCount.value, publishedCount.value, draftCount.value, harvestedCount.value, authorsCount.value, referencesCount.value, tagsCount.value, themesCount.value, socialQueueCount.value, usersCount.value, sponsorsCount.value, messagesCount.value, apiKeysCount.value], async () => {
   await revealActiveTabs()
 })
 

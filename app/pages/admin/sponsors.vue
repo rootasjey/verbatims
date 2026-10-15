@@ -7,10 +7,6 @@
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             {{ $t('title') }}
           </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ total }} {{ total === 1 ? 'message' : 'messages' }}
-            <span v-if="activeCount > 0" class="text-green-600 dark:text-green-400">&middot; {{ activeCount }} {{ $t('status_active') }}</span>
-          </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
             <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
@@ -22,10 +18,10 @@
               class: 'min-w-[180px]',
             }"
             :_combobox-trigger="{
-              btn: 'ghost-gray',
+              btn: 'outline-gray',
               size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-3 text-sm font-normal w-fit min-w-0 rounded-lg border border-gray-200 dark:border-gray-700',
+              trailing: 'i-lucide-chevron-down',
+              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
             }"
           >
             <template #trigger="{ modelValue }">
@@ -43,7 +39,7 @@
             :items="sortOptions"
             by="value"
             :_combobox-list="{ class: 'min-w-[180px]' }"
-            :_combobox-trigger="{ btn: 'ghost-gray', size: 'sm', trailing: '', class: 'gap-1 px-3 text-sm font-normal w-fit min-w-0 rounded-lg border border-gray-200 dark:border-gray-700' }"
+            :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }"
           >
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>

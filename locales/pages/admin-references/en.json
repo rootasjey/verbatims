@@ -14,6 +14,7 @@
   "sort_most_liked": "Most Liked",
   "view_table": "Table",
   "view_cards": "Cards",
+  "view_menu_label": "Choose view",
   "empty_search_title": "No matching references",
   "empty_title": "No references yet",
   "empty_search_desc": "Try adjusting your search.",

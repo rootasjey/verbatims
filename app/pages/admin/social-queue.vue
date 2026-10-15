@@ -1,11 +1,10 @@
 <template>
   <div>
     <!-- Editorial Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+    <div class="pb-6 mb-6">
       <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
         {{ $t('title') }}
       </h1>
-      <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalItems }} {{ totalItems === 1 ? 'item' : 'items' }}</p>
 
       <div class="flex flex-col sm:flex-row gap-3 mt-4">
         <div>
@@ -47,14 +46,12 @@
           </NToggleGroup>
         </div>
         <div class="flex gap-2">
-          <NSeparator orientation="vertical" />
           <NTooltip :content="$t('check_provider')?.toString() ?? ''">
             <NButton btn="soft-gray" icon label="i-ph-plugs-connected" :loading="providerCheckLoading" @click="checkProvider" />
           </NTooltip>
-          <PrimaryButton :loading="runNowLoading" @click="runNow" class="px-6">
+          <NButton btn="solid-black" size="sm" trailing="i-tabler-play" :loading="runNowLoading" class="min-h-10 rounded-xl px-4 font-sans font-medium shadow-sm transition-[background-color,box-shadow,transform] hover:shadow-md active:translate-y-px active:shadow-none" @click="runNow">
             {{ $t('run_now') }}
-            <NIcon name="i-tabler-play" class="ml-2" />
-          </PrimaryButton>
+          </NButton>
           <NDropdownMenu :items="actionMenuItems">
             <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
           </NDropdownMenu>
@@ -71,10 +68,10 @@
       </div>
 
       <!-- Table (always visible, even when empty) -->
-      <div v-else class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
-        <table class="w-full">
+      <div v-else role="region" tabindex="0" :aria-label="$t('title') as string" class="overflow-x-auto overscroll-x-contain rounded-xl border border-gray-200 dark:border-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500">
+        <table class="w-full min-w-[900px]">
           <thead>
-            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+            <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_position') }}</th>
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="flex items-center gap-4">
@@ -110,10 +107,10 @@
                       align: 'start',
                     }"
                     :_combobox-trigger="{
-                      btn: 'ghost-gray',
+                      btn: 'outline-gray',
                       size: 'xs',
-                      trailing: '',
-                      class: 'gap-1 px-1.5 text-xs font-normal w-fit min-w-0',
+                      trailing: 'i-lucide-chevron-down',
+                      class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
                     }"
                   >
                     <template #trigger="{ modelValue }">
@@ -161,9 +158,20 @@
                   <p v-else class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">{{ formatQueueSourceLabel(item) }}</p>
                 </td>
                 <td class="px-3 py-3">
-                  <span class="font-sans text-xs px-1.5 py-0.5 cursor-pointer" :class="statusClass(item.status)" @click="copyErrorIfFailed(item)">
-                    {{ item.status }}<span v-if="item.status === 'failed' && item.error_message"> &middot; {{ briefError(item.error_message) }}</span>
-                  </span>
+                  <NTooltip v-if="item.status === 'failed' && item.error_message" :_tooltip-content="{ class: 'max-w-sm whitespace-normal break-words' }">
+                    <button type="button" class="inline-flex max-w-56 items-center gap-1.5 rounded-md px-2 py-1 text-left font-sans text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500" :class="statusClass(item.status)" :aria-label="$t('error_details') as string" @click="openErrorDetails(item.error_message)">
+                      <span class="shrink-0">{{ $t('status_failed') }}</span>
+                      <span class="truncate">{{ briefError(item.error_message) }}</span>
+                      <NIcon name="i-lucide-info" class="h-3.5 w-3.5 shrink-0" />
+                    </button>
+                    <template #content>
+                      <div class="max-w-80 space-y-1 whitespace-normal break-words font-sans text-xs">
+                        <p>{{ errorPreview(item.error_message) }}</p>
+                        <p class="text-gray-500 dark:text-gray-400">{{ $t('error_tooltip_hint') }}</p>
+                      </div>
+                    </template>
+                  </NTooltip>
+                  <span v-else class="inline-flex rounded-md px-2 py-1 font-sans text-xs" :class="statusClass(item.status)">{{ item.status }}</span>
                 </td>
                 <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ item.quote_posts_count || 0 }}</td>
                 <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatLastPosted(item.last_posted_at) }}</td>
@@ -190,7 +198,7 @@
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      class="fixed bottom-0 z-20 rounded-t-xl border-x border-t border-gray-200 bg-[#FAFAF9] px-4 py-3 shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-[#0C0A09] sm:px-6 lg:px-8"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -215,6 +223,21 @@
       </div>
     </div>
     </div>
+
+    <ClientOnly>
+      <NDialog v-model:open="showErrorDetailsDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-2xl' }">
+        <template #header>
+          <h2 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('error_dialog_title') }}</h2>
+        </template>
+        <pre class="max-h-[50vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">{{ selectedQueueErrorMessage }}</pre>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <NButton btn="outline-gray" size="sm" class="rounded-lg" @click="showErrorDetailsDialog = false">{{ $t('common.close') }}</NButton>
+            <NButton btn="solid-black" size="sm" leading="i-lucide-copy" class="rounded-lg" @click="copyErrorMessage">{{ $t('copy_error') }}</NButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
 
     <AdminSocialMetaConfigDialog
       :open="metaConfigDialogOpen"
@@ -818,13 +841,25 @@ function openPublishedPost(item: SocialQueueItem) {
 }
 
 function briefError(message: string) {
-  return message.length > 40 ? message.slice(0, 40) + '…' : message
+  return message.length > 64 ? message.slice(0, 64) + '…' : message
 }
 
-async function copyErrorIfFailed(item: SocialQueueItem) {
-  if (item.status !== 'failed' || !item.error_message) return
+function errorPreview(message: string) {
+  return message.length > 240 ? `${message.slice(0, 240)}…` : message
+}
+
+const showErrorDetailsDialog = ref(false)
+const selectedQueueErrorMessage = ref('')
+
+function openErrorDetails(message: string) {
+  selectedQueueErrorMessage.value = message
+  showErrorDetailsDialog.value = true
+}
+
+async function copyErrorMessage() {
+  if (!selectedQueueErrorMessage.value) return
   try {
-    await navigator.clipboard.writeText(item.error_message)
+    await navigator.clipboard.writeText(selectedQueueErrorMessage.value)
     useToast().toast({
       title: $t('toast_copied') as string,
       description: $t('toast_copied_desc') as string,
@@ -1769,21 +1804,24 @@ const onPageJump = (page: number) => {
 let footerObserver: ResizeObserver | null = null
 
 const updateFooterPosition = () => {
-  const mainEl = document.querySelector('main')
+  const mainEl = document.querySelector('main[data-admin-content]')
   if (!mainEl) {
     footerLeftOffset.value = 0
     footerWidth.value = '100%'
     return
   }
   const rect = mainEl.getBoundingClientRect()
-  footerLeftOffset.value = rect.left
-  footerWidth.value = `${rect.width}px`
+  const styles = getComputedStyle(mainEl)
+  const paddingLeft = Number.parseFloat(styles.paddingLeft) || 0
+  const paddingRight = Number.parseFloat(styles.paddingRight) || 0
+  footerLeftOffset.value = rect.left + paddingLeft
+  footerWidth.value = `${Math.max(0, rect.width - paddingLeft - paddingRight)}px`
 }
 
 onMounted(() => {
   updateFooterPosition()
   footerObserver = new ResizeObserver(updateFooterPosition)
-  const mainEl = document.querySelector('main')
+  const mainEl = document.querySelector('main[data-admin-content]')
   if (mainEl) footerObserver.observe(mainEl)
   window.addEventListener('resize', updateFooterPosition)
 })

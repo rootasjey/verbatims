@@ -73,5 +73,9 @@
   "status_queued": "En file",
   "status_processing": "En cours",
   "status_posted": "Publié",
-  "status_failed": "Échec"
+  "status_failed": "Échec",
+  "error_details": "Voir les détails de l'erreur",
+  "error_tooltip_hint": "Cliquez pour afficher et copier le message complet.",
+  "error_dialog_title": "Détails de l'erreur d'envoi",
+  "copy_error": "Copier l'erreur"
 }
