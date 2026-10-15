@@ -29,6 +29,35 @@
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
+        </div>
+      </div>
+      <!-- Mobile search -->
+      <div class="md:hidden mt-4 space-y-2">
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="$t('search_placeholder_mobile') as string"
+          class="w-full font-sans text-sm bg-transparent border-b border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+        />
+        <div class="flex flex-wrap items-center gap-2">
+          <NCombobox
+            v-model="selectedSort"
+            :items="sortOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[200px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'outline-gray',
+              size: 'xs',
+              trailing: 'i-lucide-chevron-down',
+              class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
+            }"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="text-xs leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
           <NCombobox
             v-model="selectedLanguage"
             :items="languageOptions"
@@ -37,49 +66,19 @@
               placeholder: $t('common.all_languages') as string,
               class: 'text-xs',
             }"
-            :_combobox-list="{
-              class: 'min-w-[200px]',
-              align: 'end',
-            }"
+            :_combobox-list="{ class: 'min-w-[200px]' }"
             :_combobox-trigger="{
               btn: 'outline-gray',
-              size: 'sm',
+              size: 'xs',
               trailing: 'i-lucide-chevron-down',
-              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
+              class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
+              <span class="text-xs leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
             </template>
           </NCombobox>
         </div>
-      </div>
-      <!-- Mobile search -->
-      <div class="md:hidden mt-4 flex gap-2">
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="$t('search_placeholder_mobile') as string"
-          class="flex-1 font-sans text-sm bg-transparent border-b border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
-        />
-        <NCombobox
-          v-model="selectedSort"
-          :items="sortOptions"
-          by="value"
-          :_combobox-list="{
-            class: 'min-w-[200px]',
-          }"
-          :_combobox-trigger="{
-            btn: 'outline-gray',
-            size: 'xs',
-            trailing: 'i-lucide-chevron-down',
-            class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
-          }"
-        >
-          <template #trigger="{ modelValue }">
-            <span class="text-xs leading-none">{{ modelValue?.label }}</span>
-          </template>
-        </NCombobox>
       </div>
     </div>
 
@@ -116,7 +115,34 @@
                 />
               </th>
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('common.quote_singular') }}</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_language') }}</th>
+              <th class="w-28 px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-1.5">
+                  <span>{{ $t('col_language') }}</span>
+                  <NTooltip :content="$t('filter_by_language', { selected: (selectedLanguage.label || $t('common.all_languages')) as string }) as string">
+                    <NCombobox
+                      v-model="selectedLanguage"
+                      :items="languageOptions"
+                      by="value"
+                      :_combobox-input="{
+                        placeholder: $t('common.all_languages') as string,
+                        class: 'text-xs',
+                      }"
+                      :_combobox-list="{ class: 'min-w-[200px]' }"
+                      :_combobox-trigger="{
+                        btn: 'outline-gray',
+                        size: 'xs',
+                        class: 'relative !h-6 !min-h-6 !w-6 !min-w-6 !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
+                        ariaLabel: $t('filter_by_language', { selected: (selectedLanguage.label || $t('common.all_languages')) as string }) as string,
+                      }"
+                    >
+                      <template #trigger>
+                        <NIcon name="i-lucide-list-filter" class="h-3.5 w-3.5" aria-hidden="true" />
+                        <span v-if="selectedLanguage.value" class="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-gray-900 dark:bg-gray-100" aria-hidden="true" />
+                      </template>
+                    </NCombobox>
+                  </NTooltip>
+                </div>
+              </th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_user') }}</th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('common.status') }}</th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_published') }}</th>

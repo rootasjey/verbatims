@@ -3,6 +3,7 @@
   "title": "Publiées",
   "search_placeholder": "Rechercher citations, auteurs ou références...",
   "search_placeholder_mobile": "Rechercher publiées...",
+  "filter_by_language": "Filtrer les citations par langue · {selected}",
   "sort_most_recent": "Plus récentes",
   "sort_oldest_first": "Plus anciennes",
   "sort_most_liked": "Plus aimées",
