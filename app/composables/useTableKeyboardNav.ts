@@ -3,6 +3,11 @@ interface TableKeyboardNavOptions {
   onSelectRow: (index: number) => void
   isDialogOpen: () => boolean
   isDropdownOpen: () => boolean
+  pagination: {
+    currentPage: () => number
+    totalPages: () => number
+    setPage: (page: number) => void
+  }
 }
 
 export function useTableKeyboardNav(options: TableKeyboardNavOptions) {
@@ -60,17 +65,17 @@ export function useTableKeyboardNav(options: TableKeyboardNavOptions) {
 
     const key = e.key
 
-    if (key === 'ArrowRight') {
+    if (key === 'ArrowRight' || key === 'ArrowLeft') {
       e.preventDefault()
-      highlightedRowIndex.value = 0
-      scrollHighlightedIntoView()
-      return
-    }
 
-    if (key === 'ArrowLeft') {
-      e.preventDefault()
-      highlightedRowIndex.value = count - 1
-      scrollHighlightedIntoView()
+      const currentPage = options.pagination.currentPage()
+      const nextPage = currentPage + (key === 'ArrowRight' ? 1 : -1)
+      const totalPages = options.pagination.totalPages()
+
+      if (nextPage >= 1 && nextPage <= totalPages && nextPage !== currentPage) {
+        clearHighlight()
+        options.pagination.setPage(nextPage)
+      }
       return
     }
 

@@ -433,7 +433,12 @@ const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
     if (author) { rowSelection.value[author.id] = !rowSelection.value[author.id]; lastSelectedIndex.value = null }
   },
   isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => isCardView.value
+  isDropdownOpen: () => isCardView.value,
+  pagination: {
+    currentPage: () => currentPage.value,
+    totalPages: () => totalPages.value,
+    setPage: page => { currentPage.value = page }
+  }
 })
 
 const highlightedAuthor = computed<Author | null>(() => {

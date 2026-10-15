@@ -721,7 +721,12 @@ const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
     }
   },
   isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => false
+  isDropdownOpen: () => false,
+  pagination: {
+    currentPage: () => currentPage.value,
+    totalPages: () => totalPages.value,
+    setPage: page => { currentPage.value = page }
+  }
 })
 
 const highlightedQuote = computed<AdminQuote | null>(() => {

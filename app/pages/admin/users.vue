@@ -286,7 +286,12 @@ const isAnyDialogOpen = computed(() => showAddUserDialog.value || showEditUserDi
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => users.value.length,
   onSelectRow: (index: number) => { const u = users.value[index]; if (u) { rowSelection.value[u.id] = !rowSelection.value[u.id]; lastSelectedIndex.value = null } },
-  isDialogOpen: () => isAnyDialogOpen.value, isDropdownOpen: () => false
+  isDialogOpen: () => isAnyDialogOpen.value, isDropdownOpen: () => false,
+  pagination: {
+    currentPage: () => currentPage.value,
+    totalPages: () => totalPages.value,
+    setPage: page => { currentPage.value = page }
+  }
 })
 
 const highlightedUser = computed<AdminUser | null>(() => { if (highlightedRowIndex.value === null) return null; return users.value[highlightedRowIndex.value] ?? null })
