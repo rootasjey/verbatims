@@ -4,23 +4,24 @@
     <div v-if="showSkeleton" aria-busy="true" class="min-h-screen bg-[#F7F5EF] dark:bg-[#0C0A09]">
       <div class="hidden md:block">
         <div class="mx-auto w-full max-w-[1440px] px-4 lg:px-8">
-          <section class="homepage-v3-cover mb-4 min-h-[710px] rounded-2xl px-10 py-24 shadow-sm" aria-hidden="true">
-            <div class="w-full max-w-[1040px] space-y-5 animate-pulse">
-              <div class="mx-auto h-12 w-5/6 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
-              <div class="mx-auto h-12 w-2/3 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
-              <div class="mx-auto mt-10 h-6 w-48 rounded bg-black/10 dark:bg-white/10" />
-              <div class="mx-auto h-3 w-28 rounded bg-black/10 dark:bg-white/10" />
-            </div>
-          </section>
-
-          <div class="relative mx-4 mb-16 flex items-center justify-center gap-4" aria-hidden="true">
-            <div class="inline-flex h-10 w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
-              {{ $t('home.explore_theme') }}
-              <NIcon name="i-lucide-arrow-down" class="h-3.5 w-3.5" />
-            </div>
-            <div class="absolute right-0 flex gap-2">
-              <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
-              <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
+          <div class="homepage-v3-hero-stage" aria-hidden="true">
+            <section class="homepage-v3-cover homepage-v3-cover--hero px-10 py-24 shadow-sm">
+              <div class="w-full max-w-[1040px] space-y-5 animate-pulse">
+                <div class="mx-auto h-12 w-5/6 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
+                <div class="mx-auto h-12 w-2/3 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
+                <div class="mx-auto mt-10 h-6 w-48 rounded bg-black/10 dark:bg-white/10" />
+                <div class="mx-auto h-3 w-28 rounded bg-black/10 dark:bg-white/10" />
+              </div>
+            </section>
+            <div class="relative mx-auto mb-16 flex w-full max-w-[1440px] items-center justify-center gap-4 px-4 lg:px-8" aria-hidden="true">
+              <div class="inline-flex h-10 w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
+                {{ $t('home.explore_theme') }}
+                <NIcon name="i-lucide-arrow-down" class="h-3.5 w-3.5" />
+              </div>
+              <div class="absolute right-4 flex gap-2 lg:right-8">
+                <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
+                <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
+              </div>
             </div>
           </div>
 
@@ -83,23 +84,25 @@
       </div>
 
       <div class="md:hidden">
-        <section class="homepage-v3-cover mx-4 mt-2 mb-4 min-h-[690px] rounded-2xl px-6 py-16 shadow-sm" aria-hidden="true">
-          <div class="w-full max-w-md space-y-3 text-center animate-pulse">
-            <div class="mx-auto h-7 w-11/12 rounded bg-black/10 dark:bg-white/10" />
-            <div class="mx-auto h-7 w-10/12 rounded bg-black/10 dark:bg-white/10" />
-            <div class="mx-auto h-7 w-8/12 rounded bg-black/10 dark:bg-white/10" />
-            <div class="mx-auto mt-8 h-8 w-8 rounded-full bg-black/10 dark:bg-white/10" />
-            <div class="mx-auto h-4 w-40 rounded bg-black/10 dark:bg-white/10" />
-            <div class="mx-auto h-3 w-24 rounded bg-black/10 dark:bg-white/10" />
+        <div class="homepage-v3-hero-stage" aria-hidden="true">
+          <section class="homepage-v3-cover homepage-v3-cover--hero px-6 py-16 shadow-sm">
+            <div class="w-full max-w-md space-y-3 text-center animate-pulse">
+              <div class="mx-auto h-7 w-11/12 rounded bg-black/10 dark:bg-white/10" />
+              <div class="mx-auto h-7 w-10/12 rounded bg-black/10 dark:bg-white/10" />
+              <div class="mx-auto h-7 w-8/12 rounded bg-black/10 dark:bg-white/10" />
+              <div class="mx-auto mt-8 h-8 w-8 rounded-full bg-black/10 dark:bg-white/10" />
+              <div class="mx-auto h-4 w-40 rounded bg-black/10 dark:bg-white/10" />
+              <div class="mx-auto h-3 w-24 rounded bg-black/10 dark:bg-white/10" />
+            </div>
+          </section>
+          <div class="mb-14 flex items-center justify-center gap-3" aria-hidden="true">
+            <div class="inline-flex h-10 w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
+              {{ $t('home.explore_theme') }}
+              <NIcon name="i-lucide-arrow-down" class="h-3.5 w-3.5" />
+            </div>
+            <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
+            <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
           </div>
-        </section>
-        <div class="mb-14 flex items-center justify-center gap-3" aria-hidden="true">
-          <div class="inline-flex h-10 w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
-            {{ $t('home.explore_theme') }}
-            <NIcon name="i-lucide-arrow-down" class="h-3.5 w-3.5" />
-          </div>
-          <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
-          <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
         </div>
 
         <section class="mb-16 px-6 py-14" aria-hidden="true">
@@ -159,11 +162,11 @@
       </div>
     </div>
 
-    <HomeEmptyView v-else-if="(stats.quotes === 0 || needsOnboarding) && !feed.quotesLoading?.value"
+    <HomeEmptyView v-else-if="showHomepageEmpty"
       :needs-onboarding="needsOnboarding" :onboarding-status="onboardingStatus" :stats="stats" />
 
-    <HomeDesktopFeed v-if="hydrated && !showMobileFeed && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :stats="stats" :theme="themeData" />
-    <MobileHomeFeed v-if="hydrated && showMobileFeed && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :theme="themeData" :stats="stats" @new-quote="showAddQuoteDrawer = true" />
+    <HomeDesktopFeed v-else-if="hydrated && !showMobileFeed" :feed="feed" :stats="stats" :theme="themeData" />
+    <MobileHomeFeed v-else-if="hydrated && showMobileFeed" :feed="feed" :theme="themeData" :stats="stats" @new-quote="showAddQuoteDrawer = true" />
 
     <ClientOnly>
       <AddQuoteDrawer v-model:open="showAddQuoteDrawer" @submitted="feed.refresh()" />
@@ -208,8 +211,8 @@ const themeData = ref<{
 } | null>(null)
 const activeHomeTheme = useState<typeof themeData.value>('active-home-theme', () => null)
 
-const { data: statsData } = await useFetch<{ data?: StatsResponse }>('/api/stats')
-const { data: onboardingData } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
+const { data: statsData, status: statsRequestStatus } = await useFetch<{ data?: StatsResponse }>('/api/stats')
+const { data: onboardingData, status: onboardingRequestStatus } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
 
 const route = useRoute()
 const themeQuery = computed(() => {
@@ -284,6 +287,11 @@ useJsonLd({
 
 // Ensure the computed values always match the shapes expected by child components
 const stats = computed<StatsResponse>(() => statsData.value?.data || { quotes: 0, authors: 0, references: 0, users: 0 })
+const showHomepageEmpty = computed(() =>
+  statsRequestStatus.value === 'success'
+  && onboardingRequestStatus.value === 'success'
+  && (needsOnboarding.value || (stats.value.quotes === 0 && !feed.initialLoading.value))
+)
 const activeHomeStats = useState<StatsResponse>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0, users: 0 }))
 watch(stats, value => { activeHomeStats.value = value }, { immediate: true })
 const onboardingStatus = computed<OnboardingResponse>(() => onboardingData.value?.data || { needsOnboarding: false, step: undefined, hasAdminUser: false, hasData: false })
@@ -302,6 +310,13 @@ const showAddQuoteDrawer = ref(false)
 const appReady = useState('app-ready', () => false)
 // On first SSR/hydration: hydrated starts false (matching SSR). On client nav: starts true.
 const hydrated = ref(appReady.value)
+const initialHomeDataLoading = computed(() =>
+  !hydrated.value
+  || !isLanguageReady.value
+  || !!feed.initialLoading.value
+  || statsRequestStatus.value === 'pending'
+  || onboardingRequestStatus.value === 'pending'
+)
 
 // Eager mobile detection so MobileHomeFeed renders immediately on client nav
 const isMobileClient = ref(import.meta.client ? window.innerWidth < 768 : false)
@@ -311,11 +326,10 @@ const showMobileFeed = computed(() => isMobileClient.value || isMobile.value)
 const showSkeleton = ref(!appReady.value)
 onMounted(() => {
   const timer = setTimeout(() => {
-    const stillLoading = !hydrated.value || !isLanguageReady.value || !!feed.initialLoading?.value
-    if (stillLoading) showSkeleton.value = true
+    if (initialHomeDataLoading.value) showSkeleton.value = true
   }, 300)
-  const stop = watch([hydrated, isLanguageReady, () => feed.initialLoading?.value], () => {
-    if (hydrated.value && isLanguageReady.value && !feed.initialLoading?.value) {
+  const stop = watch(initialHomeDataLoading, (stillLoading) => {
+    if (!stillLoading) {
       clearTimeout(timer)
       showSkeleton.value = false
       stop()

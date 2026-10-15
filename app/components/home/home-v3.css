@@ -26,6 +26,23 @@
   background: linear-gradient(135deg, #dedbd4 0%, #d2cfc8 52%, #e2dfd8 100%);
 }
 
+.homepage-v3-hero-stage {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.homepage-v3-cover--hero {
+  width: 100%;
+  flex: 1 0 auto;
+  min-height: 710px;
+  margin: 0;
+  border-radius: 0;
+}
+
 .homepage-v3-cover::before,
 .homepage-v3-cover::after {
   position: absolute;
@@ -314,6 +331,9 @@
   .homepage-v3-rich-item:not(:nth-child(3n + 1)) { padding-left: 0; border-left: 0; }
   .homepage-v3-rich-item:nth-child(2n) { padding-left: 14px; border-left: 1px solid rgba(120, 120, 120, 0.22); }
   .homepage-v3-cover { min-height: 690px; padding: 70px 24px 92px; }
+  /* Reserve the phone header and fixed bottom navigation so the hero actions stay reachable. */
+  .homepage-v3-hero-stage { min-height: calc(100svh - 10.75rem); }
+  .homepage-v3-cover--hero { min-height: clamp(380px, calc(100svh - 16.75rem), 690px); }
 }
 
 @media (min-width: 1200px) {

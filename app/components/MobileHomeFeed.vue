@@ -1,76 +1,86 @@
 <template>
   <div class="mobile-home-feed bg-[#F7F5EF] dark:bg-[#0C0A09]">
-    <!-- ── Featured Quote ── -->
-    <div class="homepage-v3-cover mx-4 mt-2 mb-4 rounded-2xl px-6 py-16 animate-fade-in-up shadow-sm" style="animation-delay: 0s">
-      <div v-if="featuredQuote" class="homepage-v3-author-wrap mb-2">
-        <div class="homepage-v3-author">
-          <button
-            type="button"
-            :aria-label="`${$ts('home.nav.authors')}: ${quoteAuthor?.name || $ts('home.unknown_author')}`"
-            @click="handleClickAuthor(quoteAuthor?.id)"
-            class="homepage-v3-author-line flex flex-col items-center gap-1 cursor-pointer group text-center"
-          >
-            <div v-if="quoteAuthor?.image_url" class="homepage-v3-author-avatar w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ring-2 p-.5" :style="{ '--un-ring-color': `var(--theme-primary, #6b7280)` }">
-              <img :src="quoteAuthor.image_url" :alt="quoteAuthor.name" class="w-full h-full grayscale object-cover rounded-full" />
-            </div>
-            <div v-else class="homepage-v3-author-avatar w-6 h-6 rounded-full ring-2 flex items-center justify-center flex-shrink-0" :style="{ '--un-ring-color': `var(--theme-primary, #6b7280)` }">
-              <span class="font-serif text-xs text-gray-400 dark:text-gray-500">{{ getAuthorInitials(quoteAuthor?.name) }}</span>
-            </div>
-            <p class="font-subtitle text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-              {{ quoteAuthor?.name || $t('home.unknown_author') }}
-            </p>
-          </button>
-          <NuxtLink
-            v-if="featuredQuote?.reference"
-            :to="`/references/${featuredQuote.reference.id}`"
-            class="homepage-v3-author-reference mt-1 block text-center font-sans text-xs font-500 text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 truncate"
-          >
-            {{ featuredQuote.reference?.name }}
-          </NuxtLink>
+    <div class="homepage-v3-hero-stage">
+      <!-- ── Featured Quote ── -->
+      <div class="homepage-v3-cover homepage-v3-cover--hero px-6 py-16 animate-fade-in-up shadow-sm" style="animation-delay: 0s">
+        <div v-if="featuredQuote" class="homepage-v3-author-wrap mb-2">
+          <div class="homepage-v3-author">
+            <button
+              type="button"
+              :aria-label="`${$ts('home.nav.authors')}: ${quoteAuthor?.name || $ts('home.unknown_author')}`"
+              @click="handleClickAuthor(quoteAuthor?.id)"
+              class="homepage-v3-author-line flex flex-col items-center gap-1 cursor-pointer group text-center"
+            >
+              <div v-if="quoteAuthor?.image_url" class="homepage-v3-author-avatar w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ring-2 p-.5" :style="{ '--un-ring-color': `var(--theme-primary, #6b7280)` }">
+                <img :src="quoteAuthor.image_url" :alt="quoteAuthor.name" class="w-full h-full grayscale object-cover rounded-full" />
+              </div>
+              <div v-else class="homepage-v3-author-avatar w-6 h-6 rounded-full ring-2 flex items-center justify-center flex-shrink-0" :style="{ '--un-ring-color': `var(--theme-primary, #6b7280)` }">
+                <span class="font-serif text-xs text-gray-400 dark:text-gray-500">{{ getAuthorInitials(quoteAuthor?.name) }}</span>
+              </div>
+              <p class="font-subtitle text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                {{ quoteAuthor?.name || $t('home.unknown_author') }}
+              </p>
+            </button>
+            <NuxtLink
+              v-if="featuredQuote?.reference"
+              :to="`/references/${featuredQuote.reference.id}`"
+              class="homepage-v3-author-reference mt-1 block text-center font-sans text-xs font-500 text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 truncate"
+            >
+              {{ featuredQuote.reference?.name }}
+            </NuxtLink>
+          </div>
+        </div>
+
+        <NuxtLink
+          v-if="featuredQuote"
+          :to="`/quotes/${featuredQuote.id}`"
+          class="homepage-v3-quote block group"
+        >
+          <blockquote :class="['font-serif font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors', coverQuoteClass(featuredQuote.name)]">
+            {{ featuredQuote.name }}
+          </blockquote>
+        </NuxtLink>
+        <div v-else-if="feed.initialLoading?.value" class="w-full max-w-md space-y-3 text-center animate-pulse" aria-hidden="true">
+          <div class="mx-auto h-7 w-11/12 rounded bg-black/10 dark:bg-white/10" />
+          <div class="mx-auto h-7 w-10/12 rounded bg-black/10 dark:bg-white/10" />
+          <div class="mx-auto h-7 w-8/12 rounded bg-black/10 dark:bg-white/10" />
+          <div class="mx-auto mt-8 h-8 w-8 rounded-full bg-black/10 dark:bg-white/10" />
+          <div class="mx-auto h-4 w-40 rounded bg-black/10 dark:bg-white/10" />
+          <div class="mx-auto h-3 w-24 rounded bg-black/10 dark:bg-white/10" />
         </div>
       </div>
-
-      <NuxtLink
-        v-if="featuredQuote"
-        :to="`/quotes/${featuredQuote.id}`"
-        class="homepage-v3-quote block group"
-      >
-        <blockquote :class="['font-serif font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors', coverQuoteClass(featuredQuote.name)]">
-          {{ featuredQuote.name }}
-        </blockquote>
-      </NuxtLink>
-    </div>
-    <div class="homepage-v3-cover-actions mb-14 flex items-center justify-center gap-3">
-      <a
-        :href="hasScrolled ? '#top' : '#home-exploration'"
-        :class="hasScrolled ? 'w-48' : 'w-44'"
-        class="homepage-v3-primary inline-flex items-center justify-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-[width,colors] duration-300"
-        @click="handleExploreClick"
-      >
-        <span>{{ $t(hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
-        <NIcon :name="hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
-      </a>
-      <div class="homepage-v3-actions mt-0 flex items-center gap-1">
-        <NTooltip :content="String($t('home.copy_quote'))">
-          <button
-            type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
-            :aria-label="String($t('home.copy_quote'))"
-            @click="copyFeaturedQuote"
-          >
-            <NIcon name="i-lucide-copy" class="h-4 w-4" />
-          </button>
-        </NTooltip>
-        <NTooltip :content="String($t('home.share_quote'))">
-          <button
-            type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
-            :aria-label="String($t('home.share_quote'))"
-            @click="shareFeaturedQuote"
-          >
-            <NIcon name="i-lucide-share-2" class="h-4 w-4" />
-          </button>
-        </NTooltip>
+      <div class="homepage-v3-cover-actions mb-14 flex items-center justify-center gap-3">
+        <a
+          :href="hasScrolled ? '#top' : '#home-exploration'"
+          :class="hasScrolled ? 'w-48' : 'w-44'"
+          class="homepage-v3-primary inline-flex items-center justify-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-[width,colors] duration-300"
+          @click="handleExploreClick"
+        >
+          <span>{{ $t(hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
+          <NIcon :name="hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
+        </a>
+        <div class="homepage-v3-actions mt-0 flex items-center gap-1">
+          <NTooltip :content="String($t('home.copy_quote'))">
+            <button
+              type="button"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
+              :aria-label="String($t('home.copy_quote'))"
+              @click="copyFeaturedQuote"
+            >
+              <NIcon name="i-lucide-copy" class="h-4 w-4" />
+            </button>
+          </NTooltip>
+          <NTooltip :content="String($t('home.share_quote'))">
+            <button
+              type="button"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
+              :aria-label="String($t('home.share_quote'))"
+              @click="shareFeaturedQuote"
+            >
+              <NIcon name="i-lucide-share-2" class="h-4 w-4" />
+            </button>
+          </NTooltip>
+        </div>
       </div>
     </div>
 
@@ -315,6 +325,7 @@ interface Props {
     references?: Ref<QuoteReference[]>
     hasMore?: Ref<boolean>
     loadingMore?: Ref<boolean>
+    initialLoading?: Ref<boolean>
     loadMore: () => Promise<void>
     curatedLoading?: Ref<boolean>
   }
