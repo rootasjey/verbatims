@@ -81,7 +81,7 @@
                 <span aria-hidden="true" class="font-subtitle text-xs text-gray-400 dark:text-gray-500">{{ getAuthorInitials(author.name) }}</span>
               </div>
               <div class="min-w-0">
-                <p class="font-subtitle font-600 leading-tight text-white transition-colors group-hover:text-white/70 break-words [overflow-wrap:anywhere]">
+                <p class="font-subtitle font-600 leading-tight text-white transition-colors group-hover:text-white/70 break-words wrap-anywhere">
                   {{ author.name }}
                 </p>
                 <p v-if="author.job" class="mt-1 truncate font-sans text-sm text-white/65">

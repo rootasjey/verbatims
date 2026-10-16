@@ -11,7 +11,7 @@
                 :to="`/quotes/${featuredQuote.id}`"
                 class="homepage-v3-quote block group"
               >
-                <h2 :class="['font-serif font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors', coverQuoteClass(featuredQuote.name)]">
+                <h2 :class="['font-serif font-300 text-gray-900 dark:text-gray-100 leading-tight break-words wrap-anywhere mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors', coverQuoteClass(featuredQuote.name)]">
                   {{ featuredQuote.name }}
                 </h2>
               </NuxtLink>
@@ -128,7 +128,7 @@
           <div class="mt-16 grid gap-24 md:grid-cols-2">
             <div v-for="item in opinionQuotes.slice(1, 3)" :key="item.id" class="group min-w-0 border-t border-gray-200 pt-8 dark:border-gray-800">
               <NuxtLink :to="`/quotes/${item.id}`" class="block">
-                <blockquote class="break-words font-serif text-2xl leading-[1.08] tracking-[-0.02em] text-gray-700 transition-colors group-hover:text-gray-950 dark:text-gray-300 dark:group-hover:text-gray-100 lg:text-5xl [overflow-wrap:anywhere]">{{ item.name }}</blockquote>
+                <blockquote class="break-words font-serif text-2xl leading-[1.08] tracking-[-0.02em] text-gray-700 transition-colors group-hover:text-gray-950 dark:text-gray-300 dark:group-hover:text-gray-100 lg:text-5xl wrap-anywhere">{{ item.name }}</blockquote>
               </NuxtLink>
               <p class="mt-2 flex flex-wrap gap-x-2 font-sans text-xs text-gray-500 dark:text-gray-400">
                 <NuxtLink v-if="item.author" :to="`/authors/${item.author.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ item.author.name }}</NuxtLink>
@@ -157,7 +157,7 @@
               <div v-else class="homepage-v3-reference-image absolute inset-0 bg-gradient-to-br from-[#8c8f8b] to-[#25282b] dark:from-[#62645f] dark:to-[#141518]" />
               <div class="homepage-v3-reference-overlay absolute inset-0" />
               <div class="relative mt-auto">
-                <h3 class="font-subtitle text-xl font-600 leading-tight break-words [overflow-wrap:anywhere] text-white">{{ ref.name }}</h3>
+                <h3 class="font-subtitle text-xl font-600 leading-tight break-words wrap-anywhere text-white">{{ ref.name }}</h3>
                 <p class="mt-2 font-sans text-xs font-600 text-white/70">{{ formatReferenceType(ref.primary_type) }}</p>
               </div>
             </NuxtLink>
@@ -228,7 +228,7 @@
                 <span class="font-subtitle text-xs text-gray-400 dark:text-gray-500">{{ getAuthorInitials(author.name) }}</span>
               </div>
               <div class="min-w-0">
-                <p :class="['font-subtitle font-600 leading-tight text-white transition-colors group-hover:text-white/70 break-words [overflow-wrap:anywhere]', authorNameClass(author.name)]">
+                <p :class="['font-subtitle font-600 leading-tight text-white transition-colors group-hover:text-white/70 break-words wrap-anywhere', authorNameClass(author.name)]">
                   {{ author.name || $t('home.unknown') }}
                 </p>
                 <p v-if="author.job" class="mt-1 truncate font-sans text-sm text-white/65">

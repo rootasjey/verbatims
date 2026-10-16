@@ -35,7 +35,7 @@
           :to="`/quotes/${featuredQuote.id}`"
           class="homepage-v3-quote block group"
         >
-          <blockquote :class="['font-serif font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors', coverQuoteClass(featuredQuote.name)]">
+          <blockquote :class="['font-serif font-300 text-gray-900 dark:text-gray-100 leading-tight break-words wrap-anywhere group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors', coverQuoteClass(featuredQuote.name)]">
             {{ featuredQuote.name }}
           </blockquote>
         </NuxtLink>
@@ -168,7 +168,7 @@
               <span class="font-subtitle text-xs text-gray-400 dark:text-gray-500">{{ getAuthorInitials(author.name) }}</span>
             </div>
             <div class="min-w-0">
-              <p :class="['font-subtitle font-600 leading-tight text-white break-words [overflow-wrap:anywhere]', authorNameClass(author.name)]">
+              <p :class="['font-subtitle font-600 leading-tight text-white break-words wrap-anywhere', authorNameClass(author.name)]">
                 {{ author.name }}
               </p>
               <p v-if="author.job" class="mt-1 truncate font-sans text-xs font-500 text-white/65">
@@ -224,7 +224,7 @@
             <div v-else class="homepage-v3-reference-image absolute inset-0 bg-gradient-to-br from-[#8c8f8b] to-[#25282b] dark:from-[#62645f] dark:to-[#141518]" />
             <div class="homepage-v3-reference-overlay absolute inset-0" />
             <div class="relative mt-auto">
-              <h3 class="font-subtitle font-600 leading-tight text-white break-words [overflow-wrap:anywhere]">{{ ref.name }}</h3>
+              <h3 class="font-subtitle font-600 leading-tight text-white break-words wrap-anywhere">{{ ref.name }}</h3>
               <p class="mt-1 font-sans text-xs font-500 text-white/65">{{ formatReferenceType(ref.primary_type) }}</p>
             </div>
           </NuxtLink>
