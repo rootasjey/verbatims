@@ -54,11 +54,18 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="key in keys" :key="key.id" class="transition-colors group hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]">
+            <ContextMenu
+              v-for="key in keys"
+              :key="key.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="getRowActions(key)"
+            >
+            <tr class="transition-colors group hover:bg-[#E7E5DE] dark:hover:bg-[#292725]">
               <td class="px-3 py-3">
-                <ContextMenu size="xs" native-on-modifier="ctrl" :items="getRowActions(key)">
-                  <p class="font-sans text-sm text-gray-900 dark:text-gray-100 cursor-pointer" @click="editKey(key)">{{ key.name }}</p>
-                </ContextMenu>
+                <p class="font-sans text-sm text-gray-900 dark:text-gray-100 cursor-pointer" @click="editKey(key)">{{ key.name }}</p>
               </td>
               <td class="px-3 py-3">
                 <code class="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{{ key.keyPrefix }}...</code>
@@ -67,7 +74,7 @@
                 <span class="font-sans text-xs px-1.5 py-0.5 rounded" :class="tierClass(key.tier)">{{ key.tier }}</span>
               </td>
               <td class="px-3 py-3">
-                <span class="font-sans text-xs px-1.5 py-0.5 rounded" :class="key.isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'">
+                <span class="inline-flex rounded-md px-1.5 py-0.5 font-sans text-xs font-medium" :class="key.isActive ? 'text-[#2373F4] dark:text-[#8AB5FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15' : 'text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/[0.08]'">
                   {{ key.isActive ? $t('common.status_active') : $t('common.status_inactive') }}
                 </span>
               </td>
@@ -91,12 +98,22 @@
                 </NDropdownMenu>
               </td>
             </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>
 
       <div class="md:hidden space-y-3">
-        <article v-for="key in keys" :key="key.id" class="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+        <ContextMenu
+          v-for="key in keys"
+          :key="key.id"
+          as-child
+          ignore-interactive-targets
+          size="xs"
+          native-on-modifier="ctrl"
+          :items="getRowActions(key)"
+        >
+        <article class="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <h2 class="font-sans text-base font-600 text-gray-900 dark:text-gray-100 break-words">{{ key.name }}</h2>
@@ -115,7 +132,7 @@
             </div>
             <div>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</p>
-              <span class="mt-1 inline-flex rounded px-1.5 py-0.5 text-xs" :class="key.isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'">
+              <span class="mt-1 inline-flex rounded-md px-1.5 py-0.5 font-sans text-xs font-medium" :class="key.isActive ? 'text-[#2373F4] dark:text-[#8AB5FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15' : 'text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/[0.08]'">
                 {{ key.isActive ? $t('common.status_active') : $t('common.status_inactive') }}
               </span>
             </div>
@@ -140,6 +157,7 @@
           </div>
           <p class="mt-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('col_created') }} · {{ formatDate(key.createdAt) }}</p>
         </article>
+        </ContextMenu>
       </div>
 
       <!-- Pagination -->

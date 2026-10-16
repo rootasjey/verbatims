@@ -152,7 +152,12 @@
                   </NCombobox>
                 </div>
               </th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_year') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_year') }}</span>
+                  <AdminSortButton :direction="sortDirectionFor('release_date_asc', 'release_date_desc')" :ascending-label="$t('sort_release_date_asc') as string" :descending-label="$t('sort_release_date_desc') as string" @toggle="toggleSort('release_date_asc', 'release_date_desc')" />
+                </div>
+              </th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="inline-flex items-center gap-1">
                   <span>{{ $t('col_quotes') }}</span>
@@ -169,7 +174,16 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(ref, idx) in filteredReferences" :key="ref.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[ref.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+            <ContextMenu
+              v-for="(ref, idx) in filteredReferences"
+              :key="ref.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="getReferenceActions(ref)"
+            >
+            <tr :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[ref.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
               <td class="px-3 py-3">
                 <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
                   <NCheckbox checkbox="gray" :model-value="!!rowSelection[ref.id]" @click="handleRowCheckboxClick($event, idx, ref.id)" />
@@ -178,16 +192,12 @@
               <td class="px-3 py-3">
                 <div class="flex items-center gap-3">
                   <div class="flex-shrink-0">
-                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="getReferenceActions(ref)">
-                      <img v-if="ref.image_url" :src="ref.image_url" :alt="ref.name" class="h-10 w-8 rounded-sm border border-black/10 object-cover cursor-pointer dark:border-white/15" @click="editReference(ref)" />
-                      <div v-else class="flex h-10 w-8 cursor-pointer items-center justify-center rounded-sm border border-black/5 bg-gray-100 dark:border-white/10 dark:bg-white/[0.06]" @click="editReference(ref)"><NIcon :name="getTypeIcon(ref.primary_type)" class="w-4 h-4 text-gray-500" /></div>
-                    </ContextMenu>
+                    <img v-if="ref.image_url" :src="ref.image_url" :alt="ref.name" class="h-10 w-8 rounded-sm border border-black/10 object-cover cursor-pointer dark:border-white/15" @click="editReference(ref)" />
+                    <div v-else class="flex h-10 w-8 cursor-pointer items-center justify-center rounded-sm border border-black/5 bg-gray-100 dark:border-white/10 dark:bg-white/[0.06]" @click="editReference(ref)"><NIcon :name="getTypeIcon(ref.primary_type)" class="w-4 h-4 text-gray-500" /></div>
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 min-w-0">
-                      <ContextMenu size="xs" native-on-modifier="ctrl" :items="getReferenceActions(ref)">
-                        <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ ref.name }}</p>
-                      </ContextMenu>
+                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ ref.name }}</p>
                       <button v-if="hasPendingEnrichment(ref)" type="button" class="inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" :title="`${ref.enrichment_pending_count} pending enrichment suggestion(s)`" @click="goToReferenceEnrichmentQueue(ref)" />
                     </div>
                     <p v-if="ref.secondary_type" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ ref.secondary_type }}</p>
@@ -228,6 +238,7 @@
                 </NDropdownMenu>
               </td>
             </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>

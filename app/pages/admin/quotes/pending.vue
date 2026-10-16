@@ -119,9 +119,16 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr
+            <ContextMenu
               v-for="(quote, idx) in filteredQuotes"
               :key="quote.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="getQuoteActions(quote)"
+            >
+            <tr
               :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined"
               :class="[
                 'animate-fade-in-up transition-colors group',
@@ -136,11 +143,9 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">
-                <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
-                  <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
-                    &ldquo;{{ quote.name }}&rdquo;
-                  </blockquote>
-                </ContextMenu>
+                <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
+                  &ldquo;{{ quote.name }}&rdquo;
+                </blockquote>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <template v-if="quote.author_name">
                     <ContextMenu v-if="quote.author_id" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
@@ -208,6 +213,7 @@
                 </NDropdownMenu>
               </td>
             </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>

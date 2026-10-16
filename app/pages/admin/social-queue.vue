@@ -141,7 +141,16 @@
             </tr>
           </thead>
           <tbody v-if="queueItems.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(item, idx) in queueItems" :key="item.id" :data-id="item.id" :class="['animate-fade-in-up transition-colors group', rowDropClass(item.id), { 'drag-over': isDragging }]" :style="{ animationDelay: `${idx * 0.03}s` }" :draggable="item.status === 'queued'" @dragstart="onDragStart" @dragend="onDragEnd" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
+            <ContextMenu
+              v-for="(item, idx) in queueItems"
+              :key="item.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="rowActionItems(item)"
+            >
+            <tr :data-id="item.id" :class="['animate-fade-in-up transition-colors group', rowDropClass(item.id), { 'drag-over': isDragging }]" :style="{ animationDelay: `${idx * 0.03}s` }" :draggable="item.status === 'queued'" @dragstart="onDragStart" @dragend="onDragEnd" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
                 <td class="px-3 py-3">
                   <div class="flex items-center gap-1.5">
                     <NLink v-if="hasPublishedPostUrl(item)" :to="item.published_post_url!" target="_blank" class="inline-flex items-center gap-1 font-sans text-sm text-green-700 dark:text-green-400 hover:underline">
@@ -156,9 +165,7 @@
                 </td>
                 <td class="px-3 py-3 max-w-md">
                   <div class="flex items-start gap-2">
-                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="rowActionItems(item)">
-                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 leading-relaxed flex-1">{{ getQueueItemPrimaryText(item) }}</p>
-                    </ContextMenu>
+                    <p class="font-sans text-sm text-gray-900 dark:text-gray-100 leading-relaxed flex-1">{{ getQueueItemPrimaryText(item) }}</p>
                     <NLink v-if="getQueueItemPath(item)" :to="getQueueItemPath(item)!" class="mt-0.5 inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" :title="getQueueItemLinkLabel(item)">
                       <NIcon name="i-ph-arrow-up-right-duotone" class="w-4 h-4" />
                     </NLink>
@@ -189,7 +196,8 @@
                     <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                   </NDropdownMenu>
                 </td>
-              </tr>
+            </tr>
+            </ContextMenu>
             </tbody>
             <tbody v-else>
               <tr>

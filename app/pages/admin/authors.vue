@@ -172,7 +172,7 @@
                       }"
                     >
                       <template #trigger>
-                        <NIcon name="i-lucide-list-filter" class="h-3.5 w-3.5" aria-hidden="true" />
+                        <NIcon name="i-lucide-list-filter" class="absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
                         <span v-if="selectedFictionalFilter.value" class="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-gray-900 dark:bg-gray-100" aria-hidden="true" />
                       </template>
                     </NCombobox>
@@ -195,9 +195,16 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr
+            <ContextMenu
               v-for="(author, idx) in filteredAuthors"
               :key="author.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="getAuthorActions(author)"
+            >
+            <tr
               :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined"
               :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[author.id] }]"
               :style="{ animationDelay: `${idx * 0.03}s` }"
@@ -210,16 +217,12 @@
               <td class="px-3 py-3">
                 <div class="flex items-center gap-3">
                   <div class="flex-shrink-0">
-                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="getAuthorActions(author)">
-              <img v-if="author.image_url" :src="author.image_url" :alt="author.name" class="w-8 h-8 rounded-full border border-black/10 object-cover cursor-pointer dark:border-white/15" @click="editAuthor(author)" />
-              <div v-else class="w-8 h-8 rounded-full border border-black/5 bg-gray-100 dark:border-white/10 dark:bg-white/8 flex items-center justify-center cursor-pointer" @click="editAuthor(author)"><NIcon name="i-ph-user" class="w-4 h-4 text-gray-500" /></div>
-                    </ContextMenu>
+                    <img v-if="author.image_url" :src="author.image_url" :alt="author.name" class="w-8 h-8 rounded-full border border-black/10 object-cover cursor-pointer dark:border-white/15" @click="editAuthor(author)" />
+                    <div v-else class="w-8 h-8 rounded-full border border-black/5 bg-gray-100 dark:border-white/10 dark:bg-white/8 flex items-center justify-center cursor-pointer" @click="editAuthor(author)"><NIcon name="i-ph-user" class="w-4 h-4 text-gray-500" /></div>
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 min-w-0">
-                      <ContextMenu size="xs" native-on-modifier="ctrl" :items="getAuthorActions(author)">
-                        <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ author.name }}</p>
-                      </ContextMenu>
+                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ author.name }}</p>
                       <button v-if="hasPendingEnrichment(author)" type="button" class="inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" :title="`${author.enrichment_pending_count} pending enrichment suggestion(s)`" @click="goToAuthorEnrichmentQueue(author)" />
                     </div>
                     <p v-if="author.job" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ author.job }}</p>
@@ -254,6 +257,7 @@
                 </NDropdownMenu>
               </td>
             </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>

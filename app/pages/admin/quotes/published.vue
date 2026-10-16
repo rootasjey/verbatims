@@ -137,7 +137,7 @@
                       }"
                     >
                       <template #trigger>
-                        <NIcon name="i-lucide-list-filter" class="h-3.5 w-3.5" aria-hidden="true" />
+                        <NIcon name="i-lucide-list-filter" class="absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
                         <span v-if="selectedLanguage.value" class="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-gray-900 dark:bg-gray-100" aria-hidden="true" />
                       </template>
                     </NCombobox>
@@ -161,9 +161,16 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr
+            <ContextMenu
               v-for="(quote, idx) in filteredQuotes"
               :key="quote.id"
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="getQuoteActions(quote)"
+              as-child
+              ignore-interactive-targets
+            >
+              <tr
               :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined"
               :class="[
                 'animate-fade-in-up transition-colors group',
@@ -182,11 +189,9 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">
-                <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
-                  <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
-                    {{ quote.name }}
-                  </blockquote>
-                </ContextMenu>
+                <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
+                  {{ quote.name }}
+                </blockquote>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <template v-if="quote.author?.name">
                     <ContextMenu v-if="quote.author?.id" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
@@ -269,7 +274,8 @@
                   </button>
                 </NDropdownMenu>
               </td>
-            </tr>
+              </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>
