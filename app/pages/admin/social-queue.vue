@@ -2,33 +2,16 @@
   <div>
     <!-- Editorial Header -->
     <div class="pb-6 mb-6">
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+      <div class="flex min-h-11 flex-wrap items-baseline gap-x-3 gap-y-2">
+        <h1 class="font-serif text-3xl leading-none md:text-4xl font-200 text-gray-900 dark:text-gray-100">
           {{ $t('title') }}
         </h1>
-        <div class="inline-flex min-h-8 items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-3 py-1 font-sans text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300">
-          <NIcon :name="platformIcon(selectedPlatform)" class="h-4 w-4" />
-          <span class="font-medium text-gray-800 dark:text-gray-100">{{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}</span>
-          <span class="text-gray-400 dark:text-gray-500">·</span>
-          <span class="max-w-36 truncate">{{ getPlatformStatus(selectedPlatform).account || $t('account_not_connected') }}</span>
-        </div>
-        <NTooltip v-if="autofillOverview">
-          <button
-            type="button"
-            class="inline-flex min-h-8 items-center gap-2 rounded-full border px-2.5 py-1 font-sans text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
-            :class="autofillChipClass"
-            :aria-label="$t('autofill_open_settings') as string"
-            @click="openAutofillDialog"
-          >
-            <span class="h-1.5 w-1.5 rounded-full" :class="autofillChipDotClass" />
-            <span>{{ $t('autofill_short_label') }}</span>
-            <span class="font-medium tabular-nums">{{ autofillChipValue }}</span>
-            <NIcon name="i-ph-sliders-horizontal" class="h-3.5 w-3.5 opacity-65" />
-          </button>
-          <template #content>
-            <span>{{ $t('autofill_open_settings') }}</span>
-          </template>
-        </NTooltip>
+        <span class="inline-flex items-baseline gap-2 whitespace-nowrap">
+          <span class="font-sans text-lg font-400 text-gray-500/75 dark:text-gray-500 md:text-xl" aria-hidden="true">/</span>
+          <span class="max-w-40 truncate font-sans text-sm font-500 text-gray-500 dark:text-gray-500 md:text-base">
+            {{ getPlatformStatus(selectedPlatform).account || $t('account_not_connected') }}
+          </span>
+        </span>
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 mt-4">
@@ -43,35 +26,44 @@
                 :value="opt.value"
                 size="sm"
                 :aria-label="SOCIAL_PLATFORM_LABELS[opt.value] || opt.value"
-                :class="[toggleItemColorClass(opt.value), {
-                  'w-auto px-4': opt.value === selectedPlatform,
-                  'max-w-full': opt.value === selectedPlatform
-                }]"
+                :class="[toggleItemColorClass(opt.value), 'h-10 w-10 min-h-10 min-w-10 shrink-0 justify-center rounded-xl p-0']"
               >
-                <NIcon :name="opt.label" />
-                <div v-if="opt.value === selectedPlatform" class="flex items-center gap-2">
-                  <span class="font-medium">{{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}</span>
-                  <NTooltip>
-                    <div class="flex items-center bg-gray-50 dark:bg-gray-800 p-.5 rounded-1">
-                      <NIcon :name="getPlatformStatus(selectedPlatform).ok ? 'i-lucide-workflow' : 'i-lucide-traffic-cone'" />
-                    </div>
-                    <template #content><div>{{ statusLabelFor(selectedPlatform) }}</div></template>
-                  </NTooltip>
-                </div>
+                <NTooltip>
+                  <span class="inline-flex h-5 w-5 items-center justify-center">
+                    <NIcon :name="opt.label" class="h-5 w-5" />
+                  </span>
+                  <template #content>
+                    <span>{{ SOCIAL_PLATFORM_LABELS[opt.value] || opt.value }} · {{ statusLabelFor(opt.value) }}</span>
+                  </template>
+                </NTooltip>
               </NToggleGroupItem>
             </ContextMenu>
           </NToggleGroup>
         </div>
-        <div class="flex gap-2">
-          <NTooltip :content="$t('check_provider')?.toString() ?? ''">
-            <NButton btn="soft-gray" icon label="i-ph-plugs-connected" :loading="providerCheckLoading" @click="checkProvider" />
-          </NTooltip>
+        <div class="flex items-center gap-2">
           <NButton btn="solid-black" size="sm" trailing="i-tabler-play" :loading="runNowLoading" class="min-h-10 rounded-xl px-4 font-sans font-medium shadow-sm transition-[background-color,box-shadow,transform] hover:shadow-md active:translate-y-px active:shadow-none" @click="runNow">
             {{ $t('run_now') }}
           </NButton>
-          <NDropdownMenu :items="actionMenuItems">
+          <NDropdownMenu :items="actionMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }">
             <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800" :aria-label="$t('network_actions') as string"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
           </NDropdownMenu>
+          <NTooltip v-if="autofillOverview">
+            <button
+              type="button"
+              class="inline-flex h-10 items-center gap-2 rounded-xl border px-3 font-sans text-xs leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
+              :class="autofillChipClass"
+              :aria-label="$t('autofill_open_settings') as string"
+              @click="openAutofillDialog"
+            >
+              <span class="h-1.5 w-1.5 rounded-full" :class="autofillChipDotClass" />
+              <span>{{ $t('autofill_short_label') }}</span>
+              <span class="font-medium tabular-nums">{{ autofillChipValue }}</span>
+              <NIcon name="i-ph-sliders-horizontal" class="h-3.5 w-3.5 opacity-65" />
+            </button>
+            <template #content>
+              <span>{{ $t('autofill_open_settings') }}</span>
+            </template>
+          </NTooltip>
         </div>
       </div>
     </div>
@@ -141,7 +133,7 @@
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="flex items-center gap-1">
                   <span>{{ $t('col_actions') }}</span>
-                  <NDropdownMenu :items="tableHeaderMenuItems">
+                  <NDropdownMenu :items="tableHeaderMenuItems" :modal="false">
                     <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-list" class="w-4 h-4" /></button>
                   </NDropdownMenu>
                 </div>
@@ -193,7 +185,7 @@
                 <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ item.quote_posts_count || 0 }}</td>
                 <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatLastPosted(item.last_posted_at) }}</td>
                 <td class="px-3 py-3">
-                  <NDropdownMenu :items="rowActionItems(item)">
+                  <NDropdownMenu :items="rowActionItems(item)" :modal="false">
                     <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                   </NDropdownMenu>
                 </td>
@@ -739,11 +731,17 @@ function platformIcon(platform: SocialPlatform) {
 
 function platformContextItems(platform: SocialPlatform) {
   const label = SOCIAL_PLATFORM_LABELS[platform] || platform
-  return [
+  const items: DropdownMenuItem[] = [
     { label: $t('select_network', { platform: label }) as string, leading: platformIcon(platform), onclick: () => { selectedPlatform.value = platform } },
     { label: $t('check_network', { platform: label }) as string, leading: 'i-ph-plugs-connected', onclick: () => { selectedPlatform.value = platform; void checkProvider() } },
     { label: $t('configure_network', { platform: label }) as string, leading: 'i-ph-gear', onclick: () => { selectedPlatform.value = platform; void openProviderConfigDialog() } }
   ]
+  if (platform === 'threads') {
+    items.push({ label: $t('dropdown_reconnect_threads') as string, leading: 'i-ph-arrow-clockwise', onclick: () => { selectedPlatform.value = platform; void connectThreads() } })
+  } else if (platform === 'instagram' || platform === 'facebook') {
+    items.push({ label: $t('dropdown_reconnect') as string, leading: 'i-ph-arrow-clockwise', onclick: () => { selectedPlatform.value = platform; void connectMeta() } })
+  }
+  return items
 }
 
 const metaConfigForm = reactive({
@@ -1231,43 +1229,50 @@ watch(imageDesignDialogOpen, async (open) => {
 })
 
 const actionMenuItems = computed(() => {
-  const items: DropdownMenuItem[] = []
-  items.push({ label: $t('check_provider') as string, leading: 'i-ph-plugs-connected', onclick: checkProvider })
+  const providerItems: DropdownMenuItem[] = [
+    { label: $t('check_provider') as string, leading: 'i-ph-plugs-connected', onclick: checkProvider }
+  ]
   if (selectedPlatform.value === 'threads') {
-    items.push({ label: $t('dropdown_provider_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
-    items.push({ label: $t('dropdown_threads_oauth') as string, leading: 'i-ph-sliders-horizontal', onclick: openThreadsOAuthConfigDialog })
-    items.push({ label: $t('dropdown_reconnect_threads') as string, leading: 'i-ph-arrow-clockwise', onclick: connectThreads })
-    items.push({ label: $t('dropdown_threads_api') as string, leading: 'i-ph-key', onclick: openThreadsConfigDialog })
+    providerItems.push({ label: $t('dropdown_provider_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
+    providerItems.push({ label: $t('dropdown_threads_oauth') as string, leading: 'i-ph-sliders-horizontal', onclick: openThreadsOAuthConfigDialog })
+    providerItems.push({ label: $t('dropdown_reconnect_threads') as string, leading: 'i-ph-arrow-clockwise', onclick: connectThreads })
+    providerItems.push({ label: $t('dropdown_threads_api') as string, leading: 'i-ph-key', onclick: openThreadsConfigDialog })
   } else if (selectedPlatform.value === 'instagram' || selectedPlatform.value === 'facebook') {
-    items.push({ label: $t('dropdown_provider_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
-    items.push({ label: $t('dropdown_meta_oauth') as string, leading: 'i-ph-sliders-horizontal', onclick: openMetaConfigDialog })
-    items.push({ label: $t('dropdown_reconnect') as string, leading: 'i-ph-arrow-clockwise', onclick: connectMeta })
+    providerItems.push({ label: $t('dropdown_provider_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
+    providerItems.push({ label: $t('dropdown_meta_oauth') as string, leading: 'i-ph-sliders-horizontal', onclick: openMetaConfigDialog })
+    providerItems.push({ label: $t('dropdown_reconnect') as string, leading: 'i-ph-arrow-clockwise', onclick: connectMeta })
   } else if (isEditableProvider(selectedPlatform.value)) {
-    items.push({ label: $t('dropdown_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
+    providerItems.push({ label: $t('dropdown_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
   }
-  items.push({ label: $t('run_now') as string, leading: 'i-ph-play', onclick: runNow })
-  items.push({})
-  items.push({ label: $t('dropdown_requeue_failed') as string, leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() })
-  items.push({})
-  items.push({ label: $t('dropdown_add_random_15') as string, leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
-  items.push({ label: $t('dropdown_add_random_custom') as string, leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
-  items.push({ label: $t('dropdown_add_manual') as string, leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } })
-  items.push({})
-  items.push({ label: $t('dropdown_image_design') as string, leading: 'i-ph-image-square', onclick: () => { imageDesignDialogOpen.value = true } })
-  return items
+  return [
+    { label: $t('dropdown_provider') as string, leading: 'i-ph-plugs-connected', items: providerItems },
+    { label: $t('dropdown_add_quotes') as string, leading: 'i-ph-quotes', items: [
+      { label: $t('dropdown_add_random_15') as string, leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) },
+      { label: $t('dropdown_add_random_custom') as string, leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } },
+      { label: $t('dropdown_add_manual') as string, leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } }
+    ] },
+    {},
+    { label: $t('dropdown_requeue_failed') as string, leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() },
+    {},
+    { label: $t('dropdown_image_design') as string, leading: 'i-ph-image-square', onclick: () => { imageDesignDialogOpen.value = true } }
+  ]
 })
 
 // items for the tiny dropdown in table header
 const tableHeaderMenuItems = computed(() => {
-  const items: DropdownMenuItem[] = []
-  items.push({ label: $t('dropdown_clear_all') as string, onclick: () => { showClearAllDialog.value = true } })
-  items.push({ label: $t('dropdown_clear_finished') as string, onclick: () => { showClearFinishedDialog.value = true } })
-  items.push({ label: $t('dropdown_requeue_failed') as string, leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() })
-  items.push({})
-  items.push({ label: $t('dropdown_add_random_15') as string, leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
-  items.push({ label: $t('dropdown_add_random_custom') as string, leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
-  items.push({ label: $t('dropdown_add_manual') as string, leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } })
-  return items
+  return [
+    { label: $t('dropdown_add_quotes') as string, leading: 'i-ph-quotes', items: [
+      { label: $t('dropdown_add_random_15') as string, leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) },
+      { label: $t('dropdown_add_random_custom') as string, leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } },
+      { label: $t('dropdown_add_manual') as string, leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } }
+    ] },
+    { label: $t('dropdown_cleanup') as string, leading: 'i-ph-broom', items: [
+      { label: $t('dropdown_clear_finished') as string, leading: 'i-ph-check-circle', onclick: () => { showClearFinishedDialog.value = true } },
+      { label: $t('dropdown_clear_all') as string, leading: 'i-ph-trash', onclick: () => { showClearAllDialog.value = true } }
+    ] },
+    {},
+    { label: $t('dropdown_requeue_failed') as string, leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() }
+  ]
 })
 
 // actions available for a specific queue row
