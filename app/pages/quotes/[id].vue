@@ -110,7 +110,7 @@
         >
           <div class="px-1 md:px-2">
             <blockquote
-              class="mx-auto max-w-4xl font-serif font-300 leading-[0.98] tracking-[-0.04em] break-words [overflow-wrap:anywhere] text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
+              class="mx-auto max-w-4xl font-serif font-300 leading-[0.98] tracking-[-0.04em] break-words wrap-anywhere text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
               :class="[quoteTextSize, quoteTextIn ? 'opacity-100 blur-0' : 'opacity-0 blur-sm']"
               @touchstart.passive="handleQuoteTouchStart"
               @touchmove="handleQuoteTouchMove"

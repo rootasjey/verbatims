@@ -104,7 +104,7 @@
                 </div>
                 <div class="homepage-v3-reference-overlay absolute inset-0" />
                 <div class="relative mt-auto p-5">
-                  <p class="font-subtitle text-xl font-600 leading-tight break-words [overflow-wrap:anywhere] lg:text-2xl xl:text-3xl">{{ ref.name }}</p>
+                  <p class="font-subtitle text-xl font-600 leading-tight break-words wrap-anywhere lg:text-2xl xl:text-3xl">{{ ref.name }}</p>
                   <p v-if="ref.primary_type" class="font-sans text-xs font-600 text-white/70 lg:text-sm">
                     {{ formatReferenceType(ref.primary_type) }}
                   </p>

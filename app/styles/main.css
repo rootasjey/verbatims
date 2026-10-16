@@ -17,6 +17,10 @@ body {
   background-color: rgb(var(--color-gray-50));
 }
 
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+}
+
 /* Keep keyboard focus visible without competing with the editorial hierarchy. */
 .homepage-v3-desktop :where(a, button):focus-visible,
 .mobile-home-feed :where(a, button):focus-visible {
