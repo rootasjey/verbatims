@@ -7,6 +7,13 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
   slug: string
   name: string
   description: string | null
+  image_url: string | null
+  image_alt: string | null
+  image_credit: string | null
+  image_source_url: string | null
+  image_license: string | null
+  image_date: string | null
+  image_location: string | null
   config: Record<string, any> | null
   home_copy: ThemeHomeCopy | null
   filters_count: number
@@ -65,6 +72,13 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
         slug: theme.slug,
         name: localized.name,
         description: localized.description,
+        image_url: theme.imageUrl,
+        image_alt: theme.imageAlt,
+        image_credit: theme.imageCredit,
+        image_source_url: theme.imageSourceUrl,
+        image_license: theme.imageLicense,
+        image_date: theme.imageDate,
+        image_location: theme.imageLocation,
         config,
         home_copy: parseThemeHomeCopy(localizedTranslation?.home_copy),
         filters_count: filters.length,

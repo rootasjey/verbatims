@@ -1,7 +1,9 @@
 <template>
   <div class="mobile-home-feed bg-[#F7F5EF] dark:bg-[#0C0A09]">
     <!-- ── Featured Quote ── -->
-    <div class="homepage-v3-cover mx-4 mt-2 mb-4 rounded-2xl px-6 py-16 animate-fade-in-up shadow-sm" style="animation-delay: 0s">
+    <div class="homepage-v3-cover mx-4 mt-2 mb-4 rounded-2xl px-6 py-16 animate-fade-in-up shadow-sm" :class="{ 'homepage-v3-cover--with-image': props.theme?.image_url }" style="animation-delay: 0s">
+        <img v-if="props.theme?.image_url" class="homepage-v3-cover-image" :src="props.theme.image_url" :alt="props.theme.image_alt || ''" />
+        <div v-if="props.theme?.image_url" class="homepage-v3-cover-image-overlay" aria-hidden="true" />
         <div v-if="featuredQuote" class="homepage-v3-author-wrap mb-2">
           <div class="homepage-v3-author">
             <button
@@ -47,6 +49,12 @@
           <div class="mx-auto h-4 w-40 rounded bg-black/10 dark:bg-white/10" />
           <div class="mx-auto h-3 w-24 rounded bg-black/10 dark:bg-white/10" />
         </div>
+        <p v-if="props.theme?.image_credit" class="homepage-v3-image-credit">
+          <span>{{ $t('home.image_credit_prefix') }} </span>
+          <a v-if="props.theme.image_source_url" :href="props.theme.image_source_url" target="_blank" rel="noreferrer noopener">{{ props.theme.image_credit }}</a>
+          <span v-else>{{ props.theme.image_credit }}</span>
+          <span v-if="props.theme.image_license"> · {{ props.theme.image_license }}</span>
+        </p>
       </div>
       <div class="homepage-v3-cover-actions mb-14 flex items-center justify-center gap-3">
         <a
@@ -332,6 +340,12 @@ interface Props {
     name: string
     description: string | null
     image_url: string | null
+    image_alt: string | null
+    image_credit: string | null
+    image_source_url: string | null
+    image_license: string | null
+    image_date: string | null
+    image_location: string | null
     config: Record<string, any> | null
     home_copy?: Record<string, string> | null
   } | null
