@@ -45,6 +45,19 @@ export default defineEventHandler(async (event) => {
     if (body.description !== undefined) {
       updates.description = body.description
     }
+    for (const [bodyKey, schemaKey] of [
+      ['image_url', 'imageUrl'],
+      ['image_alt', 'imageAlt'],
+      ['image_credit', 'imageCredit'],
+      ['image_source_url', 'imageSourceUrl'],
+      ['image_license', 'imageLicense'],
+      ['image_date', 'imageDate'],
+      ['image_location', 'imageLocation'],
+    ] as const) {
+      if (body[bodyKey] !== undefined) {
+        updates[schemaKey] = typeof body[bodyKey] === 'string' ? body[bodyKey].trim() || null : null
+      }
+    }
     if (body.language !== undefined) {
       updates.language = body.language
     }

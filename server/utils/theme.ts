@@ -25,21 +25,7 @@ export function parseThemeHomeCopy(value: string | null | undefined): ThemeHomeC
   }
 }
 
-export interface ThemeRow {
-  id: number
-  slug: string
-  name: string
-  description: string | null
-  language: string | null
-  config: string | null
-  is_active: boolean
-  is_default: boolean
-  scheduled_start: Date | null
-  scheduled_end: Date | null
-  priority: number
-  created_at: Date | null
-  updated_at: Date | null
-}
+export type ThemeRow = typeof schema.themes.$inferSelect
 
 export interface FilterRow {
   id: number

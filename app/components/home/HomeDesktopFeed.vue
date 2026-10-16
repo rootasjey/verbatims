@@ -5,7 +5,9 @@
       <!-- Center content -->
       <div class="w-full">
         <!-- Featured quote (Philosophy section) -->
-        <div class="homepage-v3-cover mb-4 rounded-2xl px-6 py-16 lg:px-10 lg:py-24 shadow-sm" @mousemove="trackCoverPointer" @mouseleave="resetCoverPointer">
+        <div class="homepage-v3-cover mb-4 rounded-2xl px-6 py-16 lg:px-10 lg:py-24 shadow-sm" :class="{ 'homepage-v3-cover--with-image': props.theme?.image_url }" @mousemove="trackCoverPointer" @mouseleave="resetCoverPointer">
+            <img v-if="props.theme?.image_url" class="homepage-v3-cover-image" :src="props.theme.image_url" :alt="props.theme.image_alt || ''" />
+            <div v-if="props.theme?.image_url" class="homepage-v3-cover-image-overlay" aria-hidden="true" />
             <template v-if="featuredQuote">
               <NuxtLink
                 :to="`/quotes/${featuredQuote.id}`"
@@ -53,6 +55,12 @@
                     </p>
                   </div>
                 </template>
+            <p v-if="props.theme?.image_credit" class="homepage-v3-image-credit">
+              <span>{{ $t('home.image_credit_prefix') }} </span>
+              <a v-if="props.theme.image_source_url" :href="props.theme.image_source_url" target="_blank" rel="noreferrer noopener">{{ props.theme.image_credit }}</a>
+              <span v-else>{{ props.theme.image_credit }}</span>
+              <span v-if="props.theme.image_license"> · {{ props.theme.image_license }}</span>
+            </p>
               </div>
             </template>
             <div v-else-if="feed.initialLoading.value" class="w-full max-w-[960px] space-y-5 animate-pulse" aria-hidden="true">
@@ -285,6 +293,12 @@ interface Props {
     name: string
     description: string | null
     image_url: string | null
+    image_alt: string | null
+    image_credit: string | null
+    image_source_url: string | null
+    image_license: string | null
+    image_date: string | null
+    image_location: string | null
     config: Record<string, any> | null
     home_copy?: Record<string, string> | null
   } | null

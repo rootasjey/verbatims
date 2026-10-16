@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -10,6 +10,15 @@ export default defineEventHandler(async (event) => {
     const name = String(body?.name || '').trim()
     const description = body?.description || null
     const language = body?.language || null
+    const imageFields = {
+      imageUrl: String(body?.image_url || '').trim() || null,
+      imageAlt: String(body?.image_alt || '').trim() || null,
+      imageCredit: String(body?.image_credit || '').trim() || null,
+      imageSourceUrl: String(body?.image_source_url || '').trim() || null,
+      imageLicense: String(body?.image_license || '').trim() || null,
+      imageDate: String(body?.image_date || '').trim() || null,
+      imageLocation: String(body?.image_location || '').trim() || null,
+    }
     const translations = Array.isArray(body?.translations) ? body.translations : []
     const isActive = body?.is_active === true
     const isDefault = body?.is_default === true
@@ -34,13 +43,19 @@ export default defineEventHandler(async (event) => {
       throwServer(409, 'Theme with this slug already exists')
     }
 
-    const sStart = scheduledStart ? Math.floor(new Date(scheduledStart).getTime() / 1000) : null
-    const sEnd = scheduledEnd ? Math.floor(new Date(scheduledEnd).getTime() / 1000) : null
-    const langVal = language ? `'${language.replace(/'/g, "''")}'` : null
-    const descVal = description ? `'${description.replace(/'/g, "''")}'` : null
-    await db.run(sql.raw(
-      `INSERT INTO themes (slug, name, description, language, config, is_active, is_default, scheduled_start, scheduled_end, priority) VALUES ('${slug}', '${name.replace(/'/g, "''")}', ${descVal}, ${langVal}, '${config.replace(/'/g, "''")}', ${isActive ? 1 : 0}, ${isDefault ? 1 : 0}, ${sStart}, ${sEnd}, ${priority})`
-    ))
+    await db.insert(schema.themes).values({
+      slug,
+      name,
+      description,
+      language,
+      ...imageFields,
+      config,
+      isActive,
+      isDefault,
+      scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
+      scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
+      priority,
+    })
 
     const theme = await db.select()
       .from(schema.themes)

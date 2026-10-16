@@ -24,6 +24,12 @@ export interface Theme {
   description: string | null
   language: string | null
   image_url: string | null
+  image_alt: string | null
+  image_credit: string | null
+  image_source_url: string | null
+  image_license: string | null
+  image_date: string | null
+  image_location: string | null
   config: Record<string, any> | null
   is_active: boolean
   is_default: boolean
@@ -59,6 +65,12 @@ export interface CreateThemeData {
   language?: string | null
   translations?: CreateThemeTranslationData[]
   image_url?: string | null
+  image_alt?: string | null
+  image_credit?: string | null
+  image_source_url?: string | null
+  image_license?: string | null
+  image_date?: string | null
+  image_location?: string | null
   config?: Record<string, any>
   is_active?: boolean
   is_default?: boolean

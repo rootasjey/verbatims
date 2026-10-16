@@ -378,6 +378,44 @@
 
               <!-- Appearance -->
               <div v-if="item.value === 'appearance'" class="p-1 space-y-6">
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-4 sm:px-6">
+                  <h4 class="py-2 text-md font-400 text-gray-900 dark:text-white">{{ $t('dialog_theme_image') }}</h4>
+                  <div class="space-y-4">
+                    <div>
+                      <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_url') }}</label>
+                      <NInput v-model="form.image_url" :placeholder="$t('dialog_image_placeholder') as string" :disabled="submitting" />
+                    </div>
+                    <div v-if="form.image_url" class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                      <img :src="form.image_url" :alt="form.image_alt || ''" class="h-36 w-full object-cover" />
+                    </div>
+                    <div>
+                      <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_alt') }}</label>
+                      <NInput v-model="form.image_alt" :placeholder="$t('dialog_image_alt_placeholder') as string" :disabled="submitting" />
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_credit') }}</label>
+                        <NInput v-model="form.image_credit" :placeholder="$t('dialog_image_credit_placeholder') as string" :disabled="submitting" />
+                      </div>
+                      <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_license') }}</label>
+                        <NInput v-model="form.image_license" :placeholder="$t('dialog_image_license_placeholder') as string" :disabled="submitting" />
+                      </div>
+                      <div class="sm:col-span-2">
+                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_source_url') }}</label>
+                        <NInput v-model="form.image_source_url" :placeholder="$t('dialog_image_source_url_placeholder') as string" :disabled="submitting" />
+                      </div>
+                      <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_date') }}</label>
+                        <NInput v-model="form.image_date" :placeholder="$t('dialog_image_date_placeholder') as string" :disabled="submitting" />
+                      </div>
+                      <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_location') }}</label>
+                        <NInput v-model="form.image_location" :placeholder="$t('dialog_image_location_placeholder') as string" :disabled="submitting" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-6">
                   <h4 class="py-2 rounded-2 text-md font-400 text-gray-900 dark:text-white mb-4">{{ $t('dialog_colors') }}</h4>
                   <div class="flex gap-16">
@@ -1153,6 +1191,13 @@ const form = ref({
   slug: '',
   name: '',
   description: '',
+  image_url: '',
+  image_alt: '',
+  image_credit: '',
+  image_source_url: '',
+  image_license: '',
+  image_date: '',
+  image_location: '',
   language: '',
   is_active: false,
   is_default: false,
@@ -1333,6 +1378,13 @@ const duplicateTheme = async (theme: any) => {
       slug: '',
       name: `${data.name} (copy)`,
       description: data.description || '',
+      image_url: data.imageUrl || '',
+      image_alt: data.imageAlt || '',
+      image_credit: data.imageCredit || '',
+      image_source_url: data.imageSourceUrl || '',
+      image_license: data.imageLicense || '',
+      image_date: data.imageDate || '',
+      image_location: data.imageLocation || '',
       language: data.language || '',
       is_active: false,
       is_default: false,
@@ -1477,7 +1529,7 @@ const removeTranslation = (idx: number) => {
 }
 
 const resetForm = () => {
-  form.value = { slug: '', name: '', description: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
+  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
@@ -1518,6 +1570,13 @@ const openEdit = async (theme: any) => {
       slug: data.slug || '',
       name: data.name || '',
       description: data.description || '',
+      image_url: data.imageUrl || '',
+      image_alt: data.imageAlt || '',
+      image_credit: data.imageCredit || '',
+      image_source_url: data.imageSourceUrl || '',
+      image_license: data.imageLicense || '',
+      image_date: data.imageDate || '',
+      image_location: data.imageLocation || '',
       language: data.language || '',
       is_active: data.isActive || false,
       is_default: data.isDefault || false,
@@ -1909,6 +1968,13 @@ const saveTheme = async () => {
       slug: form.value.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-'),
       name: form.value.name.trim(),
       description: form.value.description.trim() || null,
+      image_url: form.value.image_url.trim() || null,
+      image_alt: form.value.image_alt.trim() || null,
+      image_credit: form.value.image_credit.trim() || null,
+      image_source_url: form.value.image_source_url.trim() || null,
+      image_license: form.value.image_license.trim() || null,
+      image_date: form.value.image_date.trim() || null,
+      image_location: form.value.image_location.trim() || null,
       language: form.value.language || null,
       translations: translations.value
         .filter(t => t.language && t.name.trim())
