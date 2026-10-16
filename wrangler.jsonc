@@ -20,6 +20,8 @@
   },
   "triggers": {
     "crons": [
+      // Repair abandoned social queue items every five minutes.
+      "*/5 * * * *",
       // 08:08 Europe/Paris during daylight saving time (UTC+2)
       "8 6 * * *",
       // 08:08 Europe/Paris during standard time (UTC+1)

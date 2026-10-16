@@ -27,6 +27,7 @@ import { getVerbatimsFallbackCanonicalUrl, verbatimsSocialPublishableSourceResol
 
 interface PublishResult {
   ok: boolean
+  uncertain?: boolean
   postId?: string
   postUrl?: string
   error?: string
@@ -78,6 +79,196 @@ export async function runSocialAutopost() {
   return runSocialAutopostWithOptions({ force: false })
 }
 
+const STALE_SOCIAL_QUEUE_AGE_SECONDS = 15 * 60
+
+/** Repairs queue state after a worker was interrupted while a provider request was in flight. */
+export async function reconcileStaleSocialQueue() {
+  const now = Math.floor(Date.now() / 1000)
+  const staleBefore = now - STALE_SOCIAL_QUEUE_AGE_SECONDS
+  const updatedAtEpoch = sql<number>`CASE
+    WHEN typeof(${schema.socialQueue.updatedAt}) = 'integer' THEN ${schema.socialQueue.updatedAt}
+    WHEN typeof(${schema.socialQueue.updatedAt}) = 'text' THEN CAST(strftime('%s', ${schema.socialQueue.updatedAt}) AS INTEGER)
+    ELSE 0
+  END`
+
+  const staleItems = await db.select({
+    queueId: schema.socialQueue.id,
+    platform: schema.socialQueue.platform,
+    sourceType: schema.socialQueue.sourceType,
+    sourceId: schema.socialQueue.sourceId,
+    quoteId: schema.socialQueue.quoteId,
+    processingAt: updatedAtEpoch
+  })
+    .from(schema.socialQueue)
+    .where(and(
+      eq(schema.socialQueue.status, 'processing'),
+      lte(updatedAtEpoch, staleBefore)
+    ))
+    .orderBy(asc(updatedAtEpoch))
+    .limit(50)
+
+  if (!staleItems.length) {
+    return { success: true, examined: 0, reconciled: 0 }
+  }
+
+  let reconciled = 0
+  const unresolvedItems: typeof staleItems = []
+  for (const item of staleItems) {
+    const existingPost = await db.select({
+      status: schema.socialPosts.status
+    })
+      .from(schema.socialPosts)
+      .where(eq(schema.socialPosts.idempotencyKey, `${item.platform}:${item.queueId}`))
+      .limit(1)
+      .get()
+
+    if (existingPost?.status === 'success') {
+      await db.update(schema.socialQueue)
+        .set({ status: 'posted', updatedAt: new Date() })
+        .where(and(eq(schema.socialQueue.id, item.queueId), eq(schema.socialQueue.status, 'processing')))
+      reconciled++
+    } else {
+      unresolvedItems.push(item)
+    }
+  }
+
+  const threadsItems = unresolvedItems.filter(item => item.platform === 'threads')
+  const expectedThreadsPosts = new Map<number, { text: string, processingAt: number }>()
+
+  for (const item of threadsItems) {
+    const resolvedContent = await verbatimsSocialPublishableSourceResolver.resolveSource({
+      sourceType: item.sourceType,
+      sourceId: item.sourceId,
+      baseSiteUrl: String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, ''),
+      platform: 'threads'
+    })
+
+    if (resolvedContent) {
+      expectedThreadsPosts.set(item.queueId, {
+        text: buildSocialPostText('threads', resolvedContent.content),
+        processingAt: Number(item.processingAt || now - STALE_SOCIAL_QUEUE_AGE_SECONDS)
+      })
+    }
+  }
+
+  if (expectedThreadsPosts.size) {
+    try {
+      const threadsConfig = await resolveThreadsPostConfig()
+      if (!threadsConfig.accessToken || !threadsConfig.userId) {
+        throw new Error('Threads credentials are not configured')
+      }
+
+      const since = Math.max(0, Math.min(...Array.from(expectedThreadsPosts.values(), item => item.processingAt)) - 120)
+      const baseUrl = String(process.env.NUXT_THREADS_POST_BASE_URL || 'https://graph.threads.net').replace(/\/$/, '')
+      const apiVersion = String(process.env.NUXT_THREADS_POST_API_VERSION || 'v1.0').replace(/^\/+/, '')
+      const params = new URLSearchParams({
+        fields: 'id,text,timestamp,permalink',
+        since: String(since),
+        limit: '50'
+      })
+      const response = await fetch(`${baseUrl}/${apiVersion}/${threadsConfig.userId}/threads?${params}`, {
+        headers: { Authorization: `Bearer ${threadsConfig.accessToken}` },
+        signal: AbortSignal.timeout(10_000)
+      })
+      const payload = await response.json().catch((): null => null) as {
+        data?: Array<{ id?: string, text?: string, timestamp?: string, permalink?: string }>
+      } | null
+
+      if (!response.ok || !Array.isArray(payload?.data)) {
+        throw new Error(`Threads recent-post lookup failed (${response.status})`)
+      }
+
+      const availablePosts = [...payload.data]
+      const matchedQueueIds = new Set<number>()
+      for (const item of threadsItems) {
+        const expected = expectedThreadsPosts.get(item.queueId)
+        if (!expected) continue
+
+        const matchIndex = availablePosts.findIndex(post => {
+          const postedAt = post.timestamp ? Math.floor(new Date(post.timestamp).getTime() / 1000) : 0
+          return Boolean(post.id)
+            && normalizeSocialPostText(post.text) === normalizeSocialPostText(expected.text)
+            && postedAt >= expected.processingAt - 30
+            && postedAt <= now + 60
+        })
+        if (matchIndex < 0) continue
+
+        const [publishedPost] = availablePosts.splice(matchIndex, 1)
+        if (!publishedPost?.id) continue
+
+        const resolvedContent = await verbatimsSocialPublishableSourceResolver.resolveSource({
+          sourceType: item.sourceType,
+          sourceId: item.sourceId,
+          baseSiteUrl: String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, ''),
+          platform: 'threads'
+        })
+        if (!resolvedContent) continue
+
+        await persistPublishedQueueItem({
+          queueId: item.queueId,
+          quoteId: item.quoteId,
+          sourceType: resolvedContent.content.sourceType,
+          sourceId: Number(resolvedContent.content.sourceId),
+          platform: 'threads',
+          postText: expected.text,
+          canonicalUrl: resolvedContent.content.canonicalUrl || `${String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')}/quotes/${item.quoteId}`,
+          result: {
+            ok: true,
+            postId: publishedPost.id,
+            postUrl: publishedPost.permalink || undefined
+          }
+        })
+        matchedQueueIds.add(item.queueId)
+        reconciled++
+      }
+
+      for (const item of threadsItems) {
+        const expected = expectedThreadsPosts.get(item.queueId)
+        if (!expected || matchedQueueIds.has(item.queueId) || expected.processingAt > now - 6 * 60 * 60) continue
+
+        const canonicalUrl = `${String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')}/quotes/${item.quoteId}`
+        await markQueueAsFailed(
+          item.queueId,
+          item.quoteId,
+          item.sourceType,
+          item.sourceId,
+          'threads',
+          'Threads did not confirm this post after the publish request timed out. Verify the account before retrying.',
+          canonicalUrl,
+          expected.text
+        )
+        reconciled++
+      }
+    } catch (error: any) {
+      console.warn('[social-autopost] stale Threads queue reconciliation deferred:', error?.message || error)
+    }
+  }
+
+  for (const item of unresolvedItems) {
+    if (item.platform === 'threads') continue
+    const processingAt = Number(item.processingAt || 0)
+    if (!processingAt || processingAt > now - 6 * 60 * 60) continue
+
+    const canonicalUrl = `${String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')}/quotes/${item.quoteId}`
+    await markQueueAsFailed(
+      item.queueId,
+      item.quoteId,
+      item.sourceType,
+      item.sourceId,
+      item.platform,
+      'The provider did not confirm this publication. Verify the account before retrying to avoid a duplicate.',
+      canonicalUrl
+    )
+    reconciled++
+  }
+
+  return { success: true, examined: staleItems.length, reconciled }
+}
+
+function normalizeSocialPostText(value?: string | null) {
+  return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
 export async function runSocialAutopostWithOptions(options: SocialAutopostRunOptions = {}): Promise<SocialAutopostSingleResult | SocialAutopostBatchResult<SocialAutopostPlatformResult>> {
   const enabledPlatforms = await getEnabledPlatforms()
   const timezone = String(process.env.NUXT_SOCIAL_DAILY_TIMEZONE || 'Europe/Paris')
@@ -116,7 +307,7 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
   const claimed = await db.update(schema.socialQueue)
     .set({
       status: 'processing',
-      updatedAt: sql`CURRENT_TIMESTAMP`
+      updatedAt: new Date()
     })
     .where(and(
       eq(schema.socialQueue.id, nextItem.queueId),
@@ -171,6 +362,16 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
   })
 
   if (!publishResult.ok) {
+    if (publishResult.uncertain) {
+      return {
+        success: false,
+        queueId: nextItem.queueId,
+        platform: itemPlatform,
+        quoteId: nextItem.quoteId,
+        reason: publishResult.error || `${itemPlatform} publication outcome is uncertain`
+      }
+    }
+
     await markQueueAsFailed(nextItem.queueId, nextItem.quoteId, resolvedContent.content.sourceType, Number(resolvedContent.content.sourceId), itemPlatform, publishResult.error || 'Unknown social API error', canonicalUrl, content)
     return {
       success: false,
@@ -181,36 +382,16 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
     }
   }
 
-  await db.insert(schema.socialPosts).values({
+  await persistPublishedQueueItem({
+    queueId: nextItem.queueId,
     quoteId: nextItem.quoteId,
     sourceType: resolvedContent.content.sourceType,
     sourceId: Number(resolvedContent.content.sourceId),
-    queueId: nextItem.queueId,
-    platform: itemPlatform as any,
-    status: 'success',
+    platform: itemPlatform,
     postText: content,
-    postUrl: publishResult.postUrl || canonicalUrl,
-    externalPostId: publishResult.postId,
-    idempotencyKey: `${itemPlatform}:${nextItem.queueId}`,
-    postedAt: new Date()
-  }).onConflictDoUpdate({
-    target: schema.socialPosts.idempotencyKey,
-    set: {
-      status: 'success',
-      postText: content,
-      postUrl: publishResult.postUrl || canonicalUrl,
-      externalPostId: publishResult.postId,
-      errorMessage: null,
-      postedAt: new Date()
-    }
+    canonicalUrl,
+    result: publishResult
   })
-
-  await db.update(schema.socialQueue)
-    .set({
-      status: 'posted',
-      updatedAt: sql`CURRENT_TIMESTAMP`
-    })
-    .where(eq(schema.socialQueue.id, nextItem.queueId))
 
   return {
     success: true,
@@ -220,6 +401,49 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
     postId: publishResult.postId,
     postUrl: publishResult.postUrl
   }
+}
+
+async function persistPublishedQueueItem(input: {
+  queueId: number
+  quoteId: number
+  sourceType: string
+  sourceId: number
+  platform: SocialPlatform
+  postText: string
+  canonicalUrl: string
+  result: PublishResult
+}) {
+  const now = new Date()
+  const postUrl = input.result.postUrl || input.canonicalUrl
+  await db.batch([
+    db.insert(schema.socialPosts).values({
+      quoteId: input.quoteId,
+      sourceType: input.sourceType,
+      sourceId: input.sourceId,
+      queueId: input.queueId,
+      platform: input.platform as any,
+      status: 'success',
+      postText: input.postText,
+      postUrl,
+      externalPostId: input.result.postId,
+      idempotencyKey: `${input.platform}:${input.queueId}`,
+      postedAt: now,
+      createdAt: now
+    }).onConflictDoUpdate({
+      target: schema.socialPosts.idempotencyKey,
+      set: {
+        status: 'success',
+        postText: input.postText,
+        postUrl,
+        externalPostId: input.result.postId,
+        errorMessage: null,
+        postedAt: now
+      }
+    }),
+    db.update(schema.socialQueue)
+      .set({ status: 'posted', updatedAt: now })
+      .where(eq(schema.socialQueue.id, input.queueId))
+  ] as any)
 }
 
 function buildQueueConditions(platforms: SocialPlatform[], now: Date) {
@@ -749,6 +973,7 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
     return { ok: false, error: 'Missing Threads access token/user id (KV Meta OAuth credentials or NUXT_THREADS_POST_ACCESS_TOKEN + NUXT_THREADS_POST_USER_ID)' }
   }
 
+  let publishAttempted = false
   try {
     await ensureRemoteImageReady(imageUrl, 'Threads')
 
@@ -758,6 +983,7 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       },
+      signal: AbortSignal.timeout(20_000),
       body: JSON.stringify({
         media_type: 'IMAGE',
         image_url: imageUrl,
@@ -792,12 +1018,14 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
       return { ok: false, error: readyStatus.error }
     }
 
+    publishAttempted = true
     const publishResponse = await fetch(`${baseUrl}/${apiVersion}/${userId}/threads_publish`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       },
+      signal: AbortSignal.timeout(20_000),
       body: JSON.stringify({
         creation_id: containerId
       })
@@ -813,7 +1041,11 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
     } | null
 
     if (!publishResponse.ok || !publishPayload?.id) {
-      return { ok: false, error: readGraphApiError(publishPayload, `Threads publish error (${publishResponse.status})`) }
+      return {
+        ok: false,
+        uncertain: publishResponse.status >= 500 || (publishResponse.ok && !publishPayload?.id),
+        error: readGraphApiError(publishPayload, `Threads publish error (${publishResponse.status})`)
+      }
     }
 
     const mediaId = publishPayload.id
@@ -830,7 +1062,11 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
       postUrl: postUrl || undefined
     }
   } catch (error: any) {
-    return { ok: false, error: error?.message || 'Network error while posting to Threads' }
+    return {
+      ok: false,
+      uncertain: publishAttempted,
+      error: error?.message || 'Network error while posting to Threads'
+    }
   }
 }
 
@@ -996,22 +1232,27 @@ async function getThreadsPermalink(input: {
   accessToken: string
   mediaId: string
 }): Promise<string | null> {
-  const response = await fetch(`${input.baseUrl}/${input.apiVersion}/${input.mediaId}?fields=permalink`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${input.accessToken}`
+  try {
+    const response = await fetch(`${input.baseUrl}/${input.apiVersion}/${input.mediaId}?fields=permalink`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`
+      },
+      signal: AbortSignal.timeout(8_000)
+    })
+
+    const payload = await response.json().catch((): null => null) as {
+      permalink?: string
+    } | null
+
+    if (!response.ok || !payload?.permalink) {
+      return null
     }
-  })
 
-  const payload = await response.json().catch((): null => null) as {
-    permalink?: string
-  } | null
-
-  if (!response.ok || !payload?.permalink) {
+    return payload.permalink
+  } catch {
     return null
   }
-
-  return payload.permalink
 }
 
 async function waitForInstagramContainerReady(input: {
@@ -1227,13 +1468,14 @@ async function markQueueAsFailed(
     postUrl: canonicalUrl,
     errorMessage,
     idempotencyKey: `${platform}:${queueId}`,
-    postedAt: new Date()
+    postedAt: new Date(),
+    createdAt: new Date()
   }).onConflictDoNothing()
 
   await db.update(schema.socialQueue)
     .set({
       status: 'failed',
-      updatedAt: sql`CURRENT_TIMESTAMP`
+      updatedAt: new Date()
     })
     .where(eq(schema.socialQueue.id, queueId))
 }

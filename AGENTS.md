@@ -306,6 +306,12 @@ Dev servers are long-running processes. Do not block your workflow on them unnec
 
 Do **not** run production build commands such as `npm run build`, `bun run build`, or `nuxt build` unless the user explicitly asks for them.
 
+### Production deployment
+
+- Cloudflare is connected to the GitHub repository and deploys automatically when changes are pushed to its watched branch.
+- For the normal production release workflow, commit and push to GitHub, then confirm the Cloudflare deployment completed. Do not also run `wrangler deploy`, which would create a second deployment outside the Git integration.
+- Use `wrangler deploy` only when the user explicitly requests a direct deployment or the Git integration is unavailable and the user has authorized that fallback.
+
 ## Database migrations
 
 For quote provenance reconstruction and other delicate D1 schema maintenance, read the [D1 quote provenance migration runbook](docs/operations/d1-quote-provenance-migration.md) before making changes.
