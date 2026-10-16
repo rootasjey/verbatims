@@ -33,7 +33,7 @@ interface SocialQueueRow {
 }
 
 function toResponseTimestamp(value: Date | null): string | null {
-  return value ? value.toISOString() : null
+  return value && !Number.isNaN(value.getTime()) ? value.toISOString() : null
 }
 
 function getSourcePlatformKey(input: { source_type: string, source_id: number, platform: string }) {
@@ -159,6 +159,7 @@ export async function addQuotesToQueue(input: AddQuotesToQueueInput) {
   .where(eq(schema.socialQueue.platform, platform as any))
 
   const basePosition = Number(maxPositionRow[0]?.maxPosition || 0)
+  const now = new Date()
 
   const values = validQuoteIds.map((quoteId: number, index: number) => ({
     quoteId,
@@ -168,7 +169,9 @@ export async function addQuotesToQueue(input: AddQuotesToQueueInput) {
     status: 'queued' as const,
     position: basePosition + index + 1,
     scheduledFor: scheduledFor || undefined,
-    createdBy: input.createdBy ?? undefined
+    createdBy: input.createdBy ?? undefined,
+    createdAt: now,
+    updatedAt: now
   }))
 
   const BATCH_SIZE = 10
@@ -230,6 +233,7 @@ export async function addRandomQuotesToQueue(input: AddRandomQuotesToQueueInput)
   .where(eq(schema.socialQueue.platform, platform as any))
 
   const basePosition = Number(maxPositionRow[0]?.maxPosition || 0)
+  const now = new Date()
 
   const values = randomQuotes.map((quote, index) => ({
     quoteId: quote.id,
@@ -238,7 +242,9 @@ export async function addRandomQuotesToQueue(input: AddRandomQuotesToQueueInput)
     platform: platform as any,
     status: 'queued' as const,
     position: basePosition + index + 1,
-    createdBy: input.createdBy ?? undefined
+    createdBy: input.createdBy ?? undefined,
+    createdAt: now,
+    updatedAt: now
   }))
 
   const BATCH_SIZE = 10
@@ -292,7 +298,7 @@ export async function deleteSocialQueueItem(id: number) {
     await db.update(schema.socialQueue)
       .set({
         position: sql`${schema.socialQueue.position} - 1`,
-        updatedAt: sql`CURRENT_TIMESTAMP`
+        updatedAt: new Date()
       })
       .where(and(
         eq(schema.socialQueue.platform, existing.platform),
@@ -386,7 +392,7 @@ export async function requeueFailedSocialQueueItems(platform: string) {
       .update(schema.socialQueue)
       .set({
         status: 'queued',
-        updatedAt: sql`CURRENT_TIMESTAMP`
+        updatedAt: new Date()
       })
       .where(failedCondition)
   }
@@ -417,7 +423,7 @@ export async function requeueSocialQueueItem(id: number) {
   }
 
   await db.update(schema.socialQueue)
-    .set({ status: 'queued', updatedAt: sql`CURRENT_TIMESTAMP` })
+    .set({ status: 'queued', updatedAt: new Date() })
     .where(eq(schema.socialQueue.id, id))
 
   return { requeued: true, id }
@@ -492,7 +498,7 @@ export async function reorderSocialQueueItem(input: ReorderSocialQueueInput) {
       await db.update(schema.socialQueue)
         .set({
           position: sql`${schema.socialQueue.position} - 1`,
-          updatedAt: sql`CURRENT_TIMESTAMP`
+          updatedAt: new Date()
         })
         .where(and(
           eq(schema.socialQueue.platform, current.platform),
@@ -504,14 +510,14 @@ export async function reorderSocialQueueItem(input: ReorderSocialQueueInput) {
       await db.update(schema.socialQueue)
         .set({
           position: targetPos,
-          updatedAt: sql`CURRENT_TIMESTAMP`
+          updatedAt: new Date()
         })
         .where(eq(schema.socialQueue.id, id))
     } else {
       await db.update(schema.socialQueue)
         .set({
           position: sql`${schema.socialQueue.position} + 1`,
-          updatedAt: sql`CURRENT_TIMESTAMP`
+          updatedAt: new Date()
         })
         .where(and(
           eq(schema.socialQueue.platform, current.platform),
@@ -523,7 +529,7 @@ export async function reorderSocialQueueItem(input: ReorderSocialQueueInput) {
       await db.update(schema.socialQueue)
         .set({
           position: targetPos,
-          updatedAt: sql`CURRENT_TIMESTAMP`
+          updatedAt: new Date()
         })
         .where(eq(schema.socialQueue.id, id))
     }
@@ -567,14 +573,14 @@ export async function reorderSocialQueueItem(input: ReorderSocialQueueInput) {
   await db.update(schema.socialQueue)
     .set({
       position: adjacent.position,
-      updatedAt: sql`CURRENT_TIMESTAMP`
+      updatedAt: new Date()
     })
     .where(eq(schema.socialQueue.id, current.id))
 
   await db.update(schema.socialQueue)
     .set({
       position: current.position,
-      updatedAt: sql`CURRENT_TIMESTAMP`
+      updatedAt: new Date()
     })
     .where(eq(schema.socialQueue.id, adjacent.id))
 

@@ -157,8 +157,8 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     failed: 0
   })
 
-  async function loadQueue() {
-    loading.value = true
+  async function loadQueue(loadOptions: { silent?: boolean } = {}) {
+    if (!loadOptions.silent) loading.value = true
 
     try {
       const response = await $fetch<SocialQueueResponse>('/api/admin/social-queue', {
@@ -175,10 +175,11 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
       totalItems.value = response.pagination?.total || 0
       stats.value = response.data?.stats || stats.value
     } catch (error) {
+      if (loadOptions.silent) return
       console.error('Failed to load social queue:', error)
       options.showErrorToast('Error', 'Failed to load social queue')
     } finally {
-      loading.value = false
+      if (!loadOptions.silent) loading.value = false
     }
   }
 

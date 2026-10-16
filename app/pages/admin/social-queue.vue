@@ -1742,6 +1742,11 @@ onMounted(async () => {
   }
 
   await loadQueue()
+  queueRefreshTimer = window.setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      void loadQueue({ silent: true })
+    }
+  }, 30_000)
   await loadMetaStatus()
   await refreshAllStatuses()
 
@@ -1794,6 +1799,7 @@ onMounted(async () => {
 })
 
 const showPageJumpDialog = ref(false)
+let queueRefreshTimer: number | null = null
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
 
@@ -1827,6 +1833,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (queueRefreshTimer !== null) window.clearInterval(queueRefreshTimer)
   if (footerObserver) footerObserver.disconnect()
   window.removeEventListener('resize', updateFooterPosition)
 })
