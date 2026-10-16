@@ -17,7 +17,6 @@ export default defineEventHandler(async (event) => {
       likesStats,
       viewsStats,
       socialQueueStats,
-      sponsorStats,
       messageStats,
       apiKeyStats
     ] = await Promise.all([
@@ -97,7 +96,6 @@ export default defineEventHandler(async (event) => {
       }).from(schema.quoteViews),
 
       db.select({ total: count() }).from(schema.socialQueue),
-      db.select({ total: count() }).from(schema.sponsorMessages),
       db.select({ total: count() }).from(schema.userMessages),
       db.select({ total: count() }).from(schema.apiKeys)
     ])
@@ -228,7 +226,6 @@ export default defineEventHandler(async (event) => {
         tags: { total: Number(tagsStats[0]?.total) || 0 },
         themes: { total: Number(themesStats[0]?.total) || 0 },
         social_queue: { total: Number(socialQueueStats[0]?.total) || 0 },
-        sponsors: { total: Number(sponsorStats[0]?.total) || 0 },
         messages: { total: Number(messageStats[0]?.total) || 0 },
         api_keys: { total: Number(apiKeyStats[0]?.total) || 0 },
         collections: {

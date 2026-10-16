@@ -84,7 +84,6 @@ export const usePageHeaderStore = defineStore('pageHeader', () => {
       '/admin/enrichment': { titleKey: 'admin.headers.enrichment', subtitleKey: 'admin.headers.enrichment_desc' },
       '/admin/harvest': { titleKey: 'admin.headers.harvest' },
       '/admin/tags': { titleKey: 'admin.headers.tags' },
-      '/admin/sponsors': { titleKey: 'admin.headers.sponsors' },
       '/admin/themes': { titleKey: 'admin.headers.themes' },
       '/admin/social-queue': { titleKey: 'admin.headers.social_queue', subtitleKey: 'admin.headers.social_queue_desc' },
       '/admin/users': { titleKey: 'admin.headers.users', subtitleKey: 'admin.headers.users_desc' },
@@ -102,7 +101,6 @@ export const usePageHeaderStore = defineStore('pageHeader', () => {
       '/dashboard/my-quotes/pending': { titleKey: 'dashboard.headers.pending', subtitleKey: 'dashboard.headers.pending_desc' },
       '/dashboard/my-quotes/published': { titleKey: 'dashboard.headers.published', subtitleKey: 'dashboard.headers.published_desc' },
       '/dashboard/settings': { titleKey: 'dashboard.headers.settings', subtitleKey: 'dashboard.headers.settings_desc' },
-      '/dashboard/sponsors': { titleKey: 'dashboard.headers.sponsors' },
       '/dashboard/developer': { titleKey: 'dashboard.headers.developer' },
     }
 

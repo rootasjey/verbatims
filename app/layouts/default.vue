@@ -156,9 +156,6 @@
               <button type="button" class="flex min-h-11 items-center gap-3 py-2 font-sans text-base text-gray-700 dark:text-gray-300" @click="openMobileReport">
                 <NIcon name="i-ph-bug-duotone" />{{ $t('nav.report_issue') }}
               </button>
-              <NuxtLink to="/sponsor" class="flex min-h-11 items-center gap-3 py-2 font-sans text-base text-gray-700 dark:text-gray-300" @click="closeMobileMenu">
-                <NIcon name="i-ph-megaphone-duotone" />{{ $t('components.masthead.sponsor') }}
-              </NuxtLink>
               <NuxtLink v-if="!user" to="/login" class="flex min-h-11 items-center gap-3 py-2 font-sans text-base text-gray-700 dark:text-gray-300" @click="closeMobileMenu">
                 <NIcon name="i-ph-sign-in" />{{ $t('nav.sign_in') }}
               </NuxtLink>
@@ -334,7 +331,6 @@ const mobileAccountLinks = computed(() => [
 ])
 
 const mobileInformationLinks = computed(() => [
-  { to: '/sponsor', label: String($t('nav.sponsorships')) },
   { to: '/developers', label: String($t('footer.developers')) },
   { to: '/status', label: String($t('footer.status')) },
   { to: '/licenses', label: String($t('footer.licenses')) },

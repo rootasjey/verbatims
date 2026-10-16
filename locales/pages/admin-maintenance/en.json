@@ -9,7 +9,7 @@
   "warning_item_users": "User accounts, sessions, API keys, collections, and likes",
   "warning_item_interactions": "Quote-linked views, reports, messages, and social queue/posts",
   "warning_item_moderation": "Attributions, enrichment proposals, and history for cleared entities",
-  "warning_final": "Import/export logs and archives, harvest history, themes, sponsors, settings, and general activity logs are preserved. Archives may still contain copies of cleared data. USER_PASSWORD must be configured to recreate the admin safely.",
+  "warning_final": "Import/export logs and archives, harvest history, themes, settings, and general activity logs are preserved. Archives may still contain copies of cleared data. USER_PASSWORD must be configured to recreate the admin safely.",
   "button_reset": "Reset user data and content",
   "dialog_confirm_title": "Confirm user and content reset",
   "dialog_confirm_body": "You are about to permanently delete user accounts and catalogue content. This cannot be undone.",
