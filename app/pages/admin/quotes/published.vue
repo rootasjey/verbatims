@@ -86,6 +86,69 @@
           </NCombobox>
         </div>
       </div>
+      <section class="mt-5 rounded-xl border border-gray-200 bg-white/60 p-4 dark:border-gray-800 dark:bg-white/[0.03]" :aria-label="$t('audit_schedule_title') as string">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="min-w-48">
+            <h2 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_schedule_title') }}</h2>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ $t('audit_schedule_pilot', { count: quoteAuditConfig.pilotCount, reviewed: quoteAuditConfig.pilotReviewedCount }) }}
+              <span aria-hidden="true"> · </span>
+              {{ quoteAuditConfig.oauthTokenConfigured ? $t('audit_schedule_secret_ready') : $t('audit_schedule_secret_missing') }}
+              <template v-if="quoteAuditConfig.oauth.email"> · {{ quoteAuditConfig.oauth.email }}</template>
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <NButton v-if="!quoteAuditConfig.oauthTokenConfigured" btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || connectingQuoteAuditOAuth" @click="connectQuoteAuditOAuth">
+              {{ connectingQuoteAuditOAuth ? $t('audit_oauth_connecting') : $t('audit_oauth_connect') }}
+            </NButton>
+            <NButton v-else btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || disconnectingQuoteAuditOAuth" @click="disconnectQuoteAuditOAuth">
+              {{ disconnectingQuoteAuditOAuth ? $t('audit_oauth_disconnecting') : $t('audit_oauth_disconnect') }}
+            </NButton>
+            <label class="sr-only" for="quote-audit-mode">{{ $t('audit_schedule_mode') }}</label>
+            <select id="quote-audit-mode" v-model="quoteAuditConfig.mode" class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
+              <option value="paused">{{ $t('audit_schedule_paused') }}</option>
+              <option value="pilot" :disabled="!quoteAuditConfig.oauthTokenConfigured || !quoteAuditConfig.oauth.modelAvailable || quoteAuditConfig.oauth.needsReconnect">{{ $t('audit_schedule_pilot_mode') }}</option>
+              <option value="continuous" :disabled="!quoteAuditConfig.oauthTokenConfigured || !quoteAuditConfig.oauth.modelAvailable || quoteAuditConfig.oauth.needsReconnect || quoteAuditConfig.pilotCount < 20 || quoteAuditConfig.pilotReviewedCount < 20">{{ $t('audit_schedule_continuous') }}</option>
+            </select>
+            <label class="sr-only" for="quote-audit-cadence">{{ $t('audit_schedule_cadence') }}</label>
+            <select id="quote-audit-cadence" v-model="quoteAuditConfig.cadence" class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
+              <option value="weekdays">{{ $t('audit_schedule_weekdays') }}</option>
+              <option value="weekly">{{ $t('audit_schedule_weekly') }}</option>
+            </select>
+            <NButton btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditConfig.pilotCount > 0 || !quoteAuditConfig.oauthTokenConfigured || !quoteAuditConfig.oauth.modelAvailable || quoteAuditConfig.oauth.needsReconnect" @click="runQuoteAuditTest">
+              {{ runningQuoteAuditTest ? $t('audit_test_running') : $t('audit_test_one_quote') }}
+            </NButton>
+            <NButton btn="solid-primary" size="sm" :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig || (quoteAuditConfig.mode !== 'paused' && (!quoteAuditConfig.oauthTokenConfigured || !quoteAuditConfig.oauth.modelAvailable || quoteAuditConfig.oauth.needsReconnect)) || (quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20)" @click="saveQuoteAuditConfig">
+              {{ savingQuoteAuditConfig ? $t('audit_schedule_saving') : $t('audit_schedule_save') }}
+            </NButton>
+          </div>
+        </div>
+        <p v-if="quoteAuditConfig.oauthTokenConfigured && !quoteAuditConfig.oauth.modelAvailable" class="mt-2 text-xs text-amber-700 dark:text-amber-300">
+          {{ quoteAuditConfig.oauth.needsReconnect ? $t('audit_oauth_reconnect_required') : $t('audit_oauth_model_unavailable') }}
+        </p>
+        <p v-else-if="!quoteAuditConfig.oauthTokenConfigured" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          {{ $t('audit_oauth_helper_instructions') }} <code class="select-all">bun run quote-audit:oauth</code>
+        </p>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $t('audit_oauth_helper_note') }}</p>
+        <p v-if="quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20" class="mt-2 text-xs text-amber-700 dark:text-amber-300">
+          {{ $t('audit_schedule_review_pilot_first') }}
+        </p>
+        <div v-if="quoteAuditTestReport" class="mt-4 rounded-lg border border-gray-200 p-3 text-xs dark:border-gray-800" aria-live="polite">
+          <p class="font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_test_result', { id: quoteAuditTestReport.insertedIds[0] ?? quoteAuditTestReport.selectedIds[0] ?? '—' }) }}</p>
+          <p v-if="quoteAuditTestReport.error" class="mt-1 text-red-700 dark:text-red-300">{{ quoteAuditTestReport.error }}</p>
+          <template v-else>
+            <p class="mt-1 text-gray-600 dark:text-gray-300">{{ $t('audit_test_outcome', { outcome: quoteAuditTestReport.results[0]?.outcome ?? 'inconclusive' }) }}</p>
+            <p v-if="quoteAuditTestReport.uncertainIds.length" class="mt-1 text-amber-800 dark:text-amber-200">{{ $t('audit_test_uncertain') }}</p>
+            <ul v-if="quoteAuditTestReport.results[0]?.sources.length" class="mt-2 space-y-1">
+              <li v-for="source in quoteAuditTestReport.results[0].sources" :key="`${source.dimension}-${source.url}`">
+                <span class="text-gray-500 dark:text-gray-400">{{ $t(`audit_dimension_${source.dimension}`) }} · </span>
+                <a :href="source.url" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline underline-offset-2 dark:text-blue-300">{{ source.title || source.url }}</a>
+              </li>
+            </ul>
+          </template>
+          <p class="mt-2 text-gray-500 dark:text-gray-400">{{ $t('audit_evidence_human_review') }}</p>
+        </div>
+      </section>
     </div>
 
     <!-- First-load Skeleton -->
@@ -401,6 +464,32 @@
           “{{ auditQuote.name }}”
           <span v-if="auditQuote.author?.name" class="block pt-1 font-sans text-xs text-gray-500">{{ auditQuote.author.name }}<template v-if="auditQuote.reference?.name"> · {{ auditQuote.reference.name }}</template></span>
         </p>
+        <section v-if="auditEvidence" class="mb-5 max-h-[42vh] space-y-3 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-800" :aria-label="$t('audit_evidence_title') as string">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h4 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_evidence_title') }}</h4>
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ auditEvidence.summary }}</p>
+              <p class="mt-1 text-[11px] text-gray-400 dark:text-gray-500">{{ $t('audit_evidence_date', { date: formatRelativeTime(auditEvidence.auditedAt) }) }}</p>
+            </div>
+            <span class="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-500 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">{{ $t('audit_progress_awaiting_review') }}</span>
+          </div>
+          <div v-for="(finding, dimension) in auditEvidence.dimensions" :key="dimension" class="border-t border-gray-100 pt-3 first:border-0 first:pt-0 dark:border-gray-800">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h5 class="font-sans text-xs font-600 text-gray-800 dark:text-gray-200">{{ $t(`audit_dimension_${dimension}`) }}</h5>
+              <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ $t(`audit_evidence_status_${finding.status}`) }}</span>
+            </div>
+            <p class="mt-1 text-xs leading-5 text-gray-600 dark:text-gray-300">{{ finding.assessment }}</p>
+            <p v-if="finding.evidenceLocation" class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">{{ $t('audit_evidence_location') }}: {{ finding.evidenceLocation }}</p>
+            <ul v-if="finding.sources?.length" class="mt-2 space-y-1">
+              <li v-for="source in finding.sources" :key="source.url" class="text-xs">
+                <a :href="source.url" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline decoration-blue-300 underline-offset-2 hover:decoration-blue-700 dark:text-blue-300">{{ source.title || source.url }}</a>
+                <span class="ml-1 text-gray-500 dark:text-gray-400">{{ $t(`audit_source_level_${source.sourceLevel}`) }}<template v-if="source.support"> — {{ source.support }}</template></span>
+              </li>
+            </ul>
+            <ul v-if="finding.caveats?.length" class="mt-2 list-disc space-y-1 pl-4 text-[11px] text-amber-800 dark:text-amber-200"><li v-for="caveat in finding.caveats" :key="caveat">{{ caveat }}</li></ul>
+          </div>
+          <p class="border-t border-gray-100 pt-2 text-[11px] text-gray-500 dark:border-gray-800 dark:text-gray-400">{{ $t('audit_evidence_human_review') }}</p>
+        </section>
         <div class="space-y-4">
           <label class="block space-y-1.5">
             <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_progress_label') }}</span>
@@ -456,6 +545,139 @@ definePageMeta({
 })
 
 const { $t } = useI18n()
+
+const quoteAuditConfig = reactive({
+  mode: 'paused' as 'paused' | 'pilot' | 'continuous',
+  cadence: 'weekdays' as 'weekdays' | 'weekly',
+  oauthTokenConfigured: false,
+  oauth: {
+    connected: false,
+    email: null as string | null,
+    expiresAt: null as string | null,
+    model: 'gpt-6-luna',
+    modelAvailable: false,
+    needsReconnect: false,
+  },
+  pilotCount: 0,
+  pilotReviewedCount: 0,
+})
+const loadingQuoteAuditConfig = ref(true)
+const savingQuoteAuditConfig = ref(false)
+const runningQuoteAuditTest = ref(false)
+const connectingQuoteAuditOAuth = ref(false)
+const disconnectingQuoteAuditOAuth = ref(false)
+const quoteAuditOAuthPopup = ref<Window | null>(null)
+const quoteAuditTestReport = ref<{
+  selectedIds: number[]
+  insertedIds: number[]
+  uncertainIds: number[]
+  error: string | null
+  results: Array<{ quoteId: number, outcome: QuoteAuditOutcome, sources: Array<{ dimension: string, url: string, title: string }> }>
+} | null>(null)
+
+const loadQuoteAuditConfig = async () => {
+  loadingQuoteAuditConfig.value = true
+  try {
+    const response = await $fetch<{ data: typeof quoteAuditConfig }>('/api/admin/quote-audit/config')
+    Object.assign(quoteAuditConfig, response.data)
+  } catch (error) {
+    showErrorToast(error, $t('audit_schedule_load_error') as string)
+  } finally {
+    loadingQuoteAuditConfig.value = false
+  }
+}
+
+const connectQuoteAuditOAuth = async () => {
+  connectingQuoteAuditOAuth.value = true
+  quoteAuditOAuthPopup.value = window.open('about:blank', 'verbatims-chatgpt-oauth', 'popup,width=560,height=760')
+  if (!quoteAuditOAuthPopup.value) {
+    connectingQuoteAuditOAuth.value = false
+    showErrorToast(new Error('Popup blocked'), $t('audit_oauth_popup_blocked') as string)
+    return
+  }
+
+  try {
+    try {
+      await $fetch('http://127.0.0.1:1455/health', { mode: 'cors', cache: 'no-store' })
+    } catch {
+      throw new Error($t('audit_oauth_helper_not_running') as string)
+    }
+    quoteAuditOAuthPopup.value.location.href = `http://127.0.0.1:1455/connect?origin=${encodeURIComponent(window.location.origin)}`
+
+    let credentials: unknown = null
+    let helperError: string | null = null
+    for (let attempt = 0; attempt < 180 && !credentials; attempt++) {
+      try {
+        const result = await $fetch<{ credentials?: unknown, error?: string }>('http://127.0.0.1:1455/credentials', { mode: 'cors', cache: 'no-store' })
+        credentials = result?.credentials ?? null
+        helperError = typeof result?.error === 'string' ? result.error : null
+        if (helperError) break
+      } catch {
+        // The local helper may be starting or the browser may still be waiting for OAuth consent.
+      }
+      if (!credentials) await new Promise(resolve => setTimeout(resolve, 1000))
+    }
+    if (helperError) throw new Error(helperError)
+    if (!credentials) throw new Error('The local OAuth helper did not complete sign-in within three minutes')
+
+    const response = await $fetch<{ data: { email: string | null, modelAvailable: boolean } }>('/api/admin/quote-audit/oauth/import', {
+      method: 'POST', body: { credentials },
+    })
+    await loadQuoteAuditConfig()
+    if (!response.data.modelAvailable) showErrorToast(new Error('The connected account does not offer gpt-6-luna'), $t('audit_oauth_model_unavailable') as string)
+  } catch (error) {
+    showErrorToast(error, $t('audit_oauth_connect_error') as string)
+  } finally {
+    quoteAuditOAuthPopup.value?.close()
+    quoteAuditOAuthPopup.value = null
+    connectingQuoteAuditOAuth.value = false
+  }
+}
+
+const disconnectQuoteAuditOAuth = async () => {
+  if (!window.confirm($t('audit_oauth_disconnect_confirm') as string)) return
+  disconnectingQuoteAuditOAuth.value = true
+  try {
+    const response = await $fetch<{ data: { remoteRevocationConfirmed: boolean } }>('/api/admin/quote-audit/oauth', { method: 'DELETE' })
+    await loadQuoteAuditConfig()
+    if (!response.data.remoteRevocationConfirmed) showErrorToast(new Error('Remote OAuth revocation was not confirmed'), $t('audit_oauth_revocation_unconfirmed') as string)
+  } catch (error) {
+    showErrorToast(error, $t('audit_oauth_disconnect_error') as string)
+  } finally {
+    disconnectingQuoteAuditOAuth.value = false
+  }
+}
+
+const saveQuoteAuditConfig = async () => {
+  savingQuoteAuditConfig.value = true
+  try {
+    const response = await $fetch<{ data: { mode: typeof quoteAuditConfig.mode, cadence: typeof quoteAuditConfig.cadence } }>('/api/admin/quote-audit/config', {
+      method: 'PUT',
+      body: { mode: quoteAuditConfig.mode, cadence: quoteAuditConfig.cadence },
+    })
+    quoteAuditConfig.mode = response.data.mode
+    quoteAuditConfig.cadence = response.data.cadence
+    await loadQuoteAuditConfig()
+  } catch (error) {
+    showErrorToast(error, $t('audit_schedule_save_error') as string)
+  } finally {
+    savingQuoteAuditConfig.value = false
+  }
+}
+
+const runQuoteAuditTest = async () => {
+  runningQuoteAuditTest.value = true
+  quoteAuditTestReport.value = null
+  try {
+    const response = await $fetch<{ data: typeof quoteAuditTestReport.value }>('/api/admin/quote-audit/test', { method: 'POST' })
+    quoteAuditTestReport.value = response.data
+    await loadQuoteAuditConfig()
+  } catch (error) {
+    showErrorToast(error, $t('audit_test_error') as string)
+  } finally {
+    runningQuoteAuditTest.value = false
+  }
+}
 
 useHead({
   title: $t('meta_title') as string
@@ -592,11 +814,27 @@ const auditOutcomeLabel = (outcome?: QuoteAuditOutcome | null) => {
   return option ? $t(option.labelKey) : $t('audit_outcome_none')
 }
 
+const readAuditNotes = (value?: string | null) => {
+  if (!value) return null
+  try {
+    const parsed = JSON.parse(value)
+    if (parsed?.version === 1 && parsed?.dimensions && typeof parsed.dimensions === 'object') return parsed
+  } catch {
+    // Older reviews store free-form human notes.
+  }
+  return { humanNotes: value }
+}
+
+const auditEvidence = computed(() => {
+  const parsed = readAuditNotes(auditQuote.value?.audit_notes)
+  return parsed?.version === 1 ? parsed : null
+})
+
 const openAuditReview = (quote: AdminQuote) => {
   auditQuote.value = quote
   auditDraft.progress = quote.audit_progress || 'pending'
   auditDraft.outcome = quote.audit_outcome || ''
-  auditDraft.notes = quote.audit_notes || ''
+  auditDraft.notes = readAuditNotes(quote.audit_notes)?.humanNotes || ''
   showAuditDialog.value = true
 }
 
@@ -604,13 +842,18 @@ const saveAuditReview = async () => {
   if (!auditQuote.value) return
   savingAudit.value = true
   try {
-    await $fetch(`/api/admin/quotes/${auditQuote.value.id}/audit-review`, {
+    const auditReviewUrl: string = `/api/admin/quotes/${auditQuote.value.id}/audit-review`
+    const sendAuditReview = $fetch as unknown as (url: string, options: {
+      method: 'PUT'
+      body: { progress: string, outcome: string | null, notes: string }
+    }) => Promise<{ notes?: string | null }>
+    const response = await sendAuditReview(auditReviewUrl, {
       method: 'PUT',
       body: { ...auditDraft, outcome: auditDraft.outcome || null },
     })
     auditQuote.value.audit_progress = auditDraft.progress
     auditQuote.value.audit_outcome = auditDraft.outcome || null
-    auditQuote.value.audit_notes = auditDraft.notes.trim() || null
+    auditQuote.value.audit_notes = response.notes ?? (auditDraft.notes.trim() || null)
     auditQuote.value.audit_reviewed_at = auditDraft.progress === 'reviewed' ? new Date().toISOString() : null
     showAuditDialog.value = false
   } catch (error) {
@@ -992,6 +1235,7 @@ const updateFooterPosition = () => {
 }
 
 onMounted(() => {
+  loadQuoteAuditConfig()
   updateFooterPosition()
   footerObserver = new ResizeObserver(updateFooterPosition)
   const mainEl = document.querySelector('main')

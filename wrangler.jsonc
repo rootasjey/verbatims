@@ -33,7 +33,9 @@
       // Daily, enqueue authors and references that should be reverified.
       "18 4 * * *",
       // Every 4 hours, process queued enrichment jobs into preview proposals.
-      "48 */4 * * *"
+      "48 */4 * * *",
+      // Check at 09:00 Europe/Paris in both UTC offsets; the task filters out the inactive offset.
+      "0 8 * * *",
     ]
   },
   "send_email": [

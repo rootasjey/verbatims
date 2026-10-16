@@ -149,7 +149,7 @@ export default defineNuxtConfig({
       '*/5 * * * *': ['social:reconcile'],
       // Refill active quote queues at 08:00 Europe/Paris, before the 08:08 post.
       '0 6 * * *': ['social:replenish'],
-      '0 7 * * *': ['social:replenish'],
+      '0 7 * * *': ['social:replenish', 'quote-audit:run'],
       // 08:08 Europe/Paris during daylight saving time (UTC+2)
       '8 6 * * *': ['social:autopost'],
       // 08:08 Europe/Paris during standard time (UTC+1)
@@ -157,7 +157,9 @@ export default defineNuxtConfig({
       // Daily, enqueue authors and references that should be reverified.
       '18 4 * * *': ['enrichment:schedule'],
       // Every 4 hours, process queued enrichment jobs into preview proposals.
-      '48 */4 * * *': ['enrichment:process']
+      '48 */4 * * *': ['enrichment:process'],
+      // Check at 09:00 Europe/Paris in both UTC offsets; the task filters out the inactive offset.
+      '0 8 * * *': ['quote-audit:run'],
     },
     ignore: ['scripts/**'],
     alias: {
