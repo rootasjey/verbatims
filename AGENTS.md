@@ -281,6 +281,13 @@ Example:
 
 ## Development workflow guidance
 
+### Cloudflare Worker size and service boundaries
+
+- Do not use the former compressed Worker size limit (3 MiB Free / 10 MiB Paid) when estimating new work. As of September 2026, Cloudflare enforces a **64 MiB uncompressed bundle limit**; gzip size is informational. Limits can change, so check the current [Workers limits documentation](https://developers.cloudflare.com/workers/platform/limits/) when size is relevant.
+- Estimate Worker size from the built bundle, not source lines or dependency count. Use Wrangler's dry-run output (`Total Upload` is the uncompressed size) when a change may materially affect the bundle; do not deploy as part of a size check.
+- Keep related application behavior in the existing Worker by default. Consider a neighboring Worker with a Service Binding when a measured bundle/runtime constraint or a concrete deployment, scaling, security, or ownership boundary justifies it. Account for the extra binding/configuration, cross-Worker API, data access, observability, and deployment overhead before splitting.
+- For larger features, make a brief complexity and bundle-size estimate before implementation. Prefer a small shared module within this project unless that assessment identifies a real service boundary.
+
 ### Commands
 
 Common commands include:
