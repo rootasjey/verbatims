@@ -114,21 +114,29 @@
               </div>
             </div>
 
-            <button
-              v-if="author.image_url"
-              type="button"
-              ref="avatarRef"
-              class="group mx-auto block w-full max-w-[14rem] cursor-zoom-in text-left transition-transform duration-150 active:scale-99 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-900 dark:focus-visible:outline-gray-100 md:max-w-[18rem] lg:mt-2 lg:max-w-[20rem]"
-              :aria-label="$ts('components.dialogs.avatar_preview')"
-              @click="openAvatarPreview"
-            >
-              <img
-                :src="author.image_url"
-                :alt="author.name"
-                class="avatar-entrance aspect-square h-auto w-full rounded-2xl object-cover grayscale transition duration-500 group-hover:grayscale-0"
-                :class="headerIn ? 'scale-in' : 'scale-out'"
+            <div v-if="author.image_url" class="mx-auto w-full max-w-[14rem] md:max-w-[18rem] lg:mt-2 lg:max-w-[20rem]">
+              <button
+                type="button"
+                ref="avatarRef"
+                class="group block w-full cursor-zoom-in text-left transition-transform duration-150 active:scale-99 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-900 dark:focus-visible:outline-gray-100"
+                :aria-label="$ts('components.dialogs.avatar_preview')"
+                @click="openAvatarPreview"
               >
-            </button>
+                <img
+                  :src="author.image_url"
+                  :alt="author.image_alt || author.name"
+                  class="avatar-entrance aspect-square h-auto w-full rounded-2xl object-cover grayscale transition duration-500 group-hover:grayscale-0"
+                  :class="headerIn ? 'scale-in' : 'scale-out'"
+                >
+              </button>
+              <EntityImageAttribution
+                :credit="author.image_credit"
+                :source-url="author.image_source_url"
+                :license="author.image_license"
+                :date="author.image_date"
+                :location="author.image_location"
+              />
+            </div>
           </div>
         </div>
 

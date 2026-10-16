@@ -11,6 +11,12 @@ type AdminAuthorRow = {
   job?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageAlt?: string | null
+  imageCredit?: string | null
+  imageSourceUrl?: string | null
+  imageLicense?: string | null
+  imageDate?: string | null
+  imageLocation?: string | null
   socials?: string | null
   viewsCount?: number | string | null
   likesCount?: number | string | null
@@ -33,6 +39,12 @@ export const normalizeAdminAuthor = (author: AdminAuthorRow): Author => ({
   job: author.job ?? undefined,
   description: author.description ?? undefined,
   image_url: author.imageUrl ?? undefined,
+  image_alt: author.imageAlt ?? undefined,
+  image_credit: author.imageCredit ?? undefined,
+  image_source_url: author.imageSourceUrl ?? undefined,
+  image_license: author.imageLicense ?? undefined,
+  image_date: author.imageDate ?? undefined,
+  image_location: author.imageLocation ?? undefined,
   socials: author.socials ?? '',
   views_count: Number(author.viewsCount ?? 0),
   likes_count: Number(author.likesCount ?? 0),

@@ -188,6 +188,8 @@
         </div>
       </div>
 
+      <AdminImageAttributionFields v-model="form.image_attribution" :disabled="submitting" />
+
       <NInput
         type="textarea"
         v-model="form.description"
@@ -237,6 +239,8 @@ const isEditMode = computed(() => !!props.editReference)
 const dialogTitle = computed(() => isEditMode.value ? $t('components.dialogs.edit_reference') : $t('components.dialogs.add_reference'))
 const submitButtonText = computed(() => isEditMode.value ? $t('components.dialogs.update_reference') : $t('components.dialogs.create_reference'))
 
+const emptyImageAttribution = () => ({ image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '' })
+
 const form = ref({
   name: '',
   primary_type: { label: 'Book', value: 'book' as QuoteReferencePrimaryType },
@@ -244,6 +248,7 @@ const form = ref({
   release_date: '',
   original_language: { label: 'English', value: 'en' },
   image_url: '',
+  image_attribution: emptyImageAttribution(),
   description: ''
 })
 
@@ -411,6 +416,10 @@ const selectExistingReference = (reference: QuoteReference) => {
     release_date: reference.release_date || '',
     original_language: languageOption || { label: 'English', value: 'en' },
     image_url: reference.image_url || '',
+    image_attribution: {
+      image_alt: reference.image_alt || '', image_credit: reference.image_credit || '', image_source_url: reference.image_source_url || '',
+      image_license: reference.image_license || '', image_date: reference.image_date || '', image_location: reference.image_location || ''
+    },
     description: reference.description || ''
   }
   titleQuery.value = reference.name
@@ -432,6 +441,7 @@ const resetForm = () => {
     release_date: '',
     original_language: { label: 'English', value: 'en' },
     image_url: '',
+    image_attribution: emptyImageAttribution(),
     description: ''
   }
   titleQuery.value = ''
@@ -454,6 +464,10 @@ const initializeFormForEdit = () => {
     release_date: reference.release_date || '',
     original_language: languageOption || { label: 'English', value: 'en' },
     image_url: reference.image_url || '',
+    image_attribution: {
+      image_alt: reference.image_alt || '', image_credit: reference.image_credit || '', image_source_url: reference.image_source_url || '',
+      image_license: reference.image_license || '', image_date: reference.image_date || '', image_location: reference.image_location || ''
+    },
     description: reference.description || ''
   }
   titleQuery.value = reference.name
@@ -490,6 +504,12 @@ const submitReference = async () => {
       release_date: form.value.release_date || null,
       original_language: form.value.original_language.value,
       image_url: form.value.image_url.trim() || null,
+      image_alt: form.value.image_attribution.image_alt.trim() || null,
+      image_credit: form.value.image_attribution.image_credit.trim() || null,
+      image_source_url: form.value.image_attribution.image_source_url.trim() || null,
+      image_license: form.value.image_attribution.image_license.trim() || null,
+      image_date: form.value.image_attribution.image_date.trim() || null,
+      image_location: form.value.image_attribution.image_location.trim() || null,
       description: form.value.description.trim() || null
     }
 

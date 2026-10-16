@@ -1,6 +1,6 @@
 # Réserve de citations — Halloween 2026
 
-Cette fiche est le registre de sélection initial pour un thème saisonnier prévu du 24 octobre au 1er novembre 2026. Les textes ci-dessous ont été contrôlés dans une édition primaire numérisée de l’œuvre. Les liens vont au texte intégral; le repère donne l’endroit à retrouver dans cette édition.
+Cette fiche est le registre de sélection et de publication du thème saisonnier du 24 octobre au 1er novembre 2026. Les textes ci-dessous ont été contrôlés dans une édition primaire numérisée de l’œuvre. Les liens vont au texte intégral; le repère donne l’endroit à retrouver dans cette édition.
 
 ## Seuil de preuve
 
@@ -9,7 +9,9 @@ Cette fiche est le registre de sélection initial pour un thème saisonnier pré
 - Une citation n’est pas ajoutée à la base ni considérée comme publiable avant l’enregistrement de l’auteur, de l’œuvre et de la source primaire dans le workflow de provenance Verbatims.
 - Les éditions Project Gutenberg et Wikisource sont des témoins numérisés; les droits territoriaux restent à examiner si un texte ou une image n’est pas clairement dans le domaine public en France.
 
-## Citations retenues pour la réserve
+## Citations retenues et publiées
+
+Les 12 citations de cette sélection ont été ajoutées à la production le 16 octobre 2026, avec leur auteur, leur œuvre, leur locuteur ou narrateur, une source primaire marquée comme vérifiée manuellement et le repère correspondant. IDs Verbatims : 2507–2518. Elles sont toutes publiées et reliées au thème par l’œuvre.
 
 | Citation exacte | Auteur / voix | Œuvre et repère | Source primaire | Contrôle éditorial |
 | --- | --- | --- | --- | --- |
@@ -26,19 +28,20 @@ Cette fiche est le registre de sélection initial pour un thème saisonnier pré
 | “I thus drew steadily nearer to that truth, by whose partial discovery I have been doomed to such a dreadful shipwreck: that man is not truly one, but truly two.” | Robert Louis Stevenson / Henry Jekyll, narrateur de la confession | *Strange Case of Dr Jekyll and Mr Hyde*, confession finale | [Project Gutenberg](https://www.gutenberg.org/files/42/42-h/42-h.htm) | Extrait fidèle de la phrase qui commence plus tôt dans le paragraphe; conserver la minuscule après les deux-points. |
 | “I’ve got out at last,” said I, “in spite of you and Jane! And I’ve pulled off most of the paper, so you can’t put me back!” | Charlotte Perkins Gilman / narratrice | “The Yellow Wallpaper”, dernier passage | [Project Gutenberg](https://www.gutenberg.org/cache/epub/1952/pg1952-images.html) | Dialogue final retrouvé intégralement; citation d’horreur psychologique. |
 
-## Image pressentie pour le thème
+## Image du thème
 
 - **Œuvre** : H. B. Griggs, *Don’t Be scared on Hallow-E’en*, carte postale, vers 1910.
 - **Auteur / source matérielle** : H. B. Griggs; carte publiée par Lubrie & Elkins.
 - **Fichier** : [original Wikimedia Commons (636 × 972)](https://upload.wikimedia.org/wikipedia/commons/f/fc/H._B._Griggs%2C_Don%E2%80%99t_Be_scared_on_Hallow-E%E2%80%99en.jpg).
-- **Notice et licence** : [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:H._B._Griggs,_Don%E2%80%99t_Be_scared_on_Hallow-E%E2%80%99en.jpg), qui indique une œuvre du domaine public selon la règle « vie de l’auteur + 70 ans » dans les territoires concernés et une marque du domaine public. L’auteur est donné comme décédé en 1940; la carte est datée vers 1910. Vérifier la notice une dernière fois avant publication.
-- **Crédit public proposé** : `H. B. Griggs, carte publiée par Lubrie & Elkins, vers 1910 — domaine public (Wikimedia Commons)`.
-- **Texte alternatif proposé** : `Carte postale d’Halloween « Don’t Be scared on Hallow-E’en » illustrée par H. B. Griggs, vers 1910`.
-- **Limite connue** : le fichier est un portrait (636 × 972); vérifier le cadrage dans le hero avant de le publier.
+- **Notice et licence** : [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:H._B._Griggs,_Don%E2%80%99t_Be_scared_on_Hallow-E%E2%80%99en.jpg) indique H. B. Griggs (vers 1870–1940), une carte publiée vers 1910 par Lubrie & Elkins, le domaine public (PD-old-70) et le Public Domain Mark.
+- **Crédit affiché** : `H. B. Griggs, carte publiée par Lubrie & Elkins, vers 1910`.
+- **Licence affichée** : `Domaine public (PD-old-70, PDM) — Wikimedia Commons`.
+- **Texte alternatif** : `Carte postale d’Halloween « Don’t Be scared on Hallow-E’en » illustrée par H. B. Griggs, vers 1910`.
+- **Affichage** : cadrage et crédit contrôlés en production sur desktop et mobile; l’image portrait (636 × 972) reste lisible dans les deux formats.
 
-## À faire avant publication
+## Publication et programmation
 
-1. Vérifier l’affichage public avec le cadrage de l’image et le crédit visible sur mobile et desktop.
-2. Ajouter chaque citation retenue via le workflow de provenance, avec l’auteur, l’œuvre, l’URL primaire et le repère ci-dessus; ne pas transformer cette fiche en attribution implicite.
-3. Confirmer que le thème programmé retourne suffisamment de citations publiées, avec des voix et des œuvres variées.
-4. Refaire un contrôle de source et de licence avant activation en production.
+- **Slug** : `halloween-2026` (thème 49).
+- **Fenêtre** : du 24 octobre 2026 à 00:00 au 1er novembre 2026 à 23:59:59, heure de Paris; stockée en UTC comme 2026-10-23 22:00 à 2026-11-01 22:59:59.
+- **Sélection** : 12 citations, 12 œuvres, flux public vérifié; deux anciennes citations Macbeth sans source ni attribution vérifiée ont été exclues du filtre du thème.
+- **Prévisualisation** : `https://verbatims.cc/?theme=halloween-2026`.

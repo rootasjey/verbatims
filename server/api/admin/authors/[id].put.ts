@@ -48,6 +48,12 @@ export default defineEventHandler(async (event) => {
     if (body.job !== undefined) updateData.job = body.job
     if (body.description !== undefined) updateData.description = body.description
     if (body.socials !== undefined) updateData.socials = JSON.stringify(body.socials)
+    if (body.image_alt !== undefined) updateData.imageAlt = body.image_alt
+    if (body.image_credit !== undefined) updateData.imageCredit = body.image_credit
+    if (body.image_source_url !== undefined) updateData.imageSourceUrl = body.image_source_url
+    if (body.image_license !== undefined) updateData.imageLicense = body.image_license
+    if (body.image_date !== undefined) updateData.imageDate = body.image_date
+    if (body.image_location !== undefined) updateData.imageLocation = body.image_location
 
     if (body.image_url !== undefined) {
       const oldUrl = existingAuthor!.imageUrl

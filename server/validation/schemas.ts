@@ -23,6 +23,15 @@ const imageUrlField = z.string().refine(
   { message: 'Must be a valid URL or a /blob/ path' },
 ).optional().nullable()
 
+const imageAttributionFields = {
+  image_alt: z.string().max(500).trim().optional().nullable(),
+  image_credit: z.string().max(500).trim().optional().nullable(),
+  image_source_url: z.string().url().optional().nullable(),
+  image_license: z.string().max(250).trim().optional().nullable(),
+  image_date: z.string().max(100).trim().optional().nullable(),
+  image_location: z.string().max(200).trim().optional().nullable(),
+}
+
 const provenanceStatus = z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed'])
 
 const quoteAttributionsPayloadSchema = z.array(z.object({
@@ -144,6 +153,7 @@ export const createAuthorSchema = z.object({
   death_date: z.string().max(50).trim().optional().nullable(),
   death_location: z.string().max(200).trim().optional().nullable(),
   image_url: imageUrlField,
+  ...imageAttributionFields,
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 
@@ -155,6 +165,7 @@ export const createReferenceSchema = z.object({
   release_date: z.string().max(50).trim().optional().nullable(),
   original_language: z.enum(validLanguages).optional().nullable(),
   image_url: imageUrlField,
+  ...imageAttributionFields,
   urls: z.record(z.string(), z.unknown()).optional().nullable(),
 })
 
@@ -182,6 +193,7 @@ export const updateAuthorSchema = z.object({
   death_date: z.string().max(50).trim().optional().nullable(),
   death_location: z.string().max(200).trim().optional().nullable(),
   image_url: imageUrlField,
+  ...imageAttributionFields,
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 
@@ -193,6 +205,7 @@ export const updateReferenceSchema = z.object({
   release_date: z.string().max(50).trim().optional().nullable(),
   original_language: z.enum(validLanguages).optional().nullable(),
   image_url: imageUrlField,
+  ...imageAttributionFields,
   urls: z.record(z.string(), z.unknown()).optional().nullable(),
 })
 
