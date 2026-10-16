@@ -10,7 +10,7 @@
           <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
           <NCombobox
             v-model="selectedSort"
-            :items="sortOptions"
+            :items="nonPrioritySortOptions"
             by="value"
             :_combobox-list="{
               class: 'min-w-[180px]',
@@ -23,7 +23,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ modelValue?.value?.startsWith('priority_') ? $t('sort_other') : modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NButton btn="solid-black" size="sm" trailing="i-lucide-grid-2x2-plus" class="gap-2 rounded-lg" @click="openCreate">
@@ -36,12 +36,12 @@
         <div class="flex items-center justify-between gap-3">
           <NCombobox
             v-model="selectedSort"
-            :items="sortOptions"
+            :items="nonPrioritySortOptions"
             by="value"
             :_combobox-list="{ class: 'min-w-[180px]' }"
             :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }"
           >
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.value?.startsWith('priority_') ? $t('sort_other') : modelValue?.label }}</span></template>
           </NCombobox>
           <NButton btn="solid-black" size="sm" trailing="i-lucide-grid-2x2-plus" class="gap-2 rounded-lg" @click="openCreate">
             {{ $t('new_theme') }}
@@ -75,9 +75,21 @@
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_schedule') }}</th>
               <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_filters') }}</th>
-              <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_priority') }}</th>
+              <th class="w-20 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center justify-center gap-1">
+                  <span>{{ $t('col_priority') }}</span>
+                  <button
+                    type="button"
+                    class="rounded p-0.5 text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-400 dark:hover:text-gray-100"
+                    :aria-label="(selectedSort.value !== 'priority_desc' ? $t('sort_priority_high') : $t('sort_priority_low')) as string"
+                    @click.stop="togglePrioritySort"
+                  >
+                    <NIcon :name="selectedSort.value === 'priority_asc' ? 'i-ph-sort-ascending' : selectedSort.value === 'priority_desc' ? 'i-ph-sort-descending' : 'i-ph-arrows-down-up'" class="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                </div>
+              </th>
               <th class="w-10 px-3 py-3 text-left">
-                <NDropdownMenu :items="headerActions">
+                <NDropdownMenu :items="headerActions" :modal="false">
                   <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-caret-down" class="w-4 h-4" /></button>
                 </NDropdownMenu>
               </th>
@@ -108,16 +120,16 @@
               </td>
               <td class="px-3 py-3">
                 <div class="flex items-center gap-1.5">
-                  <NDropdownMenu v-if="theme.isActive" :items="getStatusActions(theme, 'active')">
+                  <NDropdownMenu v-if="theme.isActive" :items="getStatusActions(theme, 'active')" :modal="false">
                     <span class="font-sans text-xs px-1.5 py-0.5 rounded text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-pointer">{{ $t('status_active') }}</span>
                   </NDropdownMenu>
-                  <NDropdownMenu v-else-if="theme.isDefault" :items="getStatusActions(theme, 'default')">
+                  <NDropdownMenu v-else-if="theme.isDefault" :items="getStatusActions(theme, 'default')" :modal="false">
                     <span class="font-sans text-xs px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-pointer">{{ $t('status_default') }}</span>
                   </NDropdownMenu>
-                  <NDropdownMenu v-else-if="theme.scheduledDate" :items="getStatusActions(theme, 'scheduled')">
+                  <NDropdownMenu v-else-if="theme.scheduledDate" :items="getStatusActions(theme, 'scheduled')" :modal="false">
                     <span class="font-sans text-xs px-1.5 py-0.5 rounded text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 cursor-pointer">{{ $t('status_scheduled') }}</span>
                   </NDropdownMenu>
-                  <NDropdownMenu v-else :items="getStatusActions(theme, 'inactive')">
+                  <NDropdownMenu v-else :items="getStatusActions(theme, 'inactive')" :modal="false">
                     <span class="font-sans text-xs px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-pointer">{{ $t('status_inactive') }}</span>
                   </NDropdownMenu>
                 </div>
@@ -136,7 +148,7 @@
                 <span v-else class="cursor-pointer hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors" @click="startEditPriority(theme)">{{ theme.priority }}</span>
               </td>
               <td class="px-3 py-3">
-                <NDropdownMenu :items="getThemeActions(theme)">
+                <NDropdownMenu :items="getThemeActions(theme)" :modal="false">
                   <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                 </NDropdownMenu>
               </td>
@@ -1236,6 +1248,15 @@ const sortOptions = [
   { label: $t('sort_slug_az') as string, value: 'slug_asc' },
   { label: $t('sort_scheduled') as string, value: 'scheduled_date_desc' },
 ]
+const nonPrioritySortOptions = sortOptions.filter(option => !option.value.startsWith('priority_'))
+
+const togglePrioritySort = () => {
+  selectedSort.value = selectedSort.value.value === 'priority_asc'
+    ? sortOptions[0]!
+    : selectedSort.value.value === 'priority_desc'
+      ? sortOptions[1]!
+      : sortOptions[0]!
+}
 
 const tableColumns = [
   { header: 'Name', accessorKey: 'name', enableSorting: false, meta: { una: { tableHead: 'min-w-40', tableCell: 'min-w-40' } } },

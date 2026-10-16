@@ -173,11 +173,11 @@
                 </NCombobox>
               </td>
               <td class="px-3 py-3">
-                <span class="font-sans text-xs text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5">Draft</span>
+                <span class="font-sans text-xs text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-md">Draft</span>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(quote.created_at) }}</td>
               <td class="px-3 py-3">
-                <NDropdownMenu :items="getQuoteActions(quote)">
+                <NDropdownMenu :items="getQuoteActions(quote)" :modal="false">
                   <button @click.stop class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                     <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
                   </button>

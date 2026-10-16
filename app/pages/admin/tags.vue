@@ -105,7 +105,7 @@
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ tag.quotes_count || 0 }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(tag.created_at) }}</td>
               <td class="px-3 py-3">
-                <NDropdownMenu :items="getTagActions(tag)">
+                <NDropdownMenu :items="getTagActions(tag)" :modal="false">
                   <button @click.stop class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                 </NDropdownMenu>
               </td>

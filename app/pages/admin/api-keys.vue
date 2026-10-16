@@ -86,7 +86,7 @@
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ key.userName }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatDate(key.createdAt) }}</td>
               <td class="px-3 py-3">
-                <NDropdownMenu :items="getRowActions(key)">
+                <NDropdownMenu :items="getRowActions(key)" :modal="false">
                   <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                 </NDropdownMenu>
               </td>
@@ -102,7 +102,7 @@
               <h2 class="font-sans text-base font-600 text-gray-900 dark:text-gray-100 break-words">{{ key.name }}</h2>
               <code class="inline-block mt-2 font-mono text-xs text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{{ key.keyPrefix }}...</code>
             </div>
-            <NDropdownMenu :items="getRowActions(key)">
+            <NDropdownMenu :items="getRowActions(key)" :modal="false">
               <button :aria-label="$t('row_actions', { name: key.name }) as string" class="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400 transition-colors">
                 <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
               </button>

@@ -166,7 +166,7 @@
                       :_combobox-trigger="{
                         btn: 'outline-gray',
                         size: 'xs',
-                        class: 'relative !h-6 !min-h-6 !w-6 !min-w-6 !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
+                        class: 'relative !inline-flex !h-6 !min-h-6 !w-6 !min-w-6 !items-center !justify-center !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
                         ariaLabel: $t('filter_by_type', { selected: selectedFictionalFilter.label }) as string,
                       }"
                     >
@@ -238,7 +238,7 @@
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ author.quotes_count || 0 }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(author.created_at) }}</td>
               <td class="px-3 py-3">
-                <NDropdownMenu :items="getAuthorActions(author)">
+                <NDropdownMenu :items="getAuthorActions(author)" :modal="false">
                   <button @click.stop class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                 </NDropdownMenu>
               </td>
