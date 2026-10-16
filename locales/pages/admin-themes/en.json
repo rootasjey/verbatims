@@ -6,6 +6,8 @@
   "sort_other": "Other sorting…",
   "sort_priority_high": "Priority (High-Low)",
   "sort_priority_low": "Priority (Low-High)",
+  "sort_most_filters": "Most Filters",
+  "sort_fewest_filters": "Fewest Filters",
   "sort_name_az": "Name A-Z",
   "sort_name_za": "Name Z-A",
   "sort_slug_az": "Slug A-Z",

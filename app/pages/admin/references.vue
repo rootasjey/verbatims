@@ -153,8 +153,18 @@
                 </div>
               </th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_year') }}</th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quotes') }}</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_quotes') }}</span>
+                  <AdminSortButton :direction="sortDirectionFor('quotes_asc', 'quotes_desc')" :ascending-label="$t('sort_fewest_quotes') as string" :descending-label="$t('sort_most_quotes') as string" @toggle="toggleSort('quotes_asc', 'quotes_desc')" />
+                </div>
+              </th>
+              <th class="w-36 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_created') }}</span>
+                  <AdminSortButton :direction="sortDirectionFor('created_asc', 'created_desc')" :ascending-label="$t('sort_oldest_first') as string" :descending-label="$t('sort_most_recent') as string" @toggle="toggleSort('created_asc', 'created_desc')" />
+                </div>
+              </th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -457,8 +467,23 @@ const sortOptions = computed(() => [
   { label: $t('sort_name_az') as string, value: 'name_asc' }, { label: $t('sort_name_za') as string, value: 'name_desc' },
   { label: $t('sort_most_recent') as string, value: 'created_desc' }, { label: $t('sort_oldest_first') as string, value: 'created_asc' },
   { label: $t('sort_release_date_desc') as string, value: 'release_date_desc' }, { label: $t('sort_release_date_asc') as string, value: 'release_date_asc' },
-  { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }, { label: $t('sort_most_liked') as string, value: 'likes_desc' }
+  { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }, { label: $t('sort_fewest_quotes') as string, value: 'quotes_asc' },
+  { label: $t('sort_most_liked') as string, value: 'likes_desc' }
 ])
+
+const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
+  if (selectedSort.value.value === ascendingValue) return 'asc'
+  if (selectedSort.value.value === descendingValue) return 'desc'
+  return null
+}
+
+const toggleSort = (ascendingValue: string, descendingValue: string) => {
+  const nextValue = selectedSort.value.value === descendingValue ? ascendingValue : descendingValue
+  const option = sortOptions.value.find(item => item.value === nextValue)
+  if (!option) return
+  selectedSort.value = option
+  currentPage.value = 1
+}
 
 const totalPages = computed(() => Math.ceil(totalReferences.value / pageSize.value))
 const filteredReferences = computed(() => references.value)

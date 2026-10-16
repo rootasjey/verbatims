@@ -166,6 +166,7 @@
                       :_combobox-trigger="{
                         btn: 'outline-gray',
                         size: 'xs',
+                        trailing: '',
                         class: 'relative !inline-flex !h-6 !min-h-6 !w-6 !min-w-6 !items-center !justify-center !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
                         ariaLabel: $t('filter_by_type', { selected: selectedFictionalFilter.label }) as string,
                       }"
@@ -178,7 +179,17 @@
                   </NTooltip>
                 </div>
               </th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quotes') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_quotes') }}</span>
+                  <AdminSortButton
+                    :direction="sortDirectionFor('quotes_asc', 'quotes_desc')"
+                    :ascending-label="$t('sort_fewest_quotes') as string"
+                    :descending-label="$t('sort_most_quotes') as string"
+                    @toggle="toggleSort('quotes_asc', 'quotes_desc')"
+                  />
+                </div>
+              </th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
@@ -520,8 +531,23 @@ const fictionalFilterOptions = [
 const sortOptions = computed(() => [
   { label: $t('sort_name_az') as string, value: 'name_asc' }, { label: $t('sort_name_za') as string, value: 'name_desc' },
   { label: $t('sort_most_recent') as string, value: 'created_desc' }, { label: $t('sort_oldest_first') as string, value: 'created_asc' },
-  { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }, { label: $t('sort_most_liked') as string, value: 'likes_desc' }
+  { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }, { label: $t('sort_fewest_quotes') as string, value: 'quotes_asc' },
+  { label: $t('sort_most_liked') as string, value: 'likes_desc' }
 ])
+
+const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
+  if (selectedSort.value.value === ascendingValue) return 'asc'
+  if (selectedSort.value.value === descendingValue) return 'desc'
+  return null
+}
+
+const toggleSort = (ascendingValue: string, descendingValue: string) => {
+  const nextValue = selectedSort.value.value === descendingValue ? ascendingValue : descendingValue
+  const option = sortOptions.value.find(item => item.value === nextValue)
+  if (!option) return
+  selectedSort.value = option
+  currentPage.value = 1
+}
 
 const totalPages = computed(() => Math.ceil(totalAuthors.value / pageSize.value))
 const totalFictional = computed(() => authors.value.filter(author => author.is_fictional).length)

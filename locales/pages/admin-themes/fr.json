@@ -6,6 +6,8 @@
   "sort_other": "Autres tris…",
   "sort_priority_high": "Priorité (Haut-Bas)",
   "sort_priority_low": "Priorité (Bas-Haut)",
+  "sort_most_filters": "Plus de filtres",
+  "sort_fewest_filters": "Moins de filtres",
   "sort_name_az": "Nom A-Z",
   "sort_name_za": "Nom Z-A",
   "sort_slug_az": "Slug A-Z",

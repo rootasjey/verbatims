@@ -131,6 +131,7 @@
                       :_combobox-trigger="{
                         btn: 'outline-gray',
                         size: 'xs',
+                        trailing: '',
                         class: 'relative !inline-flex !h-6 !min-h-6 !w-6 !min-w-6 !items-center !justify-center !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
                         ariaLabel: $t('filter_by_language', { selected: (selectedLanguage.label || $t('common.all_languages')) as string }) as string,
                       }"
@@ -145,7 +146,17 @@
               </th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_user') }}</th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('common.status') }}</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_published') }}</th>
+              <th class="w-36 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_published') }}</span>
+                  <AdminSortButton
+                    :direction="sortDirectionFor('oldest', 'newest')"
+                    :ascending-label="$t('sort_oldest_first') as string"
+                    :descending-label="$t('sort_most_recent') as string"
+                    @toggle="toggleSort('oldest', 'newest')"
+                  />
+                </div>
+              </th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -501,6 +512,20 @@ const sortOptions = computed(() => [
   { label: $t('sort_most_viewed') as string, value: 'views' }
 ])
 
+const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
+  if (selectedSort.value.value === ascendingValue) return 'asc'
+  if (selectedSort.value.value === descendingValue) return 'desc'
+  return null
+}
+
+const toggleSort = (ascendingValue: string, descendingValue: string) => {
+  const nextValue = selectedSort.value.value === descendingValue ? ascendingValue : descendingValue
+  const option = sortOptions.value.find(item => item.value === nextValue)
+  if (!option) return
+  selectedSort.value = option
+  currentPage.value = 1
+}
+
 const totalPages = computed(() => Math.ceil(totalQuotes.value / pageSize.value))
 
 const filteredQuotes = computed(() => {
@@ -555,7 +580,9 @@ const loadQuotes = async () => {
         page: currentPage.value,
         limit: pageSize.value,
         search: searchQuery.value || undefined,
-        language: selectedLanguage.value.value || undefined
+        language: selectedLanguage.value.value || undefined,
+        sort_by: 'published_at',
+        sort_order: selectedSort.value.value === 'oldest' ? 'ASC' : 'DESC'
       }
     })
 
