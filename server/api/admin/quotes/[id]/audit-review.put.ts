@@ -30,12 +30,28 @@ export default defineEventHandler(async (event) => {
 
   const progress = body.progress as typeof QUOTE_AUDIT_PROGRESS[number]
   const reviewedAt = progress === 'reviewed' ? new Date() : null
+  const existingReview = await db.select({ notes: schema.quoteAuditReviews.notes })
+    .from(schema.quoteAuditReviews)
+    .where(eq(schema.quoteAuditReviews.quoteId, quoteId))
+    .get()
+
+  let notes = body.notes?.trim() || null
+  if (existingReview?.notes) {
+    try {
+      const structured = JSON.parse(existingReview.notes) as Record<string, unknown>
+      if (structured.version === 1 && structured.dimensions) {
+        notes = JSON.stringify({ ...structured, humanNotes: notes })
+      }
+    } catch {
+      // Existing human-written notes remain plain text.
+    }
+  }
 
   await db.insert(schema.quoteAuditReviews).values({
     quoteId,
     progress,
     outcome: (body.outcome ?? null) as typeof QUOTE_AUDIT_OUTCOMES[number] | null,
-    notes: body.notes?.trim() || null,
+    notes,
     reviewedBy: progress === 'reviewed' ? user.id : null,
     reviewedAt,
     updatedAt: new Date(),
@@ -44,12 +60,12 @@ export default defineEventHandler(async (event) => {
     set: {
       progress,
       outcome: (body.outcome ?? null) as typeof QUOTE_AUDIT_OUTCOMES[number] | null,
-      notes: body.notes?.trim() || null,
+      notes,
       reviewedBy: progress === 'reviewed' ? user.id : null,
       reviewedAt,
       updatedAt: new Date(),
     },
   })
 
-  return { success: true }
+  return { success: true, notes }
 })
