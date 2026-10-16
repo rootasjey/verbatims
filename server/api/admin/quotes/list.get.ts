@@ -46,6 +46,10 @@ export default defineEventHandler(async (event) => {
         u.email as user_email,
         u.avatar_url as user_avatar_url,
         m.name as moderator_name,
+        qar.progress as audit_progress,
+        qar.outcome as audit_outcome,
+        qar.notes as audit_notes,
+        qar.reviewed_at as audit_reviewed_at,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
       FROM quotes q
@@ -54,6 +58,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN quote_references r ON qa.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       LEFT JOIN users m ON q.moderator_id = m.id
+      LEFT JOIN quote_audit_reviews qar ON qar.quote_id = q.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
       LEFT JOIN tags t ON qt.tag_id = t.id
       ${whereClause}

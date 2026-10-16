@@ -71,6 +71,10 @@ export function transformAdminQuotes(quotes: DatabaseAdminQuote[]): AdminQuote[]
       user_email: quote.user_email,
       user_avatar_url: quote.user_avatar || quote.user_avatar_url,
       moderator_name: quote.moderator_name,
+      audit_progress: quote.audit_progress || 'pending',
+      audit_outcome: quote.audit_outcome ?? null,
+      audit_notes: quote.audit_notes ?? null,
+      audit_reviewed_at: quote.audit_reviewed_at ?? null,
       // Keep nested structure for proper typing
       user: {
         id: quote.user_id,
