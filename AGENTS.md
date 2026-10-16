@@ -264,7 +264,7 @@ When using `NSelect`, keep `v-model` and `:items` on compatible types.
 
 ### Overlay controls inside sticky or scrolling content
 
-For `NSelect` controls inside sticky or scrollable page content, pass `:_select-content="{ bodyLock: false }"` so opening the list does not alter the document scroll geometry. For `NDropdownMenu` controls in the same context, pass `:modal="false"`; the default modal menu locks outside scrolling and can make sticky content jump. Keep the default modal behavior for menus that intentionally need focus and scroll isolation.
+For `NSelect` controls inside sticky or scrollable page content, pass `:_select-content="{ bodyLock: false }"` so opening the list does not alter the document scroll geometry. For `NDropdownMenu` controls in these areas—including table action menus beneath sticky app bars—pass `:modal="false"`. A modal menu can lock page scrolling or place an overlay above the sticky masthead, making it appear to disappear. Apply this to both header and row menus in a scrolling table. Keep the default modal behavior for menus that intentionally need focus and scroll isolation outside these areas.
 
 ### NTabs items API
 
