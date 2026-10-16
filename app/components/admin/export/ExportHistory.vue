@@ -109,7 +109,7 @@
                 <tr v-for="entry in dataExport.state.exportHistory" :key="entry.id" class="border-b border-gray-100 transition-colors hover:bg-gray-50/80 dark:border-gray-800 dark:hover:bg-gray-900/60">
                   <td class="px-3 py-2">
                     <template v-if="!selectionMode">
-                      <NDropdownMenu :items="getEntryActions(entry)">
+                      <NDropdownMenu :items="getEntryActions(entry)" :modal="false">
                         <OutlinedButton size="sm">
                           <NIcon name="i-ph-dots-three-vertical" />
                         </OutlinedButton>

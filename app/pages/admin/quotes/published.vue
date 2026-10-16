@@ -131,7 +131,7 @@
                       :_combobox-trigger="{
                         btn: 'outline-gray',
                         size: 'xs',
-                        class: 'relative !h-6 !min-h-6 !w-6 !min-w-6 !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
+                        class: 'relative !inline-flex !h-6 !min-h-6 !w-6 !min-w-6 !items-center !justify-center !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
                         ariaLabel: $t('filter_by_language', { selected: (selectedLanguage.label || $t('common.all_languages')) as string }) as string,
                       }"
                     >
@@ -249,7 +249,7 @@
                 {{ formatRelativeTime(quote.moderated_at || quote.created_at) }}
               </td>
               <td class="px-3 py-3">
-                <NDropdownMenu :items="getQuoteActions(quote)">
+                <NDropdownMenu :items="getQuoteActions(quote)" :modal="false">
                   <button
                     @click.stop
                     class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -457,7 +457,7 @@ const onStatusChange = async (quote: AdminQuote, newStatus: { label: string; val
 
 const statusPillClass = (status: string) => {
   switch (status) {
-    case 'approved': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+    case 'approved': return 'text-[#2373F4] dark:text-[#75A7FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15'
     case 'draft': return 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
     default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
   }
