@@ -397,7 +397,7 @@ Transactional email runs on **Cloudflare Email Sending** (Workers binding), not 
 ### Sending (transactional)
 
 - Binding: `send_email` named `EMAIL` in `wrangler.jsonc`. Runtime access follows the app-wide binding pattern: `process.env.EMAIL || globalThis.__env__?.EMAIL || globalThis.EMAIL`.
-- `server/utils/email.ts` exposes a single `sendEmail(event, { to, subject, html, text })` helper plus three wrappers: `sendPasswordResetEmail`, `sendVerificationEmail`, `sendSponsorStatusEmail`.
+- `server/utils/email.ts` exposes a single `sendEmail(event, { to, subject, html, text })` helper plus wrappers for password resets and email verification.
 - From address: `NUXT_EMAIL_FROM_ADDRESS` env (default `Verbatims <noreply@verbatims.cc>`). Any address on the onboarded sending domain is valid.
 - **Dev fallback**: under `nuxt dev` the `EMAIL` binding does not exist, so `sendEmail` logs the email to the console (`📧 [DEV] Email to ...`) instead of sending. There is no dev email provider.
 - Requires the **Workers Paid plan** (3,000 emails/month included). The sending domain `verbatims.cc` is onboarded; SPF/DKIM/DMARC are managed by Cloudflare (DMARC is `p=reject`).

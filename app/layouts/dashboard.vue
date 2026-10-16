@@ -229,7 +229,6 @@ const quoteNavItems = computed(() => [
 ])
 
 const bottomNavItems = computed(() => [
-  { to: '/dashboard/sponsors', label: $t('nav.sponsorships'), icon: 'i-ph-megaphone' },
   { to: '/dashboard/settings', label: $t('nav.settings'), icon: 'i-ph-gear' },
   { to: '/dashboard/developer', label: $t('nav.developer'), icon: 'i-ph-code' },
   ...(user.value?.role === 'admin' ? [{ to: '/admin', label: $t('nav.admin'), icon: 'i-ph-shield-check' }] : []),

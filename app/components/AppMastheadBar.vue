@@ -294,12 +294,6 @@ const navMenuItems = computed((): any[] => [
           showReportDrawer.value = true
         }
       },
-      {
-        label: $t('components.masthead.sponsor'),
-        leading: 'i-ph-megaphone-duotone',
-        description: $t('components.masthead.sponsor_desc'),
-        to: '/sponsor'
-      },
       ...(user.value ? [{
         slot: 'my-space',
         label: $t('components.user_menu.my_space'),

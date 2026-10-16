@@ -17,7 +17,7 @@ The audit found three areas that were defects or operational hazards before this
 
 The app-level export is not a duplicate of Cloudflare D1 export: it is a selective Verbatims data export with app history/backups, while Wrangler's D1 export is database-level SQL. Keep both roles distinct. Keep AI theme suggestions available for now as an optional, reviewed aid; the code does not provide enough usage or quality evidence to justify removing it. The manifest-based API/SDK/CLI path is a more reproducible curation mechanism, but does not itself prove the in-admin AI workflow is unused.
 
-**Product decisions recorded during review:** Harvest and Social are needed and should remain. The Sponsors capability is undecided and is deferred to a future product brainstorming session; do not remove it based on this audit.
+**Product decisions recorded during review:** Harvest and Social are needed and should remain. Sponsors were initially deferred during the audit; on 2026-10-15 the user chose to retire the sponsorship feature. Its UI, payment flow, and runtime APIs are removed. The legacy table was empty in production and local SQLite when checked on 2026-10-16, so its active schema has been removed and migration `0038` drops it; historical migration files remain.
 
 ## Route inventory and recommendation
 
@@ -35,7 +35,7 @@ The app-level export is not a duplicate of Cloudflare D1 export: it is a selecti
 | `/admin/enrichment` | Configure and process author/reference enrichment jobs; inspect and apply proposed changes. | **Keep if enrichment remains part of editorial operations.** | High |
 | `/admin/enrichment-audit` | Audit missing/weak author/reference data and download audit results. | **Keep, but group with Enrichment.** It answers a quality-audit question; the queue applies changes, so these are related rather than duplicates. | High |
 | `/admin/social-queue` | Configure supported social providers, design images, manage queued posts, reorder/retry/run/clear items. | **Keep — user confirmed it is needed.** Consider separating provider configuration from queue operations only if the page becomes hard to navigate. | High |
-| `/admin/sponsors` | Create, schedule, approve and manage sponsor messages shown within the application. | **Defer.** Revisit prominence and keep/remove decision in a future product brainstorming session; do not remove it now. | High |
+| `/admin/sponsors` | Create, schedule, approve and manage sponsor messages shown within the application. | **Retired (2026-10-15).** The user-facing and admin capability was removed; its empty legacy table is removed by migration `0038`. | High |
 | `/admin/messages` | Triage user feedback/reports by status, category and target; bulk status updates. | **Keep — support and moderation inbox.** | High |
 | `/admin/users` | Search accounts, create/update roles and account state, bulk or individual deletion. | **Keep — essential account administration.** Preserve strong admin-only guards for destructive/privileged changes. | High |
 | `/admin/api-keys` | Manage application API keys, permissions, tiers and rate limits. | **Keep if the public API is supported.** This is distinct from user self-service keys by scope; clarify the distinction in navigation/copy. | High |
@@ -80,9 +80,9 @@ Evidence: [`ImportHistory.vue`](../app/components/admin/import/ImportHistory.vue
 
 ### P1 — “Reset database” does not explicitly clear the current schema
 
-The reset handler manually lists 18 tables. The current Drizzle schema defines additional independent tables, including themes/filters/translations, social queue/posts, sponsor messages, API keys/usage, harvest state, enrichment jobs/proposals/history, activity logs, settings, and auth-token tables. Some child tables may be cleared by foreign-key cascades, but the handler does not explicitly cover the full schema and cannot guarantee the UI's stated “all data” semantics. The reset is admin-only, but its confirmation token is a constant embedded in the client, so the real boundary is the authenticated admin role and confirmation UI—not a secret token.
+The reset handler manually lists 18 tables. The current Drizzle schema defines additional independent tables, including themes/filters/translations, social queue/posts, API keys/usage, harvest state, enrichment jobs/proposals/history, activity logs, settings, and auth-token tables. Some child tables may be cleared by foreign-key cascades, but the handler does not explicitly cover the full schema and cannot guarantee the UI's stated “all data” semantics. The reset is admin-only, but its confirmation token is a constant embedded in the client, so the real boundary is the authenticated admin role and confirmation UI—not a secret token.
 
-**Status (2026-10-14): scope and implementation corrected; operation not executed.** Reset clears user accounts, user-owned catalogue records, direct interactions, and entity-enrichment state. It preserves schema/configuration, themes, sponsors, harvest and import/export history, general activity logs, and archived import/export files. Those archives may still contain copies of cleared data, so this is not secure erasure. The endpoint now requires explicit `USER_PASSWORD` configuration before mutation, clears/recreates the admin in one `db.batch`, and does not reset sequences for retained operational tables. The UI warning and confirmation match this limited scope. Do not run it against production as part of this review.
+**Status (2026-10-14): scope and implementation corrected; operation not executed.** Reset clears user accounts, user-owned catalogue records, direct interactions, and entity-enrichment state. It preserves schema/configuration, themes, harvest and import/export history, general activity logs, and archived import/export files. Those archives may still contain copies of cleared data, so this is not secure erasure. The endpoint now requires explicit `USER_PASSWORD` configuration before mutation, clears/recreates the admin in one `db.batch`, and does not reset sequences for retained operational tables. The UI warning and confirmation match this limited scope. Do not run it against production as part of this review.
 
 Evidence: [`reset-database.post.ts`](../server/api/admin/reset-database.post.ts), [`schema.ts`](../server/db/schema.ts), [`maintenance/index.vue`](../app/pages/admin/maintenance/index.vue).
 
@@ -108,7 +108,7 @@ Backup list, statistics, bulk-delete, and expired-cleanup endpoints exist, while
 The sidebar currently spreads related editorial and operational tasks across “Quotes Management,” “Content Management,” “Development,” and “System Management.” A coherent future grouping could be:
 
 1. **Editorial:** Quotes (Drafts/Pending/Published), Authors, References, Tags, Themes.
-2. **Operations:** Harvest, Enrichment (Queue/Audit), Social publishing, Sponsorship messages.
+2. **Operations:** Harvest, Enrichment (Queue/Audit), and Social publishing.
 3. **Administration:** Users, Messages, API & Integrations.
 4. **Data & maintenance:** Import, Export/Backups, and a separately guarded break-glass reset.
 
@@ -118,7 +118,6 @@ Keep individual routes/bookmarks and role checks intact if navigation is reorgan
 
 - **Harvest:** Keep; continue checking source reliability/terms, duplicate rate, accepted quote rate, and last use to improve the workflow.
 - **Social queue:** Keep; review whether provider configuration and queue controls should be separated only if the page complexity warrants it.
-- **Sponsor messages:** Defer the keep/remove and navigation-prominence discussion to a future brainstorming session. Preserve the capability in the meantime.
 - **AI theme generation/suggestions:** Keep optional and human-reviewed. Compare accepted/edited/discarded suggestions and failure rates with manually authored manifest themes before deciding whether to retire it. The existing `/api/v1/themes/apply` + SDK/CLI manifest route is the more deterministic authoring path, but it is complementary until the old workflow is explicitly deprecated.
 - **Orphan admin endpoints:** Search access logs and deployment/SDK scripts before removal. Repository-only absence is not proof of no external caller.
 
@@ -130,16 +129,22 @@ This is a product/functionality audit, not a complete penetration test, authoriz
 
 ## Implementation follow-up — 2026-10-14
 
-- The admin layout now uses the dashboard's centered editorial workspace composition: one page identity, primary section tabs, a contextual second row, and horizontally scrollable navigation on narrow screens. All admin destinations remain available, including Harvest, Social, and Sponsors.
+- The admin layout now uses the dashboard's centered editorial workspace composition: one page identity, primary section tabs, a contextual second row, and horizontally scrollable navigation on narrow screens. All admin destinations remained available at the time of that implementation, including Harvest, Social, and Sponsors.
 - Import history now reflects the actual API contract. Linked file downloads use the API-provided URL; malformed metadata no longer breaks the file list; expired in-memory progress is tolerated.
 - Rollback and retry are not represented as working actions. Import source/report archives are explicitly labeled as non-snapshots.
 - Individual and bulk cleanup are real, bounded server operations. They target finished imports only. R2 files are removed before import logs; a failure leaves the corresponding log available for a later cleanup attempt. Bulk cleanup may therefore be partial and reports the remaining failures.
 - Reset clears user/content tables and their directly tied state only; it preserves operational records and archived export/import files. A configured admin password is required before any destructive statement, and account recreation is part of the same database batch. The reset endpoint was not invoked during this work.
 - Verification status: see the implementation handoff for automated checks and the exact browser routes/viewports inspected. No production data or external deployment was changed.
 
+### Sponsorship retirement — 2026-10-15
+
+- The sponsor bar was no longer mounted, while the `/sponsor` page still offered a paid seven-day placement. The user chose to retire the capability rather than repurpose it as a branded theme.
+- Removed the public purchase/result pages, dashboard and admin screens/navigation, Creem checkout and webhook, sponsor APIs, and sponsor-specific email/configuration/locales.
+- A read-only aggregate check on 2026-10-16 found no `sponsor_messages` rows in production D1 or local SQLite. Removed the table from the active Drizzle and consolidated schemas, and added migration `0038_drop_sponsor_messages.sql`. Historical migration files remain intact. The migration has not been applied to production.
+
 ## Suggested order of work
 
 1. Fix/guard the import-history contract and no-op actions; repair rollback as a separately tested destructive workflow.
 2. Reconcile database reset semantics with the actual schema and make it explicitly break-glass.
-3. Add minimal usage/outcome telemetry or inspect existing operational logs for Harvest, Social, and AI themes; discuss Sponsors separately in a future brainstorming session.
-4. Regroup the sidebar without removing route/API compatibility prematurely; preserve Harvest and Social, and revisit Sponsors only after the product discussion.
+3. Add minimal usage/outcome telemetry or inspect existing operational logs for Harvest, Social, and AI themes.
+4. Regroup the sidebar without removing route/API compatibility prematurely; preserve Harvest and Social.

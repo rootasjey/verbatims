@@ -203,7 +203,6 @@ const groups = computed(() => [
     to: '/dashboard/settings',
     label: String($t('nav.settings')),
     children: [
-      { to: '/dashboard/sponsors', label: String($t('nav.sponsorships')), count: null },
       { to: '/dashboard/developer', label: String($t('nav.developer')), count: null }
     ]
   }

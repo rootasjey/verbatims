@@ -163,6 +163,7 @@ export default defineNuxtConfig({
 
   css: ['@dayflow/blossom-color-picker/styles.css'],
 
+  // Keep this limited to integrations used by active server-side features.
   runtimeConfig: {
     session: {
       name: sessionCookieName,
@@ -232,12 +233,6 @@ export default defineNuxtConfig({
     dataVerificationReviewGraceDays: process.env.NUXT_DATA_VERIFICATION_REVIEW_GRACE_DAYS || '14',
     emailFromAddress: process.env.NUXT_EMAIL_FROM_ADDRESS || 'Verbatims <noreply@verbatims.cc>',
 
-    // Creem (payment processing for sponsored messages)
-    creemApiKey: process.env.NUXT_CREEM_API_KEY || '',
-    creemWebhookSecret: process.env.NUXT_CREEM_WEBHOOK_SECRET || '',
-    creemProductId: process.env.NUXT_CREEM_PRODUCT_ID || '',
-    creemTestMode: process.env.NUXT_CREEM_TEST_MODE || 'true',
-
     // Public keys (exposed to client-side)
     public: {
       sessionCookieName,
@@ -272,6 +267,12 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    '/sponsor': { redirect: { to: '/', statusCode: 301 } },
+    '/sponsor/**': { redirect: { to: '/', statusCode: 301 } },
+    '/dashboard/sponsors': { redirect: { to: '/dashboard', statusCode: 301 } },
+    '/dashboard/sponsors/**': { redirect: { to: '/dashboard', statusCode: 301 } },
+    '/admin/sponsors': { redirect: { to: '/admin', statusCode: 301 } },
+    '/admin/sponsors/**': { redirect: { to: '/admin', statusCode: 301 } },
     '/admin/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
     '/dashboard/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
     '/login': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },

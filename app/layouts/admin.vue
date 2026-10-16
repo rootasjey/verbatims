@@ -61,9 +61,6 @@
                   <button v-if="user" type="button" class="flex min-h-11 items-center gap-3 py-2 text-left text-base text-gray-700 dark:text-gray-300" @click="openMobileAddQuote">
                     <NIcon name="i-ph-quotes-duotone" />{{ $t('nav.add_quote') }}
                   </button>
-                  <NuxtLink to="/sponsor" class="flex min-h-11 items-center gap-3 py-2 text-base text-gray-700 dark:text-gray-300" @click="mobileMenuOpen = false">
-                    <NIcon name="i-ph-megaphone-duotone" />{{ $t('components.masthead.sponsor') }}
-                  </NuxtLink>
                   <NuxtLink v-if="!user" to="/login" class="flex min-h-11 items-center gap-3 py-2 text-base text-gray-700 dark:text-gray-300" @click="mobileMenuOpen = false">
                     <NIcon name="i-ph-sign-in" />{{ $t('nav.sign_in') }}
                   </NuxtLink>
@@ -256,7 +253,6 @@ interface AdminStatsResponse {
     tags?: { total?: number }
     themes?: { total?: number }
     social_queue?: { total?: number }
-    sponsors?: { total?: number }
     messages?: { total?: number }
     api_keys?: { total?: number }
     users?: { total?: number }
@@ -316,7 +312,6 @@ const tagsCount = ref(0)
 const themesCount = ref(0)
 const socialQueueCount = ref(0)
 const usersCount = ref(0)
-const sponsorsCount = ref(0)
 const messagesCount = ref(0)
 const apiKeysCount = ref(0)
 
@@ -370,7 +365,6 @@ const adminNavGroups = computed<AdminNavGroup[]>(() => [
     to: '/admin/users',
     items: [
       { to: '/admin/users', label: String($t('admin.nav.users')), count: usersCount.value },
-      { to: '/admin/sponsors', label: String($t('admin.nav.sponsors')), count: sponsorsCount.value },
       { to: '/admin/messages', label: String($t('admin.nav.messages')), count: messagesCount.value },
       { to: '/admin/api-keys', label: String($t('admin.nav.api_keys')), count: apiKeysCount.value },
     ],
@@ -498,7 +492,6 @@ async function loadQuoteCounts() {
     themesCount.value = stats.data?.themes?.total ?? 0
     socialQueueCount.value = stats.data?.social_queue?.total ?? 0
     usersCount.value = stats.data?.users?.total ?? 0
-    sponsorsCount.value = stats.data?.sponsors?.total ?? 0
     messagesCount.value = stats.data?.messages?.total ?? 0
     apiKeysCount.value = stats.data?.api_keys?.total ?? 0
   } catch (error) {
@@ -529,7 +522,7 @@ watch(() => route.path, () => {
 
 watch(activeGroupId, revealActiveTabs, { flush: 'post' })
 
-watch(() => [activeGroupItems.value.length, pendingCount.value, publishedCount.value, draftCount.value, harvestedCount.value, authorsCount.value, referencesCount.value, tagsCount.value, themesCount.value, socialQueueCount.value, usersCount.value, sponsorsCount.value, messagesCount.value, apiKeysCount.value], async () => {
+watch(() => [activeGroupItems.value.length, pendingCount.value, publishedCount.value, draftCount.value, harvestedCount.value, authorsCount.value, referencesCount.value, tagsCount.value, themesCount.value, socialQueueCount.value, usersCount.value, messagesCount.value, apiKeysCount.value], async () => {
   await revealActiveTabs()
 })
 

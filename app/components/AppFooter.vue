@@ -118,8 +118,8 @@ const isLoggedIn = computed(() => Boolean(user.value))
 
 type RouteLink = { path: string; label: string }
 
-// Collect pages at build/runtime. Vite/NUXT supports eager for static analysis.
-const pageModules = import.meta.glob('../pages/**/*.vue', { eager: true })
+// Collect route paths without eagerly importing each page component.
+const pageModules = import.meta.glob('../pages/**/*.vue')
 
 function normalizePathToRoute(filePath: string): RouteLink | null {
   // Convert file path to route path:
@@ -155,7 +155,7 @@ const notAdmin = (l: RouteLink) => !l.path.startsWith('/admin')
 
 // Curated sections
 const sectionExplore = allLinks
-  .filter(l => ['/', '/authors', '/references', '/sponsor'].includes(l.path))
+  .filter(l => ['/', '/authors', '/references'].includes(l.path))
   .filter(notAdmin)
 
 const sectionContribute = (isLoggedIn.value ? allLinks : [])

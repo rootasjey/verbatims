@@ -9,7 +9,7 @@
   "warning_item_users": "Comptes, sessions, clés API, collections et favoris",
   "warning_item_interactions": "Vues, signalements, messages et publications sociales liés aux citations",
   "warning_item_moderation": "Attributions, propositions d’enrichissement et historique des entités supprimées",
-  "warning_final": "Les journaux et archives d’import/export, l’historique Harvest, les thèmes, sponsors, réglages et journaux d’activité généraux sont conservés. Les archives peuvent encore contenir des copies des données supprimées. USER_PASSWORD doit être configuré pour recréer le compte admin de façon sûre.",
+  "warning_final": "Les journaux et archives d’import/export, l’historique Harvest, les thèmes, les réglages et les journaux d’activité généraux sont conservés. Les archives peuvent encore contenir des copies des données supprimées. USER_PASSWORD doit être configuré pour recréer le compte admin de façon sûre.",
   "button_reset": "Réinitialiser comptes et contenu",
   "dialog_confirm_title": "Confirmer la réinitialisation des comptes et du contenu",
   "dialog_confirm_body": "Vous allez supprimer définitivement les comptes utilisateurs et le contenu du catalogue. Cette action est irréversible.",

@@ -49,7 +49,6 @@
     "drafts": "Drafts",
     "pending": "Pending",
     "published": "Published",
-    "sponsorships": "Sponsorships",
     "more_information": "More information",
     "settings": "Settings",
     "developer": "Developer",
@@ -350,7 +349,6 @@
       "enrichment_audit": "Enrichment Audit",
       "harvest_quotes": "Harvest Quotes",
       "tags": "Tags",
-      "sponsors": "Sponsors",
       "themes": "Themes",
       "development": "Development",
       "api_keys": "API Keys",
@@ -389,7 +387,6 @@
       "social_queue": "Social Queue",
       "social_queue_desc": "Manage social media posting queue",
       "tags": "Tags",
-      "sponsors": "Sponsors",
       "themes": "Themes",
       "api_keys": "API Keys",
       "messages": "Messages"
@@ -416,7 +413,6 @@
       "published_desc": "Your approved and published quotes",
       "settings": "Settings",
       "settings_desc": "Manage your account preferences and settings",
-      "sponsors": "Sponsorships",
       "developer": "Developer"
     }
   },
@@ -628,9 +624,7 @@
   "components": {
     "masthead": {
       "search": "Search (Ctrl/Cmd+K)",
-      "sign_in": "Sign in",
-      "sponsor": "Sponsor a Message",
-      "sponsor_desc": "Promote your brand or message"
+      "sign_in": "Sign in"
     },
     "user_menu": {
       "home": "Home",
@@ -642,11 +636,6 @@
       "settings": "Settings",
       "admin": "Admin Panel",
       "sign_out": "Sign Out"
-    },
-    "sponsor_bar": {
-      "sponsor": "Sponsor a message",
-      "resume": "Resume scrolling",
-      "pause": "Pause scrolling"
     },
     "featured_quote": {
       "unknown_author": "Unknown Author",
@@ -817,20 +806,17 @@
       "add_tag": "Add Tag",
       "add_user": "Create User",
       "add_collection": "Add to Collection",
-      "add_sponsor": "Create Sponsor Message",
       "edit_author": "Edit Author",
       "edit_quote": "Edit Quote",
       "edit_reference": "Edit Reference",
       "edit_tag": "Edit Tag",
       "edit_collection": "Edit Collection",
-      "edit_sponsor": "Edit Sponsor Message",
       "delete_author": "Delete Author",
       "delete_quote": "Delete Quote",
       "delete_draft": "Delete Draft",
       "delete_reference": "Delete Reference",
       "delete_tag": "Delete Tag",
       "delete_user": "Delete User",
-      "delete_sponsor": "Delete Sponsor Message",
       "delete_collection": "Delete Collection",
       "confirm_delete": "Are you sure?",
       "confirm_delete_desc": "This action cannot be undone.",

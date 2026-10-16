@@ -613,33 +613,6 @@ export const themeTranslations = sqliteTable('theme_translations', {
   uniqueThemeLang: uniqueIndex('idx_theme_translations_unique').on(table.themeId, table.language),
 }))
 
-export const sponsorMessages = sqliteTable('sponsor_messages', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  message: text('message').notNull(),
-  leadingIcon: text('leading_icon'),
-  trailingIcon: text('trailing_icon'),
-  url: text('url'),
-  type: text('type', { enum: ['internal', 'sponsored'] }).notNull().default('internal'),
-  status: text('status', { enum: ['pending', 'approved', 'rejected'] }).notNull().default('pending'),
-  rejectionReason: text('rejection_reason'),
-  priority: integer('priority').notNull().default(0),
-  startsAt: text('starts_at'),
-  endsAt: text('ends_at'),
-  maxViews: integer('max_views'),
-  viewsCount: integer('views_count').default(0),
-  clicksCount: integer('clicks_count').default(0),
-  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
-  paid: integer('paid', { mode: 'boolean' }).default(false),
-  paymentRef: text('payment_ref'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-}, (table) => ({
-  statusIdx: index('idx_sponsor_messages_status').on(table.status),
-  priorityIdx: index('idx_sponsor_messages_priority').on(table.priority),
-  datesIdx: index('idx_sponsor_messages_dates').on(table.startsAt, table.endsAt),
-  typeIdx: index('idx_sponsor_messages_type').on(table.type),
-}))
-
 export const apiKeys = sqliteTable('api_keys', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),

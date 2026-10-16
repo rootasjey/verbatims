@@ -93,7 +93,6 @@ export async function sendPasswordResetEmail(event: H3Event, toEmail: string, to
     text: `Reset your Verbatims password.\n\nWe received a request to reset the password for your Verbatims account (${toEmail}).\n\nClick the link below to choose a new password:\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
   })
 }
-
 export async function sendVerificationEmail(event: H3Event, toEmail: string, token: string): Promise<void> {
   const origin = resolveAppOrigin(event)
   const verifyUrl = `${origin}/verify-email?token=${token}`
@@ -122,7 +121,6 @@ export async function sendVerificationEmail(event: H3Event, toEmail: string, tok
     text: `Verify your Verbatims email.\n\nClick the link below to verify your email address:\n${verifyUrl}\n\nThis link expires in 24 hours. If you didn't create an account, you can safely ignore this email.`,
   })
 }
-
 export async function sendEmailChangeVerificationEmail(event: H3Event, toEmail: string, token: string): Promise<void> {
   const origin = resolveAppOrigin(event)
   const confirmationUrl = `${origin}/verify-email-change?token=${encodeURIComponent(token)}`
@@ -142,68 +140,4 @@ export async function sendEmailChangeVerificationEmail(event: H3Event, toEmail: 
     `,
     text: `Confirm your new Verbatims email address. Your current email will remain unchanged until you confirm this request.\n\nConfirm it here: ${confirmationUrl}\n\nThis link expires in one hour and can only be used once. If you did not request this change, you can ignore this email.`,
   })
-}
-
-export async function sendSponsorStatusEmail(
-  event: H3Event,
-  toEmail: string,
-  messageText: string,
-  status: 'approved' | 'rejected',
-  reason?: string | null,
-  startsAt?: string | null,
-): Promise<void> {
-  const origin = resolveAppOrigin(event)
-  const dashboardUrl = `${origin}/dashboard/sponsors`
-
-  const isScheduled = status === 'approved' && startsAt && new Date(startsAt) > new Date()
-
-  const subject = status === 'approved'
-    ? isScheduled
-      ? 'Your sponsored message has been approved on Verbatims'
-      : 'Your sponsored message is now live on Verbatims'
-    : 'Your sponsored message was not approved'
-
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-
-  const bodyHtml = status === 'approved'
-    ? isScheduled
-      ? `
-      <p style="color: #374151; margin-bottom: 16px;">Your sponsored message has been approved and will go live on <strong>${formatDate(startsAt!)}</strong>.</p>
-      <blockquote style="border-left: 3px solid #3C82F6; margin: 16px 0; padding: 8px 16px; color: #374151; font-style: italic;">${messageText}</blockquote>`
-      : `
-      <p style="color: #374151; margin-bottom: 16px;">Your sponsored message is now live and visible on Verbatims.</p>
-      <blockquote style="border-left: 3px solid #3C82F6; margin: 16px 0; padding: 8px 16px; color: #374151; font-style: italic;">${messageText}</blockquote>`
-    : `
-      <p style="color: #374151; margin-bottom: 16px;">Your sponsored message was reviewed and not approved.</p>
-      ${reason ? `<p style="color: #6B7280; margin-bottom: 16px;"><strong>Reason:</strong> ${reason}</p>` : ''}
-      <blockquote style="border-left: 3px solid #EF4444; margin: 16px 0; padding: 8px 16px; color: #374151; font-style: italic;">${messageText}</blockquote>
-      <p style="color: #6B7280; font-size: 14px;">You can edit your message and resubmit it from your dashboard.</p>`
-
-  const textBody = status === 'approved'
-    ? isScheduled
-      ? `Your sponsored message has been approved and will go live on ${formatDate(startsAt!)}.\n\n"${messageText}"\n\nView in dashboard: ${dashboardUrl}`
-      : `Your sponsored message is now live and visible on Verbatims.\n\n"${messageText}"\n\nView in dashboard: ${dashboardUrl}`
-    : `Your sponsored message was reviewed and not approved.\n${reason ? `Reason: ${reason}\n` : ''}\n"${messageText}"\n\nView in dashboard: ${dashboardUrl}`
-
-  try {
-    await sendEmail(event, {
-      to: toEmail,
-      subject,
-      html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px;">
-        <h2 style="color: #111827; margin-bottom: 16px;">${subject}</h2>
-        ${bodyHtml}
-        <a href="${dashboardUrl}" style="display: inline-block; background-color: #3C82F6; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 8px;">
-          View in Dashboard
-        </a>
-        <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 24px 0;" />
-        <p style="color: #9CA3AF; font-size: 12px;">Verbatims &mdash; Modern Quotes Service</p>
-      </div>
-    `,
-      text: textBody,
-    })
-  } catch (error) {
-    console.error('Failed to send sponsor status email:', error)
-  }
 }

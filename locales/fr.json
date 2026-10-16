@@ -49,7 +49,6 @@
     "drafts": "Brouillons",
     "pending": "En attente",
     "published": "Publiées",
-    "sponsorships": "Sponsoring",
     "more_information": "Informations complémentaires",
     "settings": "Paramètres",
     "developer": "Développeur",
@@ -350,7 +349,6 @@
       "enrichment_audit": "Audit d'enrichissement",
       "harvest_quotes": "Récolter des citations",
       "tags": "Tags",
-      "sponsors": "Sponsors",
       "themes": "Thèmes",
       "development": "Développement",
       "api_keys": "Clés API",
@@ -389,7 +387,6 @@
       "social_queue": "File d'attente sociale",
       "social_queue_desc": "Gérer la file d'attente de publication sur les réseaux sociaux",
       "tags": "Tags",
-      "sponsors": "Sponsors",
       "themes": "Thèmes",
       "api_keys": "Clés API",
       "messages": "Messages"
@@ -416,7 +413,6 @@
       "published_desc": "Vos citations approuvées et publiées",
       "settings": "Paramètres",
       "settings_desc": "Gérer vos préférences et paramètres de compte",
-      "sponsors": "Sponsoring",
       "developer": "Développeur"
     }
   },
@@ -651,9 +647,7 @@
   "components": {
     "masthead": {
       "search": "Rechercher (Ctrl/Cmd+K)",
-      "sign_in": "Se connecter",
-      "sponsor": "Sponsoriser un message",
-      "sponsor_desc": "Promouvez votre marque ou message"
+      "sign_in": "Se connecter"
     },
     "user_menu": {
       "home": "Accueil",
@@ -665,11 +659,6 @@
       "settings": "Paramètres",
       "admin": "Panneau d'administration",
       "sign_out": "Déconnexion"
-    },
-    "sponsor_bar": {
-      "sponsor": "Sponsoriser un message",
-      "resume": "Reprendre le défilement",
-      "pause": "Pause"
     },
     "featured_quote": {
       "unknown_author": "Auteur inconnu",
@@ -840,20 +829,17 @@
       "add_tag": "Ajouter un tag",
       "add_user": "Créer un utilisateur",
       "add_collection": "Ajouter à une collection",
-      "add_sponsor": "Créer un message sponsorisé",
       "edit_author": "Modifier l'auteur",
       "edit_quote": "Modifier la citation",
       "edit_reference": "Modifier la référence",
       "edit_tag": "Modifier le tag",
       "edit_collection": "Modifier la collection",
-      "edit_sponsor": "Modifier le message sponsorisé",
       "delete_author": "Supprimer l'auteur",
       "delete_quote": "Supprimer la citation",
       "delete_draft": "Supprimer le brouillon",
       "delete_reference": "Supprimer la référence",
       "delete_tag": "Supprimer le tag",
       "delete_user": "Supprimer l'utilisateur",
-      "delete_sponsor": "Supprimer le message sponsorisé",
       "delete_collection": "Supprimer la collection",
       "confirm_delete": "Êtes-vous sûr ?",
       "confirm_delete_desc": "Cette action est irréversible.",
