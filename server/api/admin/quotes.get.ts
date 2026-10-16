@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     const search = (query.search as string || '').trim()
     const status = (query.status as string || 'approved').trim()
     const language = (query.language as string || '').trim()
+    const auditProgress = (query.audit_progress as string || '').trim()
     const sortBy = query.sort_by === 'published_at' || query.sort_by === 'created_at' ? query.sort_by : undefined
     const sortDirection = String(query.sort_order || '').toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
     const orderBy = sortBy === 'created_at'
@@ -29,6 +30,10 @@ export default defineEventHandler(async (event) => {
     
     if (language) {
       conditions.push(sql`q.language = ${language}`)
+    }
+
+    if (['pending', 'in_progress', 'awaiting_review', 'reviewed'].includes(auditProgress)) {
+      conditions.push(sql`COALESCE((SELECT progress FROM quote_audit_reviews qar_filter WHERE qar_filter.quote_id = q.id), 'pending') = ${auditProgress}`)
     }
     
     const whereClause = conditions.length > 0
@@ -49,6 +54,10 @@ export default defineEventHandler(async (event) => {
         u.email as user_email,
         u.avatar_url as user_avatar,
         m.name as moderator_name,
+        qar.progress as audit_progress,
+        qar.outcome as audit_outcome,
+        qar.notes as audit_notes,
+        qar.reviewed_at as audit_reviewed_at,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
       FROM quotes q
@@ -57,6 +66,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN quote_references r ON qa.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       LEFT JOIN users m ON q.moderator_id = m.id
+      LEFT JOIN quote_audit_reviews qar ON qar.quote_id = q.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
       LEFT JOIN tags t ON qt.tag_id = t.id
       ${whereClause}

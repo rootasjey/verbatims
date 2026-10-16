@@ -293,6 +293,19 @@ export const quoteSources = sqliteTable('quote_sources', {
   statusIdx: index('idx_quote_sources_status').on(table.verificationStatus),
 }))
 
+export const quoteAuditReviews = sqliteTable('quote_audit_reviews', {
+  quoteId: integer('quote_id').primaryKey().references(() => quotes.id, { onDelete: 'cascade' }),
+  progress: text('progress', { enum: ['pending', 'in_progress', 'awaiting_review', 'reviewed'] }).notNull().default('pending'),
+  outcome: text('outcome', { enum: ['source_candidate_found', 'possible_misattribution', 'primary_source_confirmed', 'no_primary_source_found', 'disputed', 'inconclusive'] }),
+  notes: text('notes'),
+  reviewedBy: integer('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+  reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  progressIdx: index('idx_quote_audit_reviews_progress').on(table.progress),
+  outcomeIdx: index('idx_quote_audit_reviews_outcome').on(table.outcome),
+}))
+
 export const userLikes = sqliteTable('user_likes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),

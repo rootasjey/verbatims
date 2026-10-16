@@ -29,6 +29,9 @@
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
+          <NCombobox v-model="selectedAuditProgress" :items="auditProgressFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[200px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
         </div>
       </div>
       <!-- Mobile search -->
@@ -78,6 +81,9 @@
               <span class="text-xs leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
             </template>
           </NCombobox>
+          <NCombobox v-model="selectedAuditProgress" :items="auditProgressFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[200px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
+            <template #trigger="{ modelValue }"><span class="text-xs leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
         </div>
       </div>
     </div>
@@ -104,7 +110,7 @@
     <!-- Table -->
     <div v-else-if="hasLoadedOnce">
       <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto">
-        <table class="w-full min-w-[760px]">
+        <table class="w-full min-w-[900px]">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left">
@@ -146,6 +152,7 @@
               </th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_user') }}</th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('common.status') }}</th>
+              <th class="w-40 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('audit_column') }}</th>
               <th class="w-36 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="inline-flex items-center gap-1">
                   <span>{{ $t('col_published') }}</span>
@@ -261,6 +268,16 @@
                   </template>
                 </NCombobox>
               </td>
+              <td class="px-3 py-3">
+                <button
+                  class="flex max-w-40 flex-col items-start gap-0.5 rounded-md px-2 py-1 text-left transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:hover:bg-white/10"
+                  :aria-label="$t('audit_edit', { quote: quote.name }) as string"
+                  @click="openAuditReview(quote)"
+                >
+                  <span class="text-xs font-medium text-gray-800 dark:text-gray-200">{{ auditProgressLabel(quote.audit_progress) }}</span>
+                  <span class="max-w-full truncate text-[11px] text-gray-500 dark:text-gray-400">{{ auditOutcomeLabel(quote.audit_outcome) }}</span>
+                </button>
+              </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">
                 {{ formatRelativeTime(quote.moderated_at || quote.created_at) }}
               </td>
@@ -375,6 +392,45 @@
       </NDialog>
     </ClientOnly>
 
+    <ClientOnly>
+      <NDialog v-model:open="showAuditDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-xl' }">
+        <template #header>
+          <h3 class="font-serif text-xl font-400 text-gray-900 dark:text-gray-100">{{ $t('audit_title') }}</h3>
+        </template>
+        <p v-if="auditQuote" class="mb-5 line-clamp-3 font-body text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+          “{{ auditQuote.name }}”
+          <span v-if="auditQuote.author?.name" class="block pt-1 font-sans text-xs text-gray-500">{{ auditQuote.author.name }}<template v-if="auditQuote.reference?.name"> · {{ auditQuote.reference.name }}</template></span>
+        </p>
+        <div class="space-y-4">
+          <label class="block space-y-1.5">
+            <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_progress_label') }}</span>
+            <select v-model="auditDraft.progress" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
+              <option v-for="option in auditProgressOptions" :key="option.value" :value="option.value">{{ $t(option.labelKey) }}</option>
+            </select>
+          </label>
+          <label class="block space-y-1.5">
+            <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_outcome_label') }}</span>
+            <select v-model="auditDraft.outcome" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
+              <option value="">{{ $t('audit_outcome_none') }}</option>
+              <option v-for="option in auditOutcomeOptions" :key="option.value" :value="option.value">{{ $t(option.labelKey) }}</option>
+            </select>
+            <span class="block text-[11px] text-gray-500 dark:text-gray-400">{{ $t('audit_outcome_hint') }}</span>
+          </label>
+          <label class="block space-y-1.5">
+            <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_notes_label') }}</span>
+            <textarea v-model="auditDraft.notes" rows="4" maxlength="5000" class="w-full resize-y rounded-md border border-gray-300 bg-white px-3 py-2 font-sans text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100" :placeholder="$t('audit_notes_placeholder') as string" />
+          </label>
+          <p v-if="auditQuote?.audit_reviewed_at" class="text-[11px] text-gray-500 dark:text-gray-400">{{ $t('audit_last_reviewed', { date: formatRelativeTime(auditQuote.audit_reviewed_at) }) }}</p>
+        </div>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <NButton btn="ghost-gray" size="sm" @click="showAuditDialog = false">{{ $t('common.cancel') }}</NButton>
+            <NButton btn="solid-primary" size="sm" :disabled="savingAudit" @click="saveAuditReview">{{ savingAudit ? $t('audit_saving') : $t('common.save') }}</NButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
+
     <PageJumpDialog
       v-model="showPageJumpDialog"
       :total-pages="totalPages"
@@ -385,6 +441,7 @@
 
 <script setup lang="ts">
 import type { QuoteLanguage } from '~/types'
+import type { QuoteAuditOutcome, QuoteAuditProgress } from '#shared/constants/quote-audit'
 import type { LanguageOption } from '~/stores/language'
 import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
@@ -422,6 +479,11 @@ const languageOptions = computed(() =>
 )
 
 const selectedLanguage = ref({ label: $t('common.all_languages') as string, value: '' })
+const selectedAuditProgress = ref({ label: $t('audit_filter_all') as string, value: '' })
+const auditProgressFilterOptions = computed(() => [
+  { label: $t('audit_filter_all') as string, value: '' },
+  ...auditProgressOptions.map(option => ({ label: $t(option.labelKey) as string, value: option.value })),
+])
 
 const inlineLanguageOptions = computed(() =>
   languageStore.availableLanguages
@@ -495,6 +557,68 @@ const selectedQuotesData = computed<AdminQuote[]>(() =>
 const showBulkAddToCollection = ref(false)
 const showBulkEditDialog = ref(false)
 const showBulkUnpublishModal = ref(false)
+const showAuditDialog = ref(false)
+const savingAudit = ref(false)
+const auditQuote = ref<AdminQuote | null>(null)
+const auditDraft = reactive<{ progress: QuoteAuditProgress; outcome: QuoteAuditOutcome | ''; notes: string }>({
+  progress: 'pending',
+  outcome: '',
+  notes: '',
+})
+
+const auditProgressOptions = [
+  { value: 'pending', labelKey: 'audit_progress_pending' },
+  { value: 'in_progress', labelKey: 'audit_progress_in_progress' },
+  { value: 'awaiting_review', labelKey: 'audit_progress_awaiting_review' },
+  { value: 'reviewed', labelKey: 'audit_progress_reviewed' },
+] as const satisfies ReadonlyArray<{ value: QuoteAuditProgress; labelKey: string }>
+
+const auditOutcomeOptions = [
+  { value: 'source_candidate_found', labelKey: 'audit_outcome_source_candidate_found' },
+  { value: 'possible_misattribution', labelKey: 'audit_outcome_possible_misattribution' },
+  { value: 'primary_source_confirmed', labelKey: 'audit_outcome_primary_source_confirmed' },
+  { value: 'no_primary_source_found', labelKey: 'audit_outcome_no_primary_source_found' },
+  { value: 'disputed', labelKey: 'audit_outcome_disputed' },
+  { value: 'inconclusive', labelKey: 'audit_outcome_inconclusive' },
+] as const satisfies ReadonlyArray<{ value: QuoteAuditOutcome; labelKey: string }>
+
+const auditProgressLabel = (progress?: QuoteAuditProgress) => {
+  const option = auditProgressOptions.find(item => item.value === (progress || 'pending'))
+  return option ? $t(option.labelKey) : $t('audit_progress_pending')
+}
+
+const auditOutcomeLabel = (outcome?: QuoteAuditOutcome | null) => {
+  const option = auditOutcomeOptions.find(item => item.value === outcome)
+  return option ? $t(option.labelKey) : $t('audit_outcome_none')
+}
+
+const openAuditReview = (quote: AdminQuote) => {
+  auditQuote.value = quote
+  auditDraft.progress = quote.audit_progress || 'pending'
+  auditDraft.outcome = quote.audit_outcome || ''
+  auditDraft.notes = quote.audit_notes || ''
+  showAuditDialog.value = true
+}
+
+const saveAuditReview = async () => {
+  if (!auditQuote.value) return
+  savingAudit.value = true
+  try {
+    await $fetch(`/api/admin/quotes/${auditQuote.value.id}/audit-review`, {
+      method: 'PUT',
+      body: { ...auditDraft, outcome: auditDraft.outcome || null },
+    })
+    auditQuote.value.audit_progress = auditDraft.progress
+    auditQuote.value.audit_outcome = auditDraft.outcome || null
+    auditQuote.value.audit_notes = auditDraft.notes.trim() || null
+    auditQuote.value.audit_reviewed_at = auditDraft.progress === 'reviewed' ? new Date().toISOString() : null
+    showAuditDialog.value = false
+  } catch (error) {
+    showErrorToast(error, $t('audit_save_error') as string)
+  } finally {
+    savingAudit.value = false
+  }
+}
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
@@ -587,6 +711,7 @@ const loadQuotes = async () => {
         limit: pageSize.value,
         search: searchQuery.value || undefined,
         language: selectedLanguage.value.value || undefined,
+        audit_progress: selectedAuditProgress.value.value || undefined,
         sort_by: 'published_at',
         sort_order: selectedSort.value.value === 'oldest' ? 'ASC' : 'DESC'
       }
@@ -610,6 +735,7 @@ const loadQuotes = async () => {
 const resetFilters = () => {
   searchQuery.value = ''
   selectedLanguage.value = languageOptions.value[0] ?? { label: $t('common.all_languages') as string, value: '' }
+  selectedAuditProgress.value = auditProgressFilterOptions.value[0]!
   selectedSort.value = sortOptions.value[0]!
   currentPage.value = 1
   rowSelection.value = {}
@@ -726,7 +852,7 @@ const selectAllOnPage = () => {
 
 const isAnyDialogOpen = computed(() =>
   showEditQuoteDialog.value || showBulkAddToCollection.value ||
-  showBulkEditDialog.value || showBulkUnpublishModal.value ||
+  showBulkEditDialog.value || showBulkUnpublishModal.value || showAuditDialog.value ||
   showPageJumpDialog.value
 )
 
@@ -878,7 +1004,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateFooterPosition)
 })
 
-watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () => {
+watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort, selectedAuditProgress], () => {
   loadQuotes()
 }, { debounce: 300, immediate: true })
 </script>

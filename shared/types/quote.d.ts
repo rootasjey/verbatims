@@ -121,6 +121,10 @@ export interface QuoteSource {
  * Extended interface for admin quotes with additional fields
  */
 export interface AdminQuote extends QuoteWithRelations {
+  audit_progress?: import('../constants/quote-audit').QuoteAuditProgress
+  audit_outcome?: import('../constants/quote-audit').QuoteAuditOutcome | null
+  audit_notes?: string | null
+  audit_reviewed_at?: string | null
   author?: Partial<Author>;
   reference?: Partial<QuoteReference>;
   moderator: {
@@ -243,6 +247,10 @@ export interface DatabaseQuoteWithRelations extends Quote {
  */
 export interface DatabaseAdminQuote extends DatabaseQuoteWithRelations {
   moderator_name?: string | null;
+  audit_progress?: import('../constants/quote-audit').QuoteAuditProgress | null
+  audit_outcome?: import('../constants/quote-audit').QuoteAuditOutcome | null
+  audit_notes?: string | null
+  audit_reviewed_at?: string | null
 }
 
 /**
