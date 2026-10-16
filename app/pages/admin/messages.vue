@@ -112,16 +112,23 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(msg, idx) in messages" :key="msg.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[msg.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+            <ContextMenu
+              v-for="(msg, idx) in messages"
+              :key="msg.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="rowActions(msg)"
+            >
+            <tr :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[msg.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
               <td class="px-3 py-3">
                 <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
                   <NCheckbox checkbox="gray" :model-value="!!rowSelection[msg.id]" @click="handleRowCheckboxClick($event, idx, msg.id)" />
                 </div>
               </td>
               <td class="px-3 py-3 max-w-xl">
-                <ContextMenu size="xs" native-on-modifier="ctrl" :items="rowActions(msg)">
-                  <div class="font-serif text-base leading-snug text-gray-900 dark:text-gray-100 whitespace-pre-wrap line-clamp-3">{{ truncate(msg.message, 420) }}</div>
-                </ContextMenu>
+                <div class="font-serif text-base leading-snug text-gray-900 dark:text-gray-100 whitespace-pre-wrap line-clamp-3">{{ truncate(msg.message, 420) }}</div>
                 <div class="mt-3 flex min-w-0 items-center gap-2.5 border-t border-gray-100 pt-2.5 dark:border-gray-800">
                   <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 dark:border-gray-700 dark:bg-white/[0.06] dark:text-gray-400" aria-hidden="true">
                     <NIcon name="i-lucide-user-round" class="h-3.5 w-3.5" />
@@ -159,6 +166,7 @@
                 </NDropdownMenu>
               </td>
             </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>
@@ -335,7 +343,7 @@ const statusPillClass = (status: string) => {
   switch (status) {
     case 'new': return 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
     case 'triaged': return 'text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
-    case 'resolved': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+    case 'resolved': return 'text-[#2373F4] dark:text-[#8AB5FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15'
     case 'spam': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
     default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
   }
@@ -355,7 +363,7 @@ const getMessageStatusTriggerProps = (status: string) => ({
   btn: 'ghost-gray',
   size: 'xs',
   trailing: '',
-  class: `gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start ${statusPillClass(status)}`,
+  class: `gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium w-full min-w-0 h-auto justify-start ${statusPillClass(status)}`,
 })
 
 const onMessageStatusChange = async (msg: any, newStatus: { label: string; value: string } | null) => {

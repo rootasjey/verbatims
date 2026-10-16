@@ -158,11 +158,18 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(job, idx) in jobs" :key="job.id" class="animate-fade-in-up transition-colors group" :style="{ animationDelay: `${idx * 0.03}s` }">
+            <ContextMenu
+              v-for="(job, idx) in jobs"
+              :key="job.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="rowActionItems(job)"
+            >
+            <tr class="animate-fade-in-up transition-colors group" :style="{ animationDelay: `${idx * 0.03}s` }">
               <td class="px-3 py-3">
-                <ContextMenu size="xs" native-on-modifier="ctrl" :items="rowActionItems(job)">
-                  <p class="font-sans text-sm text-gray-900 dark:text-gray-100 cursor-pointer transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" :title="job.entityName" @click="openJob(job)">{{ job.entityName }}</p>
-                </ContextMenu>
+                <p class="font-sans text-sm text-gray-900 dark:text-gray-100 cursor-pointer transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" :title="job.entityName" @click="openJob(job)">{{ job.entityName }}</p>
                 <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ job.entityType }} #{{ job.entityId }}</p>
               </td>
               <td class="px-3 py-3"><span class="font-sans text-xs px-1.5 py-0.5" :class="statusPillClass(job.status)">{{ job.status }}</span></td>
@@ -179,6 +186,7 @@
                 </NDropdownMenu>
               </td>
             </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>

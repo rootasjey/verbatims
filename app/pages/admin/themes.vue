@@ -106,7 +106,16 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(theme, idx) in themes" :key="theme.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-gray-100 dark:bg-gray-800/70': !!rowSelection[theme.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+            <ContextMenu
+              v-for="(theme, idx) in themes"
+              :key="theme.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="getThemeActions(theme)"
+            >
+            <tr :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-gray-100 dark:bg-gray-800/70': !!rowSelection[theme.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
               <td class="px-3 py-3">
                 <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
                   <NCheckbox checkbox="gray" :model-value="!!rowSelection[theme.id]" @click="rowSelection[theme.id] = !rowSelection[theme.id]" />
@@ -114,9 +123,7 @@
               </td>
               <td class="px-3 py-3">
                 <div class="min-w-0">
-                  <ContextMenu size="xs" native-on-modifier="ctrl" :items="getThemeActions(theme)">
-                    <div class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer" @click="openEdit(theme)">{{ theme.name }}</div>
-                  </ContextMenu>
+                  <div class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer" @click="openEdit(theme)">{{ theme.name }}</div>
                   <a
                     :href="`/?theme=${theme.slug}`"
                     target="_blank"
@@ -163,6 +170,7 @@
                 </NDropdownMenu>
               </td>
             </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>

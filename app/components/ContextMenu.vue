@@ -1,6 +1,15 @@
 <template>
   <ContextMenuRoot :modal="false">
-    <div :class="wrapperClass" @contextmenu.capture="onCapture" @contextmenu.stop>
+    <ContextMenuTrigger
+      v-if="asChild"
+      as-child
+      data-context-menu-scope
+      @contextmenu.capture="onCapture"
+      @contextmenu.stop
+    >
+      <slot />
+    </ContextMenuTrigger>
+    <div v-else data-context-menu-scope :class="wrapperClass" @contextmenu.capture="onCapture" @contextmenu.stop>
       <ContextMenuTrigger :as="triggerAs">
         <slot />
       </ContextMenuTrigger>
@@ -152,6 +161,7 @@ interface Props {
   contentClass?: string
   wrapperClass?: string
   triggerAs?: 'span' | 'div'
+  asChild?: boolean
   ignoreInteractiveTargets?: boolean
 }
 
@@ -162,14 +172,20 @@ const props = withDefaults(defineProps<Props>(), {
   contentClass: '',
   wrapperClass: '',
   triggerAs: 'span',
+  asChild: false,
   ignoreInteractiveTargets: false
 })
 
 const onCapture = (e: MouseEvent) => {
+  if (e.target instanceof Element) {
+    const contextMenuScope = e.target.closest('[data-context-menu-scope]')
+    if (contextMenuScope && contextMenuScope !== e.currentTarget) return
+  }
+
   if (
     props.ignoreInteractiveTargets
     && e.target instanceof Element
-    && e.target.closest('button, input, select, textarea, a, [role="button"], [role="checkbox"], [contenteditable="true"]')
+    && e.target.closest('button, input, select, textarea, a, [role="button"], [role="checkbox"], [role="combobox"], [contenteditable="true"], [data-context-menu-ignore]')
   ) {
     e.stopPropagation()
     return

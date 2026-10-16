@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, or, count, sum, sql, desc, like } from 'drizzle-orm'
+import { eq, and, or, count, sql, asc, desc, like } from 'drizzle-orm'
 
 export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> => {
   try {
@@ -21,6 +21,16 @@ async function handleAdminUsersList(event: any): Promise<AdminUsersApiResponse> 
     const search = query.search as string || ''
     const role = query.role as string
     const status = query.status as string
+    const sortBy = query.sort_by as string || 'created_at'
+    const sortOrder = String(query.sort_order || '').toUpperCase() === 'ASC' ? asc : desc
+
+    const sortColumnMap = {
+      quote_count: sql.raw('quote_count'),
+      collection_count: sql.raw('collection_count'),
+      created_at: schema.users.createdAt,
+      last_login_at: schema.users.lastLoginAt,
+    }
+    const sortColumn = sortColumnMap[sortBy as keyof typeof sortColumnMap] || schema.users.createdAt
     
     // Build WHERE conditions
     const conditions = []
@@ -51,7 +61,6 @@ async function handleAdminUsersList(event: any): Promise<AdminUsersApiResponse> 
       id: schema.users.id,
       email: schema.users.email,
       name: schema.users.name,
-      password: schema.users.password,
       avatarUrl: schema.users.avatarUrl,
       role: schema.users.role,
       isActive: schema.users.isActive,
@@ -76,7 +85,7 @@ async function handleAdminUsersList(event: any): Promise<AdminUsersApiResponse> 
     .leftJoin(schema.userLikes, eq(schema.users.id, schema.userLikes.userId))
     .where(whereCondition)
     .groupBy(schema.users.id)
-    .orderBy(desc(schema.users.createdAt))
+    .orderBy(sortOrder(sortColumn), asc(schema.users.id))
     .limit(limit)
     .offset(offset)
     
@@ -90,16 +99,28 @@ async function handleAdminUsersList(event: any): Promise<AdminUsersApiResponse> 
     const hasMore = offset + userCount < total
     
     // Remove sensitive information for non-admin users
-    const processedUsers: AdminUser[] = usersResult.map((user: any) => {
-      const userData: any = { ...user }
-      
-      // Only admins can see email addresses
-      if (user.role !== 'admin') {
-        delete userData.email
-      }
-      
-      return userData
-    })
+    const processedUsers: AdminUser[] = usersResult.map((user: any) => ({
+      id: user.id,
+      name: user.name,
+      ...(user.role === 'admin' && user.email ? { email: user.email } : {}),
+      avatar_url: user.avatarUrl,
+      role: user.role,
+      is_active: user.isActive,
+      email_verified: user.emailVerified,
+      biography: user.biography,
+      job: user.job,
+      language: user.language,
+      location: user.location,
+      socials: user.socials,
+      created_at: user.createdAt,
+      updated_at: user.updatedAt,
+      last_login_at: user.lastLoginAt ?? undefined,
+      quote_count: user.quote_count,
+      approved_quotes: user.approved_quotes,
+      collection_count: user.collection_count,
+      likes_given: user.likes_given,
+      total_likes_received: user.total_likes_received,
+    }))
     
     return {
       success: true,

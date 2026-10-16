@@ -93,7 +93,16 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(tag, idx) in tags" :key="tag.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[tag.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+            <ContextMenu
+              v-for="(tag, idx) in tags"
+              :key="tag.id"
+              as-child
+              ignore-interactive-targets
+              size="xs"
+              native-on-modifier="ctrl"
+              :items="getTagActions(tag)"
+            >
+            <tr :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[tag.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
               <td class="px-3 py-3">
                 <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
                   <NCheckbox checkbox="gray" :model-value="!!rowSelection[tag.id]" @click="handleRowCheckboxClick($event, idx, tag.id)" />
@@ -101,13 +110,13 @@
               </td>
               <td class="px-3 py-3">
                 <div class="flex items-center gap-2 min-w-0">
-                  <BlossomColorPicker :value="hexToBlossomValue(tag.color)" @change="(color) => updateTagColor(tag, color)" :colors="BLOSSOM_PALETTE" :show-alpha-slider="false" :core-size="18" :petal-size="18" class="relative top-0.6" />
-                  <ContextMenu size="xs" native-on-modifier="ctrl" :items="getTagActions(tag)">
-                    <span class="group/tag relative inline-block px-2 overflow-hidden cursor-pointer shrink min-w-0 rounded-0" :style="{ '--hover-text': getContrastColor(tag.color) === 'white' ? '#FAFAF9' : '#0C0A09' }" @click="editTag(tag)">
-                      <span class="tag-name relative z-1 truncate font-sans text-sm font-500 transition-colors duration-300">#{{ tag.name }}</span>
-                      <span class="absolute inset-0 w-0 group-hover/tag:w-full transition-all duration-300 ease-out -z-0 rounded-0" :style="{ backgroundColor: tag.color }" />
-                    </span>
-                  </ContextMenu>
+                  <span data-context-menu-ignore class="relative top-0.6 inline-flex">
+                    <BlossomColorPicker :value="hexToBlossomValue(tag.color)" @change="(color) => updateTagColor(tag, color)" :colors="BLOSSOM_PALETTE" :show-alpha-slider="false" :core-size="18" :petal-size="18" />
+                  </span>
+                  <span class="group/tag relative inline-block px-2 overflow-hidden cursor-pointer shrink min-w-0 rounded-0" :style="{ '--hover-text': getContrastColor(tag.color) === 'white' ? '#FAFAF9' : '#0C0A09' }" @click="editTag(tag)">
+                    <span class="tag-name relative z-1 truncate font-sans text-sm font-500 transition-colors duration-300">#{{ tag.name }}</span>
+                    <span class="absolute inset-0 w-0 group-hover/tag:w-full transition-all duration-300 ease-out -z-0 rounded-0" :style="{ backgroundColor: tag.color }" />
+                  </span>
                   <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-1 opacity-0 group-hover:opacity-100" @click.stop="navigateTo(`/tags/${encodeURIComponent(tag.name)}`)">{{ $t('action_view') }}</button>
                 </div>
               </td>
@@ -120,6 +129,7 @@
                 </NDropdownMenu>
               </td>
             </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>

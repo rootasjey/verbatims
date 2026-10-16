@@ -85,86 +85,106 @@
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_user') }}</th>
               <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_role') }}</th>
               <th class="w-36 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quotes') }}</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_collections') }}</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_joined') }}</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_last_login') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_quotes') }}</span>
+                  <AdminSortButton :direction="sortDirectionFor('quote_count_asc', 'quote_count_desc')" :ascending-label="$t('sort_fewest_quotes') as string" :descending-label="$t('sort_most_quotes') as string" @toggle="toggleSort('quote_count_asc', 'quote_count_desc')" />
+                </div>
+              </th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_collections') }}</span>
+                  <AdminSortButton :direction="sortDirectionFor('collection_count_asc', 'collection_count_desc')" :ascending-label="$t('sort_fewest_collections') as string" :descending-label="$t('sort_most_collections') as string" @toggle="toggleSort('collection_count_asc', 'collection_count_desc')" />
+                </div>
+              </th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_joined') }}</span>
+                  <AdminSortButton :direction="sortDirectionFor('created_at_asc', 'created_at_desc')" :ascending-label="$t('sort_earliest_first') as string" :descending-label="$t('sort_latest_first') as string" @toggle="toggleSort('created_at_asc', 'created_at_desc')" />
+                </div>
+              </th>
+              <th class="w-36 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_last_login') }}</span>
+                  <AdminSortButton :direction="sortDirectionFor('last_login_at_asc', 'last_login_at_desc')" :ascending-label="$t('sort_earliest_first') as string" :descending-label="$t('sort_latest_first') as string" @toggle="toggleSort('last_login_at_asc', 'last_login_at_desc')" />
+                </div>
+              </th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(user, idx) in users" :key="user.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[user.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
-              <td class="px-3 py-3">
-                <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
-                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[user.id]" @click="handleRowCheckboxClick($event, idx, user.id)" />
-                </div>
-              </td>
-              <td class="px-3 py-3">
-                <div class="flex items-center gap-3">
-                  <NAvatar :src="user.avatar_url" :alt="user.name" size="xs" />
-                  <div class="min-w-0">
-                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="getUserActions(user)">
-                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="editUser(user)">{{ user.name }}</p>
-                    </ContextMenu>
-                    <p v-if="user.email" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="navigateTo(`/users/${user.id}`)">{{ user.email }}</p>
+            <ContextMenu v-for="(user, idx) in users" :key="user.id" size="xs" native-on-modifier="ctrl" :items="getUserActions(user)" as-child ignore-interactive-targets>
+                <tr :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[user.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+                <td class="px-3 py-3">
+                  <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
+                    <NCheckbox checkbox="gray" :model-value="!!rowSelection[user.id]" @click="handleRowCheckboxClick($event, idx, user.id)" />
                   </div>
-                </div>
-              </td>
-              <td class="px-3 py-3">
-                <NCombobox
-                  :model-value="getUserRoleOption(user.role)"
-                  @update:model-value="onUserRoleChange(user, $event)"
-                  :items="userRoleOptions"
-                  by="value"
-                  :disabled="user.id === currentUser?.id"
-                  :_combobox-input="{
-                    placeholder: 'Change role...',
-                    class: 'text-xs',
-                  }"
-                  :_combobox-list="{
-                    class: 'min-w-[120px]',
-                  }"
-                  :_combobox-trigger="getUserRoleTriggerProps(user.role)"
-                >
-                  <template #trigger="{ modelValue }">
-                    {{ modelValue?.label }}
-                  </template>
-                </NCombobox>
-              </td>
-              <td class="px-3 py-3">
-                <div class="flex items-center gap-1.5">
+                </td>
+                <td class="px-3 py-3">
+                  <div class="flex items-center gap-3">
+                    <NAvatar :src="user.avatar_url" :alt="user.name" size="xs" />
+                    <div class="min-w-0">
+                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="editUser(user)">{{ user.name }}</p>
+                      <p v-if="user.email" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="navigateTo(`/users/${user.id}`)">{{ user.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-3 py-3">
                   <NCombobox
-                    :model-value="getUserStatusOption(user)"
-                    @update:model-value="onUserStatusChange(user, $event)"
-                    :items="userStatusOptions"
+                    :model-value="getUserRoleOption(user.role)"
+                    @update:model-value="onUserRoleChange(user, $event)"
+                    :items="userRoleOptions"
                     by="value"
                     :disabled="user.id === currentUser?.id"
                     :_combobox-input="{
-                      placeholder: 'Change status...',
+                      placeholder: 'Change role...',
                       class: 'text-xs',
                     }"
                     :_combobox-list="{
                       class: 'min-w-[120px]',
                     }"
-                    :_combobox-trigger="getUserStatusTriggerProps(user.is_active)"
+                    :_combobox-trigger="getUserRoleTriggerProps(user.role)"
                   >
                     <template #trigger="{ modelValue }">
                       {{ modelValue?.label }}
                     </template>
                   </NCombobox>
-                  <span v-if="user.email_verified" class="font-sans text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5">{{ $t('badge_verified') }}</span>
-                </div>
-              </td>
-              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ user.approved_quotes }}/{{ user.quote_count }}</td>
-              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ user.collection_count || 0 }}</td>
-              <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(user.created_at) }}</td>
-              <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ user.last_login_at ? formatRelativeTime(user.last_login_at) : '\u2014' }}</td>
-              <td class="px-3 py-3">
-                <NDropdownMenu :items="getUserActions(user)" :modal="false">
-                  <button @click.stop class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
-                </NDropdownMenu>
-              </td>
-            </tr>
+                </td>
+                <td class="px-3 py-3">
+                  <div class="flex items-center gap-1.5">
+                    <NCombobox
+                      :model-value="getUserStatusOption(user)"
+                      @update:model-value="onUserStatusChange(user, $event)"
+                      :items="userStatusOptions"
+                      by="value"
+                      :disabled="user.id === currentUser?.id"
+                      :_combobox-input="{
+                        placeholder: 'Change status...',
+                        class: 'text-xs',
+                      }"
+                      :_combobox-list="{
+                        class: 'min-w-[120px]',
+                      }"
+                      :_combobox-trigger="getUserStatusTriggerProps(user.is_active)"
+                    >
+                      <template #trigger="{ modelValue }">
+                        {{ modelValue?.label }}
+                      </template>
+                    </NCombobox>
+                    <span v-if="user.email_verified" class="inline-flex items-center rounded-md border border-[#2373F4]/15 bg-[#2373F4]/10 px-1.5 py-0.5 font-sans text-xs font-medium text-[#2373F4] dark:border-[#6FA4FF]/20 dark:bg-[#2373F4]/15 dark:text-[#8AB5FF]">{{ $t('badge_verified') }}</span>
+                  </div>
+                </td>
+                <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ user.approved_quotes }}/{{ user.quote_count }}</td>
+                <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ user.collection_count || 0 }}</td>
+                <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(user.created_at) }}</td>
+                <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ user.last_login_at ? formatRelativeTime(user.last_login_at) : '\u2014' }}</td>
+                <td class="px-3 py-3">
+                  <NDropdownMenu :items="getUserActions(user)" :modal="false">
+                    <button @click.stop class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+                  </NDropdownMenu>
+                </td>
+                </tr>
+            </ContextMenu>
           </tbody>
         </table>
       </div>
@@ -245,6 +265,18 @@ const footerWidth = ref('100%')
 const isDesktopViewport = ref(false)
 const selectedRoleFilter = ref({ label: $t('filter_all_roles') as string, value: '' })
 const selectedStatusFilter = ref({ label: $t('filter_all_status') as string, value: '' })
+const selectedSort = ref('created_at_desc')
+
+const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
+  if (selectedSort.value === ascendingValue) return 'asc'
+  if (selectedSort.value === descendingValue) return 'desc'
+  return null
+}
+
+const toggleSort = (ascendingValue: string, descendingValue: string) => {
+  selectedSort.value = selectedSort.value === descendingValue ? ascendingValue : descendingValue
+  currentPage.value = 1
+}
 
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
@@ -347,7 +379,7 @@ const getUserRoleTriggerProps = (role: UserRole) => ({
   btn: 'ghost-gray',
   size: 'xs',
   trailing: '',
-  class: `gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start ${rolePillClass(role)}`,
+  class: `gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium w-full min-w-0 h-auto justify-start ${rolePillClass(role)}`,
 })
 
 const onUserRoleChange = async (user: any, newRole: { label: string; value: string } | null) => {
@@ -379,7 +411,7 @@ const getUserStatusTriggerProps = (isActive: 0 | 1 | boolean) => ({
   btn: 'ghost-gray',
   size: 'xs',
   trailing: '',
-  class: `gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start ${isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'}`,
+  class: `gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium w-full min-w-0 h-auto justify-start ${isActive ? 'text-[#2373F4] dark:text-[#8AB5FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15' : 'text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/[0.08]'}`,
 })
 
 const onUserStatusChange = async (user: any, newStatus: { label: string; value: string } | null) => {
@@ -403,9 +435,9 @@ const onUserStatusChange = async (user: any, newStatus: { label: string; value: 
 
 const rolePillClass = (role: UserRole) => {
   switch (role) {
-    case 'admin': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
-    case 'moderator': return 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20'
-    default: return 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+    case 'admin': return 'text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/35'
+    case 'moderator': return 'text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/35'
+    default: return 'text-[#2373F4] dark:text-[#8AB5FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15'
   }
 }
 
@@ -413,7 +445,15 @@ const loadUsers = async () => {
   try {
     loading.value = true
     const response = await $fetch('/api/admin/users', {
-      query: { page: currentPage.value, limit: pageSize.value, search: searchQuery.value || undefined, role: selectedRoleFilter.value.value || undefined, status: selectedStatusFilter.value.value || undefined }
+      query: {
+        page: currentPage.value,
+        limit: pageSize.value,
+        search: searchQuery.value || undefined,
+        role: selectedRoleFilter.value.value || undefined,
+        status: selectedStatusFilter.value.value || undefined,
+        sort_by: selectedSort.value.slice(0, selectedSort.value.lastIndexOf('_')),
+        sort_order: selectedSort.value.slice(selectedSort.value.lastIndexOf('_') + 1).toUpperCase(),
+      }
     })
     users.value = response.data || []; totalUsers.value = response.pagination?.total || 0
     rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight()
@@ -483,7 +523,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateFooterPosition)
 })
 
-watchDebounced([currentPage, searchQuery, selectedRoleFilter, selectedStatusFilter], () => { loadUsers() }, { debounce: 300 })
+watchDebounced([currentPage, searchQuery, selectedRoleFilter, selectedStatusFilter, selectedSort], () => { loadUsers() }, { debounce: 300 })
 onMounted(() => { loadUsers() })
 </script>
 
