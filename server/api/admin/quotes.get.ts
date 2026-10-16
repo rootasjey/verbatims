@@ -12,6 +12,13 @@ export default defineEventHandler(async (event) => {
     const search = (query.search as string || '').trim()
     const status = (query.status as string || 'approved').trim()
     const language = (query.language as string || '').trim()
+    const sortBy = query.sort_by === 'published_at' || query.sort_by === 'created_at' ? query.sort_by : undefined
+    const sortDirection = String(query.sort_order || '').toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
+    const orderBy = sortBy === 'created_at'
+      ? sql.raw(`q.created_at ${sortDirection}, q.id ${sortDirection}`)
+      : sortBy === 'published_at'
+        ? sql.raw(`q.moderated_at ${sortDirection}, q.created_at ${sortDirection}, q.id ${sortDirection}`)
+        : sql.raw('q.moderated_at DESC, q.created_at DESC, q.id DESC')
     
     const conditions: SQL[] = [sql`q.status = ${status}`]
     
@@ -54,7 +61,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN tags t ON qt.tag_id = t.id
       ${whereClause}
       GROUP BY q.id
-      ORDER BY q.moderated_at DESC, q.created_at DESC
+      ORDER BY ${orderBy}
       LIMIT ${limit} OFFSET ${offset}
     `)
 

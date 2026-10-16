@@ -74,7 +74,17 @@
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_name') }}</th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_schedule') }}</th>
-              <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_filters') }}</th>
+              <th class="w-24 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center justify-center gap-1">
+                  <span>{{ $t('col_filters') }}</span>
+                  <AdminSortButton
+                    :direction="sortDirectionFor('filters_asc', 'filters_desc')"
+                    :ascending-label="$t('sort_fewest_filters') as string"
+                    :descending-label="$t('sort_most_filters') as string"
+                    @toggle="toggleSort('filters_asc', 'filters_desc')"
+                  />
+                </div>
+              </th>
               <th class="w-20 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="inline-flex items-center justify-center gap-1">
                   <span>{{ $t('col_priority') }}</span>
@@ -121,7 +131,7 @@
               <td class="px-3 py-3">
                 <div class="flex items-center gap-1.5">
                   <NDropdownMenu v-if="theme.isActive" :items="getStatusActions(theme, 'active')" :modal="false">
-                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-pointer">{{ $t('status_active') }}</span>
+                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-[#2373F4] dark:text-[#75A7FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15 cursor-pointer">{{ $t('status_active') }}</span>
                   </NDropdownMenu>
                   <NDropdownMenu v-else-if="theme.isDefault" :items="getStatusActions(theme, 'default')" :modal="false">
                     <span class="font-sans text-xs px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-pointer">{{ $t('status_default') }}</span>
@@ -1245,6 +1255,8 @@ const sortOptions = [
   { label: $t('sort_priority_low') as string, value: 'priority_asc' },
   { label: $t('sort_name_az') as string, value: 'name_asc' },
   { label: $t('sort_name_za') as string, value: 'name_desc' },
+  { label: $t('sort_most_filters') as string, value: 'filters_desc' },
+  { label: $t('sort_fewest_filters') as string, value: 'filters_asc' },
   { label: $t('sort_slug_az') as string, value: 'slug_asc' },
   { label: $t('sort_scheduled') as string, value: 'scheduled_date_desc' },
 ]
@@ -1256,6 +1268,20 @@ const togglePrioritySort = () => {
     : selectedSort.value.value === 'priority_desc'
       ? sortOptions[1]!
       : sortOptions[0]!
+}
+
+const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
+  if (selectedSort.value.value === ascendingValue) return 'asc'
+  if (selectedSort.value.value === descendingValue) return 'desc'
+  return null
+}
+
+const toggleSort = (ascendingValue: string, descendingValue: string) => {
+  const nextValue = selectedSort.value.value === descendingValue ? ascendingValue : descendingValue
+  const option = sortOptions.find(item => item.value === nextValue)
+  if (!option) return
+  selectedSort.value = option
+  currentPage.value = 1
 }
 
 const tableColumns = [

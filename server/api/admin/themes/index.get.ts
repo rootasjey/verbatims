@@ -31,6 +31,8 @@ export default defineEventHandler(async (event) => {
       sortColumn = schema.themes.name
     } else if (sortByRaw === 'slug') {
       sortColumn = schema.themes.slug
+    } else if (sortByRaw === 'filters') {
+      sortColumn = count(schema.themeContentFilters.id)
     } else {
       sortColumn = schema.themes.priority
     }

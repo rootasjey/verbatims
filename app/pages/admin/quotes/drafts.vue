@@ -95,7 +95,17 @@
               <th class="w-48 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
               <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Language</th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+              <th class="w-36 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center gap-1">
+                  <span>{{ $t('col_created') }}</span>
+                  <AdminSortButton
+                    :direction="draftCreatedSortOrder === 'ASC' ? 'asc' : 'desc'"
+                    :ascending-label="$t('sort_oldest_first') as string"
+                    :descending-label="$t('sort_most_recent') as string"
+                    @toggle="toggleCreatedSort"
+                  />
+                </div>
+              </th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -307,6 +317,7 @@ const showEditQuoteDialog = ref(false)
 
 const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
+const draftCreatedSortOrder = ref<'ASC' | 'DESC'>('DESC')
 const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
 const selectedLanguage = ref({ label: $t('common.all_languages') as string, value: '' })
@@ -545,7 +556,9 @@ const loadQuotes = async (page = currentPage.value) => {
         page,
         limit: pageSize.value,
         search: searchQuery.value || undefined,
-        language: selectedLanguage.value.value || undefined
+        language: selectedLanguage.value.value || undefined,
+        sort_by: 'created_at',
+        sort_order: draftCreatedSortOrder.value
       }
     })
 
@@ -562,6 +575,12 @@ const loadQuotes = async (page = currentPage.value) => {
     loading.value = false
     hasLoadedOnce.value = true
   }
+}
+
+const toggleCreatedSort = () => {
+  draftCreatedSortOrder.value = draftCreatedSortOrder.value === 'DESC' ? 'ASC' : 'DESC'
+  if (currentPage.value !== 1) currentPage.value = 1
+  else void loadQuotes(1)
 }
 
 const resetFilters = () => {
