@@ -22,6 +22,10 @@
     "crons": [
       // Repair abandoned social queue items every five minutes.
       "*/5 * * * *",
+      // Refill enabled social queues at 08:00 Europe/Paris (daylight saving time).
+      "0 6 * * *",
+      // Refill enabled social queues at 08:00 Europe/Paris (standard time).
+      "0 7 * * *",
       // 08:08 Europe/Paris during daylight saving time (UTC+2)
       "8 6 * * *",
       // 08:08 Europe/Paris during standard time (UTC+1)

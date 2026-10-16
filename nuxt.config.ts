@@ -147,6 +147,9 @@ export default defineNuxtConfig({
     scheduledTasks: {
       // Repair abandoned processing items without retrying ambiguous publications.
       '*/5 * * * *': ['social:reconcile'],
+      // Refill active quote queues at 08:00 Europe/Paris, before the 08:08 post.
+      '0 6 * * *': ['social:replenish'],
+      '0 7 * * *': ['social:replenish'],
       // 08:08 Europe/Paris during daylight saving time (UTC+2)
       '8 6 * * *': ['social:autopost'],
       // 08:08 Europe/Paris during standard time (UTC+1)

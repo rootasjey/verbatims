@@ -2,9 +2,34 @@
   <div>
     <!-- Editorial Header -->
     <div class="pb-6 mb-6">
-      <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-        {{ $t('title') }}
-      </h1>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+          {{ $t('title') }}
+        </h1>
+        <div class="inline-flex min-h-8 items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-3 py-1 font-sans text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300">
+          <NIcon :name="platformIcon(selectedPlatform)" class="h-4 w-4" />
+          <span class="font-medium text-gray-800 dark:text-gray-100">{{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}</span>
+          <span class="text-gray-400 dark:text-gray-500">·</span>
+          <span class="max-w-36 truncate">{{ getPlatformStatus(selectedPlatform).account || $t('account_not_connected') }}</span>
+        </div>
+        <NTooltip v-if="autofillOverview">
+          <button
+            type="button"
+            class="inline-flex min-h-8 items-center gap-2 rounded-full border px-2.5 py-1 font-sans text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
+            :class="autofillChipClass"
+            :aria-label="$t('autofill_open_settings') as string"
+            @click="openAutofillDialog"
+          >
+            <span class="h-1.5 w-1.5 rounded-full" :class="autofillChipDotClass" />
+            <span>{{ $t('autofill_short_label') }}</span>
+            <span class="font-medium tabular-nums">{{ autofillChipValue }}</span>
+            <NIcon name="i-ph-sliders-horizontal" class="h-3.5 w-3.5 opacity-65" />
+          </button>
+          <template #content>
+            <span>{{ $t('autofill_open_settings') }}</span>
+          </template>
+        </NTooltip>
+      </div>
 
       <div class="flex flex-col sm:flex-row gap-3 mt-4">
         <div>
@@ -13,36 +38,28 @@
             type="single"
             class="space-x-2 flex-wrap"
           >
-            <NToggleGroupItem
-              v-for="opt in platformOptions"
-              :key="opt.value"
-              :value="opt.value"
-              size="sm"
-              :class="[toggleItemColorClass(opt.value), {
-                'w-auto px-4': opt.value === selectedPlatform,
-                'max-w-full': opt.value === selectedPlatform
-              }]"
-            >
-              <NIcon :name="opt.label" />
-              <div v-if="opt.value === selectedPlatform" class="flex items-center gap-2">
-                <span class="font-medium">
-                  {{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}
-                </span>
-
-                <NTooltip>
-                  <div class="flex items-center bg-gray-50 dark:bg-gray-800 p-.5 rounded-1">
-                    <NIcon :name="getPlatformStatus(selectedPlatform).ok ? 'i-lucide-workflow' : 'i-lucide-traffic-cone'" />
-                  </div>
-                  <template #content>
-                    <div>
-                      {{ statusLabelFor(selectedPlatform) }}
+            <ContextMenu v-for="opt in platformOptions" :key="opt.value" :items="platformContextItems(opt.value)" trigger-as="span" wrapper-class="inline-flex">
+              <NToggleGroupItem
+                :value="opt.value"
+                size="sm"
+                :aria-label="SOCIAL_PLATFORM_LABELS[opt.value] || opt.value"
+                :class="[toggleItemColorClass(opt.value), {
+                  'w-auto px-4': opt.value === selectedPlatform,
+                  'max-w-full': opt.value === selectedPlatform
+                }]"
+              >
+                <NIcon :name="opt.label" />
+                <div v-if="opt.value === selectedPlatform" class="flex items-center gap-2">
+                  <span class="font-medium">{{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}</span>
+                  <NTooltip>
+                    <div class="flex items-center bg-gray-50 dark:bg-gray-800 p-.5 rounded-1">
+                      <NIcon :name="getPlatformStatus(selectedPlatform).ok ? 'i-lucide-workflow' : 'i-lucide-traffic-cone'" />
                     </div>
-                  </template>
-                </NTooltip>
-
-                <span>ID: {{ getPlatformStatus(selectedPlatform).account }}</span>
-              </div>
-            </NToggleGroupItem>
+                    <template #content><div>{{ statusLabelFor(selectedPlatform) }}</div></template>
+                  </NTooltip>
+                </div>
+              </NToggleGroupItem>
+            </ContextMenu>
           </NToggleGroup>
         </div>
         <div class="flex gap-2">
@@ -53,7 +70,7 @@
             {{ $t('run_now') }}
           </NButton>
           <NDropdownMenu :items="actionMenuItems">
-            <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+            <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800" :aria-label="$t('network_actions') as string"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
           </NDropdownMenu>
         </div>
       </div>
@@ -198,10 +215,10 @@
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 rounded-t-xl border-x border-t border-gray-200 bg-[#FAFAF9] px-4 py-3 shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-[#0C0A09] sm:px-6 lg:px-8"
+      class="fixed bottom-0 z-20 flex items-center justify-between gap-3 whitespace-nowrap rounded-t-xl border-x border-t border-gray-200 bg-[#FAFAF9] px-4 py-3 shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-[#0C0A09] sm:px-6 lg:px-8"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
-      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+      <span class="min-w-0 truncate font-sans text-xs text-gray-500 dark:text-gray-400">
         Page
         <button
           class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
@@ -211,7 +228,7 @@
         </button>
         of {{ totalPages }} &middot; {{ totalItems }} {{ totalItems === 1 ? 'item' : 'items' }}
       </span>
-      <div class="flex items-center gap-3">
+      <div class="flex shrink-0 items-center gap-2 sm:gap-3">
         <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
         <button
           class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
@@ -234,6 +251,75 @@
           <div class="flex justify-end gap-2">
             <NButton btn="outline-gray" size="sm" class="rounded-lg" @click="showErrorDetailsDialog = false">{{ $t('common.close') }}</NButton>
             <NButton btn="solid-black" size="sm" leading="i-lucide-copy" class="rounded-lg" @click="copyErrorMessage">{{ $t('copy_error') }}</NButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
+
+    <ClientOnly>
+      <NDialog v-model:open="autofillDialogOpen" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-lg' }">
+        <template #header>
+          <div class="space-y-1">
+            <h2 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('autofill_title') }}</h2>
+            <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('autofill_description') }}</p>
+          </div>
+        </template>
+
+        <div class="space-y-6">
+          <div class="grid grid-cols-2 gap-3">
+            <label class="space-y-1.5">
+              <span class="font-sans text-sm font-medium text-gray-800 dark:text-gray-200">{{ $t('autofill_target') }}</span>
+              <input
+                v-model.number="autofillForm.target"
+                type="number"
+                min="2"
+                max="100"
+                inputmode="numeric"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-sans text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+              >
+            </label>
+            <label class="space-y-1.5">
+              <span class="font-sans text-sm font-medium text-gray-800 dark:text-gray-200">{{ $t('autofill_low_watermark') }}</span>
+              <input
+                v-model.number="autofillForm.lowWatermark"
+                type="number"
+                min="1"
+                :max="Math.max(1, autofillForm.target - 1)"
+                inputmode="numeric"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-sans text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+              >
+            </label>
+          </div>
+          <p v-if="autofillFormError" class="font-sans text-sm text-red-700 dark:text-red-400" role="alert">{{ autofillFormError }}</p>
+
+          <section class="space-y-3" aria-labelledby="autofill-platforms-heading">
+            <div class="flex items-baseline justify-between gap-3">
+              <h3 id="autofill-platforms-heading" class="font-sans text-sm font-medium text-gray-900 dark:text-gray-100">{{ $t('autofill_platforms') }}</h3>
+              <span v-if="autofillOverview?.lastRunAt" class="font-sans text-xs text-gray-500 dark:text-gray-400">
+                {{ $t('autofill_last_run') }} {{ formatAutofillDate(autofillOverview.lastRunAt) }}
+              </span>
+            </div>
+
+            <p v-if="activeAutofillPlatforms.length === 0" class="rounded-lg bg-gray-50 px-3 py-3 font-sans text-sm text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+              {{ $t('autofill_no_active_platforms') }}
+            </p>
+            <div v-for="item in activeAutofillPlatforms" :key="item.platform" class="space-y-1.5">
+              <div class="flex items-center justify-between gap-3 font-sans text-sm">
+                <span class="text-gray-800 dark:text-gray-200">{{ SOCIAL_PLATFORM_LABELS[item.platform] }}</span>
+                <span class="tabular-nums text-gray-600 dark:text-gray-300">{{ item.queued }} / {{ autofillOverview?.target }}</span>
+              </div>
+              <div class="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800" role="progressbar" :aria-label="`${SOCIAL_PLATFORM_LABELS[item.platform]} ${$t('autofill_queue_progress')}`" :aria-valuenow="Math.min(item.queued, autofillOverview?.target || 30)" :aria-valuemin="0" :aria-valuemax="autofillOverview?.target || 30">
+                <div class="h-full rounded-full transition-[width] duration-300" :class="item.queued < (autofillOverview?.lowWatermark || 10) ? 'bg-amber-500' : 'bg-blue-500'" :style="{ width: autofillProgressWidth(item.queued) }" />
+              </div>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ autofillOutcomeText(item.lastRun?.outcome) }}</p>
+            </div>
+          </section>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <NButton btn="outline-gray" size="sm" class="rounded-lg" :disabled="autofillSaving" @click="autofillDialogOpen = false">{{ $t('autofill_cancel') }}</NButton>
+            <NButton btn="solid-black" size="sm" class="rounded-lg" :loading="autofillSaving" @click="saveAutofillSettings">{{ $t('autofill_save') }}</NButton>
           </div>
         </template>
       </NDialog>
@@ -355,6 +441,120 @@ useHead({
 })
 
 const { showErrorToast: showErrorToastFromComposable } = useErrorToast()
+
+type QueueAutofillOutcome = 'refilled' | 'partial' | 'above-threshold' | 'no-quotes' | 'error'
+
+interface QueueAutofillPlatformStatus {
+  platform: SocialPlatform
+  enabled: boolean
+  queued: number
+  lastRun: {
+    queuedBefore: number
+    queuedAfter: number
+    added: number
+    outcome: QueueAutofillOutcome
+  } | null
+}
+
+interface QueueAutofillOverview {
+  target: number
+  lowWatermark: number
+  updatedAt: string
+  lastRunAt: string | null
+  platforms: QueueAutofillPlatformStatus[]
+}
+
+const autofillOverview = ref<QueueAutofillOverview | null>(null)
+const autofillDialogOpen = ref(false)
+const autofillSaving = ref(false)
+const autofillFormError = ref('')
+const autofillForm = reactive({ target: 30, lowWatermark: 10 })
+const activeAutofillPlatforms = computed(() => autofillOverview.value?.platforms.filter(platform => platform.enabled) || [])
+const selectedAutofillPlatform = computed(() => activeAutofillPlatforms.value.find(platform => platform.platform === selectedPlatform.value))
+const autofillChipValue = computed(() => selectedAutofillPlatform.value
+  ? `${selectedAutofillPlatform.value.queued}/${autofillOverview.value?.target || 30}`
+  : `${activeAutofillPlatforms.value.length} ${$t('autofill_networks')}`)
+const autofillChipClass = computed(() => selectedAutofillPlatform.value && selectedAutofillPlatform.value.queued < (autofillOverview.value?.lowWatermark || 10)
+  ? 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/50'
+  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800')
+const autofillChipDotClass = computed(() => selectedAutofillPlatform.value && selectedAutofillPlatform.value.queued < (autofillOverview.value?.lowWatermark || 10)
+  ? 'bg-amber-500'
+  : 'bg-blue-500')
+
+async function loadAutofillOverview(syncForm = false) {
+  try {
+    const response = await $fetch<{ success: boolean, data: QueueAutofillOverview }>('/api/admin/social-queue/autofill')
+    autofillOverview.value = response.data
+    if (syncForm && !autofillSaving.value) {
+      autofillForm.target = response.data.target
+      autofillForm.lowWatermark = response.data.lowWatermark
+      autofillFormError.value = ''
+    }
+  } catch (error) {
+    console.error('Failed to load social queue auto-fill status:', error)
+  }
+}
+
+function openAutofillDialog() {
+  autofillDialogOpen.value = true
+  void loadAutofillOverview(true)
+}
+
+function autofillProgressWidth(queued: number) {
+  const target = autofillOverview.value?.target || 30
+  return `${Math.min(100, Math.max(0, queued / target * 100))}%`
+}
+
+function formatAutofillDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Europe/Paris'
+  }).format(date)
+}
+
+function autofillOutcomeText(outcome?: QueueAutofillOutcome) {
+  if (!outcome) return $t('autofill_not_run') as string
+  if (outcome === 'refilled') return $t('autofill_result_refilled') as string
+  if (outcome === 'partial') return $t('autofill_result_partial') as string
+  if (outcome === 'no-quotes') return $t('autofill_result_no_quotes') as string
+  if (outcome === 'error') return $t('autofill_result_error') as string
+  return $t('autofill_result_above_threshold') as string
+}
+
+async function saveAutofillSettings() {
+  autofillFormError.value = ''
+  if (!Number.isInteger(autofillForm.target) || autofillForm.target < 2 || autofillForm.target > 100) {
+    autofillFormError.value = $t('autofill_validation_target') as string
+    return
+  }
+  if (!Number.isInteger(autofillForm.lowWatermark) || autofillForm.lowWatermark < 1 || autofillForm.lowWatermark >= autofillForm.target) {
+    autofillFormError.value = $t('autofill_validation_threshold') as string
+    return
+  }
+
+  autofillSaving.value = true
+  try {
+    await $fetch('/api/admin/social-queue/autofill', {
+      method: 'PUT',
+      body: { target: autofillForm.target, lowWatermark: autofillForm.lowWatermark }
+    })
+    await loadAutofillOverview(true)
+    useToast().toast({
+      title: $t('autofill_saved') as string,
+      description: $t('autofill_saved_desc') as string,
+      toast: 'outline-success'
+    })
+    autofillDialogOpen.value = false
+  } catch (error) {
+    console.error('Failed to save social queue auto-fill settings:', error)
+    autofillFormError.value = $t('autofill_save_error') as string
+  } finally {
+    autofillSaving.value = false
+  }
+}
 
 const providerCheckLoading = ref(false)
 const metaStatusLoading = ref(false)
@@ -532,6 +732,20 @@ const safeSelectedPlatform = computed<SocialPlatform>({
     }
   }
 })
+
+function platformIcon(platform: SocialPlatform) {
+  return platformOptions.find(option => option.value === platform)?.label || 'i-ph-share-network'
+}
+
+function platformContextItems(platform: SocialPlatform) {
+  const label = SOCIAL_PLATFORM_LABELS[platform] || platform
+  return [
+    { label: $t('select_network', { platform: label }) as string, leading: platformIcon(platform), onclick: () => { selectedPlatform.value = platform } },
+    { label: $t('check_network', { platform: label }) as string, leading: 'i-ph-plugs-connected', onclick: () => { selectedPlatform.value = platform; void checkProvider() } },
+    { label: $t('configure_network', { platform: label }) as string, leading: 'i-ph-gear', onclick: () => { selectedPlatform.value = platform; void openProviderConfigDialog() } }
+  ]
+}
+
 const metaConfigForm = reactive({
   appId: '',
   appSecret: '',
@@ -1742,9 +1956,11 @@ onMounted(async () => {
   }
 
   await loadQueue()
+  await loadAutofillOverview(true)
   queueRefreshTimer = window.setInterval(() => {
     if (document.visibilityState === 'visible') {
       void loadQueue({ silent: true })
+      void loadAutofillOverview()
     }
   }, 30_000)
   await loadMetaStatus()

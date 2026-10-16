@@ -95,7 +95,7 @@ export default defineEventHandler(async (event) => {
         unique_ips: sql<number>`COUNT(DISTINCT ${schema.quoteViews.ipAddress})`
       }).from(schema.quoteViews),
 
-      db.select({ total: count() }).from(schema.socialQueue),
+      db.select({ total: count() }).from(schema.socialQueue).where(eq(schema.socialQueue.status, 'queued')),
       db.select({ total: count() }).from(schema.userMessages),
       db.select({ total: count() }).from(schema.apiKeys)
     ])
