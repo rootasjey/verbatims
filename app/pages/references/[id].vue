@@ -50,7 +50,7 @@
               <img
                 ref="posterImageRef"
                 :src="reference.imageUrl"
-                :alt="reference.name"
+                :alt="reference.image_alt || reference.name"
                 role="button"
                 tabindex="0"
                 :aria-label="$ts('components.dialogs.poster_preview')"
@@ -69,6 +69,14 @@
                 <NIcon name="i-ph-pencil-simple-line" class="w-4 h-4" />
               </button>
             </div>
+            <EntityImageAttribution
+              v-if="reference.imageUrl"
+              :credit="reference.image_credit"
+              :source-url="reference.image_source_url"
+              :license="reference.image_license"
+              :date="reference.image_date"
+              :location="reference.image_location"
+            />
             <div
               v-else
               class="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded-2xl bg-gray-100 text-gray-400 dark:bg-gray-800/60 dark:text-gray-500"

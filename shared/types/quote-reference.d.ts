@@ -61,6 +61,14 @@ export interface QuoteReference {
   
   /** URL to cover image or poster */
   image_url?: string;
+
+  /** Alternative text, attribution, and source metadata for the cover or poster */
+  image_alt?: string | null;
+  image_credit?: string | null;
+  image_source_url?: string | null;
+  image_license?: string | null;
+  image_date?: string | null;
+  image_location?: string | null;
   
   /** JSON string containing related URLs */
   urls: string;
@@ -105,6 +113,12 @@ export interface CreateQuoteReferenceData {
   primary_type: QuoteReferencePrimaryType;
   secondary_type?: string | null;
   image_url?: string | null;
+  image_alt?: string | null;
+  image_credit?: string | null;
+  image_source_url?: string | null;
+  image_license?: string | null;
+  image_date?: string | null;
+  image_location?: string | null;
   urls?: QuoteReferenceUrls;
 }
 

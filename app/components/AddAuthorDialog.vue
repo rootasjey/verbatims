@@ -185,6 +185,8 @@
         </div>
       </div>
 
+      <AdminImageAttributionFields v-model="form.image_attribution" :disabled="submitting" />
+
       <div class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 px-4 py-3">
         <label class="flex items-center justify-between gap-4">
           <div>
@@ -249,12 +251,15 @@ const isEditMode = computed(() => !!props.editAuthor)
 const dialogTitle = computed(() => isEditMode.value ? String($t('components.dialogs.edit_author')) : String($t('components.dialogs.add_author')))
 const submitButtonText = computed(() => isEditMode.value ? String($t('components.dialogs.update_author')) : String($t('components.dialogs.create_author')))
 
+const emptyImageAttribution = () => ({ image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '' })
+
 const form = ref({
   name: '',
   job: '',
   birth_date: '',
   death_date: '',
   image_url: '',
+  image_attribution: emptyImageAttribution(),
   is_fictional: false,
   description: ''
 })
@@ -392,6 +397,10 @@ const selectExistingAuthor = (author: Author) => {
     birth_date: author.birth_date || '',
     death_date: author.death_date || '',
     image_url: author.image_url || '',
+    image_attribution: {
+      image_alt: author.image_alt || '', image_credit: author.image_credit || '', image_source_url: author.image_source_url || '',
+      image_license: author.image_license || '', image_date: author.image_date || '', image_location: author.image_location || ''
+    },
     is_fictional: author.is_fictional,
     description: author.description || ''
   }
@@ -413,6 +422,7 @@ const resetForm = () => {
     birth_date: '',
     death_date: '',
     image_url: '',
+    image_attribution: emptyImageAttribution(),
     is_fictional: false,
     description: ''
   }
@@ -432,6 +442,10 @@ const initializeFormForEdit = () => {
     birth_date: author.birth_date || '',
     death_date: author.death_date || '',
     image_url: author.image_url || '',
+    image_attribution: {
+      image_alt: author.image_alt || '', image_credit: author.image_credit || '', image_source_url: author.image_source_url || '',
+      image_license: author.image_license || '', image_date: author.image_date || '', image_location: author.image_location || ''
+    },
     is_fictional: author.is_fictional,
     description: author.description || ''
   }
@@ -467,6 +481,12 @@ const submitAuthor = async () => {
       birth_date: form.value.birth_date || null,
       death_date: form.value.death_date || null,
       image_url: form.value.image_url.trim() || null,
+      image_alt: form.value.image_attribution.image_alt.trim() || null,
+      image_credit: form.value.image_attribution.image_credit.trim() || null,
+      image_source_url: form.value.image_attribution.image_source_url.trim() || null,
+      image_license: form.value.image_attribution.image_license.trim() || null,
+      image_date: form.value.image_attribution.image_date.trim() || null,
+      image_location: form.value.image_attribution.image_location.trim() || null,
       is_fictional: form.value.is_fictional,
       description: form.value.description.trim() || null
     }

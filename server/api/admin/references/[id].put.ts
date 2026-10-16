@@ -47,6 +47,12 @@ export default defineEventHandler(async (event) => {
     if (body.primary_type !== undefined) updateData.primaryType = body.primary_type
     if (body.secondary_type !== undefined) updateData.secondaryType = body.secondary_type
     if (body.urls !== undefined) updateData.urls = JSON.stringify(body.urls)
+    if (body.image_alt !== undefined) updateData.imageAlt = body.image_alt
+    if (body.image_credit !== undefined) updateData.imageCredit = body.image_credit
+    if (body.image_source_url !== undefined) updateData.imageSourceUrl = body.image_source_url
+    if (body.image_license !== undefined) updateData.imageLicense = body.image_license
+    if (body.image_date !== undefined) updateData.imageDate = body.image_date
+    if (body.image_location !== undefined) updateData.imageLocation = body.image_location
 
     // Handle image URL changes (upload external images to R2)
     if (body.image_url !== undefined) {

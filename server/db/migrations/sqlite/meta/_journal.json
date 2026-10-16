@@ -204,6 +204,13 @@
       "when": 1792170214000,
       "tag": "0040_add_theme_hero_image_attribution",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1792173600000,
+      "tag": "0041_add_author_reference_image_attribution",
+      "breakpoints": true
     }
   ]
 }

@@ -68,6 +68,14 @@ export interface Author {
   
   /** URL to author's profile image */
   image_url?: string;
+
+  /** Alternative text, attribution, and source metadata for the profile image */
+  image_alt?: string | null;
+  image_credit?: string | null;
+  image_source_url?: string | null;
+  image_license?: string | null;
+  image_date?: string | null;
+  image_location?: string | null;
   
   /** JSON string containing social media links */
   socials: string;
@@ -123,6 +131,12 @@ export interface CreateAuthorData {
   job?: string | null;
   description?: string | null;
   image_url?: string | null;
+  image_alt?: string | null;
+  image_credit?: string | null;
+  image_source_url?: string | null;
+  image_license?: string | null;
+  image_date?: string | null;
+  image_location?: string | null;
   socials?: AuthorSocialInput;
 }
 
