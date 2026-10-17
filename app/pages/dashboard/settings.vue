@@ -24,7 +24,7 @@
       <button
         type="button"
         aria-haspopup="dialog"
-        class="group flex w-full flex-wrap items-center justify-between gap-4 rounded-xl border-b border-gray-200 px-2 pb-6 pt-2 text-left transition-colors hover:bg-gray-100/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/30 focus-visible:ring-offset-2 dark:border-white/10 dark:hover:bg-white/[0.03] dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#0C0A09] motion-reduce:transition-none"
+        class="group flex w-full flex-wrap items-center justify-between gap-4 rounded-xl px-2 pb-6 pt-2 text-left transition-colors hover:bg-gray-100/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/30 focus-visible:ring-offset-2 dark:hover:bg-white/[0.03] dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#0C0A09] motion-reduce:transition-none"
         @click="avatarPickerOpen = true"
       >
         <span class="flex min-w-0 items-center gap-4">

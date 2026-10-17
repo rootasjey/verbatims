@@ -9,6 +9,7 @@
       max-width="xl"
       max-height="lg"
       scrollable
+      scrollable-content-class="-m-2 p-2"
       @submit="saveSelectedAvatar"
     >
       <div class="space-y-5">
