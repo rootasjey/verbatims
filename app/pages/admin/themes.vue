@@ -841,6 +841,7 @@ const loading = ref(true)
 const themes = ref<any[]>([])
 const totalThemes = ref(0)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const searchQuery = ref('')
 
@@ -1314,6 +1315,24 @@ const sortOptions = [
   { label: $t('sort_scheduled') as string, value: 'scheduled_date_desc' },
 ]
 const nonPrioritySortOptions = sortOptions.filter(option => !option.value.startsWith('priority_'))
+
+useSyncedQueryFilters({
+  keys: ['q', 'sort'],
+  read: (query) => {
+    const sort = readSyncedQueryValue(query.sort)
+    return {
+      q: readSyncedQueryValue(query.q),
+      sort: sortOptions.some(option => option.value === sort) ? sort : 'priority_desc'
+    }
+  },
+  write: (query, state) => ({ ...query, q: state.q.trim() || undefined, sort: state.sort === 'priority_desc' ? undefined : state.sort }),
+  get: () => ({ q: searchQuery.value, sort: selectedSort.value.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    selectedSort.value = sortOptions.find(option => option.value === state.sort) ?? sortOptions[0]!
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const togglePrioritySort = () => {
   selectedSort.value = selectedSort.value.value === 'priority_asc'

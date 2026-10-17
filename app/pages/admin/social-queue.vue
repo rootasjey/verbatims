@@ -595,6 +595,16 @@ const imageDesignState = ref({
 })
 
 const route = useRoute()
+const socialQueuePage = Number(Array.isArray(route.query.page) ? route.query.page[0] : route.query.page)
+const socialQueuePlatform = String(Array.isArray(route.query.platform) ? route.query.platform[0] : route.query.platform || '')
+const socialQueueStatus = String(Array.isArray(route.query.status) ? route.query.status[0] : route.query.status || '')
+const socialQueueHasStatus = route.query.status !== undefined
+const validSocialQueueStatuses = ['queued', 'processing', 'posted', 'failed']
+const parseSocialQueueStatus = (value: string, isPresent: boolean) => {
+  if (!isPresent) return 'active'
+  if (value === 'all' || value === '') return ''
+  return validSocialQueueStatuses.includes(value) ? value : 'active'
+}
 
 const {
   loading,
@@ -632,7 +642,38 @@ const {
   requeueFailedPosts,
   requeueSingleFailedItem
 } = useAdminSocialQueue({
-  showErrorToast
+  showErrorToast,
+  initialFilters: {
+    page: Number.isSafeInteger(socialQueuePage) && socialQueuePage > 0 ? socialQueuePage : 1,
+    search: readSyncedQueryValue(route.query.q),
+    status: parseSocialQueueStatus(socialQueueStatus, socialQueueHasStatus),
+    platform: isSocialPlatform(socialQueuePlatform) ? socialQueuePlatform : 'x'
+  }
+})
+useSyncedPageQuery(currentPage)
+useSyncedQueryFilters({
+  keys: ['q', 'status', 'platform'],
+  read: query => {
+    const platform = readSyncedQueryValue(query.platform)
+    return {
+      q: readSyncedQueryValue(query.q),
+      status: parseSocialQueueStatus(readSyncedQueryValue(query.status), query.status !== undefined),
+      platform: isSocialPlatform(platform) ? platform : 'x'
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    status: state.status === 'active' ? undefined : state.status || 'all',
+    platform: state.platform === 'x' ? undefined : state.platform
+  }),
+  get: () => ({ q: searchQuery.value, status: selectedStatus.value.value, platform: selectedPlatform.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    selectedStatus.value = statusOptions.find(option => option.value === state.status) ?? statusOptions[0]!
+    selectedPlatform.value = state.platform as SocialPlatform
+  },
+  onFilterChange: () => { currentPage.value = 1 }
 })
 
 /* ---- Drag-and-drop reorder state ---- */
@@ -1964,7 +2005,7 @@ async function clearFinishedQueue() {
 
 onMounted(async () => {
   const savedPlatform = localStorage.getItem('admin_social_queue_platform')
-  if (savedPlatform && isSocialPlatform(savedPlatform)) {
+  if (!route.query.platform && savedPlatform && isSocialPlatform(savedPlatform)) {
     selectedPlatform.value = savedPlatform
   }
 

@@ -354,6 +354,7 @@ const handleFavouriteRowClick = (event: MouseEvent, index: number, id: number) =
   if (selectionMode.value) handleRowClickCapture(event, index, id)
 }
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const totalPages = ref(0)
 const totalQuotes = ref(0)
 
@@ -374,6 +375,28 @@ const sortOptions = computed(() => [
   { label: $t('sort_most_popular'), value: 'popular', leading: 'i-tabler-stars' },
   { label: $t('sort_author_az'), value: 'author', leading: 'i-tabler-abc' }
 ])
+
+useSyncedQueryFilters({
+  keys: ['q', 'sort'],
+  read: (query) => {
+    const sort = readSyncedQueryValue(query.sort)
+    return {
+      q: readSyncedQueryValue(query.q),
+      sort: sortOptions.value.some(option => option.value === sort) ? sort : 'recent'
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    sort: state.sort === 'recent' ? undefined : state.sort
+  }),
+  get: () => ({ q: searchQuery.value, sort: sortValue.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    sortValue.value = state.sort
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const sortBy = computed(() => {
   const option = sortOptions.value.find(o => o.value === sortValue.value)

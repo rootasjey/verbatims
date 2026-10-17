@@ -97,6 +97,12 @@ interface ClearQueueResponse {
 
 interface UseAdminSocialQueueOptions {
   showErrorToast: (title: string, description: string) => void
+  initialFilters?: {
+    page?: number
+    search?: string
+    status?: string
+    platform?: SocialPlatform
+  }
 }
 
 interface PlatformOption {
@@ -133,14 +139,14 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   const requeueFailedLoading = ref(false)
 
   const queueItems = ref<SocialQueueItem[]>([])
-  const currentPage = ref(1)
+  const currentPage = ref(options.initialFilters?.page ?? 1)
   const pageSize = ref(20)
   const totalItems = ref(0)
   const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / pageSize.value)))
 
-  const searchQuery = ref('')
-  const selectedStatus = ref<SelectOption>({ label: 'Active', value: 'active' })
-  const selectedPlatform = ref<SocialPlatform>('x')
+  const searchQuery = ref(options.initialFilters?.search ?? '')
+  const selectedStatus = ref<SelectOption>(statusOptions.find(option => option.value === options.initialFilters?.status) ?? statusOptions[0]!)
+  const selectedPlatform = ref<SocialPlatform>(options.initialFilters?.platform ?? 'x')
   const platformOptions: PlatformOption[] = SOCIAL_PLATFORMS.map(platform => ({
     label: platformIcons[platform],
     value: platform as SocialPlatform

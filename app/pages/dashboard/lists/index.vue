@@ -378,10 +378,31 @@ const visibilityOptions = computed(() => [
   { label: $t('filter_public'), value: 'public' },
   { label: $t('filter_private'), value: 'private' }
 ])
-
 const visibilityValue = ref('all')
 const mobileFiltersOpen = ref(false)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
+useSyncedQueryFilters({
+  keys: ['q', 'visibility'],
+  read: (query) => {
+    const visibility = readSyncedQueryValue(query.visibility)
+    return {
+      q: readSyncedQueryValue(query.q),
+      visibility: visibilityOptions.value.some(option => option.value === visibility) ? visibility : 'all'
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    visibility: state.visibility === 'all' ? undefined : state.visibility
+  }),
+  get: () => ({ q: searchQuery.value, visibility: visibilityValue.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    visibilityValue.value = state.visibility
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 const totalPages = ref(0)
 const totalCollections = ref(0)
 const isPristineEmpty = computed(() =>

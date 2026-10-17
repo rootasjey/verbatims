@@ -425,10 +425,12 @@
             <h4 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_openrouter_key_label') }}</h4>
             <div class="mt-3 flex flex-wrap items-center gap-2">
               <label class="sr-only" for="quote-audit-openrouter-key">{{ $t('audit_openrouter_key_label') }}</label>
-              <input id="quote-audit-openrouter-key" v-model="openRouterKey" type="password" autocomplete="off" spellcheck="false" :placeholder="$t('audit_openrouter_key_placeholder') as string" class="min-w-64 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100" :disabled="savingOpenRouterKey || loadingQuoteAuditConfig">
-              <NButton btn="outline-gray" size="sm" :disabled="savingOpenRouterKey || !openRouterKey.trim()" @click="saveOpenRouterKey">
-                {{ savingOpenRouterKey ? $t('audit_openrouter_key_saving') : $t('audit_openrouter_key_save') }}
-              </NButton>
+              <input id="quote-audit-openrouter-key" v-model="openRouterKey" type="password" autocomplete="off" spellcheck="false" :placeholder="$t('audit_openrouter_key_placeholder') as string" class="h-11 min-h-11 min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:!border-gray-400 focus:!outline-none focus:!ring-1 focus:!ring-gray-400 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100 dark:focus:!border-gray-500 dark:focus:!ring-gray-600" :disabled="savingOpenRouterKey || loadingQuoteAuditConfig">
+              <NTooltip :content="$t('audit_openrouter_key_save') as string">
+                <span class="inline-flex shrink-0">
+                  <NButton icon btn="outline-gray" size="md" label="i-tabler-device-floppy" :aria-label="$t('audit_openrouter_key_save') as string" class="!h-11 !min-h-11 !w-11 !min-w-11 !p-0" :disabled="savingOpenRouterKey || !openRouterKey.trim()" @click="saveOpenRouterKey" />
+                </span>
+              </NTooltip>
               <NButton v-if="quoteAuditConfig.provider.configured" btn="outline-gray" size="sm" :disabled="savingOpenRouterKey" @click="removeOpenRouterKey">
                 {{ $t('audit_openrouter_key_remove') }}
               </NButton>
@@ -457,22 +459,27 @@
           </div>
         </div>
         <template #footer>
-          <div class="flex min-w-0 flex-1 flex-nowrap items-center gap-2">
+          <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             <label class="sr-only" for="quote-audit-test-model">{{ $t('audit_test_model') }}</label>
-            <NSelect
-              id="quote-audit-test-model"
-              v-model="selectedQuoteAuditTestModel"
-              :items="quoteAuditTestModelOptions"
-              :placeholder="$t('audit_test_models_unavailable') as string"
-              class="min-w-0 flex-1 sm:max-w-[16rem]"
-              :_select-trigger="{ class: '!h-11 !min-h-11 !max-w-full !rounded-md !border !border-gray-300 !bg-white !px-3 !text-sm dark:!border-gray-700 dark:!bg-[#171615]' }"
-              :_select-content="{ bodyLock: false, class: 'z-[70] border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
-              :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditTestModels.length === 0"
-            >
-              <template #content="{ items }">
-                <NSelectItem v-for="option in items" :key="option.value" :value="option" :disabled="option.disabled">{{ option.label }}</NSelectItem>
-              </template>
-            </NSelect>
+            <div class="min-w-0 flex-1 sm:max-w-64">
+              <NSelect
+                id="quote-audit-test-model"
+                v-model="selectedQuoteAuditTestModel"
+                :items="quoteAuditTestModelOptions"
+                :placeholder="$t('audit_test_models_unavailable') as string"
+                class="w-full min-w-0"
+                :_select-trigger="{ class: '!h-11 !min-h-11 !w-full !max-w-full !overflow-hidden !rounded-md !border !border-gray-300 !bg-white !px-3 !text-sm dark:!border-gray-700 dark:!bg-[#171615]' }"
+                :_select-content="{ bodyLock: false, class: 'z-[70] max-w-[calc(100vw-2rem)] sm:max-w-96 border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
+                :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditTestModels.length === 0"
+              >
+                <template #value>
+                  <span class="block min-w-0 truncate">{{ quoteAuditTestModelDisplayName }}</span>
+                </template>
+                <template #content="{ items }">
+                  <NSelectItem v-for="option in items" :key="option.value" :value="option" :disabled="option.disabled">{{ option.label }}</NSelectItem>
+                </template>
+              </NSelect>
+            </div>
             <NTooltip :content="$t('audit_test_one_quote_tooltip') as string">
               <span class="inline-flex">
                 <NButton btn="outline-gray" size="md" leading="i-lucide-flask-conical" class="min-h-11 shrink-0 whitespace-nowrap rounded-md px-4" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || !quoteAuditTestModel || quoteAuditConfig.pilotModels.includes(quoteAuditTestModel) || !quoteAuditConfig.provider.valid" @click="runQuoteAuditTest">
@@ -692,6 +699,11 @@ const selectedQuoteAuditTestModel = computed<QuoteAuditSelectOption | null>({
   get: () => quoteAuditTestModelOptions.value.find(option => option.value === quoteAuditTestModel.value) ?? null,
   set: option => { quoteAuditTestModel.value = option?.value ?? '' },
 })
+const quoteAuditTestModelDisplayName = computed(() => {
+  const name = quoteAuditTestModels.value.find(model => model.id === quoteAuditTestModel.value)?.name ?? ''
+  const providerSeparator = name.indexOf(': ')
+  return providerSeparator >= 0 ? name.slice(providerSeparator + 2) : name
+})
 const loadingQuoteAuditConfig = ref(true)
 const savingQuoteAuditConfig = ref(false)
 const runningQuoteAuditTest = ref(false)
@@ -797,6 +809,7 @@ const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
 const selectedSort = ref({ label: $t('sort_most_recent') as string, value: 'newest' })
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
 
@@ -1064,6 +1077,36 @@ const sortOptions = computed(() => [
   { label: $t('sort_most_viewed') as string, value: 'views' }
 ])
 
+useSyncedQueryFilters({
+  keys: ['q', 'lang', 'sort', 'audit'],
+  read: (query) => {
+    const lang = readSyncedQueryValue(query.lang)
+    const sort = readSyncedQueryValue(query.sort)
+    const audit = readSyncedQueryValue(query.audit)
+    return {
+      q: readSyncedQueryValue(query.q),
+      lang: languageOptions.value.some(option => option.value === lang) ? lang : '',
+      sort: sortOptions.value.some(option => option.value === sort) ? sort : 'newest',
+      audit: auditProgressFilterOptions.value.some(option => option.value === audit) ? audit : ''
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    lang: state.lang || undefined,
+    sort: state.sort === 'newest' ? undefined : state.sort,
+    audit: state.audit || undefined
+  }),
+  get: () => ({ q: searchQuery.value, lang: selectedLanguage.value.value, sort: selectedSort.value.value, audit: selectedAuditProgress.value.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    selectedLanguage.value = languageOptions.value.find(option => option.value === state.lang) ?? languageOptions.value[0]!
+    selectedSort.value = sortOptions.value.find(option => option.value === state.sort) ?? sortOptions.value[0]!
+    selectedAuditProgress.value = auditProgressFilterOptions.value.find(option => option.value === state.audit) ?? auditProgressFilterOptions.value[0]!
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
+
 const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
   if (selectedSort.value.value === ascendingValue) return 'asc'
   if (selectedSort.value.value === descendingValue) return 'desc'
@@ -1139,8 +1182,15 @@ const loadQuotes = async () => {
       }
     })
 
+    const nextTotal = response.pagination?.total || 0
+    const lastPage = Math.max(1, Math.ceil(nextTotal / pageSize.value))
+    totalQuotes.value = nextTotal
+    if (currentPage.value > lastPage) {
+      currentPage.value = lastPage
+      return
+    }
+
     quotes.value = response.data || []
-    totalQuotes.value = response.pagination?.total || 0
     rowSelection.value = {}
     clearHighlight()
   } catch (error) {

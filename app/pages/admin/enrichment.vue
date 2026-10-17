@@ -179,6 +179,7 @@ const processing = ref(false)
 const jobs = ref<any[]>([])
 const totalItems = ref(0)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(20)
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
@@ -198,6 +199,33 @@ const statusOptions = computed<FilterOption[]>(() => [
 const entityTypeOptions = computed<FilterOption[]>(() => [
   { label: String($t('filter_all_entities')), value: '' }, { label: String($t('filter_authors')), value: 'author' }, { label: String($t('filter_references')), value: 'reference' },
 ])
+
+useSyncedQueryFilters({
+  keys: ['status', 'entityType', 'entityId'],
+  read: (query) => {
+    const status = readSyncedQueryValue(query.status)
+    const entityType = readSyncedQueryValue(query.entityType)
+    const entityId = Number.parseInt(readSyncedQueryValue(query.entityId), 10)
+    return {
+      status: statusOptions.value.some(option => option.value === status) ? status : '',
+      entityType: entityTypeOptions.value.some(option => option.value === entityType) ? entityType : '',
+      entityId: Number.isSafeInteger(entityId) && entityId > 0 ? String(entityId) : ''
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    status: state.status || undefined,
+    entityType: state.entityType || undefined,
+    entityId: state.entityId || undefined
+  }),
+  get: () => ({ status: selectedStatus.value.value, entityType: selectedEntityType.value.value, entityId: selectedEntityId.value ? String(selectedEntityId.value) : '' }),
+  apply: (state) => {
+    selectedStatus.value = statusOptions.value.find(option => option.value === state.status) ?? statusOptions.value[0]!
+    selectedEntityType.value = entityTypeOptions.value.find(option => option.value === state.entityType) ?? entityTypeOptions.value[0]!
+    selectedEntityId.value = state.entityId ? Number(state.entityId) : null
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const queueStats = ref({ jobs: { queued: 0, processing: 0, completed: 0, failed: 0, cancelled: 0 }, states: { queued: 0, processing: 0, verified: 0, review: 0, failed: 0 } })
 
@@ -241,13 +269,6 @@ const loadQueue = async () => {
     }
   }
   finally { loading.value = false }
-}
-
-const syncFiltersFromRoute = () => {
-  const queryEntityType = String(route.query.entityType || '').trim(); const queryEntityId = Number.parseInt(String(route.query.entityId || ''), 10); const queryStatus = String(route.query.status || '').trim()
-  selectedEntityType.value = entityTypeOptions.value.find(o => o.value === queryEntityType) ?? entityTypeOptions.value[0]!
-  selectedStatus.value = statusOptions.value.find(o => o.value === queryStatus) ?? statusOptions.value[0]!
-  selectedEntityId.value = Number.isInteger(queryEntityId) && queryEntityId > 0 ? queryEntityId : null; currentPage.value = 1
 }
 
 const clearEntityFilter = async () => { selectedEntityId.value = null; await navigateTo({ query: { ...route.query, entityId: undefined, jobId: undefined } }, { replace: true }) }
@@ -324,9 +345,8 @@ const onPageJump = (page: number) => {
   currentPage.value = page
 }
 
-watchDebounced([currentPage, selectedStatus, selectedEntityType], () => { loadQueue() }, { debounce: 200 })
-watch(() => route.query, () => { syncFiltersFromRoute(); loadQueue() })
-onMounted(() => { syncFiltersFromRoute(); loadQueue() })
+watchDebounced([currentPage, selectedStatus, selectedEntityType, selectedEntityId], () => { loadQueue() }, { debounce: 200 })
+onMounted(() => { loadQueue() })
 
 let footerObserver: ResizeObserver | null = null
 

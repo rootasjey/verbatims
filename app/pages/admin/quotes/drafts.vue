@@ -328,6 +328,7 @@ const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
 const selectedLanguage = ref({ label: $t('common.all_languages') as string, value: '' })
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
 const showDeleteModal = ref(false)
@@ -371,6 +372,31 @@ const languageOptions = computed(() =>
     value: lang.value === 'all' ? '' : lang.value
   }))
 )
+
+useSyncedQueryFilters({
+  keys: ['q', 'lang', 'sort'],
+  read: (query) => {
+    const lang = readSyncedQueryValue(query.lang)
+    return {
+      q: readSyncedQueryValue(query.q),
+      lang: languageOptions.value.some(option => option.value === lang) ? lang : '',
+      sort: readSyncedQueryValue(query.sort) === 'oldest' ? 'oldest' : 'newest'
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    lang: state.lang || undefined,
+    sort: state.sort === 'newest' ? undefined : state.sort
+  }),
+  get: () => ({ q: searchQuery.value, lang: selectedLanguage.value.value, sort: draftCreatedSortOrder.value === 'ASC' ? 'oldest' : 'newest' }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    selectedLanguage.value = languageOptions.value.find(option => option.value === state.lang) ?? languageOptions.value[0]!
+    draftCreatedSortOrder.value = state.sort === 'oldest' ? 'ASC' : 'DESC'
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const inlineLanguageOptions = computed(() =>
   languageStore.availableLanguages

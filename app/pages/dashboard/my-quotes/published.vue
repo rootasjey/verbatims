@@ -465,6 +465,7 @@ const openMobileQuoteActions = (quote: any) => {
 }
 const longPress = useDashboardLongPress(openMobileQuoteActions)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
 const totalPages = ref(0)
@@ -488,6 +489,28 @@ const sortOptions = computed(() => [
   { label: $t('sort_most_viewed'), value: 'views', leading: 'i-tabler-eye' },
   { label: $t('common.author_az'), value: 'author', leading: 'i-tabler-abc' }
 ])
+
+useSyncedQueryFilters({
+  keys: ['q', 'sort'],
+  read: (query) => {
+    const sort = readSyncedQueryValue(query.sort)
+    return {
+      q: readSyncedQueryValue(query.q),
+      sort: sortOptions.value.some(option => option.value === sort) ? sort : 'recent'
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    sort: state.sort === 'recent' ? undefined : state.sort
+  }),
+  get: () => ({ q: searchQuery.value, sort: sortValue.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    sortValue.value = state.sort
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const sortBy = computed(() => {
   const option = sortOptions.value.find(o => o.value === sortValue.value)

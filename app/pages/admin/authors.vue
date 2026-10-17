@@ -367,6 +367,7 @@ const hasLoadedOnce = ref(false)
 const authors = ref<Author[]>([])
 const totalAuthors = ref(0)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const searchQuery = ref('')
 const selectedFictionalFilter = ref({ label: $t('filter_all_types') as string, value: '' })
@@ -538,6 +539,32 @@ const sortOptions = computed(() => [
   { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }, { label: $t('sort_fewest_quotes') as string, value: 'quotes_asc' },
   { label: $t('sort_most_liked') as string, value: 'likes_desc' }
 ])
+
+useSyncedQueryFilters({
+  keys: ['q', 'fictional', 'sort'],
+  read: (query) => {
+    const fictional = readSyncedQueryValue(query.fictional)
+    const sort = readSyncedQueryValue(query.sort)
+    return {
+      q: readSyncedQueryValue(query.q),
+      fictional: fictionalFilterOptions.some(option => option.value === fictional) ? fictional : '',
+      sort: sortOptions.value.some(option => option.value === sort) ? sort : 'name_asc'
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    fictional: state.fictional || undefined,
+    sort: state.sort === 'name_asc' ? undefined : state.sort
+  }),
+  get: () => ({ q: searchQuery.value, fictional: selectedFictionalFilter.value.value, sort: selectedSort.value.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    selectedFictionalFilter.value = fictionalFilterOptions.find(option => option.value === state.fictional) ?? fictionalFilterOptions[0]!
+    selectedSort.value = sortOptions.value.find(option => option.value === state.sort) ?? sortOptions.value[0]!
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
   if (selectedSort.value.value === ascendingValue) return 'asc'

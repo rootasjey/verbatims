@@ -285,8 +285,17 @@ const loading = ref(false)
 const keys = ref<any[]>([])
 const total = ref(0)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const searchQuery = ref('')
+useSyncedQueryFilters({
+  keys: ['q'],
+  read: query => ({ q: readSyncedQueryValue(query.q) }),
+  write: (query, state) => ({ ...query, q: state.q.trim() || undefined }),
+  get: () => ({ q: searchQuery.value }),
+  apply: state => { searchQuery.value = state.q },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
