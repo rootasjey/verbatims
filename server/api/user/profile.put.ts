@@ -12,9 +12,16 @@ export default defineEventHandler(async (event) => {
       .set({
         name: body.name || user.name,
         biography: body.bio ?? undefined,
+        avatarUrl: body.avatar_url,
         updatedAt: new Date()
       })
       .where(eq(schema.users.id, user.id))
+
+    if (body.avatar_url !== undefined) {
+      await setUserSession(event, {
+        user: { ...user, avatar_url: body.avatar_url }
+      })
+    }
 
     return { success: true, message: 'Profile updated successfully' }
   } catch (error: any) {

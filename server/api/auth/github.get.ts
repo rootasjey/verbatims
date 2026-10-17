@@ -3,6 +3,7 @@ import { eq, sql } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { validLanguages } from '../../utils/validation/reference'
 import { logActivity } from '~~/server/utils/activity-log'
+import { isTroncheAvatarUrl } from '../../utils/avatar'
 
 export default defineOAuthGitHubEventHandler({
   config: {
@@ -25,7 +26,7 @@ export default defineOAuthGitHubEventHandler({
           .update(schema.users)
           .set({
             name: user.name || user.login,
-            avatarUrl: user.avatar_url,
+            avatarUrl: isTroncheAvatarUrl(existingUser.avatarUrl) ? existingUser.avatarUrl : user.avatar_url,
             lastLoginAt: sql`CURRENT_TIMESTAMP`,
             updatedAt: sql`CURRENT_TIMESTAMP`
           })
