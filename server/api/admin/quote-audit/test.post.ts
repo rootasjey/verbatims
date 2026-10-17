@@ -1,19 +1,25 @@
-import { getQuoteAuditPilotStatus, runQuoteAuditBatch } from '../../../utils/quote-audit/runner'
-import { getQuoteAuditOpenRouterStatus } from '../../../utils/quote-audit/openrouter'
+import { getQuoteAuditPilotModels, runQuoteAuditBatch } from '../../../utils/quote-audit/runner'
+import { getQuoteAuditOpenRouterStatus, QUOTE_AUDIT_TEST_MODELS } from '../../../utils/quote-audit/openrouter'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
-  const provider = await getQuoteAuditOpenRouterStatus()
+  const body = await readBody<{ model?: unknown }>(event)
+  const model = typeof body?.model === 'string' && QUOTE_AUDIT_TEST_MODELS.includes(body.model as typeof QUOTE_AUDIT_TEST_MODELS[number])
+    ? body.model
+    : null
+  if (!model) throwServer(400, 'Choose a supported quote audit test model')
+
+  const provider = await getQuoteAuditOpenRouterStatus(model)
   if (!provider.valid || !provider.modelAvailable) {
     throwServer(409, 'Configure and validate an OpenRouter API key before testing quote audits')
   }
 
-  const pilot = await getQuoteAuditPilotStatus()
-  if (pilot.count > 0) {
-    throwServer(409, 'The one-quote production test has already been run')
+  const pilotModels = await getQuoteAuditPilotModels()
+  if (pilotModels.includes(model)) {
+    throwServer(409, 'A one-quote pilot test has already been run with this model')
   }
 
-  const report = await runQuoteAuditBatch(1, true)
+  const report = await runQuoteAuditBatch(1, true, model)
   return { success: report.success, data: report }
 })

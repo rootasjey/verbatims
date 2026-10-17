@@ -4,6 +4,7 @@ import { db, schema } from 'hub:db'
 const CREDENTIALS_KEY = 'quote-audit:openrouter-key:v1'
 const OPENROUTER_API = 'https://openrouter.ai/api/v1'
 export const QUOTE_AUDIT_MODEL = 'openai/gpt-5-nano'
+export const QUOTE_AUDIT_TEST_MODELS = [QUOTE_AUDIT_MODEL, 'openai/gpt-6-luna'] as const
 
 function getEncryptionSecret() {
   const secret = useRuntimeConfig().session?.password
@@ -58,7 +59,7 @@ async function getStoredApiKey(): Promise<string | null> {
   return new TextDecoder().decode(clear)
 }
 
-async function validateApiKey(apiKey: string) {
+async function validateApiKey(apiKey: string, model = QUOTE_AUDIT_MODEL) {
   const response = await fetch(`${OPENROUTER_API}/key`, {
     headers: { Authorization: `Bearer ${apiKey}` },
     signal: AbortSignal.timeout(12_000),
@@ -66,14 +67,14 @@ async function validateApiKey(apiKey: string) {
   if (response.status === 401 || response.status === 403) throw new Error('OpenRouter rejected this API key')
   if (!response.ok) throw new Error(`OpenRouter key check failed (${response.status})`)
 
-  const modelResponse = await fetch(`${OPENROUTER_API}/models/openai/gpt-5-nano/endpoints`, {
+  const modelResponse = await fetch(`${OPENROUTER_API}/models/${model}/endpoints`, {
     headers: { Authorization: `Bearer ${apiKey}` },
     signal: AbortSignal.timeout(12_000),
   })
   if (modelResponse.status === 404) throw new Error('The configured OpenRouter model is unavailable')
   if (!modelResponse.ok) throw new Error(`OpenRouter model check failed (${modelResponse.status})`)
-  const model = await modelResponse.json() as { data?: { endpoints?: unknown[] } }
-  if (!model.data?.endpoints?.length) throw new Error('The configured OpenRouter model is unavailable')
+  const modelData = await modelResponse.json() as { data?: { endpoints?: unknown[] } }
+  if (!modelData.data?.endpoints?.length) throw new Error('The configured OpenRouter model is unavailable')
 }
 
 export async function setQuoteAuditOpenRouterKey(input: unknown) {
@@ -91,18 +92,18 @@ export async function getQuoteAuditOpenRouterKey() {
   return apiKey
 }
 
-export async function getQuoteAuditOpenRouterStatus() {
+export async function getQuoteAuditOpenRouterStatus(model = QUOTE_AUDIT_MODEL) {
   const apiKey = await getStoredApiKey()
-  if (!apiKey) return { configured: false, valid: false, model: QUOTE_AUDIT_MODEL, modelAvailable: false }
+  if (!apiKey) return { configured: false, valid: false, model, modelAvailable: false }
 
   try {
-    await validateApiKey(apiKey)
-    return { configured: true, valid: true, model: QUOTE_AUDIT_MODEL, modelAvailable: true }
+    await validateApiKey(apiKey, model)
+    return { configured: true, valid: true, model, modelAvailable: true }
   } catch (error) {
     return {
       configured: true,
       valid: false,
-      model: QUOTE_AUDIT_MODEL,
+      model,
       modelAvailable: false,
       status: error instanceof Error && error.message === 'OpenRouter rejected this API key'
         ? 'rejected'
