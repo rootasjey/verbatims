@@ -32,6 +32,10 @@
           <NCombobox v-model="selectedAuditProgress" :items="auditProgressFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[200px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
+          <NButton btn="outline-gray" size="sm" class="gap-1.5" aria-haspopup="dialog" @click="showAuditSettingsDialog = true">
+            <NIcon name="i-lucide-sliders-horizontal" class="h-4 w-4" aria-hidden="true" />
+            {{ $t('audit_settings_button') }}
+          </NButton>
         </div>
       </div>
       <!-- Mobile search -->
@@ -84,72 +88,12 @@
           <NCombobox v-model="selectedAuditProgress" :items="auditProgressFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[200px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
             <template #trigger="{ modelValue }"><span class="text-xs leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
+          <NButton btn="outline-gray" size="xs" class="gap-1" aria-haspopup="dialog" @click="showAuditSettingsDialog = true">
+            <NIcon name="i-lucide-sliders-horizontal" class="h-3.5 w-3.5" aria-hidden="true" />
+            {{ $t('audit_settings_button') }}
+          </NButton>
         </div>
       </div>
-      <section class="mt-5 rounded-xl border border-gray-200 bg-white/60 p-4 dark:border-gray-800 dark:bg-white/[0.03]" :aria-label="$t('audit_schedule_title') as string">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="min-w-48">
-            <h2 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_schedule_title') }}</h2>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {{ $t('audit_schedule_pilot', { count: quoteAuditConfig.pilotCount, reviewed: quoteAuditConfig.pilotReviewedCount }) }}
-              <span aria-hidden="true"> · </span>
-              {{ quoteAuditConfig.provider.valid ? $t('audit_openrouter_key_ready') : $t('audit_openrouter_key_missing') }}
-              <template v-if="quoteAuditConfig.provider.valid"> · {{ quoteAuditConfig.provider.model }}</template>
-            </p>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <label class="sr-only" for="quote-audit-mode">{{ $t('audit_schedule_mode') }}</label>
-            <select id="quote-audit-mode" v-model="quoteAuditConfig.mode" class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
-              <option value="paused">{{ $t('audit_schedule_paused') }}</option>
-              <option value="pilot" :disabled="!quoteAuditConfig.provider.valid">{{ $t('audit_schedule_pilot_mode') }}</option>
-              <option value="continuous" :disabled="!quoteAuditConfig.provider.valid || quoteAuditConfig.pilotCount < 20 || quoteAuditConfig.pilotReviewedCount < 20">{{ $t('audit_schedule_continuous') }}</option>
-            </select>
-            <label class="sr-only" for="quote-audit-cadence">{{ $t('audit_schedule_cadence') }}</label>
-            <select id="quote-audit-cadence" v-model="quoteAuditConfig.cadence" class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
-              <option value="weekdays">{{ $t('audit_schedule_weekdays') }}</option>
-              <option value="weekly">{{ $t('audit_schedule_weekly') }}</option>
-            </select>
-            <NButton btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditConfig.pilotCount > 0 || !quoteAuditConfig.provider.valid" @click="runQuoteAuditTest">
-              {{ runningQuoteAuditTest ? $t('audit_test_running') : $t('audit_test_one_quote') }}
-            </NButton>
-            <NButton btn="solid-primary" size="sm" :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig || (quoteAuditConfig.mode !== 'paused' && !quoteAuditConfig.provider.valid) || (quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20)" @click="saveQuoteAuditConfig">
-              {{ savingQuoteAuditConfig ? $t('audit_schedule_saving') : $t('audit_schedule_save') }}
-            </NButton>
-          </div>
-        </div>
-        <div class="mt-3 flex flex-wrap items-center gap-2">
-          <label class="sr-only" for="quote-audit-openrouter-key">{{ $t('audit_openrouter_key_label') }}</label>
-          <input id="quote-audit-openrouter-key" v-model="openRouterKey" type="password" autocomplete="off" spellcheck="false" :placeholder="$t('audit_openrouter_key_placeholder') as string" class="min-w-64 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100" :disabled="savingOpenRouterKey || loadingQuoteAuditConfig">
-          <NButton btn="outline-gray" size="sm" :disabled="savingOpenRouterKey || !openRouterKey.trim()" @click="saveOpenRouterKey">
-            {{ savingOpenRouterKey ? $t('audit_openrouter_key_saving') : $t('audit_openrouter_key_save') }}
-          </NButton>
-          <NButton v-if="quoteAuditConfig.provider.configured" btn="outline-gray" size="sm" :disabled="savingOpenRouterKey" @click="removeOpenRouterKey">
-            {{ $t('audit_openrouter_key_remove') }}
-          </NButton>
-        </div>
-        <p v-if="quoteAuditConfig.provider.configured && !quoteAuditConfig.provider.valid" class="mt-2 text-xs text-amber-700 dark:text-amber-300">
-          {{ quoteAuditConfig.provider.status === 'rejected' ? $t('audit_openrouter_key_rejected') : quoteAuditConfig.provider.status === 'model_unavailable' ? $t('audit_openrouter_model_unavailable') : $t('audit_openrouter_key_unavailable') }}
-        </p>
-        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $t('audit_openrouter_key_note') }}</p>
-        <p v-if="quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20" class="mt-2 text-xs text-amber-700 dark:text-amber-300">
-          {{ $t('audit_schedule_review_pilot_first') }}
-        </p>
-        <div v-if="quoteAuditTestReport" class="mt-4 rounded-lg border border-gray-200 p-3 text-xs dark:border-gray-800" aria-live="polite">
-          <p class="font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_test_result', { id: quoteAuditTestReport.insertedIds[0] ?? quoteAuditTestReport.selectedIds[0] ?? '—' }) }}</p>
-          <p v-if="quoteAuditTestReport.error" class="mt-1 text-red-700 dark:text-red-300">{{ quoteAuditTestReport.error }}</p>
-          <template v-else>
-            <p class="mt-1 text-gray-600 dark:text-gray-300">{{ $t('audit_test_outcome', { outcome: quoteAuditTestReport.results[0]?.outcome ?? 'inconclusive' }) }}</p>
-            <p v-if="quoteAuditTestReport.uncertainIds.length" class="mt-1 text-amber-800 dark:text-amber-200">{{ $t('audit_test_uncertain') }}</p>
-            <ul v-if="quoteAuditTestReport.results[0]?.sources.length" class="mt-2 space-y-1">
-              <li v-for="source in quoteAuditTestReport.results[0].sources" :key="`${source.dimension}-${source.url}`">
-                <span class="text-gray-500 dark:text-gray-400">{{ $t(`audit_dimension_${source.dimension}`) }} · </span>
-                <a :href="source.url" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline underline-offset-2 dark:text-blue-300">{{ source.title || source.url }}</a>
-              </li>
-            </ul>
-          </template>
-          <p class="mt-2 text-gray-500 dark:text-gray-400">{{ $t('audit_evidence_human_review') }}</p>
-        </div>
-      </section>
     </div>
 
     <!-- First-load Skeleton -->
@@ -398,6 +342,94 @@
         </NButton>
       </div>
     </div>
+
+    <ClientOnly>
+      <NDialog v-model:open="showAuditSettingsDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto' }">
+        <template #header>
+          <div>
+            <h3 class="font-serif text-xl font-400 text-gray-900 dark:text-gray-100">{{ $t('audit_settings_title') }}</h3>
+            <p class="mt-1 max-w-prose font-sans text-xs leading-5 text-gray-500 dark:text-gray-400">{{ $t('audit_settings_description') }}</p>
+          </div>
+        </template>
+        <div class="space-y-6">
+          <section :aria-label="$t('audit_schedule_title') as string">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h4 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_schedule_title') }}</h4>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {{ $t('audit_schedule_pilot', { count: quoteAuditConfig.pilotCount, reviewed: quoteAuditConfig.pilotReviewedCount }) }}
+                  <span aria-hidden="true"> · </span>
+                  {{ quoteAuditConfig.provider.valid ? $t('audit_openrouter_key_ready') : $t('audit_openrouter_key_missing') }}
+                  <template v-if="quoteAuditConfig.provider.valid"> · {{ quoteAuditConfig.provider.model }}</template>
+                </p>
+              </div>
+            </div>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <label class="block space-y-1.5">
+                <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_schedule_mode') }}</span>
+                <select id="quote-audit-mode" v-model="quoteAuditConfig.mode" class="w-full rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
+                  <option value="paused">{{ $t('audit_schedule_paused') }}</option>
+                  <option value="pilot" :disabled="!quoteAuditConfig.provider.valid">{{ $t('audit_schedule_pilot_mode') }}</option>
+                  <option value="continuous" :disabled="!quoteAuditConfig.provider.valid || quoteAuditConfig.pilotCount < 20 || quoteAuditConfig.pilotReviewedCount < 20">{{ $t('audit_schedule_continuous') }}</option>
+                </select>
+              </label>
+              <label class="block space-y-1.5">
+                <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_schedule_cadence') }}</span>
+                <select id="quote-audit-cadence" v-model="quoteAuditConfig.cadence" class="w-full rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
+                  <option value="weekdays">{{ $t('audit_schedule_weekdays') }}</option>
+                  <option value="weekly">{{ $t('audit_schedule_weekly') }}</option>
+                </select>
+              </label>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <NButton btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditConfig.pilotCount > 0 || !quoteAuditConfig.provider.valid" @click="runQuoteAuditTest">
+                {{ runningQuoteAuditTest ? $t('audit_test_running') : $t('audit_test_one_quote') }}
+              </NButton>
+              <NButton btn="solid-primary" size="sm" :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig || (quoteAuditConfig.mode !== 'paused' && !quoteAuditConfig.provider.valid) || (quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20)" @click="saveQuoteAuditConfig">
+                {{ savingQuoteAuditConfig ? $t('audit_schedule_saving') : $t('audit_schedule_save') }}
+              </NButton>
+            </div>
+            <p v-if="quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20" class="mt-3 text-xs text-amber-700 dark:text-amber-300">
+              {{ $t('audit_schedule_review_pilot_first') }}
+            </p>
+          </section>
+
+          <section class="border-t border-gray-200 pt-5 dark:border-gray-800">
+            <h4 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_openrouter_key_label') }}</h4>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <label class="sr-only" for="quote-audit-openrouter-key">{{ $t('audit_openrouter_key_label') }}</label>
+              <input id="quote-audit-openrouter-key" v-model="openRouterKey" type="password" autocomplete="off" spellcheck="false" :placeholder="$t('audit_openrouter_key_placeholder') as string" class="min-w-64 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100" :disabled="savingOpenRouterKey || loadingQuoteAuditConfig">
+              <NButton btn="outline-gray" size="sm" :disabled="savingOpenRouterKey || !openRouterKey.trim()" @click="saveOpenRouterKey">
+                {{ savingOpenRouterKey ? $t('audit_openrouter_key_saving') : $t('audit_openrouter_key_save') }}
+              </NButton>
+              <NButton v-if="quoteAuditConfig.provider.configured" btn="outline-gray" size="sm" :disabled="savingOpenRouterKey" @click="removeOpenRouterKey">
+                {{ $t('audit_openrouter_key_remove') }}
+              </NButton>
+            </div>
+            <p v-if="quoteAuditConfig.provider.configured && !quoteAuditConfig.provider.valid" class="mt-2 text-xs text-amber-700 dark:text-amber-300">
+              {{ quoteAuditConfig.provider.status === 'rejected' ? $t('audit_openrouter_key_rejected') : quoteAuditConfig.provider.status === 'model_unavailable' ? $t('audit_openrouter_model_unavailable') : $t('audit_openrouter_key_unavailable') }}
+            </p>
+            <p class="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">{{ $t('audit_openrouter_key_note') }}</p>
+          </section>
+
+          <div v-if="quoteAuditTestReport" class="rounded-lg border border-gray-200 p-3 text-xs dark:border-gray-800" aria-live="polite">
+            <p class="font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_test_result', { id: quoteAuditTestReport.insertedIds[0] ?? quoteAuditTestReport.selectedIds[0] ?? '—' }) }}</p>
+            <p v-if="quoteAuditTestReport.error" class="mt-1 text-red-700 dark:text-red-300">{{ quoteAuditTestReport.error }}</p>
+            <template v-else>
+              <p class="mt-1 text-gray-600 dark:text-gray-300">{{ $t('audit_test_outcome', { outcome: quoteAuditTestReport.results[0]?.outcome ?? 'inconclusive' }) }}</p>
+              <p v-if="quoteAuditTestReport.uncertainIds.length" class="mt-1 text-amber-800 dark:text-amber-200">{{ $t('audit_test_uncertain') }}</p>
+              <ul v-if="quoteAuditTestReport.results[0]?.sources.length" class="mt-2 space-y-1">
+                <li v-for="source in quoteAuditTestReport.results[0].sources" :key="`${source.dimension}-${source.url}`">
+                  <span class="text-gray-500 dark:text-gray-400">{{ $t(`audit_dimension_${source.dimension}`) }} · </span>
+                  <a :href="source.url" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline underline-offset-2 dark:text-blue-300">{{ source.title || source.url }}</a>
+                </li>
+              </ul>
+            </template>
+            <p class="mt-2 text-gray-500 dark:text-gray-400">{{ $t('audit_evidence_human_review') }}</p>
+          </div>
+        </div>
+      </NDialog>
+    </ClientOnly>
 
     <ClientOnly>
       <AddQuoteDialog
@@ -743,6 +775,7 @@ const showBulkAddToCollection = ref(false)
 const showBulkEditDialog = ref(false)
 const showBulkUnpublishModal = ref(false)
 const showAuditDialog = ref(false)
+const showAuditSettingsDialog = ref(false)
 const savingAudit = ref(false)
 const auditQuote = ref<AdminQuote | null>(null)
 const auditDraft = reactive<{ progress: QuoteAuditProgress; outcome: QuoteAuditOutcome | ''; notes: string }>({
@@ -1059,6 +1092,7 @@ const selectAllOnPage = () => {
 const isAnyDialogOpen = computed(() =>
   showEditQuoteDialog.value || showBulkAddToCollection.value ||
   showBulkEditDialog.value || showBulkUnpublishModal.value || showAuditDialog.value ||
+  showAuditSettingsDialog.value ||
   showPageJumpDialog.value
 )
 
