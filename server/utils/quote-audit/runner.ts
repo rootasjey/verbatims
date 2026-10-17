@@ -233,7 +233,17 @@ async function auditQuote(quote: {
     signal: AbortSignal.timeout(90_000),
   })
 
-  if (!response.ok) throw new Error(`OpenRouter Responses request failed (${response.status})`)
+  if (!response.ok) {
+    let detail = ''
+    try {
+      const payload = await response.json() as { error?: { message?: unknown } }
+      detail = typeof payload.error?.message === 'string' ? payload.error.message : ''
+    } catch {
+      // Keep the provider status when its error body is not JSON.
+    }
+    detail = detail.replaceAll(apiKey, '[redacted]').slice(0, 400)
+    throw new Error(`OpenRouter Responses request failed (${response.status})${detail ? `: ${detail}` : ''}`)
+  }
   const payload = await readCompletedResponseStream(response)
   const parsed = parseModelAudit(readResponseText(payload))
   const sourceMap = new Map(readSearchSources(payload).map(source => [source.url, source]))
