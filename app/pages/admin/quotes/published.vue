@@ -906,13 +906,13 @@ const auditProgressOptions = [
 ] as const satisfies ReadonlyArray<{ value: QuoteAuditProgress; labelKey: string }>
 
 const auditOutcomeOptions = [
-  { value: 'source_candidate_found', labelKey: 'audit_outcome_source_candidate_found' },
-  { value: 'possible_misattribution', labelKey: 'audit_outcome_possible_misattribution' },
-  { value: 'primary_source_confirmed', labelKey: 'audit_outcome_primary_source_confirmed' },
-  { value: 'no_primary_source_found', labelKey: 'audit_outcome_no_primary_source_found' },
-  { value: 'disputed', labelKey: 'audit_outcome_disputed' },
-  { value: 'inconclusive', labelKey: 'audit_outcome_inconclusive' },
-] as const satisfies ReadonlyArray<{ value: QuoteAuditOutcome; labelKey: string }>
+  { value: 'source_candidate_found', labelKey: 'audit_outcome_source_candidate_found', descriptionKey: 'audit_outcome_description_source_candidate_found' },
+  { value: 'possible_misattribution', labelKey: 'audit_outcome_possible_misattribution', descriptionKey: 'audit_outcome_description_possible_misattribution' },
+  { value: 'primary_source_confirmed', labelKey: 'audit_outcome_primary_source_confirmed', descriptionKey: 'audit_outcome_description_primary_source_confirmed' },
+  { value: 'no_primary_source_found', labelKey: 'audit_outcome_no_primary_source_found', descriptionKey: 'audit_outcome_description_no_primary_source_found' },
+  { value: 'disputed', labelKey: 'audit_outcome_disputed', descriptionKey: 'audit_outcome_description_disputed' },
+  { value: 'inconclusive', labelKey: 'audit_outcome_inconclusive', descriptionKey: 'audit_outcome_description_inconclusive' },
+] as const satisfies ReadonlyArray<{ value: QuoteAuditOutcome; labelKey: string; descriptionKey: string }>
 
 const auditProgressBadge = computed(() => ({
   pending: 'soft-gray',
@@ -929,6 +929,7 @@ const auditReviewTabs = computed(() => [
 const auditOutcomeDisplayOptions = computed(() => auditOutcomeOptions.map(option => ({
   value: option.value,
   label: $t(option.labelKey) as string,
+  description: $t(option.descriptionKey) as string,
 })))
 
 const auditProgressLabel = (progress?: QuoteAuditProgress) => {

@@ -54,19 +54,24 @@
             </div>
             <fieldset class="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-labelledby="outcome-heading">
               <legend class="sr-only">{{ $t('audit_outcome_label') }}</legend>
-              <label
+              <NTooltip
                 v-for="option in outcomeTiles"
                 :key="option.value || 'none'"
-                class="group relative flex aspect-[1.1/1] min-h-28 min-w-0 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border p-3 text-center transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-700 dark:focus-within:ring-gray-300"
-                :class="selectedOutcome === option.value
-                  ? 'border-gray-700 bg-gray-100 dark:border-gray-300 dark:bg-white/[0.08]'
-                  : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#171615] dark:hover:bg-white/[0.06]'"
+                :content="option.description"
+                :_tooltip-content="{ side: 'bottom', class: 'max-w-64 text-center' }"
               >
-                <input v-model="selectedOutcome" type="radio" name="quote-audit-outcome" :value="option.value" class="sr-only">
-                <NIcon :name="option.icon" class="h-7 w-7 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-                <span class="min-w-0 font-sans text-[15px] font-500 leading-snug text-gray-800 dark:text-gray-200">{{ option.label }}</span>
-                <NIcon v-if="selectedOutcome === option.value" name="i-lucide-check" class="absolute right-2 top-2 h-4 w-4 text-gray-900 dark:text-gray-100" aria-hidden="true" />
-              </label>
+                <label
+                  class="group relative flex aspect-[1.1/1] min-h-28 min-w-0 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border p-3 text-center transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-700 dark:focus-within:ring-gray-300"
+                  :class="selectedOutcome === option.value
+                    ? 'border-gray-700 bg-gray-100 dark:border-gray-300 dark:bg-white/[0.08]'
+                    : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#171615] dark:hover:bg-white/[0.06]'"
+                >
+                  <input v-model="selectedOutcome" type="radio" name="quote-audit-outcome" :value="option.value" class="sr-only">
+                  <NIcon :name="option.icon" class="h-7 w-7 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                  <span class="min-w-0 font-sans text-[15px] font-500 leading-snug text-gray-800 dark:text-gray-200">{{ option.label }}</span>
+                  <NIcon v-if="selectedOutcome === option.value" name="i-lucide-check" class="absolute right-2 top-2 h-4 w-4 text-gray-900 dark:text-gray-100" aria-hidden="true" />
+                </label>
+              </NTooltip>
             </fieldset>
           </section>
 
@@ -100,7 +105,7 @@ interface AuditEvidence {
 const props = defineProps<{
   quote: AdminQuote | null
   evidence: AuditEvidence | null
-  outcomeOptions: Array<{ value: QuoteAuditOutcome; label: string }>
+  outcomeOptions: Array<{ value: QuoteAuditOutcome; label: string; description: string }>
 }>()
 
 const outcome = defineModel<QuoteAuditOutcome | ''>('outcome', { required: true })
@@ -125,7 +130,7 @@ const selectedOutcome = computed({
 })
 
 const outcomeTiles = computed(() => [
-  { value: '' as const, label: $t('audit_outcome_none') as string, icon: 'i-lucide-circle-dashed' },
+  { value: '' as const, label: $t('audit_outcome_none') as string, description: $t('audit_outcome_description_none') as string, icon: 'i-lucide-circle-dashed' },
   ...props.outcomeOptions.map(option => ({
     ...option,
     icon: {
