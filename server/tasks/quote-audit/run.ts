@@ -1,6 +1,6 @@
 import { getQuoteAuditConfig } from '../../utils/quote-audit/config'
 import { getQuoteAuditPilotStatus, runQuoteAuditBatch } from '../../utils/quote-audit/runner'
-import { getQuoteAuditOAuthStatus } from '../../utils/quote-audit/oauth'
+import { getQuoteAuditOpenRouterStatus } from '../../utils/quote-audit/openrouter'
 
 function isScheduledParisRun(cadence: 'weekdays' | 'weekly') {
   const now = new Date()
@@ -30,12 +30,9 @@ export default defineTask({
       return { success: true, skipped: true, reason: 'quote audit is paused in admin settings' }
     }
 
-    const oauth = await getQuoteAuditOAuthStatus()
-    if (!oauth.connected || oauth.needsReconnect) {
-      return { success: true, skipped: true, reason: 'the quote audit requires a connected ChatGPT OAuth session' }
-    }
-    if (!oauth.modelAvailable) {
-      return { success: true, skipped: true, reason: `the connected ChatGPT account does not offer ${oauth.model}` }
+    const provider = await getQuoteAuditOpenRouterStatus()
+    if (!provider.valid || !provider.modelAvailable) {
+      return { success: true, skipped: true, reason: 'the quote audit requires a valid OpenRouter API key and model access' }
     }
 
     if (!isScheduledParisRun(config.cadence)) {

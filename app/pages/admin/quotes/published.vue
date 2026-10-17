@@ -93,43 +93,44 @@
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {{ $t('audit_schedule_pilot', { count: quoteAuditConfig.pilotCount, reviewed: quoteAuditConfig.pilotReviewedCount }) }}
               <span aria-hidden="true"> · </span>
-              {{ quoteAuditConfig.oauthTokenConfigured ? $t('audit_schedule_secret_ready') : $t('audit_schedule_secret_missing') }}
-              <template v-if="quoteAuditConfig.oauth.email"> · {{ quoteAuditConfig.oauth.email }}</template>
+              {{ quoteAuditConfig.provider.valid ? $t('audit_openrouter_key_ready') : $t('audit_openrouter_key_missing') }}
+              <template v-if="quoteAuditConfig.provider.valid"> · {{ quoteAuditConfig.provider.model }}</template>
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <NButton v-if="!quoteAuditConfig.oauthTokenConfigured" btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || connectingQuoteAuditOAuth" @click="connectQuoteAuditOAuth">
-              {{ connectingQuoteAuditOAuth ? $t('audit_oauth_connecting') : $t('audit_oauth_connect') }}
-            </NButton>
-            <NButton v-else btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || disconnectingQuoteAuditOAuth" @click="disconnectQuoteAuditOAuth">
-              {{ disconnectingQuoteAuditOAuth ? $t('audit_oauth_disconnecting') : $t('audit_oauth_disconnect') }}
-            </NButton>
             <label class="sr-only" for="quote-audit-mode">{{ $t('audit_schedule_mode') }}</label>
             <select id="quote-audit-mode" v-model="quoteAuditConfig.mode" class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
               <option value="paused">{{ $t('audit_schedule_paused') }}</option>
-              <option value="pilot" :disabled="!quoteAuditConfig.oauthTokenConfigured || !quoteAuditConfig.oauth.modelAvailable || quoteAuditConfig.oauth.needsReconnect">{{ $t('audit_schedule_pilot_mode') }}</option>
-              <option value="continuous" :disabled="!quoteAuditConfig.oauthTokenConfigured || !quoteAuditConfig.oauth.modelAvailable || quoteAuditConfig.oauth.needsReconnect || quoteAuditConfig.pilotCount < 20 || quoteAuditConfig.pilotReviewedCount < 20">{{ $t('audit_schedule_continuous') }}</option>
+              <option value="pilot" :disabled="!quoteAuditConfig.provider.valid">{{ $t('audit_schedule_pilot_mode') }}</option>
+              <option value="continuous" :disabled="!quoteAuditConfig.provider.valid || quoteAuditConfig.pilotCount < 20 || quoteAuditConfig.pilotReviewedCount < 20">{{ $t('audit_schedule_continuous') }}</option>
             </select>
             <label class="sr-only" for="quote-audit-cadence">{{ $t('audit_schedule_cadence') }}</label>
             <select id="quote-audit-cadence" v-model="quoteAuditConfig.cadence" class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
               <option value="weekdays">{{ $t('audit_schedule_weekdays') }}</option>
               <option value="weekly">{{ $t('audit_schedule_weekly') }}</option>
             </select>
-            <NButton btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditConfig.pilotCount > 0 || !quoteAuditConfig.oauthTokenConfigured || !quoteAuditConfig.oauth.modelAvailable || quoteAuditConfig.oauth.needsReconnect" @click="runQuoteAuditTest">
+            <NButton btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditConfig.pilotCount > 0 || !quoteAuditConfig.provider.valid" @click="runQuoteAuditTest">
               {{ runningQuoteAuditTest ? $t('audit_test_running') : $t('audit_test_one_quote') }}
             </NButton>
-            <NButton btn="solid-primary" size="sm" :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig || (quoteAuditConfig.mode !== 'paused' && (!quoteAuditConfig.oauthTokenConfigured || !quoteAuditConfig.oauth.modelAvailable || quoteAuditConfig.oauth.needsReconnect)) || (quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20)" @click="saveQuoteAuditConfig">
+            <NButton btn="solid-primary" size="sm" :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig || (quoteAuditConfig.mode !== 'paused' && !quoteAuditConfig.provider.valid) || (quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20)" @click="saveQuoteAuditConfig">
               {{ savingQuoteAuditConfig ? $t('audit_schedule_saving') : $t('audit_schedule_save') }}
             </NButton>
           </div>
         </div>
-        <p v-if="quoteAuditConfig.oauthTokenConfigured && !quoteAuditConfig.oauth.modelAvailable" class="mt-2 text-xs text-amber-700 dark:text-amber-300">
-          {{ quoteAuditConfig.oauth.needsReconnect ? $t('audit_oauth_reconnect_required') : $t('audit_oauth_model_unavailable') }}
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <label class="sr-only" for="quote-audit-openrouter-key">{{ $t('audit_openrouter_key_label') }}</label>
+          <input id="quote-audit-openrouter-key" v-model="openRouterKey" type="password" autocomplete="off" spellcheck="false" :placeholder="$t('audit_openrouter_key_placeholder') as string" class="min-w-64 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100" :disabled="savingOpenRouterKey || loadingQuoteAuditConfig">
+          <NButton btn="outline-gray" size="sm" :disabled="savingOpenRouterKey || !openRouterKey.trim()" @click="saveOpenRouterKey">
+            {{ savingOpenRouterKey ? $t('audit_openrouter_key_saving') : $t('audit_openrouter_key_save') }}
+          </NButton>
+          <NButton v-if="quoteAuditConfig.provider.configured" btn="outline-gray" size="sm" :disabled="savingOpenRouterKey" @click="removeOpenRouterKey">
+            {{ $t('audit_openrouter_key_remove') }}
+          </NButton>
+        </div>
+        <p v-if="quoteAuditConfig.provider.configured && !quoteAuditConfig.provider.valid" class="mt-2 text-xs text-amber-700 dark:text-amber-300">
+          {{ quoteAuditConfig.provider.status === 'rejected' ? $t('audit_openrouter_key_rejected') : quoteAuditConfig.provider.status === 'model_unavailable' ? $t('audit_openrouter_model_unavailable') : $t('audit_openrouter_key_unavailable') }}
         </p>
-        <p v-else-if="!quoteAuditConfig.oauthTokenConfigured" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          {{ $t('audit_oauth_helper_instructions') }} <code class="select-all">bun run quote-audit:oauth</code>
-        </p>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $t('audit_oauth_helper_note') }}</p>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $t('audit_openrouter_key_note') }}</p>
         <p v-if="quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20" class="mt-2 text-xs text-amber-700 dark:text-amber-300">
           {{ $t('audit_schedule_review_pilot_first') }}
         </p>
@@ -549,14 +550,12 @@ const { $t } = useI18n()
 const quoteAuditConfig = reactive({
   mode: 'paused' as 'paused' | 'pilot' | 'continuous',
   cadence: 'weekdays' as 'weekdays' | 'weekly',
-  oauthTokenConfigured: false,
-  oauth: {
-    connected: false,
-    email: null as string | null,
-    expiresAt: null as string | null,
-    model: 'gpt-6-luna',
+  provider: {
+    configured: false,
+    valid: false,
+    model: 'openai/gpt-5-nano',
     modelAvailable: false,
-    needsReconnect: false,
+    status: null as 'rejected' | 'model_unavailable' | 'unavailable' | null,
   },
   pilotCount: 0,
   pilotReviewedCount: 0,
@@ -564,9 +563,8 @@ const quoteAuditConfig = reactive({
 const loadingQuoteAuditConfig = ref(true)
 const savingQuoteAuditConfig = ref(false)
 const runningQuoteAuditTest = ref(false)
-const connectingQuoteAuditOAuth = ref(false)
-const disconnectingQuoteAuditOAuth = ref(false)
-const quoteAuditOAuthPopup = ref<Window | null>(null)
+const savingOpenRouterKey = ref(false)
+const openRouterKey = ref('')
 const quoteAuditTestReport = ref<{
   selectedIds: number[]
   insertedIds: number[]
@@ -587,64 +585,29 @@ const loadQuoteAuditConfig = async () => {
   }
 }
 
-const connectQuoteAuditOAuth = async () => {
-  connectingQuoteAuditOAuth.value = true
-  quoteAuditOAuthPopup.value = window.open('about:blank', 'verbatims-chatgpt-oauth', 'popup,width=560,height=760')
-  if (!quoteAuditOAuthPopup.value) {
-    connectingQuoteAuditOAuth.value = false
-    showErrorToast(new Error('Popup blocked'), $t('audit_oauth_popup_blocked') as string)
-    return
-  }
-
+const saveOpenRouterKey = async () => {
+  savingOpenRouterKey.value = true
   try {
-    try {
-      await $fetch('http://127.0.0.1:1455/health', { mode: 'cors', cache: 'no-store' })
-    } catch {
-      throw new Error($t('audit_oauth_helper_not_running') as string)
-    }
-    quoteAuditOAuthPopup.value.location.href = `http://127.0.0.1:1455/connect?origin=${encodeURIComponent(window.location.origin)}`
-
-    let credentials: unknown = null
-    let helperError: string | null = null
-    for (let attempt = 0; attempt < 180 && !credentials; attempt++) {
-      try {
-        const result = await $fetch<{ credentials?: unknown, error?: string }>('http://127.0.0.1:1455/credentials', { mode: 'cors', cache: 'no-store' })
-        credentials = result?.credentials ?? null
-        helperError = typeof result?.error === 'string' ? result.error : null
-        if (helperError) break
-      } catch {
-        // The local helper may be starting or the browser may still be waiting for OAuth consent.
-      }
-      if (!credentials) await new Promise(resolve => setTimeout(resolve, 1000))
-    }
-    if (helperError) throw new Error(helperError)
-    if (!credentials) throw new Error('The local OAuth helper did not complete sign-in within three minutes')
-
-    const response = await $fetch<{ data: { email: string | null, modelAvailable: boolean } }>('/api/admin/quote-audit/oauth/import', {
-      method: 'POST', body: { credentials },
-    })
+    await $fetch('/api/admin/quote-audit/openrouter', { method: 'PUT', body: { apiKey: openRouterKey.value } })
+    openRouterKey.value = ''
     await loadQuoteAuditConfig()
-    if (!response.data.modelAvailable) showErrorToast(new Error('The connected account does not offer gpt-6-luna'), $t('audit_oauth_model_unavailable') as string)
   } catch (error) {
-    showErrorToast(error, $t('audit_oauth_connect_error') as string)
+    showErrorToast(error, $t('audit_openrouter_key_error') as string)
   } finally {
-    quoteAuditOAuthPopup.value?.close()
-    quoteAuditOAuthPopup.value = null
-    connectingQuoteAuditOAuth.value = false
+    savingOpenRouterKey.value = false
   }
 }
 
-const disconnectQuoteAuditOAuth = async () => {
-  if (!window.confirm($t('audit_oauth_disconnect_confirm') as string)) return
-  disconnectingQuoteAuditOAuth.value = true
+const removeOpenRouterKey = async () => {
+  if (!window.confirm($t('audit_openrouter_key_remove_confirm') as string)) return
+  savingOpenRouterKey.value = true
   try {
-    const response = await $fetch<{ data: { remoteRevocationConfirmed: boolean } }>('/api/admin/quote-audit/oauth', { method: 'DELETE' })
+    await $fetch('/api/admin/quote-audit/openrouter', { method: 'DELETE' })
     await loadQuoteAuditConfig()
-    if (!response.data.remoteRevocationConfirmed) showErrorToast(new Error('Remote OAuth revocation was not confirmed'), $t('audit_oauth_revocation_unconfirmed') as string)
   } catch (error) {
-    showErrorToast(error, $t('audit_oauth_disconnect_error') as string)
+    showErrorToast(error, $t('audit_openrouter_key_remove_error') as string)
   } finally {
-    disconnectingQuoteAuditOAuth.value = false
+    savingOpenRouterKey.value = false
   }
 }
 
