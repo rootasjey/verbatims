@@ -19,9 +19,9 @@
             :alt="selectedPreset ? String($t('avatar_preview')) : ''"
             width="80"
             height="80"
-            class="h-16 w-16 shrink-0 rounded-full border border-gray-200 bg-white object-cover dark:border-white/10 dark:bg-white/5"
+            class="h-16 w-16 shrink-0 rounded-xl border border-gray-200 bg-white object-cover dark:border-white/10 dark:bg-white/5"
           />
-          <div v-else class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
+          <div v-else class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
             <BrandAvatarFallback />
           </div>
           <div class="min-w-0">
