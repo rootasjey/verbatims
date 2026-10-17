@@ -1,13 +1,12 @@
 import { getQuoteAuditPilotModels, runQuoteAuditBatch } from '../../../utils/quote-audit/runner'
-import { getQuoteAuditOpenRouterStatus, QUOTE_AUDIT_TEST_MODELS } from '../../../utils/quote-audit/openrouter'
+import { getQuoteAuditOpenRouterStatus, getQuoteAuditTestModels } from '../../../utils/quote-audit/openrouter'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
   const body = await readBody<{ model?: unknown }>(event)
-  const model = typeof body?.model === 'string' && QUOTE_AUDIT_TEST_MODELS.includes(body.model as typeof QUOTE_AUDIT_TEST_MODELS[number])
-    ? body.model
-    : null
+  const availableModels = await getQuoteAuditTestModels()
+  const model = typeof body?.model === 'string' && availableModels.some(option => option.id === body.model) ? body.model : null
   if (!model) throwServer(400, 'Choose a supported quote audit test model')
 
   const provider = await getQuoteAuditOpenRouterStatus(model)

@@ -1,15 +1,16 @@
 import { getQuoteAuditConfig } from '../../../utils/quote-audit/config'
 import { getQuoteAuditPilotModels, getQuoteAuditPilotStatus } from '../../../utils/quote-audit/runner'
-import { getQuoteAuditOpenRouterStatus } from '../../../utils/quote-audit/openrouter'
+import { getQuoteAuditOpenRouterStatus, getQuoteAuditTestModels } from '../../../utils/quote-audit/openrouter'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
-  const [config, pilot, pilotModels, provider] = await Promise.all([
+  const [config, pilot, pilotModels, provider, testModels] = await Promise.all([
     getQuoteAuditConfig(),
     getQuoteAuditPilotStatus(),
     getQuoteAuditPilotModels(),
     getQuoteAuditOpenRouterStatus(),
+    getQuoteAuditTestModels(),
   ])
 
   return {
@@ -21,6 +22,7 @@ export default defineEventHandler(async (event) => {
       pilotReviewedCount: pilot.reviewedCount,
       pilotIds: pilot.ids,
       pilotModels,
+      testModels,
     },
   }
 })
