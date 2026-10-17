@@ -382,7 +382,11 @@
               </label>
             </div>
             <div class="mt-4 flex flex-wrap items-center gap-2">
-              <NButton btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditConfig.pilotCount > 0 || !quoteAuditConfig.provider.valid" @click="runQuoteAuditTest">
+              <label class="sr-only" for="quote-audit-test-model">{{ $t('audit_test_model') }}</label>
+              <select id="quote-audit-test-model" v-model="quoteAuditTestModel" class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest">
+                <option v-for="model in quoteAuditTestModels" :key="model.value" :value="model.value" :disabled="quoteAuditConfig.pilotModels.includes(model.value)">{{ model.label }}</option>
+              </select>
+              <NButton btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditConfig.pilotModels.includes(quoteAuditTestModel) || !quoteAuditConfig.provider.valid" @click="runQuoteAuditTest">
                 {{ runningQuoteAuditTest ? $t('audit_test_running') : $t('audit_test_one_quote') }}
               </NButton>
               <NButton btn="solid-primary" size="sm" :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig || (quoteAuditConfig.mode !== 'paused' && !quoteAuditConfig.provider.valid) || (quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20)" @click="saveQuoteAuditConfig">
@@ -416,6 +420,7 @@
             <p class="font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_test_result', { id: quoteAuditTestReport.insertedIds[0] ?? quoteAuditTestReport.selectedIds[0] ?? '—' }) }}</p>
             <p v-if="quoteAuditTestReport.error" class="mt-1 text-red-700 dark:text-red-300">{{ quoteAuditTestReport.error }}</p>
             <template v-else>
+              <p class="mt-1 text-gray-500 dark:text-gray-400">{{ $t('audit_test_model_used', { model: quoteAuditTestReport.model }) }}</p>
               <p class="mt-1 text-gray-600 dark:text-gray-300">{{ $t('audit_test_outcome', { outcome: quoteAuditTestReport.results[0]?.outcome ?? 'inconclusive' }) }}</p>
               <p v-if="quoteAuditTestReport.uncertainIds.length" class="mt-1 text-amber-800 dark:text-amber-200">{{ $t('audit_test_uncertain') }}</p>
               <ul v-if="quoteAuditTestReport.results[0]?.sources.length" class="mt-2 space-y-1">
@@ -591,7 +596,13 @@ const quoteAuditConfig = reactive({
   },
   pilotCount: 0,
   pilotReviewedCount: 0,
+  pilotModels: [] as string[],
 })
+const quoteAuditTestModels = [
+  { label: 'GPT-6 Luna', value: 'openai/gpt-6-luna' },
+  { label: 'GPT-5 Nano', value: 'openai/gpt-5-nano' },
+]
+const quoteAuditTestModel = ref('openai/gpt-6-luna')
 const loadingQuoteAuditConfig = ref(true)
 const savingQuoteAuditConfig = ref(false)
 const runningQuoteAuditTest = ref(false)
@@ -601,6 +612,7 @@ const quoteAuditTestReport = ref<{
   selectedIds: number[]
   insertedIds: number[]
   uncertainIds: number[]
+  model: string
   error: string | null
   results: Array<{ quoteId: number, outcome: QuoteAuditOutcome, sources: Array<{ dimension: string, url: string, title: string }> }>
 } | null>(null)
@@ -664,7 +676,7 @@ const runQuoteAuditTest = async () => {
   runningQuoteAuditTest.value = true
   quoteAuditTestReport.value = null
   try {
-    const response = await $fetch<{ data: typeof quoteAuditTestReport.value }>('/api/admin/quote-audit/test', { method: 'POST' })
+    const response = await $fetch<{ data: typeof quoteAuditTestReport.value }>('/api/admin/quote-audit/test', { method: 'POST', body: { model: quoteAuditTestModel.value } })
     quoteAuditTestReport.value = response.data
     await loadQuoteAuditConfig()
   } catch (error) {

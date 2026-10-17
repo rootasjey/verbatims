@@ -37,6 +37,8 @@
   "audit_settings_description": "Configure the pilot, schedule, and OpenRouter key without leaving the quote list.",
   "audit_schedule_pilot": "Pilot: {count}/20 quotes · {reviewed}/20 reviewed by a person",
   "audit_test_one_quote": "Test one production quote",
+  "audit_test_model": "Test model",
+  "audit_test_model_used": "Model used: {model}",
   "audit_test_running": "Test running…",
   "audit_test_result": "Test finished for quote #{id}",
   "audit_test_outcome": "Cautious result: {outcome}",
