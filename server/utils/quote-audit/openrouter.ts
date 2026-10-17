@@ -4,7 +4,14 @@ import { db, schema } from 'hub:db'
 const CREDENTIALS_KEY = 'quote-audit:openrouter-key:v1'
 const OPENROUTER_API = 'https://openrouter.ai/api/v1'
 export const QUOTE_AUDIT_MODEL = 'openai/gpt-5-nano'
-export const QUOTE_AUDIT_TEST_MODELS = [QUOTE_AUDIT_MODEL, 'openai/gpt-6-luna'] as const
+const QUOTE_AUDIT_TEST_MODEL_IDS = new Set(['openai/gpt-6-luna', 'openai/gpt-5-nano'])
+
+export interface QuoteAuditTestModel {
+  id: string
+  name: string
+  promptPrice: number
+  completionPrice: number
+}
 
 function getEncryptionSecret() {
   const secret = useRuntimeConfig().session?.password
@@ -90,6 +97,59 @@ export async function getQuoteAuditOpenRouterKey() {
   const apiKey = await getStoredApiKey()
   if (!apiKey) throw new Error('Configure an OpenRouter API key before running the quote audit')
   return apiKey
+}
+
+export async function getQuoteAuditTestModels(): Promise<QuoteAuditTestModel[]> {
+  const apiKey = await getStoredApiKey()
+  if (!apiKey) return []
+
+  try {
+    const response = await fetch(`${OPENROUTER_API}/models?input_modalities=text&output_modalities=text&supported_parameters=tools`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(12_000),
+    })
+    if (!response.ok) return []
+
+    const payload = await response.json() as {
+      data?: Array<{
+        id?: unknown
+        name?: unknown
+        context_length?: unknown
+        architecture?: { input_modalities?: unknown, output_modalities?: unknown }
+        supported_parameters?: unknown
+        pricing?: { prompt?: unknown, completion?: unknown }
+      }>
+    }
+
+    return (payload.data || [])
+      .flatMap((model): QuoteAuditTestModel[] => {
+        const promptPrice = Number(model.pricing?.prompt)
+        const completionPrice = Number(model.pricing?.completion)
+        const inputModalities = model.architecture?.input_modalities
+        const outputModalities = model.architecture?.output_modalities
+        const supportedParameters = model.supported_parameters
+        if (
+          typeof model.id !== 'string'
+          || !QUOTE_AUDIT_TEST_MODEL_IDS.has(model.id)
+          || typeof model.name !== 'string'
+          || !Number.isFinite(Number(model.context_length))
+          || Number(model.context_length) < 16_000
+          || !Array.isArray(inputModalities)
+          || !inputModalities.includes('text')
+          || !Array.isArray(outputModalities)
+          || !outputModalities.includes('text')
+          || !Array.isArray(supportedParameters)
+          || !supportedParameters.includes('tools')
+          || !Number.isFinite(promptPrice)
+          || !Number.isFinite(completionPrice)
+        ) return []
+
+        return [{ id: model.id, name: model.name, promptPrice, completionPrice }]
+      })
+      .sort((a, b) => (a.promptPrice + a.completionPrice) - (b.promptPrice + b.completionPrice))
+  } catch {
+    return []
+  }
 }
 
 export async function getQuoteAuditOpenRouterStatus(model = QUOTE_AUDIT_MODEL) {

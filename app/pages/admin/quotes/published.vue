@@ -32,7 +32,7 @@
           <NCombobox v-model="selectedAuditProgress" :items="auditProgressFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[200px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
-          <NButton btn="outline-gray" size="sm" class="gap-1.5" aria-haspopup="dialog" @click="showAuditSettingsDialog = true">
+          <NButton btn="outline-gray" size="sm" class="!h-10 !min-h-10 gap-1.5" aria-haspopup="dialog" @click="showAuditSettingsDialog = true">
             <NIcon name="i-lucide-sliders-horizontal" class="h-4 w-4" aria-hidden="true" />
             {{ $t('audit_settings_button') }}
           </NButton>
@@ -344,14 +344,30 @@
     </div>
 
     <ClientOnly>
-      <NDialog v-model:open="showAuditSettingsDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto' }">
+      <Teleport to="#teleports">
+        <div
+          v-if="showAuditSettingsDialog"
+          class="fixed inset-0 z-[49] bg-black/45"
+          aria-hidden="true"
+          @click="showAuditSettingsDialog = false"
+        />
+      </Teleport>
+      <NDialog
+        v-model:open="showAuditSettingsDialog"
+        :modal="false"
+        :una="{
+          dialogContent: 'flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-2xl flex-col overflow-hidden p-0',
+          dialogFooter: 'shrink-0 flex-col gap-3 border-t border-gray-200 bg-[#FAFAF9] px-6 py-4 dark:border-gray-800 dark:bg-[#0C0A09] sm:flex-row sm:items-center sm:justify-between',
+          dialogHeader: 'px-6 pt-6 text-left',
+        }"
+      >
         <template #header>
           <div>
             <h3 class="font-serif text-xl font-400 text-gray-900 dark:text-gray-100">{{ $t('audit_settings_title') }}</h3>
             <p class="mt-1 max-w-prose font-sans text-xs leading-5 text-gray-500 dark:text-gray-400">{{ $t('audit_settings_description') }}</p>
           </div>
         </template>
-        <div class="space-y-6">
+        <div class="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 pb-6 pt-5">
           <section :aria-label="$t('audit_schedule_title') as string">
             <div class="flex flex-wrap items-start justify-between gap-2">
               <div>
@@ -367,31 +383,38 @@
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
               <label class="block space-y-1.5">
                 <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_schedule_mode') }}</span>
-                <select id="quote-audit-mode" v-model="quoteAuditConfig.mode" class="w-full rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
-                  <option value="paused">{{ $t('audit_schedule_paused') }}</option>
-                  <option value="pilot" :disabled="!quoteAuditConfig.provider.valid">{{ $t('audit_schedule_pilot_mode') }}</option>
-                  <option value="continuous" :disabled="!quoteAuditConfig.provider.valid || quoteAuditConfig.pilotCount < 20 || quoteAuditConfig.pilotReviewedCount < 20">{{ $t('audit_schedule_continuous') }}</option>
-                </select>
+                <NSelect
+                  id="quote-audit-mode"
+                  v-model="selectedQuoteAuditMode"
+                  :items="quoteAuditModeOptions"
+                  item-key="label"
+                  value-key="label"
+                  :_select-trigger="{ class: '!h-11 !min-h-11 !w-full !rounded-md !border !border-gray-300 !bg-white !px-3 !text-sm dark:!border-gray-700 dark:!bg-[#171615]' }"
+                  :_select-content="{ bodyLock: false, class: 'z-[70] border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
+                  :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig"
+                >
+                  <template #content="{ items }">
+                    <NSelectItem v-for="option in items" :key="option.value" :value="option" :disabled="option.disabled">{{ option.label }}</NSelectItem>
+                  </template>
+                </NSelect>
               </label>
               <label class="block space-y-1.5">
                 <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_schedule_cadence') }}</span>
-                <select id="quote-audit-cadence" v-model="quoteAuditConfig.cadence" class="w-full rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
-                  <option value="weekdays">{{ $t('audit_schedule_weekdays') }}</option>
-                  <option value="weekly">{{ $t('audit_schedule_weekly') }}</option>
-                </select>
+                <NSelect
+                  id="quote-audit-cadence"
+                  v-model="selectedQuoteAuditCadence"
+                  :items="quoteAuditCadenceOptions"
+                  item-key="label"
+                  value-key="label"
+                  :_select-trigger="{ class: '!h-11 !min-h-11 !w-full !rounded-md !border !border-gray-300 !bg-white !px-3 !text-sm dark:!border-gray-700 dark:!bg-[#171615]' }"
+                  :_select-content="{ bodyLock: false, class: 'z-[70] border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
+                  :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig"
+                >
+                  <template #content="{ items }">
+                    <NSelectItem v-for="option in items" :key="option.value" :value="option">{{ option.label }}</NSelectItem>
+                  </template>
+                </NSelect>
               </label>
-            </div>
-            <div class="mt-4 flex flex-wrap items-center gap-2">
-              <label class="sr-only" for="quote-audit-test-model">{{ $t('audit_test_model') }}</label>
-              <select id="quote-audit-test-model" v-model="quoteAuditTestModel" class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest">
-                <option v-for="model in quoteAuditTestModels" :key="model.value" :value="model.value" :disabled="quoteAuditConfig.pilotModels.includes(model.value)">{{ model.label }}</option>
-              </select>
-              <NButton btn="outline-gray" size="sm" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditConfig.pilotModels.includes(quoteAuditTestModel) || !quoteAuditConfig.provider.valid" @click="runQuoteAuditTest">
-                {{ runningQuoteAuditTest ? $t('audit_test_running') : $t('audit_test_one_quote') }}
-              </NButton>
-              <NButton btn="solid-primary" size="sm" :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig || (quoteAuditConfig.mode !== 'paused' && !quoteAuditConfig.provider.valid) || (quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20)" @click="saveQuoteAuditConfig">
-                {{ savingQuoteAuditConfig ? $t('audit_schedule_saving') : $t('audit_schedule_save') }}
-              </NButton>
             </div>
             <p v-if="quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20" class="mt-3 text-xs text-amber-700 dark:text-amber-300">
               {{ $t('audit_schedule_review_pilot_first') }}
@@ -433,6 +456,42 @@
             <p class="mt-2 text-gray-500 dark:text-gray-400">{{ $t('audit_evidence_human_review') }}</p>
           </div>
         </div>
+        <template #footer>
+          <div class="flex min-w-0 flex-1 flex-nowrap items-center gap-2">
+            <label class="sr-only" for="quote-audit-test-model">{{ $t('audit_test_model') }}</label>
+            <NSelect
+              id="quote-audit-test-model"
+              v-model="selectedQuoteAuditTestModel"
+              :items="quoteAuditTestModelOptions"
+              :placeholder="$t('audit_test_models_unavailable') as string"
+              class="min-w-0 flex-1 sm:max-w-[16rem]"
+              :_select-trigger="{ class: '!h-11 !min-h-11 !max-w-full !rounded-md !border !border-gray-300 !bg-white !px-3 !text-sm dark:!border-gray-700 dark:!bg-[#171615]' }"
+              :_select-content="{ bodyLock: false, class: 'z-[70] border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
+              :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditTestModels.length === 0"
+            >
+              <template #content="{ items }">
+                <NSelectItem v-for="option in items" :key="option.value" :value="option" :disabled="option.disabled">{{ option.label }}</NSelectItem>
+              </template>
+            </NSelect>
+            <NTooltip :content="$t('audit_test_one_quote_tooltip') as string">
+              <span class="inline-flex">
+                <NButton btn="outline-gray" size="md" leading="i-lucide-flask-conical" class="min-h-11 shrink-0 whitespace-nowrap rounded-md px-4" :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || !quoteAuditTestModel || quoteAuditConfig.pilotModels.includes(quoteAuditTestModel) || !quoteAuditConfig.provider.valid" @click="runQuoteAuditTest">
+                  {{ runningQuoteAuditTest ? $t('audit_test_running') : $t('audit_test_one_quote') }}
+                </NButton>
+              </span>
+            </NTooltip>
+          </div>
+          <NButton
+            btn="solid-black"
+            size="md"
+            trailing="i-lucide-arrow-right"
+            class="min-h-11 rounded-md px-5 font-sans font-600 shadow-sm transition-[background-color,box-shadow,transform] hover:shadow-md active:translate-y-px active:shadow-none"
+            :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig || (quoteAuditConfig.mode !== 'paused' && !quoteAuditConfig.provider.valid) || (quoteAuditConfig.mode === 'continuous' && quoteAuditConfig.pilotReviewedCount < 20)"
+            @click="saveQuoteAuditConfig"
+          >
+            {{ savingQuoteAuditConfig ? $t('audit_schedule_saving') : $t('audit_schedule_save') }}
+          </NButton>
+        </template>
       </NDialog>
     </ClientOnly>
 
@@ -493,70 +552,65 @@
       </NDialog>
     </ClientOnly>
 
-    <ClientOnly>
-      <NDialog v-model:open="showAuditDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-xl' }">
-        <template #header>
-          <h3 class="font-serif text-xl font-400 text-gray-900 dark:text-gray-100">{{ $t('audit_title') }}</h3>
-        </template>
-        <p v-if="auditQuote" class="mb-5 line-clamp-3 font-body text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-          “{{ auditQuote.name }}”
-          <span v-if="auditQuote.author?.name" class="block pt-1 font-sans text-xs text-gray-500">{{ auditQuote.author.name }}<template v-if="auditQuote.reference?.name"> · {{ auditQuote.reference.name }}</template></span>
-        </p>
-        <section v-if="auditEvidence" class="mb-5 max-h-[42vh] space-y-3 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-800" :aria-label="$t('audit_evidence_title') as string">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h4 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('audit_evidence_title') }}</h4>
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ auditEvidence.summary }}</p>
-              <p class="mt-1 text-[11px] text-gray-400 dark:text-gray-500">{{ $t('audit_evidence_date', { date: formatRelativeTime(auditEvidence.auditedAt) }) }}</p>
+    <AdminQuoteAuditReviewDialog
+      v-model:open="showAuditDialog"
+      :saving="savingAudit"
+      :content-width="auditDialogContentWidth"
+    >
+      <template #header>
+        <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:px-6">
+          <div class="flex items-center justify-between gap-4">
+            <div class="-mb-px flex min-w-0 gap-5" role="tablist" :aria-label="$t('audit_title') as string">
+              <button
+                v-for="tab in auditReviewTabs"
+                :key="tab.value"
+                type="button"
+                role="tab"
+                :aria-selected="auditActiveTab === tab.value"
+                :aria-controls="`quote-audit-panel-${tab.value}`"
+                class="inline-flex min-h-10 shrink-0 items-center gap-2 border-b-2 px-1 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-700 dark:focus-visible:ring-gray-300"
+                :class="auditActiveTab === tab.value ? 'border-gray-950 text-gray-950 dark:border-gray-100 dark:text-gray-100' : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'"
+                @click="auditActiveTab = tab.value"
+              >
+                <NIcon :name="tab.icon" class="h-4 w-4" aria-hidden="true" />
+                {{ tab.label }}
+              </button>
             </div>
-            <span class="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-500 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">{{ $t('audit_progress_awaiting_review') }}</span>
-          </div>
-          <div v-for="(finding, dimension) in auditEvidence.dimensions" :key="dimension" class="border-t border-gray-100 pt-3 first:border-0 first:pt-0 dark:border-gray-800">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h5 class="font-sans text-xs font-600 text-gray-800 dark:text-gray-200">{{ $t(`audit_dimension_${dimension}`) }}</h5>
-              <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ $t(`audit_evidence_status_${finding.status}`) }}</span>
+            <div class="flex shrink-0 items-center gap-2">
+              <NBadge :badge="auditProgressBadge" size="xs">{{ auditProgressLabel(auditDraft.progress) }}</NBadge>
+              <NButton icon btn="ghost-gray" size="xs" label="i-lucide-x" :aria-label="$t('common.close') as string" :disabled="savingAudit" @click="showAuditDialog = false" />
             </div>
-            <p class="mt-1 text-xs leading-5 text-gray-600 dark:text-gray-300">{{ finding.assessment }}</p>
-            <p v-if="finding.evidenceLocation" class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">{{ $t('audit_evidence_location') }}: {{ finding.evidenceLocation }}</p>
-            <ul v-if="finding.sources?.length" class="mt-2 space-y-1">
-              <li v-for="source in finding.sources" :key="source.url" class="text-xs">
-                <a :href="source.url" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline decoration-blue-300 underline-offset-2 hover:decoration-blue-700 dark:text-blue-300">{{ source.title || source.url }}</a>
-                <span class="ml-1 text-gray-500 dark:text-gray-400">{{ $t(`audit_source_level_${source.sourceLevel}`) }}<template v-if="source.support"> — {{ source.support }}</template></span>
-              </li>
-            </ul>
-            <ul v-if="finding.caveats?.length" class="mt-2 list-disc space-y-1 pl-4 text-[11px] text-amber-800 dark:text-amber-200"><li v-for="caveat in finding.caveats" :key="caveat">{{ caveat }}</li></ul>
           </div>
-          <p class="border-t border-gray-100 pt-2 text-[11px] text-gray-500 dark:border-gray-800 dark:text-gray-400">{{ $t('audit_evidence_human_review') }}</p>
-        </section>
-        <div class="space-y-4">
-          <label class="block space-y-1.5">
-            <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_progress_label') }}</span>
-            <select v-model="auditDraft.progress" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
-              <option v-for="option in auditProgressOptions" :key="option.value" :value="option.value">{{ $t(option.labelKey) }}</option>
-            </select>
-          </label>
-          <label class="block space-y-1.5">
-            <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_outcome_label') }}</span>
-            <select v-model="auditDraft.outcome" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100">
-              <option value="">{{ $t('audit_outcome_none') }}</option>
-              <option v-for="option in auditOutcomeOptions" :key="option.value" :value="option.value">{{ $t(option.labelKey) }}</option>
-            </select>
-            <span class="block text-[11px] text-gray-500 dark:text-gray-400">{{ $t('audit_outcome_hint') }}</span>
-          </label>
-          <label class="block space-y-1.5">
-            <span class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300">{{ $t('audit_notes_label') }}</span>
-            <textarea v-model="auditDraft.notes" rows="4" maxlength="5000" class="w-full resize-y rounded-md border border-gray-300 bg-white px-3 py-2 font-sans text-sm text-gray-900 dark:border-gray-700 dark:bg-[#171615] dark:text-gray-100" :placeholder="$t('audit_notes_placeholder') as string" />
-          </label>
-          <p v-if="auditQuote?.audit_reviewed_at" class="text-[11px] text-gray-500 dark:text-gray-400">{{ $t('audit_last_reviewed', { date: formatRelativeTime(auditQuote.audit_reviewed_at) }) }}</p>
+          <p v-if="auditQuote" class="mt-3 line-clamp-2 font-serif text-base leading-snug text-gray-900 dark:text-gray-100">“{{ auditQuote.name }}”</p>
+          <p v-if="auditQuote?.author?.name || auditQuote?.reference?.name" class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">
+            {{ auditQuote.author?.name }}<template v-if="auditQuote.author?.name && auditQuote.reference?.name"> · </template>{{ auditQuote.reference?.name }}
+          </p>
         </div>
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <NButton btn="ghost-gray" size="sm" @click="showAuditDialog = false">{{ $t('common.cancel') }}</NButton>
-            <NButton btn="solid-primary" size="sm" :disabled="savingAudit" @click="saveAuditReview">{{ savingAudit ? $t('audit_saving') : $t('common.save') }}</NButton>
+      </template>
+      <AdminQuoteAuditReviewPanel
+        v-model:tab="auditActiveTab"
+        v-model:outcome="auditDraft.outcome"
+        v-model:notes="auditDraft.notes"
+        @update:outcome="markAuditInProgress"
+        @update:notes="markAuditInProgress"
+        :quote="auditQuote"
+        :evidence="auditEvidence"
+        :outcome-options="auditOutcomeDisplayOptions"
+      />
+      <template #footer>
+        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <NButton v-if="auditDraft.progress !== 'reviewed'" btn="outline-gray" size="sm" leading="i-lucide-check-check" class="min-h-9 rounded-md px-3" :disabled="savingAudit" @click="saveAuditReview('reviewed')">
+            {{ $t('audit_mark_reviewed') }}
+          </NButton>
+          <div class="flex items-center justify-end gap-2">
+            <NButton btn="outline-gray" size="sm" class="min-h-9 rounded-md px-3" :disabled="savingAudit" @click="showAuditDialog = false">{{ $t('common.cancel') }}</NButton>
+            <NButton btn="solid-black" size="sm" trailing="i-lucide-arrow-right" class="min-h-9 rounded-md px-4 font-sans font-600 shadow-sm transition-[background-color,box-shadow,transform] hover:shadow-md active:translate-y-px active:shadow-none" :disabled="savingAudit" @click="saveAuditReview()">
+              {{ savingAudit ? $t('audit_saving') : $t('audit_save_review') }}
+            </NButton>
           </div>
-        </template>
-      </NDialog>
-    </ClientOnly>
+        </div>
+      </template>
+    </AdminQuoteAuditReviewDialog>
 
     <PageJumpDialog
       v-model="showPageJumpDialog"
@@ -598,11 +652,46 @@ const quoteAuditConfig = reactive({
   pilotReviewedCount: 0,
   pilotModels: [] as string[],
 })
-const quoteAuditTestModels = [
-  { label: 'GPT-6 Luna', value: 'openai/gpt-6-luna' },
-  { label: 'GPT-5 Nano', value: 'openai/gpt-5-nano' },
-]
-const quoteAuditTestModel = ref('openai/gpt-6-luna')
+interface QuoteAuditTestModel {
+  id: string
+  name: string
+  promptPrice: number
+  completionPrice: number
+}
+interface QuoteAuditSelectOption {
+  label: string
+  value: string
+  disabled?: boolean
+}
+
+const quoteAuditModeOptions = computed<QuoteAuditSelectOption[]>(() => [
+  { label: String($t('audit_schedule_paused')), value: 'paused' },
+  { label: String($t('audit_schedule_pilot_mode')), value: 'pilot', disabled: !quoteAuditConfig.provider.valid },
+  { label: String($t('audit_schedule_continuous')), value: 'continuous', disabled: !quoteAuditConfig.provider.valid || quoteAuditConfig.pilotCount < 20 || quoteAuditConfig.pilotReviewedCount < 20 },
+])
+const quoteAuditCadenceOptions = computed<QuoteAuditSelectOption[]>(() => [
+  { label: String($t('audit_schedule_weekdays')), value: 'weekdays' },
+  { label: String($t('audit_schedule_weekly')), value: 'weekly' },
+])
+const quoteAuditTestModels = ref<QuoteAuditTestModel[]>([])
+const quoteAuditTestModel = ref('')
+const quoteAuditTestModelOptions = computed<QuoteAuditSelectOption[]>(() => quoteAuditTestModels.value.map(model => ({
+  label: `${model.name} · ${$t('audit_test_model_price', { input: formatQuoteAuditModelPrice(model.promptPrice), output: formatQuoteAuditModelPrice(model.completionPrice) })}`,
+  value: model.id,
+  disabled: quoteAuditConfig.pilotModels.includes(model.id),
+})))
+const selectedQuoteAuditMode = computed<QuoteAuditSelectOption>({
+  get: () => quoteAuditModeOptions.value.find(option => option.value === quoteAuditConfig.mode) ?? quoteAuditModeOptions.value[0]!,
+  set: option => { quoteAuditConfig.mode = option.value as typeof quoteAuditConfig.mode },
+})
+const selectedQuoteAuditCadence = computed<QuoteAuditSelectOption>({
+  get: () => quoteAuditCadenceOptions.value.find(option => option.value === quoteAuditConfig.cadence) ?? quoteAuditCadenceOptions.value[0]!,
+  set: option => { quoteAuditConfig.cadence = option.value as typeof quoteAuditConfig.cadence },
+})
+const selectedQuoteAuditTestModel = computed<QuoteAuditSelectOption | null>({
+  get: () => quoteAuditTestModelOptions.value.find(option => option.value === quoteAuditTestModel.value) ?? null,
+  set: option => { quoteAuditTestModel.value = option?.value ?? '' },
+})
 const loadingQuoteAuditConfig = ref(true)
 const savingQuoteAuditConfig = ref(false)
 const runningQuoteAuditTest = ref(false)
@@ -620,8 +709,14 @@ const quoteAuditTestReport = ref<{
 const loadQuoteAuditConfig = async () => {
   loadingQuoteAuditConfig.value = true
   try {
-    const response = await $fetch<{ data: typeof quoteAuditConfig }>('/api/admin/quote-audit/config')
+    const response = await $fetch<{ data: typeof quoteAuditConfig & { testModels: QuoteAuditTestModel[] } }>('/api/admin/quote-audit/config')
     Object.assign(quoteAuditConfig, response.data)
+    quoteAuditTestModels.value = response.data.testModels
+    if (!quoteAuditTestModels.value.some(model => model.id === quoteAuditTestModel.value)) {
+      quoteAuditTestModel.value = quoteAuditTestModels.value.find(model => !quoteAuditConfig.pilotModels.includes(model.id))?.id
+        ?? quoteAuditTestModels.value[0]?.id
+        ?? ''
+    }
   } catch (error) {
     showErrorToast(error, $t('audit_schedule_load_error') as string)
   } finally {
@@ -641,6 +736,12 @@ const saveOpenRouterKey = async () => {
     savingOpenRouterKey.value = false
   }
 }
+
+const formatQuoteAuditModelPrice = (price: number) => new Intl.NumberFormat(languageStore.currentLanguageValue === 'fr' ? 'fr-FR' : 'en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumSignificantDigits: 3,
+}).format(price * 1_000_000)
 
 const removeOpenRouterKey = async () => {
   if (!window.confirm($t('audit_openrouter_key_remove_confirm') as string)) return
@@ -788,6 +889,7 @@ const showBulkEditDialog = ref(false)
 const showBulkUnpublishModal = ref(false)
 const showAuditDialog = ref(false)
 const showAuditSettingsDialog = ref(false)
+const auditActiveTab = ref<'evidence' | 'assessment'>('evidence')
 const savingAudit = ref(false)
 const auditQuote = ref<AdminQuote | null>(null)
 const auditDraft = reactive<{ progress: QuoteAuditProgress; outcome: QuoteAuditOutcome | ''; notes: string }>({
@@ -811,6 +913,23 @@ const auditOutcomeOptions = [
   { value: 'disputed', labelKey: 'audit_outcome_disputed' },
   { value: 'inconclusive', labelKey: 'audit_outcome_inconclusive' },
 ] as const satisfies ReadonlyArray<{ value: QuoteAuditOutcome; labelKey: string }>
+
+const auditProgressBadge = computed(() => ({
+  pending: 'soft-gray',
+  in_progress: 'soft-blue',
+  awaiting_review: 'soft-amber',
+  reviewed: 'soft-green',
+}[auditDraft.progress] || 'soft-gray'))
+
+const auditReviewTabs = computed(() => [
+  { value: 'evidence' as const, label: $t('audit_tab_evidence') as string, icon: 'i-lucide-book-open-check' },
+  { value: 'assessment' as const, label: $t('audit_tab_assessment') as string, icon: 'i-lucide-clipboard-check' },
+])
+
+const auditOutcomeDisplayOptions = computed(() => auditOutcomeOptions.map(option => ({
+  value: option.value,
+  label: $t(option.labelKey) as string,
+})))
 
 const auditProgressLabel = (progress?: QuoteAuditProgress) => {
   const option = auditProgressOptions.find(item => item.value === (progress || 'pending'))
@@ -838,6 +957,11 @@ const auditEvidence = computed(() => {
   return parsed?.version === 1 ? parsed : null
 })
 
+const auditDialogContentWidth = computed<'compact' | 'standard' | 'wide'>(() => {
+  if (auditActiveTab.value === 'assessment') return 'standard'
+  return Object.keys(auditEvidence.value?.dimensions ?? {}).length > 0 ? 'wide' : 'compact'
+})
+
 const openAuditReview = (quote: AdminQuote) => {
   auditQuote.value = quote
   auditDraft.progress = quote.audit_progress || 'pending'
@@ -846,8 +970,13 @@ const openAuditReview = (quote: AdminQuote) => {
   showAuditDialog.value = true
 }
 
-const saveAuditReview = async () => {
+const markAuditInProgress = () => {
+  auditDraft.progress = 'in_progress'
+}
+
+const saveAuditReview = async (progressOverride?: QuoteAuditProgress) => {
   if (!auditQuote.value) return
+  const progress = progressOverride ?? auditDraft.progress
   savingAudit.value = true
   try {
     const auditReviewUrl: string = `/api/admin/quotes/${auditQuote.value.id}/audit-review`
@@ -857,12 +986,13 @@ const saveAuditReview = async () => {
     }) => Promise<{ notes?: string | null }>
     const response = await sendAuditReview(auditReviewUrl, {
       method: 'PUT',
-      body: { ...auditDraft, outcome: auditDraft.outcome || null },
+      body: { ...auditDraft, progress, outcome: auditDraft.outcome || null },
     })
-    auditQuote.value.audit_progress = auditDraft.progress
+    auditDraft.progress = progress
+    auditQuote.value.audit_progress = progress
     auditQuote.value.audit_outcome = auditDraft.outcome || null
     auditQuote.value.audit_notes = response.notes ?? (auditDraft.notes.trim() || null)
-    auditQuote.value.audit_reviewed_at = auditDraft.progress === 'reviewed' ? new Date().toISOString() : null
+    auditQuote.value.audit_reviewed_at = progress === 'reviewed' ? new Date().toISOString() : null
     showAuditDialog.value = false
   } catch (error) {
     showErrorToast(error, $t('audit_save_error') as string)
@@ -870,6 +1000,46 @@ const saveAuditReview = async () => {
     savingAudit.value = false
   }
 }
+
+const handleAuditDialogKeydown = (event: KeyboardEvent) => {
+  if (!showAuditDialog.value || savingAudit.value) return
+
+  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+    event.preventDefault()
+    void saveAuditReview()
+    return
+  }
+
+  if (event.metaKey || event.ctrlKey || event.altKey) return
+
+  const target = event.target
+  if (target instanceof HTMLElement && (
+    target.isContentEditable
+    || target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')
+  )) return
+
+  const key = event.key.toLocaleLowerCase()
+  if (key === '1' || key === '&') {
+    event.preventDefault()
+    auditActiveTab.value = 'evidence'
+  } else if (key === '2' || key === 'é') {
+    event.preventDefault()
+    auditActiveTab.value = 'assessment'
+  } else if (key === 'm' && auditDraft.progress !== 'reviewed') {
+    event.preventDefault()
+    void saveAuditReview('reviewed')
+  }
+}
+
+watch(showAuditDialog, (isOpen) => {
+  if (!import.meta.client) return
+  if (isOpen) window.addEventListener('keydown', handleAuditDialogKeydown)
+  else window.removeEventListener('keydown', handleAuditDialogKeydown)
+})
+
+onBeforeUnmount(() => {
+  if (import.meta.client) window.removeEventListener('keydown', handleAuditDialogKeydown)
+})
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
