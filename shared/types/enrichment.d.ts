@@ -29,6 +29,13 @@ export interface EnrichmentFieldProposal {
   source_labels: string[]
   source_urls: string[]
   rationale: string
+  image_attribution?: {
+    source_url: string
+    credit: string
+    license: string
+    license_url: string
+    date: string | null
+  }
 }
 
 export interface EnrichmentMatchSummary {

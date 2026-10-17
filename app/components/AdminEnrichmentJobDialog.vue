@@ -101,6 +101,13 @@
                     <pre class="text-xs text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{{ proposal.proposed_value || proposal.proposedValue || $t('admin_enrichment.empty') }}</pre>
                   </div>
                 </div>
+                <div v-if="proposal.field === 'image_url' && proposal.image_attribution" class="mt-3 rounded-md border border-gray-200 bg-white/70 p-3 text-xs dark:border-gray-700 dark:bg-gray-900/40">
+                  <p class="font-medium text-gray-800 dark:text-gray-100">{{ $t('admin_enrichment.image_attribution') }}</p>
+                  <p class="mt-1 text-gray-600 dark:text-gray-300">{{ $t('admin_enrichment.image_credit') }}: {{ proposal.image_attribution.credit }}</p>
+                  <p class="text-gray-600 dark:text-gray-300">{{ $t('admin_enrichment.image_license') }}: {{ proposal.image_attribution.license }}</p>
+                  <a :href="proposal.image_attribution.source_url" target="_blank" rel="noopener noreferrer" class="mt-1 inline-flex text-blue-700 underline underline-offset-2 dark:text-blue-300">{{ $t('admin_enrichment.image_source') }}<NIcon name="i-ph-arrow-square-out" class="ml-1 h-3 w-3" /></a>
+                  <span class="ml-3"><a :href="proposal.image_attribution.license_url" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline underline-offset-2 dark:text-blue-300">{{ $t('admin_enrichment.license_terms') }}</a></span>
+                </div>
               </div>
             </div>
           </div>

@@ -4,101 +4,22 @@
     <div data-admin-page-header class="pb-6 mb-6">
       <div class="flex items-start justify-between gap-4 mb-4">
         <div class="min-w-0">
-          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+          <h1 class="flex flex-wrap items-center gap-3 font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
             {{ $t('title') }}
+            <NBadge badge="soft-gray" size="sm" class="font-sans text-xs">{{ $t('job_count', { count: totalItems }) }}</NBadge>
           </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalItems }} job{{ totalItems !== 1 ? 's' : '' }}</p>
+          <p class="mt-2 max-w-2xl font-sans text-sm leading-6 text-gray-600 dark:text-gray-400">{{ $t('page_intro') }}</p>
+          <NuxtLink to="/admin/enrichment-audit" class="mt-1 inline-flex text-xs text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">{{ $t('audit_tool_link') }}</NuxtLink>
         </div>
-        <div class="hidden md:flex items-center gap-3">
-          <NCombobox
-            v-model="selectedEntityType"
-            :items="entityTypeOptions"
-            by="value"
-            :_combobox-list="{
-              class: 'min-w-[180px]',
-            }"
-            :_combobox-trigger="{
-              btn: 'outline-gray',
-              size: 'sm',
-              trailing: 'i-lucide-chevron-down',
-              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
-            }"
-          >
-            <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
-            </template>
-          </NCombobox>
-          <NCombobox
-            v-model="selectedStatus"
-            :items="statusOptions"
-            by="value"
-            :_combobox-list="{
-              class: 'min-w-[180px]',
-            }"
-            :_combobox-trigger="{
-              btn: 'outline-gray',
-              size: 'sm',
-              trailing: 'i-lucide-chevron-down',
-              class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
-            }"
-          >
-            <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
-            </template>
-          </NCombobox>
+        <div class="flex shrink-0 items-center gap-2">
           <div v-if="selectedEntityId" class="flex items-center gap-2 font-sans text-xs text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-700 px-2 py-1 rounded-lg">
             <span>{{ $t('filter_label', { entity: selectedEntityType.label, id: selectedEntityId }) }}</span>
             <button class="hover:underline" @click="clearEntityFilter">{{ $t('clear') }}</button>
           </div>
-          <OutlinedButton :loading="loading" @click="loadQueue">{{ $t('refresh') }}</OutlinedButton>
-          <OutlinedButton variant="primary" :loading="processing" @click="processQueuedJobs">{{ $t('process_queued') }}</OutlinedButton>
-          <OutlinedButton @click="openEnrichmentConfigDialog">{{ $t('settings') }}</OutlinedButton>
-        </div>
-      </div>
-      <div class="md:hidden flex flex-wrap items-center gap-2">
-        <NCombobox
-          v-model="selectedEntityType"
-          :items="entityTypeOptions"
-          by="value"
-          :_combobox-list="{
-            class: 'min-w-[180px]',
-          }"
-          :_combobox-trigger="{
-            btn: 'outline-gray',
-            size: 'xs',
-            trailing: 'i-lucide-chevron-down',
-            class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
-          }"
-        >
-          <template #trigger="{ modelValue }">
-            <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
-          </template>
-        </NCombobox>
-        <NCombobox
-          v-model="selectedStatus"
-          :items="statusOptions"
-          by="value"
-          :_combobox-list="{
-            class: 'min-w-[180px]',
-          }"
-          :_combobox-trigger="{
-            btn: 'outline-gray',
-            size: 'xs',
-            trailing: 'i-lucide-chevron-down',
-            class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
-          }"
-        >
-          <template #trigger="{ modelValue }">
-            <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
-          </template>
-        </NCombobox>
-        <div class="ml-auto flex items-center gap-1">
           <NTooltip :content="$t('refresh') as string">
             <button type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" :aria-label="$t('refresh') as string" :disabled="loading" @click="loadQueue"><NIcon name="i-ph-arrow-clockwise" class="h-4 w-4" /></button>
           </NTooltip>
-          <NTooltip :content="$t('process_queued') as string">
-            <button type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-gray-300 text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800" :aria-label="$t('process_queued') as string" :disabled="processing" @click="processQueuedJobs"><NIcon name="i-ph-play" class="h-4 w-4" /></button>
-          </NTooltip>
+          <NButton btn="solid-primary" size="sm" :loading="processing" :disabled="processing || queueStats.jobs.queued === 0" @click="processQueuedJobs"><NIcon v-if="!processing" name="i-ph-play" class="mr-1.5 h-4 w-4" />{{ $t('process_batch') }}</NButton>
           <NTooltip :content="$t('settings') as string">
             <button type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" :aria-label="$t('settings') as string" @click="openEnrichmentConfigDialog"><NIcon name="i-ph-gear" class="h-4 w-4" /></button>
           </NTooltip>
@@ -118,6 +39,7 @@
         <div class="border border-gray-200 dark:border-gray-800 rounded-xl p-4">
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_review') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.states.review }}</p>
+          <p class="mt-1 text-[11px] leading-4 text-gray-500 dark:text-gray-400">{{ $t('stat_review_hint') }}</p>
         </div>
         <div class="border border-gray-200 dark:border-gray-800 rounded-xl p-4">
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_verified') }}</p>
@@ -148,8 +70,22 @@
         <table class="w-full min-w-[900px]">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_entity') }}</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
+              <th class="min-w-44 px-3 py-3 text-left align-top">
+                <div class="space-y-2">
+                  <span class="block font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_entity') }}</span>
+                  <NCombobox v-model="selectedEntityType" :items="entityTypeOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-white dark:border-white/15 dark:bg-white/[0.06]' }">
+                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+                  </NCombobox>
+                </div>
+              </th>
+              <th class="w-36 px-3 py-3 text-left align-top">
+                <div class="space-y-2">
+                  <span class="block font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</span>
+                  <NCombobox v-model="selectedStatus" :items="statusOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-white dark:border-white/15 dark:bg-white/[0.06]' }">
+                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+                  </NCombobox>
+                </div>
+              </th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_trigger') }}</th>
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_summary') }}</th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
@@ -381,7 +317,7 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
 const rowActionItems = (job: any) => [{ label: String($t('dropdown_review')), leading: 'i-ph-eye', onclick: () => openJob(job) }]
 
 const formatTimestamp = (value: string | number | Date | null | undefined) => {
-  const date = parseDateInput(value as any); if (!date) return '\u2014'; return `${date.toLocaleDateString()} &middot; ${formatRelativeTime(date)}`
+  const date = parseDateInput(value as any); if (!date) return '\u2014'; return `${date.toLocaleDateString()} · ${formatRelativeTime(date)}`
 }
 
 const onPageJump = (page: number) => {
