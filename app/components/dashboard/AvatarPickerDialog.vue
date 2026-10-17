@@ -46,10 +46,10 @@
                 type="button"
                 :aria-label="String($t('avatar_picker_option', { style: styleLabel(group.variant), number: index + 1 }))"
                 :aria-pressed="selectedId === avatar.id"
-                class="group relative flex aspect-square min-w-0 items-center justify-center rounded-xl border bg-white p-1 transition-colors hover:border-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/40 focus-visible:ring-offset-2 dark:bg-white/[0.04] dark:hover:border-gray-400 dark:focus-visible:ring-white/50 dark:focus-visible:ring-offset-[#151515]"
+                class="group relative z-0 flex aspect-square min-w-0 items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 hover:z-10 hover:scale-105 active:scale-99 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/40 focus-visible:ring-offset-2 dark:focus-visible:ring-white/50 dark:focus-visible:ring-offset-[#151515] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
                 :class="selectedId === avatar.id
-                  ? 'border-gray-900 ring-1 ring-gray-900 dark:border-white dark:ring-white'
-                  : 'border-gray-200 dark:border-white/10'"
+                  ? 'ring-2 ring-gray-900 dark:ring-white'
+                  : ''"
                 @click="selectedId = avatar.id"
               >
                 <img

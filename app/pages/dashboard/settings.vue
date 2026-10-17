@@ -21,32 +21,31 @@
     <Transition name="dashboard-tab" mode="out-in">
     <!-- Profile Tab -->
     <div v-if="activeTab === 'profile'" key="profile" class="max-w-xl space-y-6">
-      <section class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 pb-6 dark:border-white/10">
-        <div class="flex min-w-0 items-center gap-4">
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        class="group flex w-full flex-wrap items-center justify-between gap-4 rounded-xl border-b border-gray-200 px-2 pb-6 pt-2 text-left transition-colors hover:bg-gray-100/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/30 focus-visible:ring-offset-2 dark:border-white/10 dark:hover:bg-white/[0.03] dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#0C0A09] motion-reduce:transition-none"
+        @click="avatarPickerOpen = true"
+      >
+        <span class="flex min-w-0 items-center gap-4">
           <img
             v-if="user?.avatar_url"
             :src="user.avatar_url"
-            :alt="user.name"
+            alt=""
             width="64"
             height="64"
             class="h-16 w-16 shrink-0 rounded-xl border border-gray-200 bg-white object-cover dark:border-white/10 dark:bg-white/5"
           />
-          <div v-else class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
+          <span v-else class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
             <BrandAvatarFallback />
-          </div>
-          <div class="min-w-0">
-            <h2 class="font-serif text-lg font-500 text-gray-900 dark:text-gray-100">{{ $t('section_avatar') }}</h2>
-            <p class="mt-1 max-w-sm font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_avatar') }}</p>
-          </div>
-        </div>
-        <NButton
-          btn="outline-gray"
-          class="min-h-10 shrink-0 justify-center px-4 font-sans text-sm font-600"
-          @click="avatarPickerOpen = true"
-        >
-          {{ $t('change_avatar') }}
-        </NButton>
-      </section>
+          </span>
+          <span class="min-w-0">
+            <span class="block font-serif text-lg font-500 text-gray-900 dark:text-gray-100">{{ $t('section_avatar') }}</span>
+            <span class="mt-1 block max-w-sm font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_avatar') }}</span>
+          </span>
+        </span>
+        <NIcon name="i-ph-pencil-simple-line" aria-hidden="true" class="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-200" />
+      </button>
       <DashboardAvatarPickerDialog
         v-model="avatarPickerOpen"
         :current-avatar-url="user?.avatar_url"
