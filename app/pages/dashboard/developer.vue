@@ -323,6 +323,7 @@ const runtimeConfig = useRuntimeConfig()
 const siteUrl = runtimeConfig.public?.siteUrl || 'https://verbatims.cc'
 
 const page = ref(1)
+useSyncedPageQuery(page)
 const limit = ref(50)
 const keys = ref<any[]>([])
 const total = ref(0)

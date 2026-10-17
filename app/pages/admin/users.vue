@@ -256,6 +256,7 @@ const bulkDeleting = ref(false)
 const users = ref<AdminUser[]>([])
 const totalUsers = ref(0)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(20)
 const searchQuery = ref('')
 
@@ -363,6 +364,37 @@ const roleFilterOptions = computed(() => [
 const statusFilterOptions = computed(() => [
   { label: $t('filter_all_status') as string, value: '' }, { label: $t('filter_status_active') as string, value: 'active' }, { label: $t('filter_status_inactive') as string, value: 'inactive' }
 ])
+
+useSyncedQueryFilters({
+  keys: ['q', 'role', 'status', 'sort'],
+  read: (query) => {
+    const role = readSyncedQueryValue(query.role)
+    const status = readSyncedQueryValue(query.status)
+    const sort = readSyncedQueryValue(query.sort)
+    const sortValues = ['created_at_desc', 'created_at_asc', 'name_asc', 'name_desc']
+    return {
+      q: readSyncedQueryValue(query.q),
+      role: roleFilterOptions.value.some(option => option.value === role) ? role : '',
+      status: statusFilterOptions.value.some(option => option.value === status) ? status : '',
+      sort: sortValues.includes(sort) ? sort : 'created_at_desc'
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    role: state.role || undefined,
+    status: state.status || undefined,
+    sort: state.sort === 'created_at_desc' ? undefined : state.sort
+  }),
+  get: () => ({ q: searchQuery.value, role: selectedRoleFilter.value.value, status: selectedStatusFilter.value.value, sort: selectedSort.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    selectedRoleFilter.value = roleFilterOptions.value.find(option => option.value === state.role) ?? roleFilterOptions.value[0]!
+    selectedStatusFilter.value = statusFilterOptions.value.find(option => option.value === state.status) ?? statusFilterOptions.value[0]!
+    selectedSort.value = state.sort
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const totalPages = computed(() => Math.ceil(totalUsers.value / pageSize.value))
 

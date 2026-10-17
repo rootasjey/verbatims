@@ -237,6 +237,7 @@ const loading = ref(false)
 const tags = ref<any[]>([])
 const totalTags = ref(0)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
@@ -326,6 +327,24 @@ const sortOptions = computed(() => [
   { label: $t('sort_most_quotes') as string, value: 'quotes_desc' },
   { label: $t('sort_fewest_quotes') as string, value: 'quotes_asc' }
 ])
+
+useSyncedQueryFilters({
+  keys: ['q', 'sort'],
+  read: (query) => {
+    const sort = readSyncedQueryValue(query.sort)
+    return {
+      q: readSyncedQueryValue(query.q),
+      sort: sortOptions.value.some(option => option.value === sort) ? sort : 'name_asc'
+    }
+  },
+  write: (query, state) => ({ ...query, q: state.q.trim() || undefined, sort: state.sort === 'name_asc' ? undefined : state.sort }),
+  get: () => ({ q: searchQuery.value, sort: selectedSort.value.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    selectedSort.value = sortOptions.value.find(option => option.value === state.sort) ?? sortOptions.value[0]!
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
   if (selectedSort.value.value === ascendingValue) return 'asc'

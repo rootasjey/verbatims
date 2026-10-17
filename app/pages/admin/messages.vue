@@ -228,6 +228,7 @@ const messages: Ref<AdminUserMessage[]> = ref([])
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const totalMessages = ref(0)
 const totalPages = ref(0)
@@ -258,6 +259,36 @@ const targetOptions = computed(() => [
   { label: $t('filter_all_targets') as string, value: '' }, { label: $t('filter_target_general') as string, value: 'general' }, { label: $t('filter_target_quote') as string, value: 'quote' },
   { label: $t('filter_target_author') as string, value: 'author' }, { label: $t('filter_target_reference') as string, value: 'reference' }
 ])
+
+useSyncedQueryFilters({
+  keys: ['q', 'status', 'category', 'target'],
+  read: (query) => {
+    const status = readSyncedQueryValue(query.status)
+    const category = readSyncedQueryValue(query.category)
+    const target = readSyncedQueryValue(query.target)
+    return {
+      q: readSyncedQueryValue(query.q),
+      status: statusOptions.value.some(option => option.value === status) ? status : '',
+      category: categoryOptions.value.some(option => option.value === category) ? category : '',
+      target: targetOptions.value.some(option => option.value === target) ? target : ''
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    status: state.status || undefined,
+    category: state.category || undefined,
+    target: state.target || undefined
+  }),
+  get: () => ({ q: searchQuery.value, status: statusFilter.value.value, category: categoryFilter.value.value, target: targetFilter.value.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    statusFilter.value = statusOptions.value.find(option => option.value === state.status) ?? statusOptions.value[0]!
+    categoryFilter.value = categoryOptions.value.find(option => option.value === state.category) ?? categoryOptions.value[0]!
+    targetFilter.value = targetOptions.value.find(option => option.value === state.target) ?? targetOptions.value[0]!
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const rowSelection: Ref<Record<number, boolean>> = ref({})
 const lastSelectedIndex = ref<number | null>(null)

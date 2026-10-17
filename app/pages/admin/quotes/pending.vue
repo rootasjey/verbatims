@@ -385,6 +385,7 @@ const loading = ref(true)
 const bulkProcessing = ref(false)
 const hasLoadedOnce = ref(false)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
 const totalPages = ref(0)
@@ -421,6 +422,32 @@ const languageOptions = computed(() =>
     value: lang.value === 'all' ? '' : lang.value
   }))
 )
+
+useSyncedQueryFilters({
+  keys: ['q', 'status', 'lang'],
+  read: (query) => {
+    const status = readSyncedQueryValue(query.status)
+    const lang = readSyncedQueryValue(query.lang)
+    return {
+      q: readSyncedQueryValue(query.q),
+      status: statusOptions.value.some(option => option.value === status) ? status : 'pending',
+      lang: languageOptions.value.some(option => option.value === lang) ? lang : ''
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    status: state.status === 'pending' ? undefined : state.status,
+    lang: state.lang || undefined
+  }),
+  get: () => ({ q: searchQuery.value, status: statusFilter.value.value, lang: selectedLanguage.value.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    statusFilter.value = statusOptions.value.find(option => option.value === state.status) ?? statusOptions.value[0]!
+    selectedLanguage.value = languageOptions.value.find(option => option.value === state.lang) ?? languageOptions.value[0]!
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const inlineLanguageOptions = computed(() =>
   languageStore.availableLanguages
@@ -884,7 +911,7 @@ const onBulkEditComplete = () => {
   loadQuotes()
 }
 
-onMounted(() => { loadQuotes() })
+onMounted(() => { loadQuotes(currentPage.value) })
 
 let footerObserver: ResizeObserver | null = null
 

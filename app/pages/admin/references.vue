@@ -336,6 +336,7 @@ const hasLoadedOnce = ref(false)
 const references = ref<QuoteReferenceWithMetadata[]>([])
 const totalReferences = ref(0)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const pageSize = ref(50)
 const searchQuery = ref('')
 const selectedTypeFilter = ref({ label: 'All Types', value: '' })
@@ -481,6 +482,32 @@ const sortOptions = computed(() => [
   { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }, { label: $t('sort_fewest_quotes') as string, value: 'quotes_asc' },
   { label: $t('sort_most_liked') as string, value: 'likes_desc' }
 ])
+
+useSyncedQueryFilters({
+  keys: ['q', 'type', 'sort'],
+  read: (query) => {
+    const type = readSyncedQueryValue(query.type)
+    const sort = readSyncedQueryValue(query.sort)
+    return {
+      q: readSyncedQueryValue(query.q),
+      type: typeFilterOptions.some(option => option.value === type) ? type : '',
+      sort: sortOptions.value.some(option => option.value === sort) ? sort : 'name_asc'
+    }
+  },
+  write: (query, state) => ({
+    ...query,
+    q: state.q.trim() || undefined,
+    type: state.type || undefined,
+    sort: state.sort === 'name_asc' ? undefined : state.sort
+  }),
+  get: () => ({ q: searchQuery.value, type: selectedTypeFilter.value.value, sort: selectedSort.value.value }),
+  apply: (state) => {
+    searchQuery.value = state.q
+    selectedTypeFilter.value = typeFilterOptions.find(option => option.value === state.type) ?? typeFilterOptions[0]!
+    selectedSort.value = sortOptions.value.find(option => option.value === state.sort) ?? sortOptions.value[0]!
+  },
+  onFilterChange: () => { currentPage.value = 1 }
+})
 
 const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
   if (selectedSort.value.value === ascendingValue) return 'asc'

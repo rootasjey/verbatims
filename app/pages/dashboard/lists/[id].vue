@@ -255,6 +255,7 @@ const bulkSelectionActions = computed(() => [
 
 const loading = ref(true)
 const currentPage = ref(1)
+useSyncedPageQuery(currentPage)
 const totalPages = ref(0)
 const quoteKeyboard = useDashboardQuoteSelection(computed(() => collection.value?.quotes ?? []), {
   pagination: { currentPage, totalPages, loading }
