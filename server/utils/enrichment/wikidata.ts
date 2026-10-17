@@ -51,6 +51,7 @@ interface AuthorCandidate {
   job: string | null
   description: string | null
   imageUrl: string | null
+  imageAttribution: EnrichmentFieldProposal['image_attribution'] | null
   socials: AuthorSocialLink[]
 }
 
@@ -60,6 +61,7 @@ interface ReferenceCandidate {
   releaseDate: string | null
   description: string | null
   imageUrl: string | null
+  imageAttribution: EnrichmentFieldProposal['image_attribution'] | null
   urls: QuoteReferenceUrls
   musicContext?: { artists: string[], albums: string[] }
 }
@@ -266,13 +268,13 @@ async function findBestAuthorCandidate(
   matching: MatchingThresholds,
   options: PreviewBuildOptions,
 ) {
-  const searchResults = await searchWikidata(author.name)
+  const searchResults = await searchWikidata(author.name, options.cache)
   if (searchResults.length === 0) {
     notes.push('Wikidata search returned no result for this author.')
     return null
   }
 
-  const scoredResults = await scoreAuthorCandidates(author, searchResults)
+  const scoredResults = await scoreAuthorCandidates(author, searchResults, options.cache)
 
   const best = resolvePreferredCandidate(scoredResults, options.preferredExternalId) || scoredResults[0]
   const second = scoredResults.find(candidate => candidate.result.id !== best?.result.id)
@@ -303,7 +305,7 @@ async function findBestAuthorCandidate(
     ...extractEntityIds(entity.claims?.P106),
     ...extractEntityIds(entity.claims?.P27),
   ]
-  const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds) : {}
+  const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds, options.cache) : {}
   const birthDate = parseWikidataDate(getFirstTimeValue(entity.claims?.P569))
   const deathDate = parseWikidataDate(getFirstTimeValue(entity.claims?.P570))
   const birthLocation = labels[getFirstEntityId(entity.claims?.P19)] || null
@@ -314,6 +316,8 @@ async function findBestAuthorCandidate(
   const wikidataUrl = `https://www.wikidata.org/wiki/${entity.id}`
   const description = buildAuthorDescription(entity, occupations.filter(Boolean) as string[], citizenships, birthDate, deathDate)
   const imageFileName = getCommonsImageFileName(entity.claims?.P18)
+  const imageAttribution = imageFileName ? await fetchCommonsImageAttribution(imageFileName, options.cache) : null
+  if (imageFileName && !imageAttribution) notes.push('A Wikidata image exists, but Wikimedia Commons did not provide verifiable author and license metadata; the image was not proposed.')
 
   const socials = mergeAndNormalizeSocials([
     wikipediaUrl ? { platform: 'Wikipedia', url: wikipediaUrl } : null,
@@ -347,7 +351,7 @@ async function findBestAuthorCandidate(
       description: getDescription(entity) || '',
       wikipedia_url: wikipediaUrl,
       wikidata_url: wikidataUrl,
-      image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
+      image_url: imageAttribution ? buildCommonsImageUrl(imageFileName!) : null,
       score: Math.min(100, best.score),
       raw_score: best.score,
       confidence,
@@ -363,7 +367,8 @@ async function findBestAuthorCandidate(
     deathLocation,
     job: occupations.slice(0, 3).join(', ') || null,
     description,
-    imageUrl: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
+    imageUrl: imageAttribution ? buildCommonsImageUrl(imageFileName!) : null,
+    imageAttribution,
     socials,
   } satisfies AuthorCandidate
 }
@@ -381,6 +386,7 @@ function createAuthorProposals(author: AuthorRecordInput, candidate: AuthorCandi
     sourceLabels: string[]
     sourceUrls: string[]
     rationale: string
+    imageAttribution?: EnrichmentFieldProposal['image_attribution']
   }> = [
     {
       field: 'birth_date',
@@ -449,8 +455,9 @@ function createAuthorProposals(author: AuthorRecordInput, candidate: AuthorCandi
       proposedValue: normalizeNullableString(candidate.imageUrl),
       confidence: candidate.imageUrl ? 90 : 0,
       sourceLabels: ['Wikidata', 'Wikimedia Commons'],
-      sourceUrls: [candidate.match.wikidata_url, candidate.match.wikipedia_url || 'https://commons.wikimedia.org'],
-      rationale: 'Image file comes from Wikimedia Commons via Wikidata P18.',
+      sourceUrls: candidate.imageAttribution ? [candidate.match.wikidata_url, candidate.imageAttribution.source_url, candidate.imageAttribution.license_url] : [],
+      rationale: 'Image proposed only after retrieving the Commons file page, named credit and explicit license.',
+      imageAttribution: candidate.imageAttribution || undefined,
     },
     {
       field: 'socials',
@@ -485,6 +492,7 @@ function createAuthorProposals(author: AuthorRecordInput, candidate: AuthorCandi
         source_labels: item.sourceLabels,
         source_urls: item.sourceUrls,
         rationale: withMatchRationale(item.rationale, candidate.match),
+        ...(item.imageAttribution ? { image_attribution: item.imageAttribution } : {}),
       }
     })
 }
@@ -529,7 +537,7 @@ async function findBestReferenceCandidate(
     ...extractEntityIds(entity.claims?.P175),
   ])
   const albumIds = extractEntityIds(entity.claims?.P361)
-  const labels = await fetchEntityLabels([...instanceOfIds, ...creatorIds, ...albumIds])
+  const labels = await fetchEntityLabels([...instanceOfIds, ...creatorIds, ...albumIds], options.cache)
   const instanceLabels = instanceOfIds.map(id => labels[id]).filter(Boolean) as string[]
 
   if (!matchesExpectedReferenceType(reference.primaryType, instanceLabels, getDescription(entity))) {
@@ -541,6 +549,8 @@ async function findBestReferenceCandidate(
   const wikipediaUrl = buildWikipediaUrl(entity)
   const wikidataUrl = `https://www.wikidata.org/wiki/${entity.id}`
   const imageFileName = getCommonsImageFileName(entity.claims?.P18)
+  const imageAttribution = imageFileName ? await fetchCommonsImageAttribution(imageFileName, options.cache) : null
+  if (imageFileName && !imageAttribution) notes.push('A Wikidata image exists, but Wikimedia Commons did not provide verifiable author and license metadata; the image was not proposed.')
   const description = buildReferenceDescription(entity, reference.primaryType, releaseDate, instanceLabels, labels)
   const urls = mergeReferenceUrls({}, {
     wikipedia: wikipediaUrl || undefined,
@@ -566,7 +576,7 @@ async function findBestReferenceCandidate(
       description: getDescription(entity) || '',
       wikipedia_url: wikipediaUrl,
       wikidata_url: wikidataUrl,
-      image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
+      image_url: imageAttribution ? buildCommonsImageUrl(imageFileName!) : null,
       score: Math.min(100, best.score),
       raw_score: best.score,
       confidence,
@@ -578,7 +588,8 @@ async function findBestReferenceCandidate(
     alternativeMatches,
     releaseDate,
     description,
-    imageUrl: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
+    imageUrl: imageAttribution ? buildCommonsImageUrl(imageFileName!) : null,
+    imageAttribution,
     urls: mergeReferenceUrls(urls, { wikidata: wikidataUrl }),
     musicContext: reference.primaryType === 'music'
       ? { artists: extractEntityIds(entity.claims?.P175).map(id => labels[id]).filter((label): label is string => Boolean(label)), albums: albumIds.map(id => labels[id]).filter((label): label is string => Boolean(label)) }
@@ -599,6 +610,7 @@ function createReferenceProposals(reference: ReferenceRecordInput, candidate: Re
     sourceLabels: string[]
     sourceUrls: string[]
     rationale: string
+    imageAttribution?: EnrichmentFieldProposal['image_attribution']
   }> = [
     {
       field: 'release_date',
@@ -627,8 +639,9 @@ function createReferenceProposals(reference: ReferenceRecordInput, candidate: Re
       proposedValue: normalizeNullableString(candidate.imageUrl),
       confidence: candidate.imageUrl ? 88 : 0,
       sourceLabels: ['Wikidata', 'Wikimedia Commons'],
-      sourceUrls: uniqueStrings([candidate.match.wikidata_url, candidate.match.wikipedia_url || 'https://commons.wikimedia.org']),
-      rationale: 'Image file comes from Wikimedia Commons via Wikidata P18.',
+      sourceUrls: candidate.imageAttribution ? [candidate.match.wikidata_url, candidate.imageAttribution.source_url, candidate.imageAttribution.license_url] : [],
+      rationale: 'Image proposed only after retrieving the Commons file page, named credit and explicit license.',
+      imageAttribution: candidate.imageAttribution || undefined,
     },
     {
       field: 'urls',
@@ -663,18 +676,19 @@ function createReferenceProposals(reference: ReferenceRecordInput, candidate: Re
         source_labels: item.sourceLabels,
         source_urls: item.sourceUrls,
         rationale: withMatchRationale(item.rationale, candidate.match),
+        ...(item.imageAttribution ? { image_attribution: item.imageAttribution } : {}),
       }
     })
 }
 
-async function scoreAuthorCandidates(author: AuthorRecordInput, searchResults: WikidataSearchEntity[]) {
-  const hydrated = await hydrateSearchCandidates(searchResults)
+async function scoreAuthorCandidates(author: AuthorRecordInput, searchResults: WikidataSearchEntity[], cache?: EnrichmentRequestCache) {
+  const hydrated = await hydrateSearchCandidates(searchResults, cache)
   const relatedIds = uniqueStrings(hydrated.flatMap(({ entity }) => entity ? [
     ...extractEntityIds(entity.claims?.P31),
     ...extractEntityIds(entity.claims?.P106),
     ...extractEntityIds(entity.claims?.P27),
   ] : []))
-  const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds) : {}
+  const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds, cache) : {}
 
   return hydrated
     .map(({ result, entity }) => scoreAuthorSearchResult(author, result, entity, labels))
@@ -1029,6 +1043,52 @@ async function fetchJsonCached<T>(url: string, cache?: EnrichmentRequestCache): 
   const request = fetchJson<T>(url)
   cache.set(url, request)
   return await request
+}
+
+async function fetchCommonsImageAttribution(filename: string, cache?: EnrichmentRequestCache): Promise<NonNullable<EnrichmentFieldProposal['image_attribution']> | null> {
+  const params = new URLSearchParams({
+    action: 'query',
+    format: 'json',
+    prop: 'imageinfo',
+    iiprop: 'url|extmetadata',
+    titles: `File:${filename}`,
+  })
+  const payload = await fetchJsonCached<{
+    query?: { pages?: Record<string, { imageinfo?: Array<{ descriptionurl?: string, extmetadata?: Record<string, { value?: string }> }> }> }
+  }>(`https://commons.wikimedia.org/w/api.php?${params}`, cache)
+  const image = Object.values(payload?.query?.pages || {})[0]?.imageinfo?.[0]
+  const metadata = image?.extmetadata
+  if (!image || !metadata) return null
+
+  const credit = cleanCommonsMetadata(metadata.Artist?.value)
+  const license = cleanCommonsMetadata(metadata.LicenseShortName?.value)
+  const licenseUrl = cleanCommonsMetadata(metadata.LicenseUrl?.value)
+  const sourceUrl = image.descriptionurl || `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(filename.replace(/ /g, '_'))}`
+  if (!credit || !license || !licenseUrl || !/^https:\/\//.test(sourceUrl) || !/^https:\/\//.test(licenseUrl)) return null
+
+  return {
+    source_url: sourceUrl,
+    credit: credit.slice(0, 300),
+    license: license.slice(0, 160),
+    license_url: licenseUrl,
+    date: cleanCommonsMetadata(metadata.DateTimeOriginal?.value)?.slice(0, 100) || null,
+  }
+}
+
+function cleanCommonsMetadata(value: string | undefined) {
+  if (!value) return null
+  const text = value
+    .replace(/<br\s*\/?\s*>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return text || null
 }
 
 async function fetchJson<T>(url: string): Promise<T | null> {

@@ -25,7 +25,16 @@
             <option value="tv_series">TV series</option>
           </select>
         </label>
-        <NButton btn="solid-primary" :loading="loading" @click="runAudit">{{ loading ? 'Auditing…' : 'Run audit' }}</NButton>
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center gap-2 rounded-md bg-gray-950 px-5 text-sm font-600 text-white transition-colors hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-gray-500 disabled:cursor-wait disabled:opacity-70 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
+          :disabled="loading"
+          @click="runAudit"
+        >
+          <NIcon v-if="loading" name="i-ph-spinner" class="h-4 w-4 animate-spin" />
+          {{ loading ? 'Auditing…' : 'Run audit' }}
+          <NIcon v-if="!loading" name="i-ph-arrow-right" class="h-4 w-4" />
+        </button>
         <NButton btn="outline-gray" :disabled="loading" @click="resetFilters">Reset filters</NButton>
         <span v-if="loading" class="text-xs text-gray-500 dark:text-gray-400">Processed {{ results.length }} / {{ auditLimit }} in batches of 5</span>
       </div>

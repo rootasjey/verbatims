@@ -210,6 +210,14 @@ async function applyAuthorJob(
     throw new Error('No enrichment field selected')
   }
 
+  const imageProposal = proposals.find(proposal => proposal.fieldName === 'image_url')
+  const imageAttribution = imageProposal
+    ? preview.proposals.find(proposal => proposal.field === 'image_url')?.image_attribution
+    : undefined
+  if (imageProposal && (!imageAttribution?.source_url || !imageAttribution.credit || !imageAttribution.license || !imageAttribution.license_url)) {
+    throw new Error('This image proposal has no complete source, credit, and license. It cannot be applied.')
+  }
+
   const updateData: Record<string, any> = {
     updatedAt: new Date(),
   }
@@ -223,7 +231,14 @@ async function applyAuthorJob(
     if (proposal.fieldName === 'death_location') updateData.deathLocation = proposal.proposedValue
     if (proposal.fieldName === 'job') updateData.job = proposal.proposedValue
     if (proposal.fieldName === 'description') updateData.description = proposal.proposedValue
-    if (proposal.fieldName === 'image_url') updateData.imageUrl = proposal.proposedValue
+    if (proposal.fieldName === 'image_url') {
+      updateData.imageUrl = proposal.proposedValue
+      updateData.imageAlt = author.name
+      updateData.imageSourceUrl = imageAttribution!.source_url
+      updateData.imageCredit = imageAttribution!.credit
+      updateData.imageLicense = `${imageAttribution!.license} (${imageAttribution!.license_url})`
+      updateData.imageDate = imageAttribution!.date
+    }
     if (proposal.fieldName === 'socials') updateData.socials = proposal.proposedValue
   }
 
@@ -343,6 +358,14 @@ async function applyReferenceJob(
     throw new Error('No enrichment field selected')
   }
 
+  const imageProposal = proposals.find(proposal => proposal.fieldName === 'image_url')
+  const imageAttribution = imageProposal
+    ? preview.proposals.find(proposal => proposal.field === 'image_url')?.image_attribution
+    : undefined
+  if (imageProposal && (!imageAttribution?.source_url || !imageAttribution.credit || !imageAttribution.license || !imageAttribution.license_url)) {
+    throw new Error('This image proposal has no complete source, credit, and license. It cannot be applied.')
+  }
+
   const updateData: Record<string, any> = {
     updatedAt: new Date(),
   }
@@ -352,7 +375,14 @@ async function applyReferenceJob(
 
     if (proposal.fieldName === 'release_date') updateData.releaseDate = proposal.proposedValue
     if (proposal.fieldName === 'description') updateData.description = proposal.proposedValue
-    if (proposal.fieldName === 'image_url') updateData.imageUrl = proposal.proposedValue
+    if (proposal.fieldName === 'image_url') {
+      updateData.imageUrl = proposal.proposedValue
+      updateData.imageAlt = reference.name
+      updateData.imageSourceUrl = imageAttribution!.source_url
+      updateData.imageCredit = imageAttribution!.credit
+      updateData.imageLicense = `${imageAttribution!.license} (${imageAttribution!.license_url})`
+      updateData.imageDate = imageAttribution!.date
+    }
     if (proposal.fieldName === 'urls') updateData.urls = proposal.proposedValue
   }
 
