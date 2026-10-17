@@ -44,7 +44,7 @@
       </div>
     </template>
 
-    <div v-if="scrollable" ref="dialogContentRef" class="overflow-auto max-h-[min(70dvh,48rem)]">
+    <div v-if="scrollable" ref="dialogContentRef" :class="['overflow-auto max-h-[min(70dvh,48rem)]', scrollableContentClass]">
       <slot />
     </div>
     <div v-else ref="dialogContentRef">
@@ -83,6 +83,7 @@ interface Props {
   maxHeight?: 'none' | 'sm' | 'md' | 'lg'
   hideFooter?: boolean
   scrollable?: boolean
+  scrollableContentClass?: string
   una?: Record<string, string>
   preserveAppChrome?: boolean
 }
