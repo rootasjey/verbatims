@@ -8,6 +8,7 @@
     :submitting="submitting"
     :can-submit="!!form.content.trim()"
     :hide-footer="true"
+    preserve-app-chrome
     max-width="md"
     scrollable
     @submit="submitQuote"

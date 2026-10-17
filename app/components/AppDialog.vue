@@ -1,6 +1,15 @@
 <template>
+  <Teleport to="#teleports">
+    <div
+      v-if="preserveAppChrome && isOpen"
+      class="fixed inset-0 z-[49] bg-black/45"
+      aria-hidden="true"
+      @click="close"
+    />
+  </Teleport>
   <NDialog
     v-model:open="isOpen"
+    :modal="!preserveAppChrome"
     :una="unaConfig"
     :show-close="false"
     :_dialog-content="dialogContentProps"
@@ -75,6 +84,7 @@ interface Props {
   hideFooter?: boolean
   scrollable?: boolean
   una?: Record<string, string>
+  preserveAppChrome?: boolean
 }
 
 interface Emits {
@@ -91,6 +101,7 @@ const props = withDefaults(defineProps<Props>(), {
   maxHeight: 'none',
   hideFooter: false,
   scrollable: false,
+  preserveAppChrome: false,
   una: () => ({})
 })
 

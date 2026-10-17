@@ -7,6 +7,7 @@
     :cancel-text="$t('components.app_dialog.cancel') as string"
     :submitting="pending"
     :can-submit="canSubmit"
+    preserve-app-chrome
     max-width="lg"
     scrollable
     @submit="onSubmit"
