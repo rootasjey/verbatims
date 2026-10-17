@@ -1,15 +1,12 @@
 import { getQuoteAuditPilotStatus, runQuoteAuditBatch } from '../../../utils/quote-audit/runner'
-import { getQuoteAuditOAuthStatus } from '../../../utils/quote-audit/oauth'
+import { getQuoteAuditOpenRouterStatus } from '../../../utils/quote-audit/openrouter'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
-  const oauth = await getQuoteAuditOAuthStatus()
-  if (!oauth.connected) {
-    throwServer(409, 'Connect a ChatGPT OAuth session before testing quote audits')
-  }
-  if (oauth.needsReconnect || !oauth.modelAvailable) {
-    throwServer(409, 'Reconnect the ChatGPT session and verify that gpt-6-luna is available before testing')
+  const provider = await getQuoteAuditOpenRouterStatus()
+  if (!provider.valid || !provider.modelAvailable) {
+    throwServer(409, 'Configure and validate an OpenRouter API key before testing quote audits')
   }
 
   const pilot = await getQuoteAuditPilotStatus()

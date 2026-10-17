@@ -1,6 +1,6 @@
 import { setQuoteAuditConfig, type QuoteAuditCadence, type QuoteAuditMode } from '../../../utils/quote-audit/config'
 import { getQuoteAuditPilotStatus } from '../../../utils/quote-audit/runner'
-import { getQuoteAuditOAuthStatus } from '../../../utils/quote-audit/oauth'
+import { getQuoteAuditOpenRouterStatus } from '../../../utils/quote-audit/openrouter'
 
 const modes: QuoteAuditMode[] = ['paused', 'pilot', 'continuous']
 const cadences: QuoteAuditCadence[] = ['weekdays', 'weekly']
@@ -15,12 +15,9 @@ export default defineEventHandler(async (event) => {
 
   const mode = body.mode as QuoteAuditMode
   if (mode !== 'paused') {
-    const oauth = await getQuoteAuditOAuthStatus()
-    if (!oauth.connected) {
-      throwServer(409, 'Connect a ChatGPT OAuth session before enabling quote audits')
-    }
-    if (oauth.needsReconnect || !oauth.modelAvailable) {
-      throwServer(409, 'The ChatGPT session must be reconnected and gpt-6-luna must be available before enabling quote audits')
+    const provider = await getQuoteAuditOpenRouterStatus()
+    if (!provider.valid || !provider.modelAvailable) {
+      throwServer(409, 'Configure and validate an OpenRouter API key before enabling quote audits')
     }
   }
   if (mode === 'continuous') {
