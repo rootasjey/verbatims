@@ -5,6 +5,7 @@
   "mobile_steps": "Harvest steps",
   "browse_step": "Browse",
   "preview_step": "Preview",
+  "back_to_sources": "Back to sources",
   "badge_harvested": "{n} Harvested",
   "label_source": "Source:",
   "search_placeholder": "Search for an author or topic...",

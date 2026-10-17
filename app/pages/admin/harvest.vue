@@ -11,11 +11,11 @@
       </div>
     </div>
 
-    <div class="mobile-harvest-steps" role="group" :aria-label="$t('mobile_steps') as string">
+    <nav class="harvest-steps" :aria-label="$t('mobile_steps') as string">
       <button
         type="button"
         :aria-pressed="mobileView === 'browse'"
-        class="mobile-harvest-step"
+        class="harvest-step"
         :class="mobileView === 'browse' ? 'is-active' : ''"
         @click="mobileView = 'browse'"
       >{{ $t('browse_step') }}</button>
@@ -23,15 +23,15 @@
         type="button"
         :aria-pressed="mobileView === 'preview'"
         :disabled="!selectedPageSlug"
-        class="mobile-harvest-step"
+        class="harvest-step"
         :class="mobileView === 'preview' ? 'is-active' : ''"
         @click="mobileView = 'preview'"
       >{{ $t('preview_step') }}<span v-if="pageQuotes.length" class="ml-1.5 text-xs opacity-70">{{ pageQuotes.length }}</span></button>
-    </div>
+    </nav>
 
     <div class="harvest-workspace flex-1 overflow-hidden flex">
       <!-- Left Panel: Source & Search -->
-      <div class="harvest-browser-pane w-2/5 border-r border-gray-200 dark:border-gray-800 flex flex-col" :class="{ 'is-mobile-hidden': mobileView === 'preview' }">
+      <div class="harvest-browser-pane w-full border-r border-gray-200 dark:border-gray-800 flex flex-col" :class="{ 'is-step-hidden': mobileView !== 'browse' }">
         <div class="p-4 border-b border-gray-200 dark:border-gray-800 space-y-3">
           <div class="flex items-center gap-2">
             <label for="harvest-source" class="font-sans text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ $t('label_source') }}</label>
@@ -97,7 +97,7 @@
       </div>
 
       <!-- Right Panel: Quotes Preview -->
-      <div class="harvest-preview-pane flex-1 flex flex-col min-w-0" :class="{ 'is-mobile-hidden': mobileView === 'browse' }">
+      <div class="harvest-preview-pane w-full flex-1 flex flex-col min-w-0" :class="{ 'is-step-hidden': mobileView !== 'preview' }">
           <div v-if="quotesLoading" class="flex-1 flex items-center justify-center">
             <div class="text-center text-gray-500 dark:text-gray-400">
               <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -128,6 +128,7 @@
         <div v-else class="flex-1 flex flex-col min-h-0">
           <div class="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between gap-3 flex-wrap">
             <div class="flex items-center gap-3">
+              <button type="button" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-200 dark:hover:bg-gray-800" @click="mobileView = 'browse'"><NIcon name="i-ph-arrow-left" class="h-4 w-4" />{{ $t('back_to_sources') }}</button>
               <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('selection_count', { n: selectedQuotes.size, total: pageQuotes.length }) }}</span>
               <span v-if="pageQuotes.filter(q => q.isDuplicate).length > 0" class="font-sans text-xs text-orange-600 dark:text-orange-400">{{ $t('duplicates_notice', { n: pageQuotes.filter(q => q.isDuplicate).length }) }}</span>
             </div>
@@ -212,30 +213,31 @@ watch(selectedSource, () => { mobileView.value = 'browse'; suggestions.value = [
 
 <style scoped>
 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.mobile-harvest-steps { display: none; }
+.harvest-steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  padding: 0.375rem;
+  margin: 0.75rem 1rem;
+  border: 1px solid rgb(120 113 108 / 0.2);
+  border-radius: 0.875rem;
+  background: rgb(0 0 0 / 0.025);
+}
+.harvest-step {
+  min-height: 2.75rem;
+  border-radius: 0.625rem;
+  color: #78716c;
+  font-size: 0.875rem;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.harvest-step.is-active { background: white; color: #1c1917; box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); }
+.harvest-step:disabled { opacity: 0.45; }
+.is-step-hidden { display: none; }
+:global(.dark) .harvest-steps { border-color: rgb(120 113 108 / 0.3); background: rgb(255 255 255 / 0.04); }
+:global(.dark) .harvest-step.is-active { background: #292524; color: #fafaf9; }
 
 @media (max-width: 767px) {
   .harvest-page { min-height: 0; }
-  .mobile-harvest-steps {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.25rem;
-    padding: 0.5rem;
-    margin: 0.75rem 1rem;
-    border-radius: 0.875rem;
-    background: rgb(0 0 0 / 0.04);
-  }
-  :global(.dark) .mobile-harvest-steps { background: rgb(255 255 255 / 0.06); }
-  .mobile-harvest-step {
-    min-height: 2.75rem;
-    border-radius: 0.625rem;
-    color: #78716c;
-    font-size: 0.875rem;
-    transition: background-color 160ms ease, color 160ms ease;
-  }
-  .mobile-harvest-step.is-active { background: white; color: #1c1917; box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); }
-  .mobile-harvest-step:disabled { opacity: 0.45; }
-  :global(.dark) .mobile-harvest-step.is-active { background: #292524; color: #fafaf9; }
   .harvest-workspace {
     flex: none;
     height: min(68dvh, 680px);
@@ -247,11 +249,10 @@ watch(selectedSource, () => { mobileView.value = 'browse'; suggestions.value = [
   }
   :global(.dark) .harvest-workspace { border-color: rgb(120 113 108 / 0.3); background: #171717; }
   .harvest-browser-pane,
-  .harvest-preview-pane { width: 100%; border-right: 0; }
-  .is-mobile-hidden { display: none; }
+  .harvest-preview-pane { border-right: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mobile-harvest-step { transition: none; }
+  .harvest-step { transition: none; }
 }
 </style>
