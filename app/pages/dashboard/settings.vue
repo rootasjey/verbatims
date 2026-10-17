@@ -21,6 +21,38 @@
     <Transition name="dashboard-tab" mode="out-in">
     <!-- Profile Tab -->
     <div v-if="activeTab === 'profile'" key="profile" class="max-w-xl space-y-6">
+      <section class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 pb-6 dark:border-white/10">
+        <div class="flex min-w-0 items-center gap-4">
+          <img
+            v-if="user?.avatar_url"
+            :src="user.avatar_url"
+            :alt="user.name"
+            width="64"
+            height="64"
+            class="h-16 w-16 shrink-0 rounded-full border border-gray-200 bg-white object-cover dark:border-white/10 dark:bg-white/5"
+          />
+          <div v-else class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
+            <BrandAvatarFallback />
+          </div>
+          <div class="min-w-0">
+            <h2 class="font-serif text-lg font-500 text-gray-900 dark:text-gray-100">{{ $t('section_avatar') }}</h2>
+            <p class="mt-1 max-w-sm font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_avatar') }}</p>
+          </div>
+        </div>
+        <NButton
+          btn="outline-gray"
+          class="min-h-10 shrink-0 justify-center px-4 font-sans text-sm font-600"
+          @click="avatarPickerOpen = true"
+        >
+          {{ $t('change_avatar') }}
+        </NButton>
+      </section>
+      <DashboardAvatarPickerDialog
+        v-model="avatarPickerOpen"
+        :current-avatar-url="user?.avatar_url"
+        :saving="savingAvatar"
+        @save="saveAvatar"
+      />
       <div>
         <label for="display-name" class="sr-only">{{ $t('label_display_name') }}</label>
         <div class="flex min-h-11 w-full items-center gap-2 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 transition-colors focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:focus-within:border-gray-400 dark:focus-within:ring-white/10">
@@ -328,7 +360,7 @@ onMounted(() => {
   pageHeader.setHeaderFromRoute()
 })
 
-const { user } = useUserSession()
+const { user, fetch: refreshUserSession } = useUserSession()
 
 const settingsTabValues = ['profile', 'preferences', 'privacy', 'notifications', 'security', 'data'] as const
 type SettingsTab = typeof settingsTabValues[number]
@@ -381,6 +413,8 @@ const privacySettings = ref<PrivacySettings>({
 })
 
 const savingProfile = ref(false)
+const avatarPickerOpen = ref(false)
+const savingAvatar = ref(false)
 const deleting = ref(false)
 
 const showDeleteModal = ref(false)
@@ -497,6 +531,23 @@ const saveProfile = async () => {
     showErrorToast(error, $t('error_save_profile') as string)
   } finally {
     savingProfile.value = false
+  }
+}
+
+const saveAvatar = async (avatarUrl: string) => {
+  savingAvatar.value = true
+  try {
+    await $fetch('/api/user/profile', {
+      method: 'PUT',
+      body: { avatar_url: avatarUrl }
+    })
+    await refreshUserSession()
+    avatarPickerOpen.value = false
+  } catch (error) {
+    console.error('Failed to save avatar:', error)
+    showErrorToast(error, $t('error_save_avatar') as string)
+  } finally {
+    savingAvatar.value = false
   }
 }
 

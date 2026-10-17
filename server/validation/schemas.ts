@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isTroncheAvatarUrl } from '../utils/avatar'
 
 export const validLanguages = [
   'en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko',
@@ -141,6 +142,7 @@ export const updateCollectionSchema = z.object({
 export const updateProfileSchema = z.object({
   name: z.string().min(1).max(100).trim().optional(),
   bio: z.string().max(5000).trim().optional().nullable(),
+  avatar_url: z.string().url().max(2048).refine(isTroncheAvatarUrl, 'Must be a Tronche avatar URL').optional(),
 })
 
 export const createAuthorSchema = z.object({
