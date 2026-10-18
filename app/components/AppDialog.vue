@@ -44,7 +44,11 @@
       </div>
     </template>
 
-    <div v-if="scrollable" ref="dialogContentRef" :class="['overflow-auto max-h-[min(70dvh,48rem)]', scrollableContentClass]">
+    <div
+      v-if="scrollable"
+      ref="dialogContentRef"
+      :class="['min-h-0 overflow-auto', scrollableContentClass]"
+    >
       <slot />
     </div>
     <div v-else ref="dialogContentRef">
@@ -134,7 +138,7 @@ const maxWidthClass = computed(() => {
 
 const maxHeightClass = computed(() => {
   switch (props.maxHeight) {
-    case 'none': return ''
+    case 'none': return props.scrollable ? 'max-h-[calc(100dvh-2rem)]' : ''
     case 'sm': return 'max-h-[50vh]'
     case 'md': return 'max-h-[70vh]'
     case 'lg': return 'max-h-[90vh]'
@@ -148,6 +152,7 @@ const unaConfig = computed(() => ({
     'w-[calc(100vw-2rem)] border border-gray-200 bg-[#FAFAF9] text-gray-900 shadow-2xl rounded-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FAFAF9] dark:border-neutral-800 dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-stone-400/80 dark:focus-visible:ring-offset-[#151515]',
     maxWidthClass.value,
     maxHeightClass.value,
+    props.scrollable && 'grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden',
     props.una?.dialogContent
   ].filter(Boolean).join(' ')
 }))
