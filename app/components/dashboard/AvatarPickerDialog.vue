@@ -15,7 +15,7 @@
       }"
       @submit="saveSelectedAvatar"
     >
-      <div class="space-y-5">
+      <div data-avatar-picker-content class="space-y-5">
         <div class="flex items-center gap-4 border-b border-gray-200 pb-5 dark:border-white/10">
           <img
             v-if="previewUrl"
@@ -342,7 +342,23 @@ watch(isOpen, (open) => {
   }
 })
 
-onBeforeUnmount(clearDialogResize)
+function handleNestedViewEscape(event: KeyboardEvent) {
+  if (event.key !== 'Escape' || !isOpen.value || (!isImporting.value && !isCustomizing.value)) return
+  if (!(event.target instanceof Element)) return
+
+  const dialog = event.target.closest<HTMLElement>('[role="dialog"]')
+  if (!dialog?.querySelector('[data-avatar-picker-content]')) return
+
+  event.preventDefault()
+  event.stopImmediatePropagation()
+  returnToGallery()
+}
+
+onMounted(() => window.addEventListener('keydown', handleNestedViewEscape, true))
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleNestedViewEscape, true)
+  clearDialogResize()
+})
 
 function clearDialogResize() {
   if (!import.meta.client) return
