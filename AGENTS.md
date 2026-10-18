@@ -535,3 +535,8 @@ General audience: quote lovers, casual browsers, content sharers, and curators. 
 - Keep keyboard navigation, visible focus, validation feedback, and success feedback coherent with the dialog's current context.
 - Use restrained transitions for meaningful content or height changes, and respect `prefers-reduced-motion`.
 - Treat the Add Quote dialog as a quality reference, not a universal template: match the composition and complexity to the task, and prevent content or focus styles from clipping at any viewport size.
+
+### Modal dialogs and app chrome
+- When opening an UnaUI `NDialog`, check whether its modal scroll lock changes the document scrollbar or shifts the fixed/sticky app masthead. Compare the masthead bounds and scroll state before and after opening; a stable screenshot alone may miss a small horizontal shift.
+- Keep modal behavior by default. If scrollbar removal shifts the page, prefer reserving the root scrollbar gutter so the dialog retains its focus and scroll isolation.
+- `AppDialog`'s `preserveAppChrome` disables modal scroll locking and uses a custom overlay. Use it only when that modeless behavior is intentional, and verify focus, keyboard dismissal, and background interaction.

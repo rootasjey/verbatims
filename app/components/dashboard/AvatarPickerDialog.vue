@@ -9,7 +9,7 @@
       max-width="xl"
       max-height="lg"
       scrollable
-      scrollable-content-class="-m-2 p-2"
+      scrollable-content-class="-m-2 p-2 !max-h-[calc(90dvh-11rem)]"
       @submit="saveSelectedAvatar"
     >
       <div class="space-y-5">
@@ -35,71 +35,71 @@
           </div>
         </div>
 
-        <section v-if="isImporting" class="space-y-5" :aria-label="String($t('avatar_import_title'))">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div class="min-w-0">
-              <p class="font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-                {{ $t('avatar_import_helper') }}
-              </p>
+        <Transition
+          :name="viewTransitionName"
+          mode="out-in"
+          @enter="animateDialogResize"
+        >
+          <section v-if="isImporting" key="tronche-import" class="space-y-5" :aria-label="String($t('avatar_import_title'))">
+            <div class="flex justify-start">
+              <button
+                type="button"
+                class="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 font-sans text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+                @click="returnToGallery"
+              >
+                <NIcon name="i-ph-arrow-left" class="h-4 w-4" />
+                {{ $t('avatar_back_to_gallery') }}
+              </button>
             </div>
-            <button
-              type="button"
-              class="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 font-sans text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
-              @click="returnToGallery"
-            >
-              <NIcon name="i-ph-arrow-left" class="h-4 w-4" />
-              {{ $t('avatar_back_to_gallery') }}
-            </button>
-          </div>
 
-          <div class="flex justify-start">
-            <a
-              :href="playgroundUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-600 text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
-            >
-              {{ $t('avatar_open_playground') }}
-              <NIcon name="i-ph-arrow-square-out" class="h-4 w-4" />
-            </a>
-          </div>
+            <div class="flex justify-start">
+              <a
+                :href="playgroundUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-600 text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
+              >
+                {{ $t('avatar_open_playground') }}
+                <NIcon name="i-ph-arrow-square-out" class="h-4 w-4" />
+              </a>
+            </div>
 
-          <div class="flex flex-col gap-2 sm:flex-row">
-            <label for="tronche-avatar-url" class="sr-only">{{ $t('avatar_import_label') }}</label>
-            <input
-              id="tronche-avatar-url"
-              v-model="avatarUrlInput"
-              type="text"
-              inputmode="url"
-              autocomplete="off"
-              maxlength="2048"
-              :placeholder="String($t('avatar_import_placeholder'))"
-              :aria-invalid="avatarUrlError"
-              aria-describedby="tronche-avatar-help"
-              class="min-w-0 flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 font-sans text-sm text-gray-900 outline-none transition-shadow placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-[#3C82F6] aria-[invalid=true]:border-red-500 dark:border-neutral-700 dark:bg-[#1D1D1D] dark:text-gray-100 dark:placeholder:text-gray-500"
-              @input="avatarUrlError = false"
-              @keydown.enter.prevent="applyTroncheUrl"
-            />
-            <button
-              type="button"
-              class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 font-sans text-sm font-600 text-white transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 dark:focus-visible:ring-offset-[#151515]"
-              :disabled="!avatarUrlInput.trim()"
-              @click="applyTroncheUrl"
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <label for="tronche-avatar-url" class="sr-only">{{ $t('avatar_import_label') }}</label>
+              <input
+                id="tronche-avatar-url"
+                v-model="avatarUrlInput"
+                type="text"
+                inputmode="url"
+                autocomplete="off"
+                maxlength="2048"
+                :placeholder="String($t('avatar_import_placeholder'))"
+                :aria-invalid="avatarUrlError"
+                aria-describedby="tronche-avatar-help"
+                class="min-w-0 flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 font-sans text-sm text-gray-900 outline-none transition-shadow placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-[#3C82F6] aria-[invalid=true]:border-red-500 dark:border-neutral-700 dark:bg-[#1D1D1D] dark:text-gray-100 dark:placeholder:text-gray-500"
+                @input="avatarUrlError = false"
+                @keydown.enter.prevent="applyTroncheUrl"
+              />
+              <button
+                type="button"
+                class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 font-sans text-sm font-600 text-white transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 dark:focus-visible:ring-offset-[#151515]"
+                :disabled="!avatarUrlInput.trim()"
+                @click="applyTroncheUrl"
+              >
+                {{ $t('avatar_import_action') }}
+              </button>
+            </div>
+            <p
+              id="tronche-avatar-help"
+              aria-live="polite"
+              class="font-sans text-xs leading-relaxed"
+              :class="avatarUrlError ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'"
             >
-              {{ $t('avatar_import_action') }}
-            </button>
-          </div>
-          <p
-            id="tronche-avatar-help"
-            aria-live="polite"
-            class="font-sans text-xs leading-relaxed"
-            :class="avatarUrlError ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'"
-          >
-            {{ $t(avatarUrlError ? 'avatar_import_invalid' : 'avatar_import_format') }}
-          </p>
-        </section>
+              {{ $t(avatarUrlError ? 'avatar_import_invalid' : 'avatar_import_format') }}
+            </p>
+          </section>
 
-        <section v-else-if="isCustomizing" class="space-y-5" :aria-label="String($t('avatar_customizer_title'))">
+        <section v-else-if="isCustomizing" key="avatar-customizer" class="space-y-5" :aria-label="String($t('avatar_customizer_title'))">
           <div class="flex items-center justify-between gap-4">
             <label for="avatar-style" class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">
               {{ $t('avatar_shape') }}
@@ -146,7 +146,7 @@
           </fieldset>
         </section>
 
-        <div v-else class="space-y-5">
+        <div v-else key="avatar-gallery" class="space-y-5">
           <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <section v-for="group in avatarGroups" :key="group.variant" class="min-w-0">
               <h3 class="mb-2 font-sans text-sm font-600 text-gray-800 dark:text-gray-200">
@@ -214,6 +214,7 @@
             </button>
           </div>
         </div>
+        </Transition>
       </div>
     </AppDialog>
   </ClientOnly>
@@ -293,6 +294,12 @@ const draftVariant = ref<AvatarVariant>('beam')
 const draftColors = ref<string[]>([])
 const isCustomizing = computed(() => editorAvatarId.value !== null)
 const isImporting = ref(false)
+const viewTransitionName = ref<'avatar-view-forward' | 'avatar-view-back'>('avatar-view-forward')
+const dialogResizePanel = shallowRef<HTMLElement | null>(null)
+const dialogResizeStartHeight = ref<number | null>(null)
+let dialogResizeFrame: number | undefined
+let dialogResizeTimer: number | undefined
+let dialogResizeEndHandler: ((event: TransitionEvent) => void) | undefined
 const selectedPreset = computed(() => allAvatars.find(avatar => avatar.id === selectedId.value))
 const selectedAppearance = computed(() => {
   const preset = selectedPreset.value
@@ -326,10 +333,72 @@ const playgroundUrl = computed(() => buildPlaygroundUrl(selectedUrl.value || pro
 watch(isOpen, (open) => {
   if (open) initializeSelection()
   else {
+    clearDialogResize()
     editorAvatarId.value = null
     isImporting.value = false
   }
 })
+
+onBeforeUnmount(clearDialogResize)
+
+function clearDialogResize() {
+  if (!import.meta.client) return
+
+  if (dialogResizeFrame !== undefined) window.cancelAnimationFrame(dialogResizeFrame)
+  if (dialogResizeTimer !== undefined) window.clearTimeout(dialogResizeTimer)
+
+  const panel = dialogResizePanel.value
+  if (panel && dialogResizeEndHandler) panel.removeEventListener('transitionend', dialogResizeEndHandler)
+  panel?.style.removeProperty('height')
+  panel?.style.removeProperty('transition')
+
+  dialogResizeFrame = undefined
+  dialogResizeTimer = undefined
+  dialogResizeEndHandler = undefined
+  dialogResizePanel.value = null
+  dialogResizeStartHeight.value = null
+}
+
+function prepareDialogResize(direction: 'forward' | 'back') {
+  viewTransitionName.value = `avatar-view-${direction}`
+  if (!import.meta.client || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  clearDialogResize()
+  const panel = document.querySelector<HTMLElement>('[role="dialog"]')
+  if (!panel) return
+
+  const startHeight = panel.getBoundingClientRect().height
+  panel.style.transition = 'none'
+  panel.style.height = `${startHeight}px`
+  void panel.offsetHeight
+
+  dialogResizePanel.value = panel
+  dialogResizeStartHeight.value = startHeight
+}
+
+function animateDialogResize() {
+  const panel = dialogResizePanel.value
+  const startHeight = dialogResizeStartHeight.value
+  if (!panel || startHeight === null) return
+
+  panel.style.height = 'auto'
+  const targetHeight = panel.getBoundingClientRect().height
+  panel.style.height = `${startHeight}px`
+  void panel.offsetHeight
+  panel.style.transition = 'height 260ms cubic-bezier(0.22, 1, 0.36, 1)'
+
+  const finish = (event?: TransitionEvent) => {
+    if (event && (event.target !== panel || event.propertyName !== 'height')) return
+    clearDialogResize()
+  }
+
+  dialogResizeEndHandler = finish
+  panel.addEventListener('transitionend', finish)
+  dialogResizeTimer = window.setTimeout(() => finish(), 400)
+  dialogResizeFrame = window.requestAnimationFrame(() => {
+    if (dialogResizePanel.value === panel) panel.style.height = `${targetHeight}px`
+  })
+}
 
 function buildAvatarUrl(seed: string, appearance: AvatarAppearance) {
   const params = new URLSearchParams({
@@ -506,6 +575,7 @@ function avatarMenuItems(avatar: AvatarPreset) {
 }
 
 function customizeAvatar(avatar: AvatarPreset) {
+  prepareDialogResize('forward')
   selectedId.value = avatar.id
   clearExternalSelection()
   const appearance = customizedAvatars.value[avatar.id] ?? avatar
@@ -515,6 +585,7 @@ function customizeAvatar(avatar: AvatarPreset) {
 }
 
 function returnToGallery() {
+  prepareDialogResize('back')
   const avatarId = editorAvatarId.value
   if (avatarId) {
     customizedAvatars.value = {
@@ -527,6 +598,7 @@ function returnToGallery() {
 }
 
 function openImportView() {
+  prepareDialogResize('forward')
   isImporting.value = true
 }
 
@@ -536,6 +608,42 @@ function saveSelectedAvatar() {
 </script>
 
 <style scoped>
+.avatar-view-forward-enter-active,
+.avatar-view-forward-leave-active,
+.avatar-view-back-enter-active,
+.avatar-view-back-leave-active {
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.avatar-view-forward-enter-from {
+  opacity: 0;
+  transform: translateX(1rem);
+}
+
+.avatar-view-forward-leave-to {
+  opacity: 0;
+  transform: translateX(-1rem);
+}
+
+.avatar-view-back-enter-from {
+  opacity: 0;
+  transform: translateX(-1rem);
+}
+
+.avatar-view-back-leave-to {
+  opacity: 0;
+  transform: translateX(1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-view-forward-enter-active,
+  .avatar-view-forward-leave-active,
+  .avatar-view-back-enter-active,
+  .avatar-view-back-leave-active {
+    transition: none;
+  }
+}
+
 @media (hover: none), (pointer: coarse) {
   .avatar-menu-trigger {
     opacity: 1;
