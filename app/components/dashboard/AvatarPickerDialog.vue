@@ -2,7 +2,7 @@
   <ClientOnly>
     <AppDialog
       v-model="isOpen"
-      :title="String($t(isCustomizing ? 'avatar_customizer_title' : 'dialog_avatar_title'))"
+      :title="String($t(isImporting ? 'avatar_import_title' : isCustomizing ? 'avatar_customizer_title' : 'dialog_avatar_title'))"
       :submit-text="String($t('save_avatar'))"
       :can-submit="Boolean(selectedUrl)"
       :submitting="saving"
@@ -35,25 +35,29 @@
           </div>
         </div>
 
-        <p v-if="!isCustomizing" class="font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-          {{ $t('avatar_actions_hint') }}
-        </p>
-
-        <section v-if="!isCustomizing" class="space-y-3 rounded-xl bg-gray-50/80 p-4 dark:bg-white/5">
+        <section v-if="isImporting" class="space-y-5" :aria-label="String($t('avatar_import_title'))">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0">
-              <p class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
-                {{ $t('avatar_import_title') }}
-              </p>
-              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+              <p class="font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                 {{ $t('avatar_import_helper') }}
               </p>
             </div>
+            <button
+              type="button"
+              class="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 font-sans text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+              @click="returnToGallery"
+            >
+              <NIcon name="i-ph-arrow-left" class="h-4 w-4" />
+              {{ $t('avatar_back_to_gallery') }}
+            </button>
+          </div>
+
+          <div class="flex justify-start">
             <a
               :href="playgroundUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-600 text-gray-700 transition-colors hover:bg-gray-200/70 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
+              class="inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-600 text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
             >
               {{ $t('avatar_open_playground') }}
               <NIcon name="i-ph-arrow-square-out" class="h-4 w-4" />
@@ -95,7 +99,7 @@
           </p>
         </section>
 
-        <section v-if="isCustomizing" class="space-y-5" :aria-label="String($t('avatar_customizer_title'))">
+        <section v-else-if="isCustomizing" class="space-y-5" :aria-label="String($t('avatar_customizer_title'))">
           <div class="flex items-center justify-between gap-4">
             <label for="avatar-style" class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">
               {{ $t('avatar_shape') }}
@@ -142,60 +146,73 @@
           </fieldset>
         </section>
 
-        <div v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <section v-for="group in avatarGroups" :key="group.variant" class="min-w-0">
-            <h3 class="mb-2 font-sans text-sm font-600 text-gray-800 dark:text-gray-200">
-              {{ styleLabel(group.variant) }}
-            </h3>
-            <div class="grid grid-cols-4 gap-2" role="group" :aria-label="styleLabel(group.variant)">
-              <div v-for="(avatar, index) in group.avatars" :key="avatar.id" class="group relative aspect-square">
-                <ContextMenu
-                  as-child
-                  :items="avatarMenuItems(avatar)"
-                  content-class="min-w-48"
-                >
-                  <button
-                    type="button"
-                    :aria-label="String($t('avatar_picker_option', { style: styleLabel(group.variant), number: index + 1 }))"
-                    :aria-pressed="selectedId === avatar.id"
-                    class="relative flex h-full w-full items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 hover:z-10 hover:scale-105 active:scale-99 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/40 focus-visible:ring-offset-2 dark:focus-visible:ring-white/50 dark:focus-visible:ring-offset-[#151515] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
-                    :class="selectedId === avatar.id
-                      ? 'ring-2 ring-gray-900 dark:ring-white'
-                      : ''"
-                    @click="chooseAvatar(avatar)"
+        <div v-else class="space-y-5">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <section v-for="group in avatarGroups" :key="group.variant" class="min-w-0">
+              <h3 class="mb-2 font-sans text-sm font-600 text-gray-800 dark:text-gray-200">
+                {{ styleLabel(group.variant) }}
+              </h3>
+              <div class="grid grid-cols-4 gap-2" role="group" :aria-label="styleLabel(group.variant)">
+                <div v-for="(avatar, index) in group.avatars" :key="avatar.id" class="group relative aspect-square">
+                  <ContextMenu
+                    as-child
+                    :items="avatarMenuItems(avatar)"
+                    content-class="min-w-48"
                   >
-                    <img
-                      :src="avatarUrl(avatar)"
-                      alt=""
-                      width="72"
-                      height="72"
-                      loading="lazy"
-                      decoding="async"
-                      class="h-full w-full rounded-full object-cover"
-                    />
-                    <span
-                      v-if="selectedId === avatar.id"
-                      aria-hidden="true"
-                    class="absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                    <button
+                      type="button"
+                      :aria-label="String($t('avatar_picker_option', { style: styleLabel(group.variant), number: index + 1 }))"
+                      :aria-pressed="selectedId === avatar.id"
+                      class="relative flex h-full w-full items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 hover:z-10 hover:scale-105 active:scale-99 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/40 focus-visible:ring-offset-2 dark:focus-visible:ring-white/50 dark:focus-visible:ring-offset-[#151515] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+                      :class="selectedId === avatar.id
+                        ? 'ring-2 ring-gray-900 dark:ring-white'
+                        : ''"
+                      @click="chooseAvatar(avatar)"
                     >
-                      <NIcon name="i-ph-check-bold" class="h-3 w-3" />
-                    </span>
-                  </button>
-                </ContextMenu>
+                      <img
+                        :src="avatarUrl(avatar)"
+                        alt=""
+                        width="72"
+                        height="72"
+                        loading="lazy"
+                        decoding="async"
+                        class="h-full w-full rounded-full object-cover"
+                      />
+                      <span
+                        v-if="selectedId === avatar.id"
+                        aria-hidden="true"
+                        class="absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                      >
+                        <NIcon name="i-ph-check-bold" class="h-3 w-3" />
+                      </span>
+                    </button>
+                  </ContextMenu>
 
-                <NDropdownMenu :items="avatarMenuItems(avatar)" :modal="false">
-                  <button
-                    type="button"
-                    :aria-label="String($t('avatar_options', { style: styleLabel(group.variant), number: index + 1 }))"
-                    class="avatar-menu-trigger absolute right-0 top-0 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-gray-300 bg-[#FAFAF9] text-gray-700 opacity-0 shadow-sm transition-[opacity,transform,background-color] duration-150 hover:scale-105 hover:bg-white group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:border-neutral-700 dark:bg-[#1D1D1D] dark:text-gray-200 dark:hover:bg-neutral-800"
-                    @click.stop
-                  >
-                    <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
-                  </button>
-                </NDropdownMenu>
+                  <NDropdownMenu :items="avatarMenuItems(avatar)" :modal="false">
+                    <button
+                      type="button"
+                      :aria-label="String($t('avatar_options', { style: styleLabel(group.variant), number: index + 1 }))"
+                      class="avatar-menu-trigger absolute right-0 top-0 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-gray-300 bg-[#FAFAF9] text-gray-700 opacity-0 shadow-sm transition-[opacity,transform,background-color] duration-150 hover:scale-105 hover:bg-white group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:border-neutral-700 dark:bg-[#1D1D1D] dark:text-gray-200 dark:hover:bg-neutral-800"
+                      @click.stop
+                    >
+                      <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
+                    </button>
+                  </NDropdownMenu>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
+
+          <div class="border-t border-gray-200 pt-3 dark:border-white/10">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3C82F6] dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+              @click="openImportView"
+            >
+              {{ $t('avatar_import_title') }}
+              <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     </AppDialog>
@@ -275,6 +292,7 @@ const editorAvatarId = ref<string | null>(null)
 const draftVariant = ref<AvatarVariant>('beam')
 const draftColors = ref<string[]>([])
 const isCustomizing = computed(() => editorAvatarId.value !== null)
+const isImporting = ref(false)
 const selectedPreset = computed(() => allAvatars.find(avatar => avatar.id === selectedId.value))
 const selectedAppearance = computed(() => {
   const preset = selectedPreset.value
@@ -307,7 +325,10 @@ const playgroundUrl = computed(() => buildPlaygroundUrl(selectedUrl.value || pro
 
 watch(isOpen, (open) => {
   if (open) initializeSelection()
-  else editorAvatarId.value = null
+  else {
+    editorAvatarId.value = null
+    isImporting.value = false
+  }
 })
 
 function buildAvatarUrl(seed: string, appearance: AvatarAppearance) {
@@ -386,6 +407,7 @@ function initializeSelection() {
   selectedId.value = ''
   customizedAvatars.value = {}
   editorAvatarId.value = null
+  isImporting.value = false
   avatarUrlError.value = false
   avatarUrlInput.value = ''
   selectedExternalUrl.value = ''
@@ -501,6 +523,11 @@ function returnToGallery() {
     }
   }
   editorAvatarId.value = null
+  isImporting.value = false
+}
+
+function openImportView() {
+  isImporting.value = true
 }
 
 function saveSelectedAvatar() {
