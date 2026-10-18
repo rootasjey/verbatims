@@ -10,6 +10,9 @@
       max-height="lg"
       scrollable
       scrollable-content-class="-m-2 p-2 !max-h-[calc(90dvh-11rem)]"
+      :una="{
+        dialogOverlay: 'bg-[linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_56px,rgba(0,0,0,0.45)_56px)]'
+      }"
       @submit="saveSelectedAvatar"
     >
       <div class="space-y-5">
