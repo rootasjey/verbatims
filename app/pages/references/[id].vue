@@ -219,14 +219,16 @@
 
           <div v-else-if="referenceQuotes.length > 0" class="grid gap-x-16 gap-y-10 lg:grid-cols-2">
             <div v-for="quote in referenceQuotes" :key="quote.id" class="md:pb-5">
-              <p v-if="quote.author?.id && quote.author.name?.trim()" class="mb-2 md:mb-4 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
+              <div v-if="(quote.author?.id && quote.author.name?.trim()) || quote.tags?.length" class="mb-2 flex flex-wrap items-center gap-x-2 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 md:mb-4">
                 <NuxtLink
+                  v-if="quote.author?.id && quote.author.name?.trim()"
                   :to="`/authors/${quote.author.id}`"
                   class="transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4 dark:hover:text-gray-300"
                 >
                   {{ quote.author.name.trim() }}
                 </NuxtLink>
-              </p>
+                <QuoteTagDots :tags="quote.tags" />
+              </div>
               <NLink
                 :to="`/quotes/${quote.id}`"
                 class="block group"
@@ -376,7 +378,7 @@ import { useReferencesListStore } from '~/stores/references'
 // Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
 definePageMeta({ layout: 'default' })
 
-import type { Quote, QuoteReferenceWithMetadata } from '~/types'
+import type { QuoteWithRelations, QuoteReferenceWithMetadata } from '~/types'
 import { ofetch } from 'ofetch'
 
 const { isMobile } = useMobileDetection()
@@ -451,7 +453,7 @@ watchEffect(() => {
   Object.keys(jsonLd).forEach(k => jsonLd[k as keyof typeof jsonLd] === undefined && delete jsonLd[k as keyof typeof jsonLd])
   useJsonLd(jsonLd)
 })
-const referenceQuotes = ref<Quote[]>([])
+const referenceQuotes = ref<QuoteWithRelations[]>([])
 const alternateQuotesLanguage = ref<string | null>(null)
 const quotesLoading = ref<boolean>(false)
 const quotesError = ref<boolean>(false)
@@ -625,7 +627,7 @@ const loadQuotes = async (reset = true) => {
       ...languageStore.getLanguageQuery()
     }
 
-    const response = await $fetch<ApiResponse<QuoteWithMetadata[]> & { pagination?: { hasMore?: boolean } }>('/api/quotes', { query })
+    const response = await $fetch<ApiResponse<QuoteWithRelations[]> & { pagination?: { hasMore?: boolean } }>('/api/quotes', { query })
 
     if (reset) {
       referenceQuotes.value = response?.data || []
