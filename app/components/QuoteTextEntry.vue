@@ -24,25 +24,7 @@
             </NuxtLink>
           </template>
 
-          <span
-            v-if="quote.tags?.length"
-            class="quote-tag-cluster hidden shrink-0 items-center pl-1 md:inline-flex"
-            role="group"
-            :aria-label="$t('tags') as string"
-            :style="{ width: `${14 + quote.tags.length * 8}px` }"
-          >
-            <NTooltip v-for="(tag, index) in quote.tags" :key="tag.name" :content="tag.name">
-              <NuxtLink
-                :to="`/tags/${encodeURIComponent(tag.name)}`"
-                :aria-label="tag.name"
-                class="quote-tag-dot h-2.5 w-2.5 rounded-full border border-[#e7e4dd] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 dark:border-[#17191e] dark:focus-visible:outline-gray-100"
-                :class="{ 'quote-tag-dot-first': index === 0 }"
-                :style="{ '--tag-index': index, backgroundColor: tag.color?.trim() || '#78716c', zIndex: quote.tags.length - index }"
-              >
-                <span class="sr-only">{{ tag.name }}</span>
-              </NuxtLink>
-            </NTooltip>
-          </span>
+          <QuoteTagDots :tags="quote.tags" />
 
           <NBadge v-if="quote.is_featured" color="yellow" badge="soft" size="xs">{{ $t('home.featured') }}</NBadge>
           <NBadge v-if="quote.language !== 'en'" badge="outline-gray" size="xs">{{ quote.language }}</NBadge>
@@ -218,31 +200,3 @@ const shareQuote = async () => {
   }
 }
 </script>
-
-<style scoped>
-.quote-tag-cluster {
-  position: relative;
-  isolation: isolate;
-}
-
-.quote-tag-dot {
-  position: relative;
-  margin-left: -0.375rem;
-  transition: transform 180ms ease-out;
-}
-
-.quote-tag-dot-first {
-  margin-left: 0;
-}
-
-.quote-tag-cluster:hover .quote-tag-dot,
-.quote-tag-cluster:focus-within .quote-tag-dot {
-  transform: translateX(calc(var(--tag-index, 0) * 0.5rem));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .quote-tag-dot {
-    transition: none;
-  }
-}
-</style>

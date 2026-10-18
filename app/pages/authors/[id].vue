@@ -191,7 +191,7 @@
                 :key="quote.id"
                 class="pb-5"
               >
-                <p v-if="quote.reference" class="mb-2 md:mb-4 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
+                <div v-if="quote.reference || quote.tags?.length" class="mb-2 flex flex-wrap items-center gap-x-2 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 md:mb-4">
                   <NuxtLink
                     v-if="quote.reference"
                     :to="`/references/${quote.reference.id}`"
@@ -199,7 +199,8 @@
                   >
                     {{ quote.reference.name }}
                   </NuxtLink>
-                </p>
+                  <QuoteTagDots :tags="quote.tags" />
+                </div>
                 <NLink
                   :to="`/quotes/${quote.id}`"
                   class="block group"
