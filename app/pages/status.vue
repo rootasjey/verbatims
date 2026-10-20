@@ -1,101 +1,84 @@
 <template>
-  <main class="mx-auto min-h-[70vh] max-w-5xl px-5 pb-24 pt-6 md:px-8 md:py-20">
-    <header class="border-b border-gray-200 pb-6 dark:border-gray-800 md:pb-10">
-      <p class="font-mono text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
-        {{ $t('eyebrow') }}
-      </p>
-
-      <div class="mt-3 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
-        <div>
-          <h1 class="font-title text-5xl font-500 line-height-none text-gray-950 dark:text-gray-50 md:text-7xl">
-            {{ $t('title') }}
-          </h1>
-          <p class="mt-4 max-w-2xl font-body text-base text-gray-600 dark:text-gray-300 md:text-lg">
-            {{ $t('subtitle') }}
-          </p>
-        </div>
-
-        <NButton
-          btn="outline-gray"
-          class="shrink-0 self-start sm:self-auto"
-          :disabled="checking"
-          :aria-label="$t(checking ? 'checking' : 'refresh') as string"
-          @click="fetchHealth"
-        >
-          <span
-            class="i-tabler-refresh mr-2 h-4 w-4"
-            :class="checking ? 'motion-safe:animate-spin' : ''"
-            aria-hidden="true"
-          />
-          {{ checking ? $t('checking') : $t('refresh') }}
-        </NButton>
+  <main class="mx-auto min-h-[70vh] max-w-6xl px-6 pb-32 pt-6 sm:px-8 sm:pt-12 md:px-8 md:pb-24 md:pt-28 lg:px-10">
+    <header class="flex flex-col gap-3 border-b border-gray-200 pb-4 dark:border-gray-800 sm:gap-6 sm:pb-10 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h1 class="font-serif text-5xl font-400 leading-none tracking-[-0.035em] text-gray-900 dark:text-gray-100 md:text-6xl lg:text-7xl">
+          {{ $t('title') }}
+        </h1>
+        <p class="mt-4 max-w-3xl font-sans text-lg leading-relaxed text-gray-600 dark:text-gray-400 md:mt-5 md:text-xl">
+          {{ $t('subtitle') }}
+        </p>
       </div>
+
+      <NButton
+        btn="outline-gray"
+        class="min-h-10 shrink-0 self-start px-4 md:self-auto"
+        :disabled="checking"
+        :aria-label="$t(checking ? 'checking' : 'refresh') as string"
+        @click="fetchHealth"
+      >
+        <span
+          class="i-tabler-refresh mr-2 h-4 w-4"
+          :class="checking ? 'motion-safe:animate-spin' : ''"
+          aria-hidden="true"
+        />
+        {{ checking ? $t('checking') : $t('refresh') }}
+      </NButton>
     </header>
 
     <section class="mt-4 md:mt-10" :aria-busy="checking">
       <div
-        class="flex items-start gap-4 border-b border-gray-200 pb-4 dark:border-gray-800 sm:items-center sm:gap-6 md:pb-7"
+        class="flex items-start gap-4 border-b border-gray-200 pb-4 dark:border-gray-800 sm:items-center sm:gap-6 md:pb-10"
         role="status"
         aria-live="polite"
       >
-        <div
-          class="mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-full sm:mt-0"
-          :class="summaryTone.background"
+        <span
+          class="mt-3 h-2.5 w-2.5 shrink-0 rounded-full sm:mt-0"
+          :class="summaryTone.marker"
           aria-hidden="true"
-        >
-          <span class="h-5 w-5" :class="summaryTone.icon" />
-        </div>
+        />
 
         <div>
-          <p class="font-mono text-xs uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-            {{ $t('overall_status') }}
-          </p>
-          <h2 class="mt-1 font-title text-2xl font-500 text-gray-950 dark:text-gray-50 md:text-3xl">
+          <h2 class="font-serif text-3xl font-400 leading-tight tracking-[-0.025em] text-gray-900 dark:text-gray-100 md:text-4xl">
             {{ $t(statusTitleKey) }}
           </h2>
-          <p class="mt-2 max-w-3xl font-body text-sm leading-6 text-gray-600 dark:text-gray-300 md:text-base">
+          <p class="mt-2 max-w-3xl font-sans text-base leading-relaxed text-gray-600 dark:text-gray-400 md:text-lg">
             {{ $t(statusDescriptionKey) }}
           </p>
         </div>
       </div>
 
-      <div class="grid sm:grid-cols-2 sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-800">
-        <article class="py-3 sm:pr-8 md:py-7">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="font-mono text-xs uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                {{ $t('component_api') }}
-              </p>
-              <p class="mt-2 font-body text-lg font-600 text-gray-900 dark:text-gray-100">
-                {{ $t(apiStatusKey) }}
-              </p>
-            </div>
-            <span class="i-tabler-world h-5 w-5 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+      <div class="divide-y divide-gray-200 border-b border-gray-200 dark:divide-gray-800 dark:border-gray-800">
+        <article class="grid grid-cols-1 gap-2 py-3 sm:grid-cols-[minmax(12rem,0.8fr)_minmax(0,2fr)] sm:gap-8 md:py-7">
+          <h3 class="font-serif text-xl font-400 leading-snug text-gray-900 dark:text-gray-100 md:text-2xl">
+            {{ $t('component_api') }}
+          </h3>
+          <div>
+            <p class="font-sans text-base font-600 text-gray-900 dark:text-gray-100">
+              {{ $t(apiStatusKey) }}
+            </p>
+            <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+              {{ $t('api_description') }}
+            </p>
           </div>
-          <p class="mt-2 font-body text-sm leading-6 text-gray-600 dark:text-gray-400">
-            {{ $t('api_description') }}
-          </p>
         </article>
 
-        <article class="border-t border-gray-200 py-3 dark:border-gray-800 sm:border-t-0 sm:pl-8 md:py-7">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="font-mono text-xs uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                {{ $t('component_database') }}
-              </p>
-              <p class="mt-2 font-body text-lg font-600 text-gray-900 dark:text-gray-100">
-                {{ $t(databaseStatusKey) }}
-              </p>
-            </div>
-            <span class="i-tabler-database h-5 w-5 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+        <article class="grid grid-cols-1 gap-2 py-3 sm:grid-cols-[minmax(12rem,0.8fr)_minmax(0,2fr)] sm:gap-8 md:py-7">
+          <h3 class="font-serif text-xl font-400 leading-snug text-gray-900 dark:text-gray-100 md:text-2xl">
+            {{ $t('component_database') }}
+          </h3>
+          <div>
+            <p class="font-sans text-base font-600 text-gray-900 dark:text-gray-100">
+              {{ $t(databaseStatusKey) }}
+            </p>
+            <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+              {{ databaseProbeDescription }}
+            </p>
           </div>
-          <p class="mt-2 font-body text-sm leading-6 text-gray-600 dark:text-gray-400">
-            {{ databaseProbeDescription }}
-          </p>
         </article>
       </div>
 
-      <div class="flex flex-col gap-1 border-t border-gray-200 pt-4 font-mono text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex flex-col gap-2 pt-4 font-sans text-sm text-gray-500 dark:text-gray-400 sm:flex-row sm:items-center sm:justify-between">
         <p>
           {{ $t('last_check') }}
           <time v-if="lastCheckedAt" :datetime="lastCheckedAt">{{ formattedLastChecked }}</time>
@@ -105,8 +88,8 @@
       </div>
     </section>
 
-    <aside class="mt-20 border-l-2 border-gray-300 pl-4 dark:border-gray-700 md:mt-8">
-      <p class="font-body text-sm leading-6 text-gray-600 dark:text-gray-400">
+    <aside class="mt-20 border-t border-gray-200 pt-4 dark:border-gray-800 md:mt-10">
+      <p class="max-w-4xl font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
         {{ $t('scope_note') }}
       </p>
     </aside>
@@ -170,15 +153,15 @@ const statusDescriptionKey = computed(() => ({
 
 const summaryTone = computed(() => {
   if (checkStatus.value === 'healthy') {
-    return { background: 'bg-green-50 dark:bg-green-950/40', icon: 'i-tabler-circle-check text-green-700 dark:text-green-400' }
+    return { marker: 'bg-green-600 dark:bg-green-500' }
   }
   if (checkStatus.value === 'degraded') {
-    return { background: 'bg-amber-50 dark:bg-amber-950/40', icon: 'i-tabler-alert-triangle text-amber-700 dark:text-amber-400' }
+    return { marker: 'bg-amber-600 dark:bg-amber-500' }
   }
   if (checkStatus.value === 'checking') {
-    return { background: 'bg-gray-100 dark:bg-gray-800', icon: 'i-tabler-loader-2 motion-safe:animate-spin text-gray-600 dark:text-gray-300' }
+    return { marker: 'bg-gray-400 motion-safe:animate-pulse dark:bg-gray-500' }
   }
-  return { background: 'bg-gray-100 dark:bg-gray-800', icon: 'i-tabler-help-circle text-gray-600 dark:text-gray-300' }
+  return { marker: 'bg-gray-400 dark:bg-gray-500' }
 })
 
 const apiStatusKey = computed(() => {
