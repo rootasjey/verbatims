@@ -92,16 +92,21 @@
                 :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
                 :style="enterAnim(3)"
               >
-                <ExternalLinksBadges :links="author.socials" />
-                <button
-                  v-if="canEditAuthorLinks"
-                  type="button"
-                  class="mt-4 inline-flex items-center gap-1.5 font-sans text-xs text-gray-400 transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
-                  @click="openEditLinks"
-                >
-                  <NIcon name="i-ph-link-simple" class="h-3.5 w-3.5" />
-                  {{ $ts('author_detail_edit_links') }}
-                </button>
+                <ExternalLinksBadges :links="author.socials" :show-actions="canEditAuthorLinks">
+                  <template #actions>
+                    <NButton
+                      v-if="canEditAuthorLinks"
+                      btn="soft-gray"
+                      size="sm"
+                      type="button"
+                      class="rounded-full bg-gray-100/80 px-3 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/10"
+                      @click="openEditLinks"
+                    >
+                      <NIcon name="i-ph-pencil-simple" class="h-3.5 w-3.5" />
+                      {{ $ts('author_detail_edit_links') }}
+                    </NButton>
+                  </template>
+                </ExternalLinksBadges>
                 <button
                   v-if="!author.description"
                   type="button"

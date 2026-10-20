@@ -1263,6 +1263,7 @@
     "add": "Add link",
     "remove": "Remove link",
     "empty": "No links yet — add one below.",
+    "keyboard_shortcuts": "Enter moves to the next row; at the last row, it adds one. ⌘/Ctrl + Enter saves.",
     "save_success_author": "Author links updated",
     "save_success_reference": "Reference links updated",
     "save_error_author": "Failed to update author links",

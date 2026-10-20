@@ -146,16 +146,21 @@
               <span>{{ $t('reference_detail_original_language') }} {{ formatLanguage(reference.original_language as langCode) }}</span>
             </div>
 
-            <ExternalLinksBadges :links="reference.urls" />
-            <button
-              v-if="canEditReference"
-              type="button"
-              class="mt-4 inline-flex items-center gap-1.5 font-sans text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              @click="openEditLinks"
-            >
-              <NIcon name="i-ph-link-simple" class="w-3.5 h-3.5" />
-              {{ $ts('reference_detail_edit_links') }}
-            </button>
+            <ExternalLinksBadges :links="reference.urls" :show-actions="canEditReference">
+              <template #actions>
+                <NButton
+                  v-if="canEditReference"
+                  btn="soft-gray"
+                  size="sm"
+                  type="button"
+                  class="rounded-full bg-gray-100/80 px-3 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/10"
+                  @click="openEditLinks"
+                >
+                  <NIcon name="i-ph-pencil-simple" class="h-3.5 w-3.5" />
+                  {{ $ts('reference_detail_edit_links') }}
+                </NButton>
+              </template>
+            </ExternalLinksBadges>
           </div>
         </div>
       </div>

@@ -253,6 +253,10 @@ Use the component-specific style prop instead, for example:
 
 - Prefer UnaUI's `NTooltip` for explanatory tooltips; avoid native HTML `title` attributes for tooltip UI. Keep tooltip copy localized and preserve an accessible name on the trigger.
 
+### Primary save and continue actions
+
+- Use `NButton` with `btn="solid-black"` for primary save and continue actions. Keep a shared minimum height of `min-h-10`, with compact horizontal padding (`px-4`), matching the Add Quote dialog and Dashboard Profile save button.
+
 ### NSelect typing rule
 
 When using `NSelect`, keep `v-model` and `:items` on compatible types.
