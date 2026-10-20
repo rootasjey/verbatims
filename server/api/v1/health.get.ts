@@ -3,14 +3,22 @@ import { db } from 'hub:db'
 defineRouteMeta({
   openAPI: {
     summary: 'Health check',
-    description: 'Public endpoint to verify API availability and database connectivity.',
+    description: 'Public health endpoint. It runs a SELECT 1 database probe; response_time_ms measures only the database check attempt, not the full API request.',
     tags: ['System'],
     responses: {
       '200': {
-        description: 'API is healthy',
+        description: 'The endpoint responded and the SELECT 1 database probe succeeded.',
         content: {
           'application/json': {
             example: { success: true, data: { status: 'healthy', database: 'ok', response_time_ms: 12, timestamp: '2025-01-01T00:00:00Z' } },
+          },
+        },
+      },
+      '503': {
+        description: 'The endpoint responded, but the database probe failed or the database binding is unavailable.',
+        content: {
+          'application/json': {
+            example: { success: false, data: { status: 'degraded', database: 'error', response_time_ms: 12, timestamp: '2025-01-01T00:00:00Z' } },
           },
         },
       },
