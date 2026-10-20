@@ -1179,6 +1179,7 @@
     "add": "Ajouter un lien",
     "remove": "Retirer le lien",
     "empty": "Aucun lien pour le moment — ajoutez-en un ci-dessous.",
+    "keyboard_shortcuts": "Entrée passe à la ligne suivante ; en fin de liste, ajoute une ligne. ⌘/Ctrl + Entrée enregistre.",
     "save_success_author": "Liens de l’auteur mis à jour",
     "save_success_reference": "Liens de la référence mis à jour",
     "save_error_author": "Échec de la mise à jour des liens de l’auteur",

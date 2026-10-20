@@ -1,7 +1,7 @@
 <template>
-  <div v-if="entries.length" class="text-center pt-4 border-t border-gray-200/70 dark:border-gray-700/70" :class="$attrs.class">
+  <div v-if="entries.length || showActions" class="pt-4 border-t border-gray-200/70 dark:border-gray-700/70" :class="$attrs.class">
     <h3 v-if="title" class="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ title }}</h3>
-    <div class="flex flex-wrap justify-start gap-3">
+    <div class="flex flex-wrap items-center justify-start gap-3">
       <NBadge
         v-for="([key, url], i) in entries"
         :key="`${key}-${i}`"
@@ -17,6 +17,7 @@
           <span>{{ linkLabels[key] || key }}</span>
         </NLink>
       </NBadge>
+      <slot v-if="showActions" name="actions" />
     </div>
   </div>
   <div v-else class="hidden" />
@@ -31,10 +32,13 @@ interface Props {
   links: Record<string, string | null | undefined> | LinkItem[] | null | undefined
   // Optional title displayed above the badges
   title?: string
+  // Reserve the badge row for a trailing action, even when there are no links
+  showActions?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: undefined
+  title: undefined,
+  showActions: false,
 })
 
 const linkLabels: Record<string, string> = {
@@ -43,6 +47,7 @@ const linkLabels: Record<string, string> = {
   netflix: 'Netflix',
   website: 'Official Site',
   facebook: 'Facebook',
+  github: 'GitHub',
   twitter: 'Twitter',
   instagram: 'Instagram',
   youtube: 'YouTube',
@@ -55,6 +60,7 @@ const linkLabels: Record<string, string> = {
 const linkIcons: Record<string, string> = {
   amazon: 'i-ph-shopping-cart',
   facebook: 'i-ph-facebook-logo',
+  github: 'i-ph-github-logo',
   image: 'i-ph-image',
   imdb: 'i-ph-film-slate',
   instagram: 'i-ph-instagram-logo',
