@@ -221,6 +221,18 @@
           </NBadge>
         </template>
       </NInput>
+
+      <details class="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
+        <summary class="cursor-pointer text-sm font-medium text-gray-800 dark:text-gray-200">{{ $t('components.dialogs.translations_title') }}</summary>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.translations_hint') }}</p>
+        <div class="mt-4 space-y-4">
+          <section v-for="language in translationLanguages" :key="language" class="space-y-2">
+            <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ language === 'en' ? $t('components.dialogs.translation_english') : $t('components.dialogs.translation_french') }}</h4>
+            <NInput v-model="form.translations[language].job" :placeholder="$t('components.dialogs.job_title') as string" :disabled="submitting" />
+            <NInput v-model="form.translations[language].description" type="textarea" :placeholder="$t('components.dialogs.description') as string" :rows="3" :disabled="submitting" />
+          </section>
+        </div>
+      </details>
     </form>
   </AppDialog>
 </template>
@@ -252,6 +264,17 @@ const dialogTitle = computed(() => isEditMode.value ? String($t('components.dial
 const submitButtonText = computed(() => isEditMode.value ? String($t('components.dialogs.update_author')) : String($t('components.dialogs.create_author')))
 
 const emptyImageAttribution = () => ({ image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '' })
+const translationLanguages = ['en', 'fr'] as const
+const emptyTranslations = () => ({ en: { job: '', description: '' }, fr: { job: '', description: '' } })
+const readTranslations = (rows?: Author['translations']) => {
+  const result = emptyTranslations()
+  for (const row of rows || []) {
+    if (row.language === 'en' || row.language === 'fr') {
+      result[row.language] = { job: row.job || '', description: row.description || '' }
+    }
+  }
+  return result
+}
 
 const form = ref({
   name: '',
@@ -261,7 +284,8 @@ const form = ref({
   image_url: '',
   image_attribution: emptyImageAttribution(),
   is_fictional: false,
-  description: ''
+  description: '',
+  translations: emptyTranslations()
 })
 
 const nameQuery = ref('')
@@ -402,7 +426,8 @@ const selectExistingAuthor = (author: Author) => {
       image_license: author.image_license || '', image_date: author.image_date || '', image_location: author.image_location || ''
     },
     is_fictional: author.is_fictional,
-    description: author.description || ''
+    description: author.description || '',
+    translations: emptyTranslations()
   }
   nameQuery.value = author.name
   showNameSuggestions.value = false
@@ -424,7 +449,8 @@ const resetForm = () => {
     image_url: '',
     image_attribution: emptyImageAttribution(),
     is_fictional: false,
-    description: ''
+    description: '',
+    translations: emptyTranslations()
   }
   nameQuery.value = ''
   nameSuggestions.value = []
@@ -447,7 +473,8 @@ const initializeFormForEdit = () => {
       image_license: author.image_license || '', image_date: author.image_date || '', image_location: author.image_location || ''
     },
     is_fictional: author.is_fictional,
-    description: author.description || ''
+    description: author.description || '',
+    translations: readTranslations(author.translations)
   }
   nameQuery.value = author.name
 }
@@ -488,7 +515,11 @@ const submitAuthor = async () => {
       image_date: form.value.image_attribution.image_date.trim() || null,
       image_location: form.value.image_attribution.image_location.trim() || null,
       is_fictional: form.value.is_fictional,
-      description: form.value.description.trim() || null
+      description: form.value.description.trim() || null,
+      translations: {
+        en: { job: form.value.translations.en.job.trim() || null, description: form.value.translations.en.description.trim() || null },
+        fr: { job: form.value.translations.fr.job.trim() || null, description: form.value.translations.fr.description.trim() || null }
+      }
     }
 
     if (isEditMode.value && props.editAuthor) {

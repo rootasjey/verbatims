@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, desc, sql, count, like, inArray, and } from 'drizzle-orm'
+import { getContentLanguage, localizeReferences } from '~~/server/utils/entity-translations'
 
 defineRouteMeta({
   openAPI: {
@@ -82,9 +83,10 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const localizedReferences = await localizeReferences(references, getContentLanguage(event))
   return {
     success: true,
-    data: references.map(r => {
+    data: localizedReferences.map(r => {
       const item: any = {
         id: r.id,
         name: r.name,

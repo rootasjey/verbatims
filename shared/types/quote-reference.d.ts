@@ -52,6 +52,7 @@ export interface QuoteReference {
   
   /** Description or synopsis of the work */
   description: string | null;
+  translations?: Array<{ language: string; name: string | null; description: string | null }>;
   
   /** Primary category of the work */
   primary_type: QuoteReferencePrimaryType;
@@ -110,6 +111,7 @@ export interface CreateQuoteReferenceData {
   original_language?: string;
   release_date?: string | null;
   description?: string | null;
+  translations?: Record<'en' | 'fr', { name?: string | null; description?: string | null }>;
   primary_type: QuoteReferencePrimaryType;
   secondary_type?: string | null;
   image_url?: string | null;

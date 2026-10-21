@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql, eq } from 'drizzle-orm'
+import { getReferenceTranslations } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -38,7 +39,8 @@ export default defineEventHandler(async (event) => {
       urls: reference.urls ? JSON.parse(reference.urls) : []
     }
 
-    return { success: true, data: transformed }
+    const translations = await getReferenceTranslations(Number(referenceId))
+    return { success: true, data: { ...transformed, translations } }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error fetching admin reference details:', error)

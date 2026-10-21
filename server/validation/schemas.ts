@@ -150,6 +150,10 @@ export const createAuthorSchema = z.object({
   is_fictional: z.boolean().optional().default(false),
   job: z.string().max(200).trim().optional().nullable(),
   description: z.string().max(5000).trim().optional().nullable(),
+  translations: z.object({
+    en: z.object({ job: z.string().max(200).trim().optional().nullable(), description: z.string().max(5000).trim().optional().nullable() }).optional(),
+    fr: z.object({ job: z.string().max(200).trim().optional().nullable(), description: z.string().max(5000).trim().optional().nullable() }).optional(),
+  }).optional(),
   birth_date: z.string().max(50).trim().optional().nullable(),
   birth_location: z.string().max(200).trim().optional().nullable(),
   death_date: z.string().max(50).trim().optional().nullable(),
@@ -164,6 +168,10 @@ export const createReferenceSchema = z.object({
   primary_type: z.string().min(1).max(100).trim(),
   secondary_type: z.string().max(100).trim().optional().nullable(),
   description: z.string().max(5000).trim().optional().nullable(),
+  translations: z.object({
+    en: z.object({ name: z.string().max(200).trim().optional().nullable(), description: z.string().max(5000).trim().optional().nullable() }).optional(),
+    fr: z.object({ name: z.string().max(200).trim().optional().nullable(), description: z.string().max(5000).trim().optional().nullable() }).optional(),
+  }).optional(),
   release_date: z.string().max(50).trim().optional().nullable(),
   original_language: z.enum(validLanguages).optional().nullable(),
   image_url: imageUrlField,
@@ -190,6 +198,10 @@ export const updateAuthorSchema = z.object({
   is_fictional: z.boolean().optional(),
   job: z.string().max(200).trim().optional().nullable(),
   description: z.string().max(5000).trim().optional().nullable(),
+  translations: z.object({
+    en: z.object({ job: z.string().max(200).trim().optional().nullable(), description: z.string().max(5000).trim().optional().nullable() }).optional(),
+    fr: z.object({ job: z.string().max(200).trim().optional().nullable(), description: z.string().max(5000).trim().optional().nullable() }).optional(),
+  }).optional(),
   birth_date: z.string().max(50).trim().optional().nullable(),
   birth_location: z.string().max(200).trim().optional().nullable(),
   death_date: z.string().max(50).trim().optional().nullable(),
@@ -204,6 +216,10 @@ export const updateReferenceSchema = z.object({
   primary_type: z.string().min(1).max(100).trim().optional(),
   secondary_type: z.string().max(100).trim().optional().nullable(),
   description: z.string().max(5000).trim().optional().nullable(),
+  translations: z.object({
+    en: z.object({ name: z.string().max(200).trim().optional().nullable(), description: z.string().max(5000).trim().optional().nullable() }).optional(),
+    fr: z.object({ name: z.string().max(200).trim().optional().nullable(), description: z.string().max(5000).trim().optional().nullable() }).optional(),
+  }).optional(),
   release_date: z.string().max(50).trim().optional().nullable(),
   original_language: z.enum(validLanguages).optional().nullable(),
   image_url: imageUrlField,

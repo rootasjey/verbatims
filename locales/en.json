@@ -211,6 +211,8 @@
     "share_quote": "Share quote",
     "share_theme": "Share theme",
     "image_credit_prefix": "Image",
+    "expand_image_credit": "Show full image attribution",
+    "collapse_image_credit": "Collapse image attribution",
     "see_all": "See All",
     "theme": "Theme",
     "featured": "Featured",
@@ -784,6 +786,11 @@
       "shares": "Shares"
     },
     "dialogs": {
+      "translations_title": "Localized content",
+      "translations_hint": "Add English and French text. Empty fields use the main value.",
+      "translation_english": "English",
+      "translation_french": "French",
+      "translated_title": "Localized title",
       "cancel": "Cancel",
       "save": "Save",
       "delete": "Delete",

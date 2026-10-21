@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, isNotNull, desc, sql } from 'drizzle-orm'
 import { toISOStringOrEmpty } from '../../../utils/date-normalization'
+import { getContentLanguage, localizeAuthors } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -15,6 +16,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!author) { throwServer(404, 'Author not found'); return }
+    const localizedAuthor = (await localizeAuthors([author], getContentLanguage(event)))[0] ?? author
 
     // Count approved quotes by this author
     const quotesCountResult = await db.select({ count: sql<number>`count(*)` })
@@ -60,8 +62,8 @@ export default defineEventHandler(async (event) => {
       birth_location: author.birthLocation ?? undefined,
       death_date: author.deathDate ?? undefined,
       death_location: author.deathLocation ?? undefined,
-      job: author.job ?? undefined,
-      description: author.description ?? undefined,
+      job: localizedAuthor.job ?? undefined,
+      description: localizedAuthor.description ?? undefined,
       image_url: author.imageUrl ?? undefined,
       image_alt: author.imageAlt ?? undefined,
       image_credit: author.imageCredit ?? undefined,

@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, like, desc, asc, sql, countDistinct, getTableColumns } from 'drizzle-orm'
 import { findQuotes } from '../../services/quote.service'
+import { getContentLanguage } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event) => {
       sortOrder: (sort_order || 'desc') as 'asc' | 'desc',
       page: parseInt(query.page as string) || 1,
       limit: parseInt(query.limit as string) || 20,
-    })
+    }, getContentLanguage(event))
 
     return { success: true, data, pagination }
   } catch (error) {

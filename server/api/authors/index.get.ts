@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql } from 'drizzle-orm'
+import { getContentLanguage, localizeAuthors } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -92,9 +93,10 @@ export default defineEventHandler(async (event) => {
     const totalPages = Math.ceil(total / limit)
     const hasMore = page < totalPages
 
+    const localizedAuthors = await localizeAuthors(authors as unknown as Author[], getContentLanguage(event))
     return {
       success: true,
-      data: authors as unknown as Author[],
+      data: localizedAuthors,
       availableLetters,
       pagination: {
         page,

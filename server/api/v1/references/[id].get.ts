@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, count, and } from 'drizzle-orm'
+import { getContentLanguage, localizeReferences } from '~~/server/utils/entity-translations'
 
 defineRouteMeta({
   openAPI: {
@@ -47,6 +48,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
   if (!ref) throwServer(404, 'Reference not found')
+  const localizedReference = (await localizeReferences([ref], getContentLanguage(event)))[0] ?? ref
 
   let quotesCount = 0
   if (include.includes('quotes_count')) {
@@ -66,13 +68,13 @@ export default defineEventHandler(async (event) => {
     success: true,
     data: {
       id: ref.id,
-      name: ref.name,
+      name: localizedReference.name,
       type: ref.primaryType,
       secondary_type: ref.secondaryType,
       image_url: ref.imageUrl,
       release_date: ref.releaseDate,
       language: ref.originalLanguage,
-      description: ref.description,
+      description: localizedReference.description,
       urls: ref.urls ? JSON.parse(ref.urls) : [],
       stats: { views: ref.viewsCount, likes: ref.likesCount, shares: ref.sharesCount },
       created_at: ref.createdAt,

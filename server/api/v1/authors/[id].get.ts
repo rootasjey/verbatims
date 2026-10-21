@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, count, and } from 'drizzle-orm'
+import { getContentLanguage, localizeAuthors } from '~~/server/utils/entity-translations'
 
 defineRouteMeta({
   openAPI: {
@@ -48,6 +49,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
   if (!author) throwServer(404, 'Author not found')
+  const localizedAuthor = (await localizeAuthors([author], getContentLanguage(event)))[0] ?? author
 
   let quotesCount = 0
   if (include.includes('quotes_count')) {
@@ -70,14 +72,14 @@ export default defineEventHandler(async (event) => {
       name: author.name,
       fictional: author.isFictional,
       image_url: author.imageUrl,
-      job: author.job,
+      job: localizedAuthor.job,
       dates: {
         birth: author.birthDate,
         death: author.deathDate,
         birth_location: author.birthLocation,
         death_location: author.deathLocation,
       },
-      description: author.description,
+      description: localizedAuthor.description,
       stats: { views: author.viewsCount, likes: author.likesCount, shares: author.sharesCount },
       created_at: author.createdAt,
       updated_at: author.updatedAt,
