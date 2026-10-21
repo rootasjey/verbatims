@@ -5,226 +5,113 @@
     :submit-text="submitButtonText as string"
     :submitting="submitting"
     :can-submit="!!titleQuery.trim()"
-    max-width="md"
+    title-class="sr-only"
+    max-width="2xl"
     scrollable
     @submit="submitReference"
   >
-    <form @submit.prevent="submitReference" @keydown.ctrl.enter.prevent="submitReference" @keydown.meta.enter.prevent="submitReference" class="space-y-6 m-1">
-      <div>
-        <div class="relative">
-          <NInput
-            ref="titleInputRef"
-            v-model="titleQuery"
-            :placeholder="$t('components.dialogs.placeholder_title') as string"
-            :disabled="submitting"
-            required
-            autofocus
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{
-              inputTrailingWrapper: 'pr-1.5'
-            }"
-            @input="searchReferences"
-            @focus="handleTitleInputFocus"
-            @blur="handleTitleInputBlur"
-            @keydown="handleTitleKeydown"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                {{ $t('components.dialogs.title') }}
-              </NBadge>
-            </template>
-          </NInput>
-          <div
-            v-if="showTitleSuggestions && (titleSuggestions.length > 0 || titleQuery)"
-            ref="titleSuggestionsRef"
-            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-auto"
-            tabindex="-1"
-            @blur="handleTitleSuggestionsBlur"
-            @keydown="handleTitleKeydown"
-          >
-            <div
-              v-for="(reference, index) in titleSuggestions"
-              :key="reference.id"
-              :class="[
-                'px-3 py-2 cursor-pointer flex items-center space-x-2',
-                selectedTitleIndex === index
-                  ? 'bg-blue-100 dark:bg-blue-900/50'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-              ]"
-              @click="selectExistingReference(reference)"
-              @mouseenter="selectedTitleIndex = index"
-            >
-              <div class="flex-1">
-                <div class="text-sm font-medium">{{ reference.name }}</div>
-                <div v-if="reference.primary_type" class="text-xs text-gray-500 capitalize">{{ reference.primary_type.replace('_', ' ') }}</div>
+    <template #header-title>
+      <div class="min-w-0 flex-1">
+        <h2 v-if="!isEditMode" class="mb-3 font-serif text-2xl font-400 tracking-tight text-gray-900 dark:text-gray-100">{{ dialogTitle }}</h2>
+        <div role="tablist" :aria-label="$t('components.dialogs.reference_sections') as string" class="flex min-w-0 gap-2 overflow-x-auto px-2 sm:gap-7 sm:px-3">
+          <button v-for="(tab, index) in referenceTabs" :key="tab.id" :ref="element => setTabRef(tab.id, element)" type="button" role="tab" :id="`reference-tab-${tab.id}`" :aria-selected="activeTab === tab.id" :aria-controls="`reference-panel-${tab.id}`" :tabindex="activeTab === tab.id ? 0 : -1" :class="['flex shrink-0 items-center gap-1.5 border-b-2 pb-2.5 font-sans text-xs transition-colors focus-visible:outline-none focus-visible:ring-0 sm:text-sm', activeTab === tab.id ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200']" @click="activeTab = tab.id" @keydown="onTabKeydown($event, index)">
+            <span v-if="tab.id === 'image'" class="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-gray-200 dark:bg-neutral-800"><img v-if="referencePreviewUrl" :src="referencePreviewUrl" :alt="$t('components.dialogs.cover_preview') as string" class="h-full w-full object-cover"><NIcon v-else name="i-ph-image" class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" /></span>
+            {{ tab.label }}
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <form @submit.prevent="submitReference" @keydown.ctrl.enter.prevent="submitReference" @keydown.meta.enter.prevent="submitReference" class="space-y-5 px-1 sm:px-2">
+      <div ref="panelViewportRef" :style="panelHeight ? { height: `${panelHeight}px` } : undefined" class="relative overflow-hidden px-1 transition-[height] duration-300 ease-in-out motion-reduce:transition-none">
+        <section :ref="element => setPanelRef('details', element)" v-show="activeTab === 'details'" id="reference-panel-details" role="tabpanel" aria-labelledby="reference-tab-details" class="space-y-5 py-1">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block min-w-0 space-y-1.5">
+              <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.title') }}</span>
+              <div class="relative">
+                <input ref="titleInputRef" v-model="titleQuery" type="text" :placeholder="$t('components.dialogs.placeholder_title') as string" :disabled="submitting" required autofocus class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-base text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100" @input="searchReferences" @focus="handleTitleInputFocus" @blur="handleTitleInputBlur" @keydown="handleTitleKeydown">
+                <div v-if="showTitleSuggestions && (titleSuggestions.length > 0 || titleQuery)" ref="titleSuggestionsRef" class="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-gray-200 bg-[#FAFAF9] shadow-lg dark:border-neutral-700 dark:bg-neutral-900" tabindex="-1" @blur="handleTitleSuggestionsBlur" @keydown="handleTitleKeydown">
+                  <button v-for="(reference, index) in titleSuggestions" :key="reference.id" type="button" :class="['flex w-full items-center px-3 py-2 text-left transition-colors', selectedTitleIndex === index ? 'bg-gray-100 dark:bg-neutral-700' : 'hover:bg-gray-100 dark:hover:bg-neutral-800']" @click="selectExistingReference(reference)" @mouseenter="selectedTitleIndex = index">
+                    <span class="min-w-0 flex-1"><span class="block truncate font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ reference.name }}</span><span v-if="reference.primary_type" class="block font-sans text-xs capitalize text-gray-500 dark:text-gray-400">{{ reference.primary_type.replace('_', ' ') }}</span></span>
+                  </button>
+                  <button v-if="titleQuery && !titleSuggestions.some(reference => reference.name.toLowerCase() === titleQuery.toLowerCase())" type="button" :class="['w-full border-t border-gray-200 px-3 py-2 text-left font-sans text-sm dark:border-neutral-700', selectedTitleIndex === titleSuggestions.length ? 'bg-gray-100 dark:bg-neutral-700' : 'hover:bg-gray-100 dark:hover:bg-neutral-800']" @click="useNewReferenceTitle" @mouseenter="selectedTitleIndex = titleSuggestions.length">{{ $t('components.dialogs.create_new_reference', { name: titleQuery }) }}</button>
+                </div>
               </div>
-            </div>
-            <div
-              v-if="titleQuery && !titleSuggestions.some(r => r.name.toLowerCase() === titleQuery.toLowerCase())"
-              :class="[
-                'px-3 py-2 cursor-pointer border-t border-gray-200 dark:border-gray-700',
-                selectedTitleIndex === titleSuggestions.length
-                  ? 'bg-blue-100 dark:bg-blue-900/50'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-              ]"
-              @click="useNewReferenceTitle"
-              @mouseenter="selectedTitleIndex = titleSuggestions.length"
-            >
-              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                {{ $t('components.dialogs.create_new_reference', { name: titleQuery }) }}
-              </div>
+            </label>
+            <label class="block min-w-0 space-y-1.5">
+              <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.genre') }}</span>
+              <NSelect v-model="form.primary_type" :items="primaryTypeOptions" :placeholder="$t('common.search') as string" :disabled="submitting" item-key="label" value-key="label" required select="outline-gray" :_select-content="{ bodyLock: false }" />
+            </label>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block min-w-0 space-y-1.5">
+              <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.genre') }}</span>
+              <input v-model="form.secondary_type" type="text" :placeholder="$t('components.dialogs.genre') as string" :disabled="submitting" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-base text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
+            </label>
+            <label class="block min-w-0 space-y-1.5">
+              <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.release_date') }}</span>
+              <input v-model="form.release_date" type="date" :disabled="submitting" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-base text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
+            </label>
+          </div>
+
+          <label class="block max-w-md space-y-1.5">
+            <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.original_language') }}</span>
+            <NSelect v-model="form.original_language" :items="languageOptions" :placeholder="$t('components.dialogs.select_language') as string" :disabled="submitting" item-key="label" value-key="label" select="outline-gray" :_select-content="{ bodyLock: false }" />
+          </label>
+
+          <label class="block space-y-1.5">
+            <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.description') }}</span>
+            <textarea v-model="form.description" :placeholder="$t('components.dialogs.placeholder_desc') as string" rows="5" :disabled="submitting" class="min-h-32 w-full resize-y rounded-xl bg-gray-100/80 px-4 py-3 font-sans text-sm leading-relaxed text-gray-900 outline-none placeholder-gray-400 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400/60 dark:bg-neutral-900/80 dark:text-gray-100 dark:placeholder-gray-500" />
+          </label>
+        </section>
+
+        <section :ref="element => setPanelRef('image', element)" v-show="activeTab === 'image'" id="reference-panel-image" role="tabpanel" aria-labelledby="reference-tab-image" class="space-y-5 py-1">
+          <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
+            <label class="block min-w-0 space-y-1.5">
+              <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.image_url') }}</span>
+              <input v-model="form.image_url" type="url" :placeholder="$t('components.dialogs.placeholder_url') as string" :disabled="submitting" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-base text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
+              <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="onFileSelected">
+            </label>
+            <div class="flex min-w-0 items-center gap-4 rounded-xl bg-gray-100/60 p-4 dark:bg-neutral-900/60">
+              <button type="button" class="group relative h-24 w-16 shrink-0 overflow-hidden rounded-md bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:bg-neutral-800" :aria-label="$t('components.dialogs.upload_hint') as string" :disabled="submitting || uploading" @click="fileInputRef?.click()">
+                <img v-if="referencePreviewUrl && !referencePreviewErrored" :src="referencePreviewUrl" :alt="$t('components.dialogs.cover_preview') as string" class="h-full w-full object-cover" @error="referencePreviewErrored = true">
+                <span v-else class="flex h-full w-full items-center justify-center"><NIcon name="i-ph-image" class="h-7 w-7 text-gray-500 dark:text-gray-400" /></span>
+                <span class="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100"><NIcon :name="uploading ? 'i-ph-circle-notch' : 'i-ph-upload'" class="h-5 w-5" :class="uploading ? 'animate-spin' : ''" /></span>
+              </button>
+              <div class="min-w-0"><p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('components.dialogs.cover_preview') }}</p><button type="button" class="mt-1 text-left font-sans text-sm text-gray-600 underline decoration-gray-300 underline-offset-2 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" @click="fileInputRef?.click()">{{ $t('components.dialogs.upload_hint') }}</button></div>
             </div>
           </div>
-        </div>
-      </div>
+          <AdminImageAttributionFields v-model="form.image_attribution" :disabled="submitting" />
+        </section>
 
-      <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.genre') }}</label>
-        <NSelect
-          v-model="form.primary_type"
-          :items="primaryTypeOptions"
-          :placeholder="$t('common.search') as string"
-          :disabled="submitting"
-          item-key="label"
-          value-key="label"
-          required
-        />
-      </div>
-
-      <NInput
-        v-model="form.secondary_type"
-        :placeholder="$t('components.dialogs.genre') as string"
-        :disabled="submitting"
-        class="bg-white dark:bg-gray-900 b-none shadow-none"
-        :una="{
-          inputTrailingWrapper: 'pr-1.5'
-        }"
-      >
-        <template #trailing>
-          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            {{ $t('components.dialogs.genre') }}
-          </NBadge>
-        </template>
-      </NInput>
-
-      <div class="flex items-start gap-4">
-        <div class="grow-2">
-          <NInput
-            v-model="form.release_date"
-            type="date"
-            :disabled="submitting"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{
-              inputTrailingWrapper: 'pr-1.5'
-            }"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                {{ $t('components.dialogs.release_date') }}
-              </NBadge>
-            </template>
-          </NInput>
-        </div>
-
-        <div class="grow-1">
-          <NSelect
-            v-model="form.original_language"
-            :items="languageOptions"
-            :placeholder="$t('components.dialogs.select_language') as string"
-            :disabled="submitting"
-            item-key="label"
-            value-key="label"
-          />
-          <label class="mt-1 pl-1 block text-xs font-600 text-gray-900 dark:text-white">{{ $t('components.dialogs.original_language') }}</label>
-        </div>
-      </div>
-
-      <div>
-        <NInput
-          v-model="form.image_url"
-          type="url"
-          :placeholder="$t('components.dialogs.placeholder_url') as string"
-          :disabled="submitting"
-          class="bg-white dark:bg-gray-900 b-none shadow-none"
-          :una="{
-            inputTrailingWrapper: 'pr-1.5'
-          }"
-        >
-          <template #trailing>
-            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-              {{ $t('components.dialogs.image_url') }}
-            </NBadge>
-          </template>
-        </NInput>
-        <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="onFileSelected">
-
-        <div class="mt-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-900/30 p-3">
-          <div class="flex items-center gap-3">
-            <div
-              class="relative h-16 w-12 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800 flex-shrink-0 cursor-pointer group"
-              @click="fileInputRef?.click()"
-            >
-              <img
-                v-if="referencePreviewUrl && !referencePreviewErrored"
-                :src="referencePreviewUrl"
-                :alt="$t('components.dialogs.cover_preview') as string"
-                class="h-full w-full object-cover"
-                @error="referencePreviewErrored = true"
-              />
-              <div v-else class="h-full w-full flex items-center justify-center">
-                <NIcon name="i-ph-image" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
-              </div>
-              <div class="absolute inset-0 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/0 group-hover:bg-black/40">
-                <NIcon :name="uploading ? 'i-ph-circle-notch' : 'i-ph-upload'" class="w-5 h-5 text-white drop-shadow" :class="uploading ? 'animate-spin' : ''" />
-              </div>
-            </div>
-            <div class="min-w-0">
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.dialogs.cover_preview') }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                <span class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline" @click="fileInputRef?.click()">{{ $t('components.dialogs.upload_hint') }}</span>
-              </p>
-            </div>
+        <section :ref="element => setPanelRef('translations', element)" v-show="activeTab === 'translations'" id="reference-panel-translations" role="tabpanel" aria-labelledby="reference-tab-translations" class="space-y-5 py-1">
+          <div><h3 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('components.dialogs.translations_title') }}</h3><p class="mt-1 font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.translations_hint') }}</p></div>
+          <div role="tablist" :aria-label="$t('components.dialogs.translation_languages') as string" class="flex gap-5 border-b border-gray-200/80 dark:border-neutral-700/80">
+            <button v-for="(language, index) in translationLanguages" :key="language" :ref="element => setLanguageTabRef(language, element)" type="button" role="tab" :aria-selected="activeTranslationLanguage === language" :tabindex="activeTranslationLanguage === language ? 0 : -1" :class="['border-b-2 pb-2.5 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-0', activeTranslationLanguage === language ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200']" @click="activeTranslationLanguage = language" @keydown="onLanguageTabKeydown($event, index)">{{ language === 'en' ? $t('components.dialogs.translation_english') : $t('components.dialogs.translation_french') }}</button>
           </div>
-        </div>
-      </div>
-
-      <AdminImageAttributionFields v-model="form.image_attribution" :disabled="submitting" />
-
-      <NInput
-        type="textarea"
-        v-model="form.description"
-        :placeholder="$t('components.dialogs.placeholder_desc') as string"
-        :rows="6"
-        :disabled="submitting"
-        class="bg-white dark:bg-gray-900 b-none shadow-none"
-        :una="{
-          inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial'
-        }"
-      >
-        <template #trailing>
-          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            {{ $t('components.dialogs.description') }}
-          </NBadge>
-        </template>
-      </NInput>
-
-      <details class="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
-        <summary class="cursor-pointer text-sm font-medium text-gray-800 dark:text-gray-200">{{ $t('components.dialogs.translations_title') }}</summary>
-        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.translations_hint') }}</p>
-        <div class="mt-4 space-y-4">
-          <section v-for="language in translationLanguages" :key="language" class="space-y-2">
-            <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ language === 'en' ? $t('components.dialogs.translation_english') : $t('components.dialogs.translation_french') }}</h4>
-            <NInput v-model="form.translations[language].name" :placeholder="$t('components.dialogs.translated_title') as string" :disabled="submitting" />
-            <NInput v-model="form.translations[language].description" type="textarea" :placeholder="$t('components.dialogs.description') as string" :rows="3" :disabled="submitting" />
+          <section :aria-label="activeTranslationLanguage === 'en' ? $t('components.dialogs.translation_english') as string : $t('components.dialogs.translation_french') as string" class="space-y-3 pt-1">
+            <label class="block space-y-1.5"><span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.translated_title') }}</span><input v-model="form.translations[activeTranslationLanguage].name" type="text" :placeholder="$t('components.dialogs.translated_title') as string" :disabled="submitting" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100"></label>
+            <label class="block space-y-1.5"><span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.description') }}</span><textarea v-model="form.translations[activeTranslationLanguage].description" :placeholder="$t('components.dialogs.description') as string" rows="4" :disabled="submitting" class="min-h-28 w-full resize-y rounded-xl bg-gray-100/80 px-4 py-3 font-sans text-sm leading-relaxed text-gray-900 outline-none placeholder-gray-400 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400/60 dark:bg-neutral-900/80 dark:text-gray-100 dark:placeholder-gray-500" /></label>
           </section>
-        </div>
-      </details>
+        </section>
+      </div>
     </form>
+
+    <template #footer>
+      <div class="w-full flex justify-end gap-3 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
+        <NButton btn="ghost-gray" class="min-h-10 rounded-1 px-4 font-600" :disabled="submitting" @click="isOpen = false">{{ $t('components.app_dialog.cancel') }}</NButton>
+        <NButton btn="solid-black" type="button" :disabled="!titleQuery.trim() || submitting" :loading="submitting" class="min-h-10 rounded-1 px-4" @click="submitReference">{{ submitButtonText }}<NIcon v-if="!submitting" name="i-ph-check" class="ml-2 h-4 w-4" /></NButton>
+      </div>
+    </template>
   </AppDialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+
+type ReferenceEditorTab = 'details' | 'image' | 'translations'
+type ReferenceTranslationLanguage = 'en' | 'fr'
 
 interface Props {
   modelValue: boolean
@@ -250,9 +137,80 @@ const isOpen = computed({
 const isEditMode = computed(() => !!props.editReference)
 const dialogTitle = computed(() => isEditMode.value ? $t('components.dialogs.edit_reference') : $t('components.dialogs.add_reference'))
 const submitButtonText = computed(() => isEditMode.value ? $t('components.dialogs.update_reference') : $t('components.dialogs.create_reference'))
+const activeTab = ref<ReferenceEditorTab>('details')
+const activeTranslationLanguage = ref<ReferenceTranslationLanguage>('en')
+const referenceTabs = computed(() => [
+  { id: 'details' as const, label: String($t('components.dialogs.reference_tab_details')) },
+  { id: 'image' as const, label: String($t('components.dialogs.reference_tab_image')) },
+  { id: 'translations' as const, label: String($t('components.dialogs.reference_tab_translations')) }
+])
+const tabButtonRefs = ref<Record<ReferenceEditorTab, HTMLButtonElement | null>>({ details: null, image: null, translations: null })
+const panelRefs = ref<Record<ReferenceEditorTab, HTMLElement | null>>({ details: null, image: null, translations: null })
+const panelHeight = ref(0)
+const panelViewportRef = ref<HTMLElement | null>(null)
+const languageTabButtonRefs = ref<Record<ReferenceTranslationLanguage, HTMLButtonElement | null>>({ en: null, fr: null })
+
+const setPanelRef = (tab: ReferenceEditorTab, element: Element | ComponentPublicInstance | null) => {
+  panelRefs.value[tab] = element as HTMLElement | null
+}
+
+const measureActivePanel = async (preserveCurrentHeight = false) => {
+  if (preserveCurrentHeight && props.modelValue && panelViewportRef.value) {
+    panelHeight.value = panelViewportRef.value.getBoundingClientRect().height
+    await nextTick()
+    panelViewportRef.value.getBoundingClientRect()
+  }
+
+  await nextTick()
+  if (!props.modelValue) return
+  panelHeight.value = panelRefs.value[activeTab.value]?.scrollHeight ?? 0
+}
+
+const setTabRef = (tab: ReferenceEditorTab, element: Element | ComponentPublicInstance | null) => {
+  tabButtonRefs.value[tab] = element as HTMLButtonElement | null
+}
+
+const setLanguageTabRef = (language: ReferenceTranslationLanguage, element: Element | ComponentPublicInstance | null) => {
+  languageTabButtonRefs.value[language] = element as HTMLButtonElement | null
+}
+
+const onTabKeydown = (event: KeyboardEvent, currentIndex: number) => {
+  const lastIndex = referenceTabs.value.length - 1
+  const nextIndex = event.key === 'ArrowRight'
+    ? (currentIndex + 1) % referenceTabs.value.length
+    : event.key === 'ArrowLeft'
+      ? (currentIndex - 1 + referenceTabs.value.length) % referenceTabs.value.length
+      : event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? lastIndex
+          : -1
+  if (nextIndex < 0) return
+  event.preventDefault()
+  const tab = referenceTabs.value[nextIndex]!
+  activeTab.value = tab.id
+  nextTick(() => tabButtonRefs.value[tab.id]?.focus())
+}
+
+const onLanguageTabKeydown = (event: KeyboardEvent, currentIndex: number) => {
+  const nextIndex = event.key === 'ArrowRight' || event.key === 'ArrowDown'
+    ? (currentIndex + 1) % translationLanguages.length
+    : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+      ? (currentIndex - 1 + translationLanguages.length) % translationLanguages.length
+      : event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? translationLanguages.length - 1
+          : -1
+  if (nextIndex < 0) return
+  event.preventDefault()
+  const language = translationLanguages[nextIndex]!
+  activeTranslationLanguage.value = language
+  nextTick(() => languageTabButtonRefs.value[language]?.focus())
+}
 
 const emptyImageAttribution = () => ({ image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '' })
-const translationLanguages = ['en', 'fr'] as const
+const translationLanguages: ReferenceTranslationLanguage[] = ['en', 'fr']
 const emptyTranslations = () => ({ en: { name: '', description: '' }, fr: { name: '', description: '' } })
 const readTranslations = (rows?: QuoteReference['translations']) => {
   const result = emptyTranslations()
@@ -283,7 +241,7 @@ const submitting = ref(false)
 
 const selectedTitleIndex = ref(-1)
 
-const titleInputRef = ref()
+const titleInputRef = ref<HTMLInputElement | null>(null)
 const titleSuggestionsRef = ref()
 const referencePreviewErrored = ref(false)
 const fileInputRef = ref<HTMLInputElement>()
@@ -369,7 +327,7 @@ const handleTitleInputBlur = (event: FocusEvent) => {
 
 const handleTitleSuggestionsBlur = (event: FocusEvent) => {
   const relatedTarget = event.relatedTarget as HTMLElement
-  if (relatedTarget && titleInputRef.value?.$el?.contains(relatedTarget)) {
+  if (relatedTarget && titleInputRef.value?.contains(relatedTarget)) {
     return
   }
   setTimeout(() => {
@@ -408,7 +366,7 @@ const handleTitleKeydown = (event: KeyboardEvent) => {
       event.preventDefault()
       showTitleSuggestions.value = false
       selectedTitleIndex.value = -1
-      titleInputRef.value?.$el?.focus()
+      titleInputRef.value?.focus()
       break
   }
 }
@@ -516,6 +474,19 @@ watch(() => props.editReference, (newReference) => {
     resetForm()
   }
 }, { immediate: true })
+
+watch(() => props.modelValue, (open) => {
+  if (open) {
+    activeTab.value = 'details'
+    activeTranslationLanguage.value = 'en'
+    void measureActivePanel()
+  } else {
+    panelHeight.value = 0
+  }
+})
+
+watch(activeTab, () => { void measureActivePanel(true) })
+watch(activeTranslationLanguage, () => { void measureActivePanel() })
 
 const submitReference = async () => {
   if (!titleQuery.value.trim() || !form.value.primary_type.value) return
