@@ -50,6 +50,7 @@
   "placeholder_bio": "Tell us about yourself...",
   "saving": "Saving...",
   "save_profile": "Save Profile",
+  "discard_changes": "Discard changes",
   "section_language": "Language Preferences",
   "label_preferred_language": "Preferred Content Language",
   "helper_language": "Filters quote content by default; your interface language stays unchanged.",

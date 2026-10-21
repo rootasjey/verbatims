@@ -50,6 +50,7 @@
   "placeholder_bio": "Parlez-nous de vous...",
   "saving": "Enregistrement...",
   "save_profile": "Enregistrer le profil",
+  "discard_changes": "Abandonner les modifications",
   "section_language": "Préférences linguistiques",
   "label_preferred_language": "Langue préférée du contenu",
   "helper_language": "Filtre les citations par défaut ; la langue de l’interface reste inchangée.",
