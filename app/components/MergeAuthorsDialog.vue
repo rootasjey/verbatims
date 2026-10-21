@@ -266,8 +266,10 @@ const diffFields = computed(() => {
     { name: 'job', label: 'Job', sourceValue: source.job ?? null, targetValue: target.job ?? null },
     { name: 'description', label: 'Description', sourceValue: source.description ?? null, targetValue: target.description ?? null },
     { name: 'birth_date', label: 'Birth date', sourceValue: source.birth_date ?? null, targetValue: target.birth_date ?? null },
+    { name: 'birth_year', label: 'Birth year', sourceValue: source.birth_year ? `${source.birth_year} ${source.birth_era?.toUpperCase() || 'CE'}` : null, targetValue: target.birth_year ? `${target.birth_year} ${target.birth_era?.toUpperCase() || 'CE'}` : null },
     { name: 'birth_location', label: 'Birth location', sourceValue: source.birth_location ?? null, targetValue: target.birth_location ?? null },
     { name: 'death_date', label: 'Death date', sourceValue: source.death_date ?? null, targetValue: target.death_date ?? null },
+    { name: 'death_year', label: 'Death year', sourceValue: source.death_year ? `${source.death_year} ${source.death_era?.toUpperCase() || 'CE'}` : null, targetValue: target.death_year ? `${target.death_year} ${target.death_era?.toUpperCase() || 'CE'}` : null },
     { name: 'death_location', label: 'Death location', sourceValue: source.death_location ?? null, targetValue: target.death_location ?? null },
     { name: 'is_fictional', label: 'Fictional', sourceValue: source.is_fictional ? 'Yes' : 'No', targetValue: target.is_fictional ? 'Yes' : 'No' },
   ]

@@ -66,7 +66,19 @@ export default defineEventHandler(async (event) => {
             is_fictional: Boolean(quote.author_is_fictional),
             job: quote.author_job,
             birth_date: quote.author_birth_date,
+            birth_year: quote.author_birth_year,
+            birth_era: quote.author_birth_era,
+            birth_month: quote.author_birth_month,
+            birth_day: quote.author_birth_day,
+            birth_is_approximate: Boolean(quote.author_birth_is_approximate),
+            birth_calendar: quote.author_birth_calendar,
             death_date: quote.author_death_date,
+            death_year: quote.author_death_year,
+            death_era: quote.author_death_era,
+            death_month: quote.author_death_month,
+            death_day: quote.author_death_day,
+            death_is_approximate: Boolean(quote.author_death_is_approximate),
+            death_calendar: quote.author_death_calendar,
             image_url: quote.author_image_url
           }
         }
@@ -225,7 +237,19 @@ function buildQuotesQuery(filters: QuoteExportFilters, includeRelations: boolean
         a.is_fictional as author_is_fictional,
         a.job as author_job,
         a.birth_date as author_birth_date,
+        a.birth_year as author_birth_year,
+        a.birth_era as author_birth_era,
+        a.birth_month as author_birth_month,
+        a.birth_day as author_birth_day,
+        a.birth_is_approximate as author_birth_is_approximate,
+        a.birth_calendar as author_birth_calendar,
         a.death_date as author_death_date,
+        a.death_year as author_death_year,
+        a.death_era as author_death_era,
+        a.death_month as author_death_month,
+        a.death_day as author_death_day,
+        a.death_is_approximate as author_death_is_approximate,
+        a.death_calendar as author_death_calendar,
         a.image_url as author_image_url,
         r.name as reference_name,
         r.primary_type as reference_type,
@@ -276,7 +300,7 @@ function generateQuotesCSV(quotes: ExportedQuote[]): string {
   const headers = [
     'id', 'name', 'language', 'status', 'views_count', 'likes_count', 'shares_count',
     'is_featured', 'created_at', 'updated_at', 'moderated_at', 'rejection_reason',
-    'author_id', 'author_name', 'author_is_fictional', 'author_job', 'author_birth_date', 'author_death_date',
+    'author_id', 'author_name', 'author_is_fictional', 'author_job', 'author_birth_date', 'author_birth_year', 'author_birth_era', 'author_birth_month', 'author_birth_day', 'author_birth_is_approximate', 'author_birth_calendar', 'author_death_date', 'author_death_year', 'author_death_era', 'author_death_month', 'author_death_day', 'author_death_is_approximate', 'author_death_calendar',
     'reference_id', 'reference_name', 'reference_type', 'reference_secondary_type', 'reference_release_date',
     'user_id', 'user_name', 'user_email', 'moderator_id', 'moderator_name', 'tags'
   ]
@@ -302,7 +326,19 @@ function generateQuotesCSV(quotes: ExportedQuote[]): string {
         quote.author?.is_fictional || '',
         `"${(quote.author?.job || '').replace(/"/g, '""')}"`,
         quote.author?.birth_date || '',
+        quote.author?.birth_year ?? '',
+        quote.author?.birth_era || '',
+        quote.author?.birth_month ?? '',
+        quote.author?.birth_day ?? '',
+        quote.author?.birth_is_approximate ?? false,
+        quote.author?.birth_calendar || '',
         quote.author?.death_date || '',
+        quote.author?.death_year ?? '',
+        quote.author?.death_era || '',
+        quote.author?.death_month ?? '',
+        quote.author?.death_day ?? '',
+        quote.author?.death_is_approximate ?? false,
+        quote.author?.death_calendar || '',
         quote.reference?.id || '',
         `"${(quote.reference?.name || '').replace(/"/g, '""')}"`,
         quote.reference?.primary_type || '',
@@ -371,7 +407,19 @@ function generateQuotesXML(quotes: ExportedQuote[]): string {
       xml += `      <is_fictional>${quote.author.is_fictional}</is_fictional>\n`
       if (quote.author.job) xml += `      <job><![CDATA[${quote.author.job}]]></job>\n`
       if (quote.author.birth_date) xml += `      <birth_date>${quote.author.birth_date}</birth_date>\n`
+      if (quote.author.birth_year) xml += `      <birth_year>${quote.author.birth_year}</birth_year>\n`
+      if (quote.author.birth_era) xml += `      <birth_era>${quote.author.birth_era}</birth_era>\n`
+      if (quote.author.birth_month) xml += `      <birth_month>${quote.author.birth_month}</birth_month>\n`
+      if (quote.author.birth_day) xml += `      <birth_day>${quote.author.birth_day}</birth_day>\n`
+      if (quote.author.birth_is_approximate) xml += '      <birth_is_approximate>true</birth_is_approximate>\n'
+      if (quote.author.birth_calendar) xml += `      <birth_calendar>${quote.author.birth_calendar}</birth_calendar>\n`
       if (quote.author.death_date) xml += `      <death_date>${quote.author.death_date}</death_date>\n`
+      if (quote.author.death_year) xml += `      <death_year>${quote.author.death_year}</death_year>\n`
+      if (quote.author.death_era) xml += `      <death_era>${quote.author.death_era}</death_era>\n`
+      if (quote.author.death_month) xml += `      <death_month>${quote.author.death_month}</death_month>\n`
+      if (quote.author.death_day) xml += `      <death_day>${quote.author.death_day}</death_day>\n`
+      if (quote.author.death_is_approximate) xml += '      <death_is_approximate>true</death_is_approximate>\n'
+      if (quote.author.death_calendar) xml += `      <death_calendar>${quote.author.death_calendar}</death_calendar>\n`
       xml += '    </author>\n'
     }
 

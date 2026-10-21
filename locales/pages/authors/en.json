@@ -10,6 +10,7 @@
   "authors_sort_name": "Name",
   "authors_sort_quote_count": "Quote Count",
   "authors_sort_popularity": "Popularity",
+  "authors_sort_life_date": "Birth date",
   "authors_sort_recent": "Recently Added",
   "authors_sort_order_ascending": "Sort authors in ascending order",
   "authors_sort_order_descending": "Sort authors in descending order",

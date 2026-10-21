@@ -260,7 +260,7 @@ const createDebouncedAction = (action: () => void | Promise<void>, delay: number
 
   return debounced
 }
-const authorSortValues = new Set(['name', 'quotes_count', 'likes_count', 'created_at'])
+const authorSortValues = new Set(['name', 'quotes_count', 'likes_count', 'created_at', 'birth_date'])
 const readQueryString = (value: unknown) => typeof value === 'string' ? value : ''
 const readAuthorsFiltersFromRoute = () => {
   const routeSortBy = readQueryString(route.query.sort)
@@ -449,6 +449,7 @@ const sortOptions = [
   { label: $ts('authors_sort_name'), value: 'name' },
   { label: $ts('authors_sort_quote_count'), value: 'quotes_count' },
   { label: $ts('authors_sort_popularity'), value: 'likes_count' },
+  { label: $ts('authors_sort_life_date'), value: 'birth_date' },
   { label: $ts('authors_sort_recent'), value: 'created_at' }
 ]
 

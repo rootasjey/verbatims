@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 
-const MERGEABLE_FIELDS = ['job', 'description', 'birthDate', 'birthLocation', 'deathDate', 'deathLocation', 'imageUrl', 'isFictional'] as const
+const MERGEABLE_FIELDS = ['job', 'description', 'birthDate', 'birthYear', 'birthEra', 'birthMonth', 'birthDay', 'birthIsApproximate', 'birthCalendar', 'birthLocation', 'deathDate', 'deathYear', 'deathEra', 'deathMonth', 'deathDay', 'deathIsApproximate', 'deathCalendar', 'deathLocation', 'imageUrl', 'isFictional'] as const
 
 export default defineEventHandler(async (event) => {
   try {
@@ -65,6 +65,16 @@ export default defineEventHandler(async (event) => {
         for (const field of fieldsToCopy) {
           if (sourceAuthor![field as keyof typeof sourceAuthor] != null && targetAuthor![field as keyof typeof targetAuthor] == null) {
             updateData[field] = sourceAuthor![field as keyof typeof sourceAuthor]
+          }
+        }
+        for (const prefix of ['birth', 'death'] as const) {
+          const yearField = prefix === 'birth' ? 'birthYear' : 'deathYear'
+          if (targetAuthor[yearField] == null && sourceAuthor[yearField] != null) {
+            for (const field of prefix === 'birth'
+              ? ['birthDate', 'birthYear', 'birthEra', 'birthMonth', 'birthDay', 'birthIsApproximate', 'birthCalendar'] as const
+              : ['deathDate', 'deathYear', 'deathEra', 'deathMonth', 'deathDay', 'deathIsApproximate', 'deathCalendar'] as const) {
+              updateData[field] = sourceAuthor[field]
+            }
           }
         }
         if (Object.keys(updateData).length > 0) {

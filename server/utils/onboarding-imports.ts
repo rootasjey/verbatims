@@ -6,6 +6,7 @@ import { updateStepProgress, addWarning } from './onboarding-progress'
 import { schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { parseTimestampInput } from '~~/server/utils/date-normalization'
+import { authorLifeDateColumnsFromInput } from './author-life-date'
 
 export async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Record<string, any[]>> {
   const { unzipSync } = await import('fflate')
@@ -583,8 +584,8 @@ export async function importAuthorsFromDataset(db: any, importId: string, author
         const values: any = {
           name: a.name || '',
           description: a.description || '',
-          birthDate: a.birth_date || null,
-          deathDate: a.death_date || null,
+          ...authorLifeDateColumnsFromInput('birth', a as Record<string, unknown>),
+          ...authorLifeDateColumnsFromInput('death', a as Record<string, unknown>),
           birthLocation: a.birth_location || '',
           job: a.job || '',
           imageUrl: a.image_url || '',

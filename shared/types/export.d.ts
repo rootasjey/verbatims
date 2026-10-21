@@ -309,7 +309,19 @@ export interface ExportedQuote {
     is_fictional: boolean
     job?: string
     birth_date?: string
+    birth_year?: number | null
+    birth_era?: 'bce' | 'ce'
+    birth_month?: number | null
+    birth_day?: number | null
+    birth_is_approximate?: boolean
+    birth_calendar?: string
     death_date?: string
+    death_year?: number | null
+    death_era?: 'bce' | 'ce'
+    death_month?: number | null
+    death_day?: number | null
+    death_is_approximate?: boolean
+    death_calendar?: string
     image_url?: string
   }
 
@@ -512,8 +524,20 @@ export interface ExportedAuthor {
   name: string
   is_fictional: boolean
   birth_date?: string
+  birth_year?: number | null
+  birth_era?: 'bce' | 'ce'
+  birth_month?: number | null
+  birth_day?: number | null
+  birth_is_approximate?: boolean
+  birth_calendar?: string
   birth_location?: string
   death_date?: string
+  death_year?: number | null
+  death_era?: 'bce' | 'ce'
+  death_month?: number | null
+  death_day?: number | null
+  death_is_approximate?: boolean
+  death_calendar?: string
   death_location?: string
   job?: string
   description?: string

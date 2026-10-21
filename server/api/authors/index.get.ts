@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     
     const offset = (page - 1) * limit
     
-    const allowedSortColumns = ['name', 'created_at', 'views_count', 'likes_count', 'quotes_count']
+    const allowedSortColumns = ['name', 'created_at', 'views_count', 'likes_count', 'quotes_count', 'birth_date']
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
@@ -54,9 +54,12 @@ export default defineEventHandler(async (event) => {
       authorsQuery = sql`${authorsQuery} WHERE ${sql.join(conds, sql` AND `)}`
     }
     
+    const authorOrder = sortColumn === 'birth_date'
+      ? sql`CASE WHEN a.birth_year IS NULL THEN 1 ELSE 0 END ASC, (CASE WHEN a.birth_era = 'bce' THEN -a.birth_year ELSE a.birth_year END) ${sql.raw(sortDirection)}, COALESCE(a.birth_month, 0) ${sql.raw(sortDirection)}, COALESCE(a.birth_day, 0) ${sql.raw(sortDirection)}, a.name ASC`
+      : sql`${sortColumn === 'quotes_count' ? sql.raw('quotes_count') : sql.raw(`a.${sortColumn}`)} ${sql.raw(sortDirection)}`
     authorsQuery = sql`${authorsQuery}
       GROUP BY a.id
-      ORDER BY ${sortColumn === 'quotes_count' ? sql.raw('quotes_count') : sql.raw(`a.${sortColumn}`)} ${sql.raw(sortDirection)}
+      ORDER BY ${authorOrder}
       LIMIT ${limit} OFFSET ${offset}
     `
     

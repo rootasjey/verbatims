@@ -31,8 +31,8 @@
               <template v-if="author.job">
                 <span class="truncate">{{ author.job }}</span>
               </template>
-              <template v-else-if="author.birth_date || author.death_date">
-                <span class="truncate">{{ formatLifeDates(author.birth_date, author.death_date) }}</span>
+              <template v-else-if="author.birth_year || author.birth_date || author.death_year || author.death_date">
+                <span class="truncate">{{ formatLifeDates(author) }}</span>
               </template>
             </div>
           </div>
@@ -105,7 +105,7 @@ interface Props {
   user: HeaderUser | null
   copyState: 'idle' | 'copying' | 'copied'
   // Functions passed from parent
-  formatLifeDates: (birthDate?: string | null, deathDate?: string | null) => string
+  formatLifeDates: (author: Pick<Author, 'birth_date' | 'birth_year' | 'birth_era' | 'birth_month' | 'birth_day' | 'birth_is_approximate' | 'birth_calendar' | 'death_date' | 'death_year' | 'death_era' | 'death_month' | 'death_day' | 'death_is_approximate' | 'death_calendar'>) => string
   formatNumber: (num?: number | null) => string
 }
 

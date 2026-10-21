@@ -40,8 +40,20 @@ export default defineEventHandler(async (event) => {
         name: author.name,
         is_fictional: Boolean(author.is_fictional),
         birth_date: author.birth_date || undefined,
+        birth_year: author.birth_year === null ? undefined : Number(author.birth_year),
+        birth_era: author.birth_era === 'bce' ? 'bce' : 'ce',
+        birth_month: author.birth_month === null ? undefined : Number(author.birth_month),
+        birth_day: author.birth_day === null ? undefined : Number(author.birth_day),
+        birth_is_approximate: Boolean(author.birth_is_approximate),
+        birth_calendar: author.birth_calendar || 'gregorian-proleptic',
         birth_location: author.birth_location || undefined,
         death_date: author.death_date || undefined,
+        death_year: author.death_year === null ? undefined : Number(author.death_year),
+        death_era: author.death_era === 'bce' ? 'bce' : 'ce',
+        death_month: author.death_month === null ? undefined : Number(author.death_month),
+        death_day: author.death_day === null ? undefined : Number(author.death_day),
+        death_is_approximate: Boolean(author.death_is_approximate),
+        death_calendar: author.death_calendar || 'gregorian-proleptic',
         death_location: author.death_location || undefined,
         job: author.job || undefined,
         description: author.description || undefined,
@@ -300,7 +312,7 @@ function generateAuthorsCSV(authors: ExportedAuthor[]): string {
 
   // Define CSV headers
   const headers = [
-    'id', 'name', 'is_fictional', 'birth_date', 'birth_location', 'death_date', 'death_location',
+    'id', 'name', 'is_fictional', 'birth_date', 'birth_year', 'birth_era', 'birth_month', 'birth_day', 'birth_is_approximate', 'birth_calendar', 'birth_location', 'death_date', 'death_year', 'death_era', 'death_month', 'death_day', 'death_is_approximate', 'death_calendar', 'death_location',
     'job', 'description', 'image_url', 'views_count', 'likes_count', 'shares_count',
     'quotes_count', 'socials', 'created_at', 'updated_at'
   ]
@@ -314,8 +326,20 @@ function generateAuthorsCSV(authors: ExportedAuthor[]): string {
         `"${(author.name || '').replace(/"/g, '""')}"`,
         author.is_fictional,
         author.birth_date || '',
+        author.birth_year ?? '',
+        author.birth_era ?? '',
+        author.birth_month ?? '',
+        author.birth_day ?? '',
+        author.birth_is_approximate ?? false,
+        author.birth_calendar ?? '',
         `"${(author.birth_location || '').replace(/"/g, '""')}"`,
         author.death_date || '',
+        author.death_year ?? '',
+        author.death_era ?? '',
+        author.death_month ?? '',
+        author.death_day ?? '',
+        author.death_is_approximate ?? false,
+        author.death_calendar ?? '',
         `"${(author.death_location || '').replace(/"/g, '""')}"`,
         `"${(author.job || '').replace(/"/g, '""')}"`,
         `"${(author.description || '').replace(/"/g, '""')}"`,
@@ -362,8 +386,20 @@ function generateAuthorsXML(authors: ExportedAuthor[]): string {
     xml += `    <is_fictional>${author.is_fictional}</is_fictional>\n`
 
     if (author.birth_date) xml += `    <birth_date>${author.birth_date}</birth_date>\n`
+    if (author.birth_year) xml += `    <birth_year>${author.birth_year}</birth_year>\n`
+    if (author.birth_era) xml += `    <birth_era>${author.birth_era}</birth_era>\n`
+    if (author.birth_month) xml += `    <birth_month>${author.birth_month}</birth_month>\n`
+    if (author.birth_day) xml += `    <birth_day>${author.birth_day}</birth_day>\n`
+    if (author.birth_is_approximate) xml += '    <birth_is_approximate>true</birth_is_approximate>\n'
+    if (author.birth_calendar) xml += `    <birth_calendar>${author.birth_calendar}</birth_calendar>\n`
     if (author.birth_location) xml += `    <birth_location><![CDATA[${author.birth_location}]]></birth_location>\n`
     if (author.death_date) xml += `    <death_date>${author.death_date}</death_date>\n`
+    if (author.death_year) xml += `    <death_year>${author.death_year}</death_year>\n`
+    if (author.death_era) xml += `    <death_era>${author.death_era}</death_era>\n`
+    if (author.death_month) xml += `    <death_month>${author.death_month}</death_month>\n`
+    if (author.death_day) xml += `    <death_day>${author.death_day}</death_day>\n`
+    if (author.death_is_approximate) xml += '    <death_is_approximate>true</death_is_approximate>\n'
+    if (author.death_calendar) xml += `    <death_calendar>${author.death_calendar}</death_calendar>\n`
     if (author.death_location) xml += `    <death_location><![CDATA[${author.death_location}]]></death_location>\n`
     if (author.job) xml += `    <job><![CDATA[${author.job}]]></job>\n`
     if (author.description) xml += `    <description><![CDATA[${author.description}]]></description>\n`
