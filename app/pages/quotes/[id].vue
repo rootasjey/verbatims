@@ -664,7 +664,7 @@ const headerMenuItems = computed<QuoteMenuItem[]>(() => {
     items.push({
       label: $ts('quote_detail_menu_edit'),
       leading: 'i-lucide-pencil',
-      onclick: () => { showEditQuoteDialog.value = true }
+      onclick: () => openDialogAfterMenuCloses(() => { showEditQuoteDialog.value = true })
     })
     items.push({
       label: $ts('quote_detail_menu_edit_tag'),
@@ -692,12 +692,12 @@ const headerMenuItems = computed<QuoteMenuItem[]>(() => {
     {
       label: $ts('quote_detail_menu_suggest_edit'),
       leading: 'i-lucide-pencil',
-      onclick: () => suggestQuoteEdit()
+      onclick: () => openDialogAfterMenuCloses(() => suggestQuoteEdit())
     },
     {
       label: $ts('quote_detail_menu_report'),
       leading: 'i-lucide-flag',
-      onclick: () => reportQuote()
+      onclick: () => openDialogAfterMenuCloses(() => reportQuote())
     }
   )
 
@@ -838,6 +838,13 @@ const onDownloadDrawerOpenChange = (v: boolean) => { showDownloadDrawer.value = 
 
 const showReportDialog = ref(false)
 const reportCategory = ref<ReportCategory>('bug')
+const openDialogAfterMenuCloses = (open: () => void) => {
+  // The dropdown restores focus to its trigger after its exit transition. Wait
+  // for that focus restoration before mounting a dialog, or it is dismissed as
+  // an outside interaction.
+  setTimeout(open, 250)
+}
+
 const reportQuote = () => {
   reportCategory.value = 'bug'
   showReportDialog.value = true
