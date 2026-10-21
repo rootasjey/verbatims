@@ -12,10 +12,21 @@
     scrollable
     @submit="onSubmit"
   >
+    <template #submit>
+      <NButton btn="solid-black" :disabled="!canSubmit" :loading="pending" @click="onSubmit">
+        {{ submitText }}
+        <NIcon v-if="!pending" name="i-ph-arrow-right" class="ml-2 h-4 w-4" aria-hidden="true" />
+      </NButton>
+    </template>
     <template #header-title>
-      <p v-if="imageReport" class="font-serif text-xl font-300 text-gray-900 dark:text-gray-100">
-        {{ $t('components.dialogs.image_report_title') }}
-      </p>
+      <div v-if="imageReport" class="min-w-0">
+        <p class="font-serif text-xl font-300 text-gray-900 dark:text-gray-100">
+          {{ $t('components.dialogs.image_report_title') }}
+        </p>
+        <p class="mt-1 font-sans text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+          {{ $t('components.dialogs.image_report_context', { variant: String($t(`components.dialogs.image_report_variant_${imageReport.imageVariant}`)) }) }}
+        </p>
+      </div>
       <NSelect
         v-else
         v-model="form.category"
@@ -39,14 +50,8 @@
         :disabled="pending"
         class="w-full"
       />
-      <p v-if="imageReport" class="-mt-3 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-        {{ $t('components.dialogs.image_report_context', { variant: String($t(`components.dialogs.image_report_variant_${imageReport.imageVariant}`)) }) }}
-      </p>
       <div class="space-y-2">
-        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-          <label for="report-message" class="sr-only">{{ $t('components.dialogs.report_message') }}</label>
-          <p class="text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ messageHint }}</p>
-        </div>
+        <label for="report-message" class="sr-only">{{ $t('components.dialogs.report_message') }}</label>
         <div class="relative">
           <NInput
             id="report-message"
@@ -63,6 +68,7 @@
           />
           <span class="pointer-events-none absolute bottom-3 right-3 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.message.length }))">{{ form.message.length }}/4000</span>
         </div>
+        <p class="text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ messageHint }}</p>
       </div>
 
       <div v-if="!isAuthenticated" class="grid gap-4 sm:grid-cols-2">
