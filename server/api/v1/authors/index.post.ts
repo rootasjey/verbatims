@@ -3,6 +3,7 @@ import { eq, sql } from 'drizzle-orm'
 import { createAuthorSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
 import { uploadAndStoreImage } from '~~/server/utils/image-storage'
+import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
 
 defineRouteMeta({
   openAPI: {
@@ -23,8 +24,20 @@ defineRouteMeta({
               job: { type: 'string', nullable: true },
               description: { type: 'string', nullable: true },
               birth_date: { type: 'string', nullable: true },
+              birth_year: { type: 'integer', nullable: true },
+              birth_era: { type: 'string', enum: ['bce', 'ce'] },
+              birth_month: { type: 'integer', nullable: true },
+              birth_day: { type: 'integer', nullable: true },
+              birth_is_approximate: { type: 'boolean' },
+              birth_calendar: { type: 'string' },
               birth_location: { type: 'string', nullable: true },
               death_date: { type: 'string', nullable: true },
+              death_year: { type: 'integer', nullable: true },
+              death_era: { type: 'string', enum: ['bce', 'ce'] },
+              death_month: { type: 'integer', nullable: true },
+              death_day: { type: 'integer', nullable: true },
+              death_is_approximate: { type: 'boolean' },
+              death_calendar: { type: 'string' },
               death_location: { type: 'string', nullable: true },
               image_url: { type: 'string', nullable: true, description: 'URL or /blob/ path' },
               socials: { type: 'object', additionalProperties: { type: 'string' }, nullable: true, description: 'Social media links' },
@@ -59,9 +72,9 @@ export default defineEventHandler(async (event) => {
     .values({
       name: body.name,
       isFictional: body.is_fictional,
-      birthDate: body.birth_date ?? null,
+      ...authorLifeDateColumnsFromInput('birth', body),
       birthLocation: body.birth_location ?? null,
-      deathDate: body.death_date ?? null,
+      ...authorLifeDateColumnsFromInput('death', body),
       deathLocation: body.death_location ?? null,
       job: body.job ?? null,
       description: body.description ?? null,
@@ -99,6 +112,18 @@ export default defineEventHandler(async (event) => {
       dates: {
         birth: result.birthDate,
         death: result.deathDate,
+        birth_year: result.birthYear,
+        birth_era: result.birthEra,
+        birth_month: result.birthMonth,
+        birth_day: result.birthDay,
+        birth_is_approximate: result.birthIsApproximate,
+        birth_calendar: result.birthCalendar,
+        death_year: result.deathYear,
+        death_era: result.deathEra,
+        death_month: result.deathMonth,
+        death_day: result.deathDay,
+        death_is_approximate: result.deathIsApproximate,
+        death_calendar: result.deathCalendar,
         birth_location: result.birthLocation,
         death_location: result.deathLocation,
       },

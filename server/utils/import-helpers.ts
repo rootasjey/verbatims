@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { authorLifeDateColumnsFromInput } from './author-life-date'
 
 /**
  * Import Helper Utilities
@@ -172,7 +173,19 @@ interface ImportAuthor {
   description?: string
   is_fictional?: boolean
   birth_date?: string
+  birth_year?: number | null
+  birth_era?: 'bce' | 'ce'
+  birth_month?: number | null
+  birth_day?: number | null
+  birth_is_approximate?: boolean
+  birth_calendar?: string
   death_date?: string
+  death_year?: number | null
+  death_era?: 'bce' | 'ce'
+  death_month?: number | null
+  death_day?: number | null
+  death_is_approximate?: boolean
+  death_calendar?: string
   birth_location?: string
   death_location?: string
   image_url?: string
@@ -242,8 +255,8 @@ export async function findOrCreateAuthor(
     description: authorData.summary || authorData.description || null,
     job: authorData.job || null,
     isFictional: authorData.is_fictional || false,
-    birthDate: authorData.birth_date || null,
-    deathDate: authorData.death_date || null,
+    ...authorLifeDateColumnsFromInput('birth', authorData as unknown as Record<string, unknown>),
+    ...authorLifeDateColumnsFromInput('death', authorData as unknown as Record<string, unknown>),
     birthLocation: authorData.birth_location || null,
     deathLocation: authorData.death_location || null,
     imageUrl: authorData.image_url || authorData.urls?.image || null,

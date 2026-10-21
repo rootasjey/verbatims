@@ -5,8 +5,20 @@ type AdminAuthorRow = {
   name: string
   isFictional?: boolean | null
   birthDate?: string | null
+  birthYear?: number | null
+  birthEra?: 'bce' | 'ce' | null
+  birthMonth?: number | null
+  birthDay?: number | null
+  birthIsApproximate?: boolean | null
+  birthCalendar?: string | null
   birthLocation?: string | null
   deathDate?: string | null
+  deathYear?: number | null
+  deathEra?: 'bce' | 'ce' | null
+  deathMonth?: number | null
+  deathDay?: number | null
+  deathIsApproximate?: boolean | null
+  deathCalendar?: string | null
   deathLocation?: string | null
   job?: string | null
   description?: string | null
@@ -33,8 +45,20 @@ export const normalizeAdminAuthor = (author: AdminAuthorRow): Author => ({
   name: author.name,
   is_fictional: Boolean(author.isFictional),
   birth_date: author.birthDate ?? undefined,
+  birth_year: author.birthYear,
+  birth_era: author.birthEra ?? 'ce',
+  birth_month: author.birthMonth,
+  birth_day: author.birthDay,
+  birth_is_approximate: Boolean(author.birthIsApproximate),
+  birth_calendar: author.birthCalendar ?? 'gregorian-proleptic',
   birth_location: author.birthLocation ?? undefined,
   death_date: author.deathDate ?? undefined,
+  death_year: author.deathYear,
+  death_era: author.deathEra ?? 'ce',
+  death_month: author.deathMonth,
+  death_day: author.deathDay,
+  death_is_approximate: Boolean(author.deathIsApproximate),
+  death_calendar: author.deathCalendar ?? 'gregorian-proleptic',
   death_location: author.deathLocation ?? undefined,
   job: author.job ?? undefined,
   description: author.description ?? undefined,

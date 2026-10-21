@@ -28,8 +28,8 @@
         <p v-if="author.job" class="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
           {{ author.job }}
         </p>
-        <p v-else-if="!author.is_fictional && (author.birth_date || author.death_date)" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-          {{ formatLifeDates(author.birth_date, author.death_date) }}
+        <p v-else-if="!author.is_fictional && (author.birth_year || author.birth_date || author.death_year || author.death_date)" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          {{ formatLifeDates(author) }}
         </p>
       </div>
     </div>
@@ -44,6 +44,9 @@
 </template>
 
 <script setup lang="ts">
+import { authorLifeDateFromFields, formatAuthorLifeSpan } from '#shared/utils/author-life-date'
+const { locale } = useI18nLocale()
+
 interface Props {
   author: Author
 }
@@ -60,11 +63,10 @@ const getAuthorInitials = (name: string): string => {
     .slice(0, 2)
 }
 
-const formatLifeDates = (birthDate?: string | null, deathDate?: string | null): string => {
-  if (!birthDate && !deathDate) return ''
-  const birth = birthDate ? new Date(birthDate).getFullYear() : '?'
-  const death = deathDate ? new Date(deathDate).getFullYear() : 'present'
-  return `${birth} - ${death}`
+const formatLifeDates = (author: Author): string => {
+  const birth = authorLifeDateFromFields({ year: author.birth_year, era: author.birth_era, month: author.birth_month, day: author.birth_day, approximate: author.birth_is_approximate, calendar: author.birth_calendar, legacy: author.birth_date })
+  const death = authorLifeDateFromFields({ year: author.death_year, era: author.death_era, month: author.death_month, day: author.death_day, approximate: author.death_is_approximate, calendar: author.death_calendar, legacy: author.death_date })
+  return formatAuthorLifeSpan(birth, death, locale.value ?? 'en')
 }
 
 const formatNumber = (num?: number | null): string => {

@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   if (n > 100) n = 100
 
   const result = await db.all(sql`
-    SELECT a.id, a.name, a.job, a.description, a.image_url, a.is_fictional, a.birth_date, a.death_date,
+    SELECT a.id, a.name, a.job, a.description, a.image_url, a.is_fictional, a.birth_date, a.birth_year, a.birth_era, a.birth_month, a.birth_day, a.birth_is_approximate, a.birth_calendar, a.death_date, a.death_year, a.death_era, a.death_month, a.death_day, a.death_is_approximate, a.death_calendar,
       COALESCE(q.quotes_count, 0) AS quotes_count,
       a.likes_count, a.views_count
     FROM ${schema.authors} a

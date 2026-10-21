@@ -218,7 +218,19 @@ export interface DatabaseQuoteWithRelations extends Quote {
   author_name?: string;
   author_job?: string;
   author_birth_date?: string;
+  author_birth_year?: number | null;
+  author_birth_era?: 'bce' | 'ce';
+  author_birth_month?: number | null;
+  author_birth_day?: number | null;
+  author_birth_is_approximate?: boolean;
+  author_birth_calendar?: string;
   author_death_date?: string;
+  author_death_year?: number | null;
+  author_death_era?: 'bce' | 'ce';
+  author_death_month?: number | null;
+  author_death_day?: number | null;
+  author_death_is_approximate?: boolean;
+  author_death_calendar?: string;
   author_is_fictional?: boolean;
   author_image_url?: string;
   

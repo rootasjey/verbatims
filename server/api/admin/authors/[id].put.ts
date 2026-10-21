@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateAuthorSchema } from '../../../validation/schemas'
 import { saveAuthorTranslations } from '~~/server/utils/entity-translations'
+import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -42,9 +43,9 @@ export default defineEventHandler(async (event) => {
 
     if (body.name !== undefined) updateData.name = body.name
     if (body.is_fictional !== undefined) updateData.isFictional = body.is_fictional
-    if (body.birth_date !== undefined) updateData.birthDate = body.birth_date
+    Object.assign(updateData, authorLifeDateColumnsFromInput('birth', body as Record<string, unknown>, existingAuthor as unknown as Record<string, unknown>))
     if (body.birth_location !== undefined) updateData.birthLocation = body.birth_location
-    if (body.death_date !== undefined) updateData.deathDate = body.death_date
+    Object.assign(updateData, authorLifeDateColumnsFromInput('death', body as Record<string, unknown>, existingAuthor as unknown as Record<string, unknown>))
     if (body.death_location !== undefined) updateData.deathLocation = body.death_location
     if (body.job !== undefined) updateData.job = body.job
     if (body.description !== undefined) updateData.description = body.description

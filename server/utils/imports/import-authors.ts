@@ -5,6 +5,7 @@ import { createBackupFile } from '../backup-database'
 import { validateAuthorDataZod } from '../validation/author'
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { authorLifeDateColumnsFromInput } from '../author-life-date'
 
 export async function importAuthorsInline(parentImportId: string, authors: any[], options: ImportOptions) {
   const validation = validateAuthorDataZod(authors)
@@ -109,9 +110,19 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
           }
           
           addFieldFill('isFictional', Boolean(author.is_fictional) || false)
-          addFieldFill('birthDate', author.birth_date || null)
+          const fillLifeDate = (prefix: 'birth' | 'death') => {
+            const fields = authorLifeDateColumnsFromInput(prefix, author)
+            const yearColumn = prefix === 'birth' ? schema.authors.birthYear : schema.authors.deathYear
+            for (const [field, value] of Object.entries(fields)) {
+              const column = schema.authors[field as keyof typeof schema.authors]
+              updateData[field] = authorStrategy === 'overwrite'
+                ? value
+                : sql`CASE WHEN ${yearColumn} IS NULL THEN ${value} ELSE ${column} END`
+            }
+          }
+          fillLifeDate('birth')
           addFieldFill('birthLocation', author.birth_location || null)
-          addFieldFill('deathDate', author.death_date || null)
+          fillLifeDate('death')
           addFieldFill('deathLocation', author.death_location || null)
           addFieldFill('job', author.job || null)
           addFieldFill('description', author.description || null)
@@ -134,8 +145,10 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
             name: author.name,
             isFictional: Boolean(author.is_fictional) || false,
             birthDate: author.birth_date || null,
+            ...authorLifeDateColumnsFromInput('birth', author),
             birthLocation: author.birth_location || null,
             deathDate: author.death_date || null,
+            ...authorLifeDateColumnsFromInput('death', author),
             deathLocation: author.death_location || null,
             job: author.job || null,
             description: author.description || null,

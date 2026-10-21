@@ -44,9 +44,9 @@
                 <span class="text-gray-300 dark:text-gray-700" aria-hidden="true">/</span>
                 <span class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ author.job }}</span>
               </template>
-              <template v-if="!author.is_fictional && (author.birth_date || author.death_date)">
+              <template v-if="!author.is_fictional && (author.birth_year || author.birth_date || author.death_year || author.death_date)">
                 <span class="text-gray-300 dark:text-gray-700" aria-hidden="true">/</span>
-                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ formatLifeDates(author.birth_date, author.death_date) }}</span>
+                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ formatLifeDates(author) }}</span>
               </template>
               <template v-if="author.birth_location">
                 <span class="text-gray-300 dark:text-gray-700" aria-hidden="true">/</span>
@@ -325,6 +325,7 @@
 </template>
 
 <script lang="ts" setup>import { useJsonLd } from '../../composables/useSeo'
+import { authorLifeDateFromFields, formatAuthorLifeSpan } from '#shared/utils/author-life-date'
 import type { ComputedRef, Ref } from 'vue'
 
 const { isMobile } = useMobileDetection()
@@ -335,6 +336,7 @@ const route = useRoute()
 const router = useRouter()
 const { user } = useUserSession()
 const { $t, $ts } = useI18n()
+const { locale } = useI18nLocale()
 
 interface SortOption {
   label: string
@@ -854,13 +856,10 @@ onBeforeRouteLeave((to) => {
 const showReportDialog = ref(false)
 const reportAuthor = () => { showReportDialog.value = true }
 
-const formatLifeDates = (birthDate?: string | null, deathDate?: string | null): string => {
-  if (!birthDate && !deathDate) return ''
-
-  const birth = birthDate ? new Date(birthDate).getFullYear() : '?'
-  const death = deathDate ? new Date(deathDate).getFullYear() : 'present'
-
-  return `${birth} - ${death}`
+const formatLifeDates = (author: Pick<Author, 'birth_date' | 'birth_year' | 'birth_era' | 'birth_month' | 'birth_day' | 'birth_is_approximate' | 'birth_calendar' | 'death_date' | 'death_year' | 'death_era' | 'death_month' | 'death_day' | 'death_is_approximate' | 'death_calendar'>): string => {
+  const birth = authorLifeDateFromFields({ year: author.birth_year, era: author.birth_era, month: author.birth_month, day: author.birth_day, approximate: author.birth_is_approximate, calendar: author.birth_calendar, legacy: author.birth_date })
+  const death = authorLifeDateFromFields({ year: author.death_year, era: author.death_era, month: author.death_month, day: author.death_day, approximate: author.death_is_approximate, calendar: author.death_calendar, legacy: author.death_date })
+  return formatAuthorLifeSpan(birth, death, locale.value ?? 'en')
 }
 
 const formatNumber = (num?: number | null): string => {

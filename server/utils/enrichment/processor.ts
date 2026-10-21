@@ -4,6 +4,7 @@ import type { EntityEnrichmentPreview, EnrichmentProposalField } from '#shared/t
 import { buildAuthorEnrichmentPreview, buildReferenceEnrichmentPreview } from './wikidata'
 import { getEnrichmentPolicy, scheduleVerificationJobs } from './scheduler'
 import { resolveEnrichmentConfig } from './config'
+import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
 
 interface ProcessOptions {
   limit?: number
@@ -225,9 +226,9 @@ async function applyAuthorJob(
   for (const proposal of proposals) {
     if (!proposal.proposedValue) continue
 
-    if (proposal.fieldName === 'birth_date') updateData.birthDate = proposal.proposedValue
+    if (proposal.fieldName === 'birth_date') Object.assign(updateData, authorLifeDateColumnsFromInput('birth', { birth_date: proposal.proposedValue }, author as unknown as Record<string, unknown>))
     if (proposal.fieldName === 'birth_location') updateData.birthLocation = proposal.proposedValue
-    if (proposal.fieldName === 'death_date') updateData.deathDate = proposal.proposedValue
+    if (proposal.fieldName === 'death_date') Object.assign(updateData, authorLifeDateColumnsFromInput('death', { death_date: proposal.proposedValue }, author as unknown as Record<string, unknown>))
     if (proposal.fieldName === 'death_location') updateData.deathLocation = proposal.proposedValue
     if (proposal.fieldName === 'job') updateData.job = proposal.proposedValue
     if (proposal.fieldName === 'description') updateData.description = proposal.proposedValue
@@ -278,8 +279,8 @@ async function applyAuthorJob(
         entityType: 'author',
         entityId: author.id,
         fieldName: proposal.fieldName,
-        previousValue,
-        newValue: proposal.proposedValue,
+        previousValue: previousValue === null ? null : String(previousValue),
+        newValue: String(proposal.proposedValue),
         changeOrigin: 'enrichment_review',
         jobId: job.id,
         proposalId: proposal.id,
@@ -712,9 +713,9 @@ async function computeReviewFollowUpAt() {
 }
 
 function readAuthorFieldValue(author: typeof schema.authors.$inferSelect, fieldName: string) {
-  if (fieldName === 'birth_date') return author.birthDate || null
+  if (fieldName === 'birth_date') return author.birthYear !== null ? author.birthYear : author.birthDate || null
   if (fieldName === 'birth_location') return author.birthLocation || null
-  if (fieldName === 'death_date') return author.deathDate || null
+  if (fieldName === 'death_date') return author.deathYear !== null ? author.deathYear : author.deathDate || null
   if (fieldName === 'death_location') return author.deathLocation || null
   if (fieldName === 'job') return author.job || null
   if (fieldName === 'description') return author.description || null

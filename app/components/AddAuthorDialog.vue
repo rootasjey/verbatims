@@ -94,47 +94,11 @@
         </template>
       </NInput>
 
-      <div class="flex items-start gap-4">
-        <div class="flex-1">
-
-          <NInput
-            v-model="form.birth_date"
-            type="date"
-            :disabled="submitting"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{
-              inputTrailingWrapper: 'pr-1.5'
-            }"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                {{ $t('components.dialogs.birth_date') }}
-              </NBadge>
-            </template>
-          </NInput>
-        </div>
-
-        <div>
-          <NInput
-            v-model="form.death_date"
-            type="date"
-            :disabled="submitting"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{
-              inputTrailingWrapper: 'pr-1.5'
-            }"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                {{ $t('components.dialogs.death_date') }}
-              </NBadge>
-            </template>
-          </NInput>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            {{ $t('components.dialogs.alive_hint') }}
-          </p>
-        </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <AuthorLifeDateInput v-model="form.birth_life_date" :label="$t('components.dialogs.birth_date') as string" :disabled="submitting" />
+        <AuthorLifeDateInput v-model="form.death_life_date" :label="$t('components.dialogs.death_date') as string" :disabled="submitting" />
       </div>
+      <p class="-mt-4 text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.alive_hint') }}</p>
 
       <div>
         <NInput
@@ -238,6 +202,9 @@
 </template>
 
 <script setup lang="ts">
+import type { AuthorLifeDate } from '#shared/types/author-life-date'
+import { parseAuthorLifeDate, serializeAuthorLifeDate } from '#shared/utils/author-life-date'
+
 interface Props {
   modelValue: boolean
   editAuthor?: Author | null
@@ -279,8 +246,8 @@ const readTranslations = (rows?: Author['translations']) => {
 const form = ref({
   name: '',
   job: '',
-  birth_date: '',
-  death_date: '',
+  birth_life_date: null as AuthorLifeDate | null,
+  death_life_date: null as AuthorLifeDate | null,
   image_url: '',
   image_attribution: emptyImageAttribution(),
   is_fictional: false,
@@ -418,8 +385,8 @@ const selectExistingAuthor = (author: Author) => {
   form.value = {
     name: author.name,
     job: author.job || '',
-    birth_date: author.birth_date || '',
-    death_date: author.death_date || '',
+    birth_life_date: author.birth_year ? { year: author.birth_year, era: author.birth_era || 'ce', month: author.birth_month, day: author.birth_day, approximate: author.birth_is_approximate, calendar: author.birth_calendar } : parseAuthorLifeDate(author.birth_date),
+    death_life_date: author.death_year ? { year: author.death_year, era: author.death_era || 'ce', month: author.death_month, day: author.death_day, approximate: author.death_is_approximate, calendar: author.death_calendar } : parseAuthorLifeDate(author.death_date),
     image_url: author.image_url || '',
     image_attribution: {
       image_alt: author.image_alt || '', image_credit: author.image_credit || '', image_source_url: author.image_source_url || '',
@@ -444,8 +411,8 @@ const resetForm = () => {
   form.value = {
     name: '',
     job: '',
-    birth_date: '',
-    death_date: '',
+    birth_life_date: null,
+    death_life_date: null,
     image_url: '',
     image_attribution: emptyImageAttribution(),
     is_fictional: false,
@@ -465,8 +432,8 @@ const initializeFormForEdit = () => {
   form.value = {
     name: author.name,
     job: author.job || '',
-    birth_date: author.birth_date || '',
-    death_date: author.death_date || '',
+    birth_life_date: author.birth_year ? { year: author.birth_year, era: author.birth_era || 'ce', month: author.birth_month, day: author.birth_day, approximate: author.birth_is_approximate, calendar: author.birth_calendar } : parseAuthorLifeDate(author.birth_date),
+    death_life_date: author.death_year ? { year: author.death_year, era: author.death_era || 'ce', month: author.death_month, day: author.death_day, approximate: author.death_is_approximate, calendar: author.death_calendar } : parseAuthorLifeDate(author.death_date),
     image_url: author.image_url || '',
     image_attribution: {
       image_alt: author.image_alt || '', image_credit: author.image_credit || '', image_source_url: author.image_source_url || '',
@@ -505,8 +472,8 @@ const submitAuthor = async () => {
     const payload: CreateAuthorData | UpdateAuthorData = {
       name: form.value.name,
       job: form.value.job.trim() || null,
-      birth_date: form.value.birth_date || null,
-      death_date: form.value.death_date || null,
+      ...lifeDatePayload('birth', form.value.birth_life_date),
+      ...lifeDatePayload('death', form.value.death_life_date),
       image_url: form.value.image_url.trim() || null,
       image_alt: form.value.image_attribution.image_alt.trim() || null,
       image_credit: form.value.image_attribution.image_credit.trim() || null,
@@ -557,6 +524,18 @@ const submitAuthor = async () => {
     showErrorToast(error, isEditMode.value ? String($t('components.dialogs.toast_error')) : String($t('components.dialogs.toast_error')))
   } finally {
     submitting.value = false
+  }
+}
+
+function lifeDatePayload(prefix: 'birth' | 'death', date: AuthorLifeDate | null) {
+  return {
+    [`${prefix}_date`]: serializeAuthorLifeDate(date),
+    [`${prefix}_year`]: date?.year ?? null,
+    [`${prefix}_era`]: date?.era ?? 'ce',
+    [`${prefix}_month`]: date?.month ?? null,
+    [`${prefix}_day`]: date?.day ?? null,
+    [`${prefix}_is_approximate`]: date?.approximate ?? false,
+    [`${prefix}_calendar`]: date?.calendar ?? 'gregorian-proleptic',
   }
 }
 

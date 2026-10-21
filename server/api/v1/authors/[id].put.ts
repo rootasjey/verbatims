@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateAuthorSchema } from '../../../validation/schemas'
+import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
 import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
@@ -23,8 +24,20 @@ defineRouteMeta({
               job: { type: 'string', nullable: true },
               description: { type: 'string', nullable: true },
               birth_date: { type: 'string', nullable: true },
+              birth_year: { type: 'integer', nullable: true },
+              birth_era: { type: 'string', enum: ['bce', 'ce'] },
+              birth_month: { type: 'integer', nullable: true },
+              birth_day: { type: 'integer', nullable: true },
+              birth_is_approximate: { type: 'boolean' },
+              birth_calendar: { type: 'string' },
               birth_location: { type: 'string', nullable: true },
               death_date: { type: 'string', nullable: true },
+              death_year: { type: 'integer', nullable: true },
+              death_era: { type: 'string', enum: ['bce', 'ce'] },
+              death_month: { type: 'integer', nullable: true },
+              death_day: { type: 'integer', nullable: true },
+              death_is_approximate: { type: 'boolean' },
+              death_calendar: { type: 'string' },
               death_location: { type: 'string', nullable: true },
               image_url: { type: 'string', nullable: true },
               socials: { type: 'object', additionalProperties: { type: 'string' }, nullable: true },
@@ -73,9 +86,9 @@ export default defineEventHandler(async (event) => {
   const updateData: Record<string, any> = { updatedAt: sql`CURRENT_TIMESTAMP` }
   if (body.name !== undefined) updateData.name = body.name
   if (body.is_fictional !== undefined) updateData.isFictional = body.is_fictional
-  if (body.birth_date !== undefined) updateData.birthDate = body.birth_date
+  Object.assign(updateData, authorLifeDateColumnsFromInput('birth', body as Record<string, unknown>, existingAuthor as unknown as Record<string, unknown>))
   if (body.birth_location !== undefined) updateData.birthLocation = body.birth_location
-  if (body.death_date !== undefined) updateData.deathDate = body.death_date
+  Object.assign(updateData, authorLifeDateColumnsFromInput('death', body as Record<string, unknown>, existingAuthor as unknown as Record<string, unknown>))
   if (body.death_location !== undefined) updateData.deathLocation = body.death_location
   if (body.job !== undefined) updateData.job = body.job
   if (body.description !== undefined) updateData.description = body.description
@@ -122,6 +135,18 @@ export default defineEventHandler(async (event) => {
       dates: {
         birth: updated.birthDate,
         death: updated.deathDate,
+        birth_year: updated.birthYear,
+        birth_era: updated.birthEra,
+        birth_month: updated.birthMonth,
+        birth_day: updated.birthDay,
+        birth_is_approximate: updated.birthIsApproximate,
+        birth_calendar: updated.birthCalendar,
+        death_year: updated.deathYear,
+        death_era: updated.deathEra,
+        death_month: updated.deathMonth,
+        death_day: updated.deathDay,
+        death_is_approximate: updated.deathIsApproximate,
+        death_calendar: updated.deathCalendar,
         birth_location: updated.birthLocation,
         death_location: updated.deathLocation,
       },

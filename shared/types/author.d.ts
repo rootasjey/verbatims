@@ -50,12 +50,24 @@ export interface Author {
   
   /** Birth date in YYYY-MM-DD format */
   birth_date?: string;
+  birth_year?: number | null;
+  birth_era?: 'bce' | 'ce';
+  birth_month?: number | null;
+  birth_day?: number | null;
+  birth_is_approximate?: boolean;
+  birth_calendar?: string;
   
   /** Location where the author was born */
   birth_location?: string;
   
   /** Death date in YYYY-MM-DD format (null if still alive) */
   death_date?: string;
+  death_year?: number | null;
+  death_era?: 'bce' | 'ce';
+  death_month?: number | null;
+  death_day?: number | null;
+  death_is_approximate?: boolean;
+  death_calendar?: string;
   
   /** Location where the author died */
   death_location?: string;
@@ -126,8 +138,20 @@ export interface CreateAuthorData {
   name: string;
   is_fictional?: boolean;
   birth_date?: string | null;
+  birth_year?: number | null;
+  birth_era?: 'bce' | 'ce';
+  birth_month?: number | null;
+  birth_day?: number | null;
+  birth_is_approximate?: boolean;
+  birth_calendar?: string;
   birth_location?: string | null;
   death_date?: string | null;
+  death_year?: number | null;
+  death_era?: 'bce' | 'ce';
+  death_month?: number | null;
+  death_day?: number | null;
+  death_is_approximate?: boolean;
+  death_calendar?: string;
   death_location?: string | null;
   job?: string | null;
   description?: string | null;
