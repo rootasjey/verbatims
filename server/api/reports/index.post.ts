@@ -20,7 +20,9 @@ export default defineEventHandler(async (event) => {
 
   // Normalize optional fields
   const imageReport = body.theme_image_report
-  const category = imageReport ? 'content' : body.category
+  const entityImageReport = body.entity_image_report
+  if (imageReport && entityImageReport) throwServer(400, 'Only one image target can be reported at a time')
+  const category = imageReport || entityImageReport ? 'content' : body.category
   const message = body.message.trim().slice(0, 4000)
   const tagsJson = JSON.stringify(body.tags || [])
   let targetType = body.target_type || 'general'
@@ -57,6 +59,27 @@ export default defineEventHandler(async (event) => {
     reportedImageUrl = sourceUrl
   }
 
+  if (entityImageReport) {
+    const { subject, target_type: entityType, target_id: entityId } = entityImageReport
+    const allowedSubjects: ImageReportSubject[] = ['image_rights', 'image_credit', 'image_removal', 'image_other']
+    if (!allowedSubjects.includes(subject) || !['author', 'reference'].includes(entityType) || !Number.isInteger(entityId) || entityId <= 0) {
+      throwServer(400, 'Invalid entity image report')
+    }
+
+    const [entity] = entityType === 'author'
+      ? await db.select({ id: schema.authors.id, imageUrl: schema.authors.imageUrl }).from(schema.authors).where(eq(schema.authors.id, entityId)).limit(1)
+      : await db.select({ id: schema.quoteReferences.id, imageUrl: schema.quoteReferences.imageUrl }).from(schema.quoteReferences).where(eq(schema.quoteReferences.id, entityId)).limit(1)
+
+    if (!entity) throwServer(404, `${entityType} not found`)
+    if (!entity.imageUrl) throwServer(400, 'The selected entity image is unavailable')
+
+    targetType = entityType
+    targetId = entity.id
+    themeId = null
+    imageVariant = null
+    reportedImageUrl = entity.imageUrl
+  }
+
   // For anonymous users, require at least one of name/email and rate limit by IP
   const userId = session.user?.id ?? null
   const name = userId ? null : (body.name?.trim() || null)
@@ -86,7 +109,11 @@ export default defineEventHandler(async (event) => {
       gt(schema.userMessages.createdAt, duplicateWindowStart),
       themeId ? eq(schema.userMessages.themeId, themeId) : isNull(schema.userMessages.themeId),
       imageVariant ? eq(schema.userMessages.imageVariant, imageVariant) : isNull(schema.userMessages.imageVariant),
-      imageReport ? eq(schema.userMessages.subject, imageReport.subject) : isNull(schema.userMessages.subject)
+      imageReport || entityImageReport ? eq(schema.userMessages.subject, imageReport?.subject ?? entityImageReport!.subject) : isNull(schema.userMessages.subject),
+      ...(entityImageReport ? [
+        eq(schema.userMessages.targetType, entityImageReport.target_type),
+        eq(schema.userMessages.targetId, entityImageReport.target_id)
+      ] : [])
     ]
     const [duplicate] = await db.select({ id: schema.userMessages.id })
       .from(schema.userMessages)

@@ -19,11 +19,11 @@
       </NButton>
     </template>
     <template #header-title>
-      <div v-if="imageReport" class="min-w-0">
+      <div v-if="imageReport || entityImageReport" class="min-w-0">
         <p class="font-serif text-xl font-300 text-gray-900 dark:text-gray-100">
           {{ $t('components.dialogs.image_report_title') }}
         </p>
-        <p class="mt-1 font-sans text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+        <p v-if="imageReport" class="mt-1 font-sans text-xs leading-relaxed text-gray-500 dark:text-gray-400">
           {{ $t('components.dialogs.image_report_context', { variant: String($t(`components.dialogs.image_report_variant_${imageReport.imageVariant}`)) }) }}
         </p>
       </div>
@@ -41,7 +41,7 @@
 
     <form ref="reportFormRef" class="mx-auto max-w-xl space-y-5 px-2 font-sans" @submit.prevent="onSubmit" @keydown.ctrl.enter.prevent="onSubmit" @keydown.meta.enter.prevent="onSubmit">
       <NSelect
-        v-if="imageReport"
+        v-if="imageReport || entityImageReport"
         v-model="form.imageReportSubject"
         :items="imageReportSubjects"
         item-key="label"
@@ -113,6 +113,7 @@ interface Props {
   targetId?: number
   category?: ReportCategory
   imageReport?: { themeId: number; imageVariant: ThemeImageVariant }
+  entityImageReport?: { targetType: EntityImageReportTargetType; targetId: number }
 }
 
 interface Emits {
@@ -124,7 +125,8 @@ const props = withDefaults(defineProps<Props>(), {
   targetType: 'general',
   targetId: undefined,
   category: undefined,
-  imageReport: undefined
+  imageReport: undefined,
+  entityImageReport: undefined
 })
 
 const emit = defineEmits<Emits>()
@@ -153,24 +155,26 @@ const {
 } = useReportForm({
   targetType: computed(() => props.targetType),
   targetId: computed(() => props.targetId),
-  imageReport: computed(() => props.imageReport ?? null)
+  imageReport: computed(() => props.imageReport ?? null),
+  entityImageReport: computed(() => props.entityImageReport ?? null)
 })
 
 watch(
   () => isOpen.value,
   (open) => {
     if (!open) return
-    const category = props.imageReport ? 'content' : props.category ?? 'bug'
+    const category = props.imageReport || props.entityImageReport ? 'content' : props.category ?? 'bug'
     const found = categories.value.find(item => item.value === category)
     if (found) form.value.category = found
   }
 )
 
 const categoryValue = computed(() => form.value.category?.value ?? 'bug')
-const title = computed(() => props.imageReport ? String($t('components.dialogs.image_report_title')) : titleFor(props.targetType, categoryValue.value))
-const submitText = computed(() => String($t(props.imageReport ? 'components.dialogs.report_submit' : categoryValue.value === 'content' ? 'components.dialogs.report_suggest_submit' : 'components.dialogs.report_submit')))
-const messagePlaceholder = computed(() => String($t(props.imageReport ? 'components.dialogs.image_report_placeholder' : categoryValue.value === 'bug' ? 'components.dialogs.report_placeholder_bug' : categoryValue.value === 'content' ? 'components.dialogs.report_placeholder_content' : 'components.dialogs.report_placeholder_message')))
-const messageHint = computed(() => String($t(props.imageReport ? 'components.dialogs.image_report_hint' : categoryValue.value === 'bug' ? 'components.dialogs.report_bug_hint' : categoryValue.value === 'content' ? 'components.dialogs.report_content_hint' : 'components.dialogs.report_message_hint')))
+const isImageReport = computed(() => !!(props.imageReport || props.entityImageReport))
+const title = computed(() => isImageReport.value ? String($t('components.dialogs.image_report_title')) : titleFor(props.targetType, categoryValue.value))
+const submitText = computed(() => String($t(isImageReport.value ? 'components.dialogs.report_submit' : categoryValue.value === 'content' ? 'components.dialogs.report_suggest_submit' : 'components.dialogs.report_submit')))
+const messagePlaceholder = computed(() => String($t(isImageReport.value ? 'components.dialogs.image_report_placeholder' : categoryValue.value === 'bug' ? 'components.dialogs.report_placeholder_bug' : categoryValue.value === 'content' ? 'components.dialogs.report_placeholder_content' : 'components.dialogs.report_placeholder_message')))
+const messageHint = computed(() => String($t(isImageReport.value ? 'components.dialogs.image_report_hint' : categoryValue.value === 'bug' ? 'components.dialogs.report_bug_hint' : categoryValue.value === 'content' ? 'components.dialogs.report_content_hint' : 'components.dialogs.report_message_hint')))
 
 const close = () => { isOpen.value = false; reset() }
 
