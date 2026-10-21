@@ -18,6 +18,13 @@ export default defineEventHandler(async (event) => {
       imageLicense: String(body?.image_license || '').trim() || null,
       imageDate: String(body?.image_date || '').trim() || null,
       imageLocation: String(body?.image_location || '').trim() || null,
+      mobileImageUrl: String(body?.mobile_image_url || '').trim() || null,
+      mobileImageAlt: String(body?.mobile_image_alt || '').trim() || null,
+      mobileImageCredit: String(body?.mobile_image_credit || '').trim() || null,
+      mobileImageSourceUrl: String(body?.mobile_image_source_url || '').trim() || null,
+      mobileImageLicense: String(body?.mobile_image_license || '').trim() || null,
+      mobileImageDate: String(body?.mobile_image_date || '').trim() || null,
+      mobileImageLocation: String(body?.mobile_image_location || '').trim() || null,
     }
     const translations = Array.isArray(body?.translations) ? body.translations : []
     const isActive = body?.is_active === true

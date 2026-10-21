@@ -46,6 +46,8 @@
   "dialog_desc_label": "Description",
   "dialog_colors": "Couleurs du thème",
   "dialog_theme_image": "Image de couverture et attribution",
+  "dialog_mobile_theme_image": "Variante mobile et attribution (facultative)",
+  "dialog_mobile_image_url_placeholder": "URL de l’image mobile ; l’image bureau sera utilisée sinon",
   "dialog_image_alt": "Description de l’image",
   "dialog_image_alt_placeholder": "Décrire l’image pour les lecteurs d’écran",
   "dialog_image_credit": "Créateur ou organisme",
