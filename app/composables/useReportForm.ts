@@ -4,6 +4,7 @@ interface UseReportFormOptions {
   targetType?: ReportTargetType | Ref<ReportTargetType>
   targetId?: number | null | undefined | Ref<number | null | undefined>
   imageReport?: Ref<{ themeId: number; imageVariant: ThemeImageVariant } | null>
+  entityImageReport?: Ref<{ targetType: EntityImageReportTargetType; targetId: number } | null>
 }
 
 export function useReportForm(options: UseReportFormOptions = {}) {
@@ -38,6 +39,7 @@ export function useReportForm(options: UseReportFormOptions = {}) {
 
   const canSubmit = computed(() => form.value.message.trim().length >= 10
     && (isAuthenticated.value || !!form.value.name.trim() || !!form.value.email.trim()))
+  const hasImageReport = computed(() => !!options.imageReport?.value || !!options.entityImageReport?.value)
 
   const reset = () => {
     form.value = { category: categories.value[0], imageReportSubject: imageReportSubjects.value[0]!, name: '', email: '', message: '' }
@@ -66,7 +68,7 @@ export function useReportForm(options: UseReportFormOptions = {}) {
     const targetId = (unref(options.targetId) ?? null) as number | null
 
     const payload: any = {
-      category: (options.imageReport?.value ? 'content' : form.value.category?.value ?? categories.value[0]!.value) as ReportCategory,
+      category: (hasImageReport.value ? 'content' : form.value.category?.value ?? categories.value[0]!.value) as ReportCategory,
       message: form.value.message.trim(),
       target_type: targetType,
       target_id: targetId
@@ -77,6 +79,12 @@ export function useReportForm(options: UseReportFormOptions = {}) {
         subject: form.value.imageReportSubject.value,
         theme_id: options.imageReport.value.themeId,
         image_variant: options.imageReport.value.imageVariant
+      }
+    } else if (options.entityImageReport?.value) {
+      payload.entity_image_report = {
+        subject: form.value.imageReportSubject.value,
+        target_type: options.entityImageReport.value.targetType,
+        target_id: options.entityImageReport.value.targetId
       }
     }
 

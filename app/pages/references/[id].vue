@@ -76,6 +76,9 @@
               :license="reference.image_license"
               :date="reference.image_date"
               :location="reference.image_location"
+              reportable
+              :report-label="String($t('home.report_image'))"
+              @report="showImageReportDialog = true"
             />
             <div
               v-else
@@ -363,6 +366,19 @@
         v-model="showReportDialog"
         targetType="reference"
         :targetId="reference.id"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <ReportDialog
+        v-if="reference && !isMobile"
+        v-model="showImageReportDialog"
+        :entity-image-report="{ targetType: 'reference', targetId: reference.id }"
+      />
+      <ReportDrawer
+        v-else-if="reference"
+        v-model:open="showImageReportDialog"
+        :entity-image-report="{ targetType: 'reference', targetId: reference.id }"
       />
     </ClientOnly>
   </div>
@@ -830,6 +846,7 @@ onBeforeRouteLeave((to) => {
 
 const showReportDialog = ref(false)
 const reportReference = () => { showReportDialog.value = true }
+const showImageReportDialog = ref(false)
 
 // Global keyboard shortcuts for reference page (single letters)
 // Ignored when a modifier key is held so native browser shortcuts continue to work

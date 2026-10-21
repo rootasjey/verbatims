@@ -2,8 +2,10 @@ export type ReportCategory = 'bug' | 'feature' | 'feedback' | 'content' | 'other
 export type ReportTargetType = 'general' | 'quote' | 'author' | 'reference'
 export type AdminReportTargetType = ReportTargetType | 'theme'
 export type ReportStatus = 'new' | 'triaged' | 'spam' | 'resolved'
-export type ThemeImageReportSubject = 'image_rights' | 'image_credit' | 'image_removal' | 'image_other'
+export type ImageReportSubject = 'image_rights' | 'image_credit' | 'image_removal' | 'image_other'
+export type ThemeImageReportSubject = ImageReportSubject
 export type ThemeImageVariant = 'desktop' | 'mobile'
+export type EntityImageReportTargetType = 'author' | 'reference'
 
 export interface UserMessage {
   id: number
@@ -36,9 +38,14 @@ export interface CreateUserMessageInput {
   target_type?: ReportTargetType
   target_id?: number | null
   theme_image_report?: {
-    subject: ThemeImageReportSubject
+    subject: ImageReportSubject
     theme_id: number
     image_variant: ThemeImageVariant
+  }
+  entity_image_report?: {
+    subject: ImageReportSubject
+    target_type: EntityImageReportTargetType
+    target_id: number
   }
 }
 

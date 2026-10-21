@@ -140,6 +140,9 @@
                 :license="author.image_license"
                 :date="author.image_date"
                 :location="author.image_location"
+                reportable
+                :report-label="String($t('home.report_image'))"
+                @report="showImageReportDialog = true"
               />
             </div>
           </div>
@@ -298,6 +301,19 @@
         v-model="showReportDialog"
         targetType="author"
         :targetId="author.id"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <ReportDialog
+        v-if="author && !isMobile"
+        v-model="showImageReportDialog"
+        :entity-image-report="{ targetType: 'author', targetId: author.id }"
+      />
+      <ReportDrawer
+        v-else-if="author"
+        v-model:open="showImageReportDialog"
+        :entity-image-report="{ targetType: 'author', targetId: author.id }"
       />
     </ClientOnly>
 
@@ -855,6 +871,7 @@ onBeforeRouteLeave((to) => {
 
 const showReportDialog = ref(false)
 const reportAuthor = () => { showReportDialog.value = true }
+const showImageReportDialog = ref(false)
 
 const formatLifeDates = (author: Pick<Author, 'birth_date' | 'birth_year' | 'birth_era' | 'birth_month' | 'birth_day' | 'birth_is_approximate' | 'birth_calendar' | 'death_date' | 'death_year' | 'death_era' | 'death_month' | 'death_day' | 'death_is_approximate' | 'death_calendar'>): string => {
   const birth = authorLifeDateFromFields({ year: author.birth_year, era: author.birth_era, month: author.birth_month, day: author.birth_day, approximate: author.birth_is_approximate, calendar: author.birth_calendar, legacy: author.birth_date })
