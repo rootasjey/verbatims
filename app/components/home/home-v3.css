@@ -1,4 +1,6 @@
 /* Shared visual language for the Homepage V3 desktop and mobile feeds. */
+@layer app;
+
 .homepage-v3-page {
   background-color: #f7f5ef;
 }
@@ -164,6 +166,13 @@
   max-width: 42rem;
   overflow: hidden;
   transition: opacity 160ms ease, transform 200ms ease;
+}
+@layer app {
+  .homepage-v3-image-credit-content {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
 }
 .homepage-v3-cover--with-image .homepage-v3-image-credit--collapsed { clip-path: inset(0 calc(100% - 3.5rem) 0 0 round 9999px); }
 .homepage-v3-image-credit--collapsed .homepage-v3-image-credit-content { opacity: 0; transform: translateX(-0.35rem); }
