@@ -30,6 +30,13 @@ export interface Theme {
   image_license: string | null
   image_date: string | null
   image_location: string | null
+  mobile_image_url: string | null
+  mobile_image_alt: string | null
+  mobile_image_credit: string | null
+  mobile_image_source_url: string | null
+  mobile_image_license: string | null
+  mobile_image_date: string | null
+  mobile_image_location: string | null
   config: Record<string, any> | null
   is_active: boolean
   is_default: boolean
@@ -71,6 +78,13 @@ export interface CreateThemeData {
   image_license?: string | null
   image_date?: string | null
   image_location?: string | null
+  mobile_image_url?: string | null
+  mobile_image_alt?: string | null
+  mobile_image_credit?: string | null
+  mobile_image_source_url?: string | null
+  mobile_image_license?: string | null
+  mobile_image_date?: string | null
+  mobile_image_location?: string | null
   config?: Record<string, any>
   is_active?: boolean
   is_default?: boolean

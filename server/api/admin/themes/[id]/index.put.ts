@@ -53,6 +53,13 @@ export default defineEventHandler(async (event) => {
       ['image_license', 'imageLicense'],
       ['image_date', 'imageDate'],
       ['image_location', 'imageLocation'],
+      ['mobile_image_url', 'mobileImageUrl'],
+      ['mobile_image_alt', 'mobileImageAlt'],
+      ['mobile_image_credit', 'mobileImageCredit'],
+      ['mobile_image_source_url', 'mobileImageSourceUrl'],
+      ['mobile_image_license', 'mobileImageLicense'],
+      ['mobile_image_date', 'mobileImageDate'],
+      ['mobile_image_location', 'mobileImageLocation'],
     ] as const) {
       if (body[bodyKey] !== undefined) {
         updates[schemaKey] = typeof body[bodyKey] === 'string' ? body[bodyKey].trim() || null : null

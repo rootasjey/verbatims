@@ -6,7 +6,9 @@
       <div class="w-full">
         <!-- Featured quote (Philosophy section) -->
         <div class="homepage-v3-cover mb-4 rounded-2xl px-6 py-16 lg:px-10 lg:py-24 shadow-sm" :class="{ 'homepage-v3-cover--with-image': props.theme?.image_url }" @mousemove="trackCoverPointer" @mouseleave="resetCoverPointer">
-            <img v-if="props.theme?.image_url" class="homepage-v3-cover-image" :src="props.theme.image_url" :alt="props.theme.image_alt || ''" />
+            <picture v-if="props.theme?.image_url" class="homepage-v3-cover-image">
+              <img :src="props.theme.image_url" :alt="props.theme.image_alt || ''" class="homepage-v3-cover-image-content" />
+            </picture>
             <div v-if="props.theme?.image_url" class="homepage-v3-cover-image-overlay" aria-hidden="true" />
             <template v-if="featuredQuote">
               <NuxtLink
@@ -14,7 +16,14 @@
                 class="homepage-v3-quote block group"
               >
                 <h2 :class="['font-serif font-300 text-gray-900 dark:text-gray-100 leading-tight break-words wrap-anywhere mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors', coverQuoteClass(featuredQuote.name)]">
-                  {{ featuredQuote.name }}
+                  <template v-for="(part, index) in featuredQuoteParts" :key="`${index}-${part.text}`">
+                    <span
+                      v-if="part.isWord"
+                      class="homepage-v3-quote-word"
+                      :style="{ '--quote-word-index': part.wordIndex }"
+                    >{{ part.text }}</span>
+                    <span v-else>{{ part.text }}</span>
+                  </template>
                 </h2>
               </NuxtLink>
               <div class="homepage-v3-author mt-8 flex flex-col items-center gap-2">
@@ -55,12 +64,29 @@
                     </p>
                   </div>
                 </template>
-            <p v-if="props.theme?.image_credit" class="homepage-v3-image-credit">
-              <span>{{ $t('home.image_credit_prefix') }} </span>
-              <a v-if="props.theme.image_source_url" :href="props.theme.image_source_url" target="_blank" rel="noreferrer noopener">{{ props.theme.image_credit }}</a>
-              <span v-else>{{ props.theme.image_credit }}</span>
-              <span v-if="props.theme.image_license"> · {{ props.theme.image_license }}</span>
-            </p>
+              </div>
+              <div
+                v-if="props.theme?.image_credit"
+                class="homepage-v3-image-credit"
+                :class="{ 'homepage-v3-image-credit--collapsed': !imageCreditExpanded }"
+              >
+                <NTooltip :content="String($t(imageCreditExpanded ? 'home.collapse_image_credit' : 'home.expand_image_credit'))">
+                  <button
+                    type="button"
+                    class="homepage-v3-image-credit-toggle"
+                    :aria-label="String($t(imageCreditExpanded ? 'home.collapse_image_credit' : 'home.expand_image_credit'))"
+                    :aria-expanded="imageCreditExpanded"
+                    @click.stop="imageCreditExpanded = !imageCreditExpanded"
+                  >
+                    <NIcon name="i-tabler-info-square-rounded" class="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </NTooltip>
+                <div class="homepage-v3-image-credit-content" :aria-hidden="!imageCreditExpanded" :inert="!imageCreditExpanded">
+                  <span>{{ $t('home.image_credit_prefix') }} </span>
+                  <a v-if="props.theme.image_source_url" :href="props.theme.image_source_url" target="_blank" rel="noreferrer noopener">{{ props.theme.image_credit }}</a>
+                  <span v-else>{{ props.theme.image_credit }}</span>
+                  <span v-if="props.theme.image_license"> · {{ props.theme.image_license }}</span>
+                </div>
               </div>
             </template>
             <div v-else-if="feed.initialLoading.value" class="w-full max-w-[960px] space-y-5 animate-pulse" aria-hidden="true">
@@ -299,6 +325,13 @@ interface Props {
     image_license: string | null
     image_date: string | null
     image_location: string | null
+    mobile_image_url: string | null
+    mobile_image_alt: string | null
+    mobile_image_credit: string | null
+    mobile_image_source_url: string | null
+    mobile_image_license: string | null
+    mobile_image_date: string | null
+    mobile_image_location: string | null
     config: Record<string, any> | null
     home_copy?: Record<string, string> | null
   } | null
@@ -321,6 +354,7 @@ const homeCopy = computed(() => ({
 
 const showSearch = ref(false)
 const hasScrolled = ref(false)
+const imageCreditExpanded = ref(true)
 const authorsCarousel = ref<HTMLElement | null>(null)
 const authorsAtStart = ref(true)
 const authorsAtEnd = ref(false)
@@ -358,6 +392,19 @@ const showReportDialog = ref(false)
 const featuredQuote = computed(() => {
   const quotes = props.feed.quotes.value || []
   return quotes[0] || null
+})
+
+const featuredQuoteParts = computed(() => {
+  const name = featuredQuote.value?.name
+  if (!name) return []
+
+  let wordIndex = 0
+  return (name.match(/\s+|\S+/gu) || []).map((text) => {
+    const isWord = /\S/u.test(text)
+    const currentWordIndex = wordIndex
+    if (isWord) wordIndex += 1
+    return { text, isWord, wordIndex: currentWordIndex }
+  })
 })
 
 const copyFeaturedQuote = async () => {

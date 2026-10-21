@@ -218,6 +218,13 @@
       "when": 1792540800000,
       "tag": "0042_add_author_reference_translations",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1792600000000,
+      "tag": "0043_add_mobile_theme_image_attribution",
+      "breakpoints": true
     }
   ]
 }

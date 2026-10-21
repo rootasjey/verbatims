@@ -14,6 +14,13 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
   image_license: string | null
   image_date: string | null
   image_location: string | null
+  mobile_image_url: string | null
+  mobile_image_alt: string | null
+  mobile_image_credit: string | null
+  mobile_image_source_url: string | null
+  mobile_image_license: string | null
+  mobile_image_date: string | null
+  mobile_image_location: string | null
   config: Record<string, any> | null
   home_copy: ThemeHomeCopy | null
   filters_count: number
@@ -79,6 +86,13 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
         image_license: theme.imageLicense,
         image_date: theme.imageDate,
         image_location: theme.imageLocation,
+        mobile_image_url: theme.mobileImageUrl,
+        mobile_image_alt: theme.mobileImageAlt,
+        mobile_image_credit: theme.mobileImageCredit,
+        mobile_image_source_url: theme.mobileImageSourceUrl,
+        mobile_image_license: theme.mobileImageLicense,
+        mobile_image_date: theme.mobileImageDate,
+        mobile_image_location: theme.mobileImageLocation,
         config,
         home_copy: parseThemeHomeCopy(localizedTranslation?.home_copy),
         filters_count: filters.length,

@@ -414,6 +414,44 @@
                         <NInput v-model="form.image_location" :placeholder="$t('dialog_image_location_placeholder') as string" :disabled="submitting" />
                       </div>
                     </div>
+                    <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
+                      <h5 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_mobile_theme_image') }}</h5>
+                      <div class="space-y-4">
+                        <div>
+                          <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_url') }}</label>
+                          <NInput v-model="form.mobile_image_url" :placeholder="$t('dialog_mobile_image_url_placeholder') as string" :disabled="submitting" />
+                        </div>
+                        <div v-if="form.mobile_image_url" class="mx-auto h-64 w-36 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                          <img :src="form.mobile_image_url" :alt="form.mobile_image_alt || ''" class="h-full w-full object-cover" />
+                        </div>
+                        <div>
+                          <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_alt') }}</label>
+                          <NInput v-model="form.mobile_image_alt" :placeholder="$t('dialog_image_alt_placeholder') as string" :disabled="submitting" />
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_credit') }}</label>
+                            <NInput v-model="form.mobile_image_credit" :placeholder="$t('dialog_image_credit_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_license') }}</label>
+                            <NInput v-model="form.mobile_image_license" :placeholder="$t('dialog_image_license_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <div class="sm:col-span-2">
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_source_url') }}</label>
+                            <NInput v-model="form.mobile_image_source_url" :placeholder="$t('dialog_image_source_url_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_date') }}</label>
+                            <NInput v-model="form.mobile_image_date" :placeholder="$t('dialog_image_date_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_location') }}</label>
+                            <NInput v-model="form.mobile_image_location" :placeholder="$t('dialog_image_location_placeholder') as string" :disabled="submitting" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-6">
@@ -1199,6 +1237,13 @@ const form = ref({
   image_license: '',
   image_date: '',
   image_location: '',
+  mobile_image_url: '',
+  mobile_image_alt: '',
+  mobile_image_credit: '',
+  mobile_image_source_url: '',
+  mobile_image_license: '',
+  mobile_image_date: '',
+  mobile_image_location: '',
   language: '',
   is_active: false,
   is_default: false,
@@ -1404,6 +1449,13 @@ const duplicateTheme = async (theme: any) => {
       image_license: data.imageLicense || '',
       image_date: data.imageDate || '',
       image_location: data.imageLocation || '',
+      mobile_image_url: data.mobileImageUrl || '',
+      mobile_image_alt: data.mobileImageAlt || '',
+      mobile_image_credit: data.mobileImageCredit || '',
+      mobile_image_source_url: data.mobileImageSourceUrl || '',
+      mobile_image_license: data.mobileImageLicense || '',
+      mobile_image_date: data.mobileImageDate || '',
+      mobile_image_location: data.mobileImageLocation || '',
       language: data.language || '',
       is_active: false,
       is_default: false,
@@ -1548,7 +1600,7 @@ const removeTranslation = (idx: number) => {
 }
 
 const resetForm = () => {
-  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
+  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
@@ -1596,6 +1648,13 @@ const openEdit = async (theme: any) => {
       image_license: data.imageLicense || '',
       image_date: data.imageDate || '',
       image_location: data.imageLocation || '',
+      mobile_image_url: data.mobileImageUrl || '',
+      mobile_image_alt: data.mobileImageAlt || '',
+      mobile_image_credit: data.mobileImageCredit || '',
+      mobile_image_source_url: data.mobileImageSourceUrl || '',
+      mobile_image_license: data.mobileImageLicense || '',
+      mobile_image_date: data.mobileImageDate || '',
+      mobile_image_location: data.mobileImageLocation || '',
       language: data.language || '',
       is_active: data.isActive || false,
       is_default: data.isDefault || false,
@@ -1994,6 +2053,13 @@ const saveTheme = async () => {
       image_license: form.value.image_license.trim() || null,
       image_date: form.value.image_date.trim() || null,
       image_location: form.value.image_location.trim() || null,
+      mobile_image_url: form.value.mobile_image_url.trim() || null,
+      mobile_image_alt: form.value.mobile_image_alt.trim() || null,
+      mobile_image_credit: form.value.mobile_image_credit.trim() || null,
+      mobile_image_source_url: form.value.mobile_image_source_url.trim() || null,
+      mobile_image_license: form.value.mobile_image_license.trim() || null,
+      mobile_image_date: form.value.mobile_image_date.trim() || null,
+      mobile_image_location: form.value.mobile_image_location.trim() || null,
       language: form.value.language || null,
       translations: translations.value
         .filter(t => t.language && t.name.trim())

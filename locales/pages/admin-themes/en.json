@@ -46,6 +46,8 @@
   "dialog_desc_label": "Description",
   "dialog_colors": "Theme Colors",
   "dialog_theme_image": "Theme hero image and attribution",
+  "dialog_mobile_theme_image": "Mobile image and attribution (optional)",
+  "dialog_mobile_image_url_placeholder": "Mobile image URL; desktop image is used when empty",
   "dialog_image_alt": "Image description",
   "dialog_image_alt_placeholder": "Describe the image for screen readers",
   "dialog_image_credit": "Creator or organization",
