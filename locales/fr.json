@@ -810,6 +810,11 @@
       "shares": "Partages"
     },
     "dialogs": {
+      "author_sections": "Sections de l’auteur",
+      "author_tab_profile": "Profil",
+      "author_tab_image": "Portrait et crédits",
+      "author_tab_translations": "Traductions",
+      "translation_languages": "Langue de traduction",
       "translations_title": "Contenu localisé",
       "translations_hint": "Ajoutez les textes en français et en anglais. Un champ vide utilise la valeur principale.",
       "translation_english": "Anglais",

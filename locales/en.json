@@ -787,6 +787,11 @@
       "shares": "Shares"
     },
     "dialogs": {
+      "author_sections": "Author sections",
+      "author_tab_profile": "Profile",
+      "author_tab_image": "Portrait & credits",
+      "author_tab_translations": "Translations",
+      "translation_languages": "Translation language",
       "translations_title": "Localized content",
       "translations_hint": "Add English and French text. Empty fields use the main value.",
       "translation_english": "English",
