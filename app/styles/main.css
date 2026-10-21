@@ -11,6 +11,11 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Modal scroll locking adds its own body padding even though the root gutter is reserved. */
+body[style*='pointer-events: none'] {
+  padding-right: 0 !important;
+}
+
 body {
   font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;

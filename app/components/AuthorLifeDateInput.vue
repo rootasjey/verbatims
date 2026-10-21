@@ -8,13 +8,23 @@
       </label>
     </div>
     <div class="grid grid-cols-[minmax(5rem,1fr)_minmax(5rem,1fr)] gap-2">
-      <NInput :model-value="date?.year ?? ''" type="number" min="1" max="999999" step="1" inputmode="numeric" :placeholder="$t('components.dialogs.year') as string" :aria-label="$t('components.dialogs.year') as string" :disabled="disabled" @update:model-value="setYear" />
-      <select :value="date?.era ?? 'ce'" :aria-label="$t('components.dialogs.era') as string" :disabled="disabled" class="min-h-10 rounded-lg border border-gray-200 bg-white px-2 text-sm text-gray-800 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" @change="setEra">
-        <option value="ce">{{ $t('components.dialogs.ce') }}</option>
-        <option value="bce">{{ $t('components.dialogs.bce') }}</option>
-      </select>
-      <NInput :model-value="date?.month ?? ''" type="number" min="1" max="12" step="1" inputmode="numeric" placeholder="MM" :aria-label="$t('components.dialogs.month') as string" :disabled="disabled" @update:model-value="setMonth" />
-      <NInput :model-value="date?.day ?? ''" type="number" min="1" max="31" step="1" inputmode="numeric" :placeholder="$t('components.dialogs.day_short') as string" :aria-label="$t('components.dialogs.day') as string" :disabled="disabled" @update:model-value="setDay" />
+      <NNumberField :model-value="date?.year ?? null" number-field="outline-gray" :min="1" :max="999999" :step="1" :disabled="disabled" :_number-field-input="{ ...getInputAttrs(String($t('components.dialogs.year')), String($t('components.dialogs.year'))), class: 'w-full !rounded-lg !text-sm !shadow-sm' }" @update:model-value="setYear" />
+      <NSelect
+        v-model="selectedEra"
+        :items="eraOptions"
+        item-key="label"
+        value-key="label"
+        select="outline-gray"
+        :disabled="disabled"
+        :_select-trigger="{ class: '!h-10 !min-h-10 !w-full !rounded-lg !px-2 !text-sm' }"
+        :_select-content="{ bodyLock: false }"
+      >
+        <template #value="{ modelValue }">
+          <span class="truncate">{{ (modelValue as EraOption)?.label }}</span>
+        </template>
+      </NSelect>
+      <NNumberField :model-value="date?.month ?? null" number-field="outline-gray" :min="1" :max="12" :step="1" :disabled="disabled" :_number-field-input="{ ...getInputAttrs('MM', String($t('components.dialogs.month'))), class: 'w-full !rounded-lg !text-sm !shadow-sm' }" @update:model-value="setMonth" />
+      <NNumberField :model-value="date?.day ?? null" number-field="outline-gray" :min="1" :max="31" :step="1" :disabled="disabled" :_number-field-input="{ ...getInputAttrs(String($t('components.dialogs.day_short')), String($t('components.dialogs.day'))), class: 'w-full !rounded-lg !text-sm !shadow-sm' }" @update:model-value="setDay" />
     </div>
     <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.life_date_hint') }}</p>
   </fieldset>
@@ -25,8 +35,25 @@ import type { AuthorLifeDate, AuthorLifeDateEra } from '#shared/types/author-lif
 
 const props = defineProps<{ modelValue: AuthorLifeDate | null; label: string; disabled?: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: AuthorLifeDate | null] }>()
+const { $t } = useI18n()
 
 const date = computed(() => props.modelValue)
+function getInputAttrs(placeholder: string, ariaLabel: string) {
+  return { placeholder, 'aria-label': ariaLabel }
+}
+interface EraOption {
+  label: string
+  value: AuthorLifeDateEra
+}
+
+const eraOptions = computed<EraOption[]>(() => [
+  { label: String($t('components.dialogs.ce')), value: 'ce' },
+  { label: String($t('components.dialogs.bce')), value: 'bce' },
+])
+const selectedEra = computed<EraOption>({
+  get: () => eraOptions.value.find(option => option.value === (date.value?.era ?? 'ce')) ?? eraOptions.value[0]!,
+  set: option => setEra(option.value),
+})
 const approximate = computed({
   get: () => Boolean(date.value?.approximate),
   set: (value: boolean) => update({ approximate: value }),
@@ -39,8 +66,8 @@ function update(fields: Partial<AuthorLifeDate>) {
   emit('update:modelValue', next.year > 0 ? next : null)
 }
 
-function setYear(value: string | number | undefined) {
-  const year = value === '' || value === undefined ? null : Number(value)
+function setYear(value: number | null) {
+  const year = value
   if (year === null || !Number.isInteger(year) || year < 1) {
     emit('update:modelValue', null)
     return
@@ -48,18 +75,16 @@ function setYear(value: string | number | undefined) {
   update({ year })
 }
 
-function setEra(event: Event) {
-  update({ era: (event.target as HTMLSelectElement).value as AuthorLifeDateEra })
+function setEra(era: AuthorLifeDateEra) {
+  update({ era })
 }
 
-function setMonth(value: string | number | undefined) {
-  const month = value === '' || value === undefined ? undefined : Number(value)
+function setMonth(month: number | null) {
   update({ month: month && month >= 1 && month <= 12 ? month : undefined, day: month ? date.value?.day : undefined })
 }
 
-function setDay(value: string | number | undefined) {
+function setDay(day: number | null) {
   if (!date.value?.month) return
-  const day = value === '' || value === undefined ? undefined : Number(value)
   update({ day: day && day >= 1 && day <= 31 ? day : undefined })
 }
 </script>
