@@ -3,6 +3,7 @@ import type { Ref } from 'vue'
 interface UseReportFormOptions {
   targetType?: ReportTargetType | Ref<ReportTargetType>
   targetId?: number | null | undefined | Ref<number | null | undefined>
+  imageReport?: Ref<{ themeId: number; imageVariant: ThemeImageVariant } | null>
 }
 
 export function useReportForm(options: UseReportFormOptions = {}) {
@@ -18,8 +19,16 @@ export function useReportForm(options: UseReportFormOptions = {}) {
     { label: String($t('components.dialogs.report_category_other')), value: 'other' }
   ])
 
+  const imageReportSubjects = computed<Array<{ label: string; value: ThemeImageReportSubject }>>(() => [
+    { label: String($t('components.dialogs.image_report_reason_rights')), value: 'image_rights' },
+    { label: String($t('components.dialogs.image_report_reason_credit')), value: 'image_credit' },
+    { label: String($t('components.dialogs.image_report_reason_removal')), value: 'image_removal' },
+    { label: String($t('components.dialogs.image_report_reason_other')), value: 'image_other' }
+  ])
+
   const form = ref({
     category: categories.value[0],
+    imageReportSubject: imageReportSubjects.value[0]!,
     name: '',
     email: '',
     message: ''
@@ -31,7 +40,7 @@ export function useReportForm(options: UseReportFormOptions = {}) {
     && (isAuthenticated.value || !!form.value.name.trim() || !!form.value.email.trim()))
 
   const reset = () => {
-    form.value = { category: categories.value[0], name: '', email: '', message: '' }
+    form.value = { category: categories.value[0], imageReportSubject: imageReportSubjects.value[0]!, name: '', email: '', message: '' }
   }
 
   const titleFor = (targetType: ReportTargetType, category: ReportCategory) => {
@@ -57,10 +66,18 @@ export function useReportForm(options: UseReportFormOptions = {}) {
     const targetId = (unref(options.targetId) ?? null) as number | null
 
     const payload: any = {
-      category: (form.value.category?.value ?? categories.value[0]!.value) as ReportCategory,
+      category: (options.imageReport?.value ? 'content' : form.value.category?.value ?? categories.value[0]!.value) as ReportCategory,
       message: form.value.message.trim(),
       target_type: targetType,
       target_id: targetId
+    }
+
+    if (options.imageReport?.value) {
+      payload.theme_image_report = {
+        subject: form.value.imageReportSubject.value,
+        theme_id: options.imageReport.value.themeId,
+        image_variant: options.imageReport.value.imageVariant
+      }
     }
 
     if (!isAuthenticated.value) {
@@ -89,6 +106,7 @@ export function useReportForm(options: UseReportFormOptions = {}) {
   return {
     // state
     categories,
+    imageReportSubjects,
     form,
     pending,
     isAuthenticated,

@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, gt, count, sql } from 'drizzle-orm'
+import { eq, and, gt, count, isNull, sql } from 'drizzle-orm'
 
 const ANON_WINDOW_MINUTES = 10
 const ANON_MAX_PER_WINDOW = 3
@@ -19,11 +19,43 @@ export default defineEventHandler(async (event) => {
   }
 
   // Normalize optional fields
-  const category = body.category
+  const imageReport = body.theme_image_report
+  const category = imageReport ? 'content' : body.category
   const message = body.message.trim().slice(0, 4000)
   const tagsJson = JSON.stringify(body.tags || [])
-  const targetType = body.target_type || 'general'
-  const targetId = body.target_id ?? null
+  let targetType = body.target_type || 'general'
+  let targetId = body.target_id ?? null
+  let themeId: number | null = null
+  let imageVariant: ThemeImageVariant | null = null
+  let reportedImageUrl: string | null = null
+
+  if (imageReport) {
+    const subject = imageReport.subject
+    const allowedSubjects: ThemeImageReportSubject[] = ['image_rights', 'image_credit', 'image_removal', 'image_other']
+    if (!allowedSubjects.includes(subject) || !Number.isInteger(imageReport.theme_id) || imageReport.theme_id <= 0) {
+      throwServer(400, 'Invalid image report')
+    }
+    if (imageReport.image_variant !== 'desktop' && imageReport.image_variant !== 'mobile') {
+      throwServer(400, 'Invalid image variant')
+    }
+
+    const [theme] = await db.select({
+      id: schema.themes.id,
+      imageUrl: schema.themes.imageUrl,
+      mobileImageUrl: schema.themes.mobileImageUrl
+    }).from(schema.themes).where(eq(schema.themes.id, imageReport.theme_id)).limit(1)
+
+    if (!theme) throwServer(404, 'Theme not found')
+
+    const sourceUrl = imageReport.image_variant === 'mobile' ? theme.mobileImageUrl : theme.imageUrl
+    if (!sourceUrl) throwServer(400, 'The selected theme image is unavailable')
+
+    targetType = 'general'
+    targetId = null
+    themeId = theme.id
+    imageVariant = imageReport.image_variant
+    reportedImageUrl = sourceUrl
+  }
 
   // For anonymous users, require at least one of name/email and rate limit by IP
   const userId = session.user?.id ?? null
@@ -48,13 +80,17 @@ export default defineEventHandler(async (event) => {
       return { success: true, data: { status: 'ratelimited' as const } }
     }
 
+    const duplicateConditions = [
+      eq(schema.userMessages.ipAddress, clientIP),
+      eq(schema.userMessages.message, message),
+      gt(schema.userMessages.createdAt, duplicateWindowStart),
+      themeId ? eq(schema.userMessages.themeId, themeId) : isNull(schema.userMessages.themeId),
+      imageVariant ? eq(schema.userMessages.imageVariant, imageVariant) : isNull(schema.userMessages.imageVariant),
+      imageReport ? eq(schema.userMessages.subject, imageReport.subject) : isNull(schema.userMessages.subject)
+    ]
     const [duplicate] = await db.select({ id: schema.userMessages.id })
       .from(schema.userMessages)
-      .where(and(
-        eq(schema.userMessages.ipAddress, clientIP),
-        eq(schema.userMessages.message, message),
-        gt(schema.userMessages.createdAt, duplicateWindowStart)
-      ))
+      .where(and(...duplicateConditions))
       .limit(1)
 
     if (duplicate) {
@@ -83,10 +119,14 @@ export default defineEventHandler(async (event) => {
     name,
     email,
     category,
+    subject: imageReport?.subject ?? null,
     tags: tagsJson,
     message,
     targetType,
     targetId,
+    themeId,
+    imageVariant,
+    reportedImageUrl,
     ipAddress: userId ? null : clientIP,
     userAgent,
     createdAt: new Date()

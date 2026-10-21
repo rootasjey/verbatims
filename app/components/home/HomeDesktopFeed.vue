@@ -66,7 +66,7 @@
                 </template>
               </div>
               <div
-                v-if="props.theme?.image_credit"
+                v-if="props.theme?.image_url"
                 class="homepage-v3-image-credit"
                 :class="{ 'homepage-v3-image-credit--collapsed': !imageCreditExpanded }"
               >
@@ -82,10 +82,21 @@
                   </button>
                 </NTooltip>
                 <div class="homepage-v3-image-credit-content" :aria-hidden="!imageCreditExpanded" :inert="!imageCreditExpanded">
-                  <span>{{ $t('home.image_credit_prefix') }} </span>
-                  <a v-if="props.theme.image_source_url" :href="props.theme.image_source_url" target="_blank" rel="noreferrer noopener">{{ props.theme.image_credit }}</a>
-                  <span v-else>{{ props.theme.image_credit }}</span>
-                  <span v-if="props.theme.image_license"> · {{ props.theme.image_license }}</span>
+                  <template v-if="props.theme.image_credit">
+                    <span>{{ $t('home.image_credit_prefix') }} </span>
+                    <a v-if="props.theme.image_source_url" :href="props.theme.image_source_url" target="_blank" rel="noreferrer noopener">{{ props.theme.image_credit }}</a>
+                    <span v-else>{{ props.theme.image_credit }}</span>
+                    <span v-if="props.theme.image_license"> · {{ props.theme.image_license }}</span>
+                  </template>
+                  <button
+                    v-if="props.theme.id"
+                    type="button"
+                    class="ml-2 inline-flex items-center gap-1 rounded-sm underline decoration-dotted underline-offset-2 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    @click.stop="showImageReportDialog = true"
+                  >
+                    <NIcon name="i-tabler-flag-3" class="h-3.5 w-3.5" aria-hidden="true" />
+                    {{ $t('home.report_image') }}
+                  </button>
                 </div>
               </div>
             </template>
@@ -301,6 +312,7 @@
   <DeleteQuoteDialog v-model="showDeleteQuoteDialog" :quote="selectedQuote as any" @quote-deleted="onQuoteDeleted" />
 
   <ReportDialog v-model="showReportDialog" targetType="quote" :targetId="selectedQuote?.id" />
+  <ReportDialog v-if="imageReportContext" v-model="showImageReportDialog" :image-report="imageReportContext" />
 </template>
 
 <script setup lang="ts">
@@ -315,6 +327,7 @@ interface Props {
   feed: UseHomeFeed
   stats?: { quotes: number; authors: number; references: number }
   theme?: {
+    id: number
     slug: string
     name: string
     description: string | null
@@ -387,6 +400,10 @@ const selectedQuote = ref<ProcessedQuoteResult | null>(null)
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
 const showReportDialog = ref(false)
+const showImageReportDialog = ref(false)
+const imageReportContext = computed(() => props.theme?.id
+  ? { themeId: props.theme.id, imageVariant: 'desktop' as const }
+  : null)
 
 // Extract featured quote (first quote)
 const featuredQuote = computed(() => {

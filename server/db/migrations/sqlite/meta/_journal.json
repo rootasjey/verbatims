@@ -225,6 +225,13 @@
       "when": 1792600000000,
       "tag": "0043_add_mobile_theme_image_attribution",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1792684800000,
+      "tag": "0044_add_theme_image_reports",
+      "breakpoints": true
     }
   ]
 }

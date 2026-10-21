@@ -64,6 +64,15 @@
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
+          <NCombobox
+            v-model="subjectFilter"
+            :items="subjectOptions"
+            by="value"
+            :_combobox-list="{ class: 'min-w-[220px]' }"
+            :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }"
+          >
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
         </div>
       </div>
       <div class="md:hidden mt-4 space-y-2">
@@ -76,6 +85,9 @@
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
           <NCombobox v-model="targetFilter" :items="targetOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+          </NCombobox>
+          <NCombobox v-model="subjectFilter" :items="subjectOptions" by="value" :_combobox-list="{ class: 'min-w-[220px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
         </div>
@@ -92,8 +104,8 @@
     <!-- Empty -->
     <div v-else-if="hasLoadedOnce && messages.length === 0" class="py-16 text-center border border-gray-200 dark:border-gray-800 rounded-xl">
       <NIcon name="i-ph-chat-circle" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery || statusFilter.value || categoryFilter.value || targetFilter.value ? $t('empty_search_title') : $t('empty_title') }}</p>
-      <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery || statusFilter.value || categoryFilter.value || targetFilter.value ? $t('empty_search_desc') : $t('empty_desc') }}</p>
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery || statusFilter.value || categoryFilter.value || targetFilter.value || subjectFilter.value ? $t('empty_search_title') : $t('empty_title') }}</p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery || statusFilter.value || categoryFilter.value || targetFilter.value || subjectFilter.value ? $t('empty_search_desc') : $t('empty_desc') }}</p>
     </div>
 
     <!-- Table -->
@@ -137,8 +149,16 @@
                   <span v-if="msg.user_email || msg.email" class="min-w-0 truncate font-sans text-xs text-gray-500 dark:text-gray-400">{{ msg.user_email || msg.email }}</span>
                 </div>
               </td>
-              <td class="px-3 py-3"><span class="font-sans text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">{{ msg.category }}</span></td>
-              <td class="px-3 py-3"><span class="font-sans text-xs text-gray-700 dark:text-gray-300">{{ formatTarget(msg) }}</span></td>
+              <td class="px-3 py-3">
+                <span class="font-sans text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">{{ msg.category }}</span>
+                <div v-if="msg.subject" class="mt-1 font-sans text-[11px] leading-tight text-gray-500 dark:text-gray-400">{{ $t(`subject_${msg.subject}`) }}</div>
+              </td>
+              <td class="px-3 py-3">
+                <div class="font-sans text-xs text-gray-700 dark:text-gray-300">{{ formatTarget(msg) }}</div>
+                <a v-if="msg.reported_image_url" :href="msg.reported_image_url" target="_blank" rel="noreferrer noopener" class="mt-1 inline-flex items-center gap-1 font-sans text-[11px] text-gray-500 underline decoration-dotted underline-offset-2 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+                  {{ $t('view_reported_image') }} <NIcon name="i-lucide-external-link" class="h-3 w-3" aria-hidden="true" />
+                </a>
+              </td>
               <td class="px-3 py-3">
                 <NCombobox
                   :model-value="getStatusOption(msg.status)"
@@ -243,6 +263,7 @@ const searchQuery = ref('')
 const statusFilter = ref({ label: $t('filter_all_statuses') as string, value: '' })
 const categoryFilter = ref({ label: $t('filter_all_categories') as string, value: '' })
 const targetFilter = ref({ label: $t('filter_all_targets') as string, value: '' })
+const subjectFilter = ref({ label: $t('filter_all_subjects') as string, value: '' })
 
 const statusOptions = computed(() => [
   { label: $t('filter_all_statuses') as string, value: '' },
@@ -257,20 +278,30 @@ const categoryOptions = computed(() => [
 
 const targetOptions = computed(() => [
   { label: $t('filter_all_targets') as string, value: '' }, { label: $t('filter_target_general') as string, value: 'general' }, { label: $t('filter_target_quote') as string, value: 'quote' },
-  { label: $t('filter_target_author') as string, value: 'author' }, { label: $t('filter_target_reference') as string, value: 'reference' }
+  { label: $t('filter_target_author') as string, value: 'author' }, { label: $t('filter_target_reference') as string, value: 'reference' }, { label: $t('filter_target_theme') as string, value: 'theme' }
+])
+
+const subjectOptions = computed(() => [
+  { label: $t('filter_all_subjects') as string, value: '' },
+  { label: $t('subject_image_rights') as string, value: 'image_rights' },
+  { label: $t('subject_image_credit') as string, value: 'image_credit' },
+  { label: $t('subject_image_removal') as string, value: 'image_removal' },
+  { label: $t('subject_image_other') as string, value: 'image_other' }
 ])
 
 useSyncedQueryFilters({
-  keys: ['q', 'status', 'category', 'target'],
+  keys: ['q', 'status', 'category', 'target', 'subject'],
   read: (query) => {
     const status = readSyncedQueryValue(query.status)
     const category = readSyncedQueryValue(query.category)
     const target = readSyncedQueryValue(query.target)
+    const subject = readSyncedQueryValue(query.subject)
     return {
       q: readSyncedQueryValue(query.q),
       status: statusOptions.value.some(option => option.value === status) ? status : '',
       category: categoryOptions.value.some(option => option.value === category) ? category : '',
-      target: targetOptions.value.some(option => option.value === target) ? target : ''
+      target: targetOptions.value.some(option => option.value === target) ? target : '',
+      subject: subjectOptions.value.some(option => option.value === subject) ? subject : ''
     }
   },
   write: (query, state) => ({
@@ -278,14 +309,16 @@ useSyncedQueryFilters({
     q: state.q.trim() || undefined,
     status: state.status || undefined,
     category: state.category || undefined,
-    target: state.target || undefined
+    target: state.target || undefined,
+    subject: state.subject || undefined
   }),
-  get: () => ({ q: searchQuery.value, status: statusFilter.value.value, category: categoryFilter.value.value, target: targetFilter.value.value }),
+  get: () => ({ q: searchQuery.value, status: statusFilter.value.value, category: categoryFilter.value.value, target: targetFilter.value.value, subject: subjectFilter.value.value }),
   apply: (state) => {
     searchQuery.value = state.q
     statusFilter.value = statusOptions.value.find(option => option.value === state.status) ?? statusOptions.value[0]!
     categoryFilter.value = categoryOptions.value.find(option => option.value === state.category) ?? categoryOptions.value[0]!
     targetFilter.value = targetOptions.value.find(option => option.value === state.target) ?? targetOptions.value[0]!
+    subjectFilter.value = subjectOptions.value.find(option => option.value === state.subject) ?? subjectOptions.value[0]!
   },
   onFilterChange: () => { currentPage.value = 1 }
 })
@@ -318,7 +351,7 @@ const toggleAllSelection = (v: boolean | 'indeterminate') => {
 const loadMessages = async (page = 1) => {
   loading.value = true
   try {
-    const params = { page, limit: pageSize.value, status: statusFilter.value?.value, category: categoryFilter.value?.value || undefined, target_type: targetFilter.value?.value || undefined, search: searchQuery.value || undefined }
+    const params = { page, limit: pageSize.value, status: statusFilter.value?.value, category: categoryFilter.value?.value || undefined, target_type: targetFilter.value?.value || undefined, subject: subjectFilter.value?.value || undefined, search: searchQuery.value || undefined }
     const res = await $fetch('/api/admin/messages', { query: params })
     messages.value = res.data || []; totalMessages.value = res.pagination?.total || 0; totalPages.value = res.pagination?.totalPages || 0; pageSize.value = res.pagination?.limit || pageSize.value
     rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight(); currentPage.value = page
@@ -328,7 +361,7 @@ const loadMessages = async (page = 1) => {
 
 const resetFilters = () => {
   searchQuery.value = ''; statusFilter.value = statusOptions.value[0]!
-  categoryFilter.value = categoryOptions.value[0]!; targetFilter.value = targetOptions.value[0]!
+  categoryFilter.value = categoryOptions.value[0]!; targetFilter.value = targetOptions.value[0]!; subjectFilter.value = subjectOptions.value[0]!
   currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 
@@ -364,11 +397,13 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateFooterPosition)
 })
 
-watchDebounced([searchQuery, statusFilter, categoryFilter, targetFilter], () => { currentPage.value = 1; loadMessages(1) }, { debounce: 300 })
+watchDebounced([searchQuery, statusFilter, categoryFilter, targetFilter, subjectFilter], () => { currentPage.value = 1; loadMessages(1) }, { debounce: 300 })
 watch(currentPage, () => { loadMessages(currentPage.value) })
 
 const truncate = (t: string, n: number): string => t?.length > n ? t.slice(0, n) + '\u2026' : t
-const formatTarget = (row: AdminUserMessage) => row.target_type === 'quote' ? `${$t('filter_target_quote')}: ${truncate(row.target_label, 40)}` : row.target_type === 'author' ? `${$t('filter_target_author')}: ${row.target_label}` : row.target_type === 'reference' ? `${$t('filter_target_reference')}: ${row.target_label}` : $t('filter_target_general')
+const formatTarget = (row: AdminUserMessage) => row.target_type === 'theme'
+  ? `${$t('filter_target_theme')}: ${truncate(row.target_label, 40)}${row.image_variant ? ` · ${$t(`image_variant_${row.image_variant}`)}` : ''}`
+  : row.target_type === 'quote' ? `${$t('filter_target_quote')}: ${truncate(row.target_label, 40)}` : row.target_type === 'author' ? `${$t('filter_target_author')}: ${row.target_label}` : row.target_type === 'reference' ? `${$t('filter_target_reference')}: ${row.target_label}` : $t('filter_target_general')
 
 const statusPillClass = (status: string) => {
   switch (status) {
@@ -423,7 +458,7 @@ const statusItems = (row: AdminUserMessage) => ([
 ])
 
 const rowActions = (row: AdminUserMessage) => ([
-  { label: $t('dropdown_copy') as string, leading: 'i-ph-copy', onclick: async () => { const summary = `${$t('label_from')} ${row.user_name || row.name || $t('label_anonymous')} <${row.user_email || row.email || ''}>\nCategory: ${row.category}\nTarget: ${row.target_type}${row.target_label ? ` (${row.target_label})` : ''}\nTags: ${(row.tags || []).join(', ')}\nMessage: ${row.message}`; try { await navigator.clipboard.writeText(summary) } catch {} } },
+  { label: $t('dropdown_copy') as string, leading: 'i-ph-copy', onclick: async () => { const summary = `${$t('label_from')} ${row.user_name || row.name || $t('label_anonymous')} <${row.user_email || row.email || ''}>\nCategory: ${row.category}\nSubject: ${row.subject || ''}\nTarget: ${row.target_type}${row.target_label ? ` (${row.target_label})` : ''}${row.image_variant ? `\nImage variant: ${row.image_variant}\nImage URL: ${row.reported_image_url || ''}` : ''}\nTags: ${(row.tags || []).join(', ')}\nMessage: ${row.message}`; try { await navigator.clipboard.writeText(summary) } catch {} } },
   {}, { label: $t('dropdown_triaged') as string, leading: 'i-ph-play-duotone', onclick: () => setStatus(row, 'triaged') },
   { label: $t('dropdown_resolved') as string, leading: 'i-ph-check', onclick: () => setStatus(row, 'resolved') },
   { label: $t('dropdown_spam') as string, leading: 'i-ph-warning', onclick: () => setStatus(row, 'spam') }

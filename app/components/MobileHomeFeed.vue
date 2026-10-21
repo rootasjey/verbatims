@@ -60,7 +60,7 @@
           <div class="mx-auto h-3 w-24 rounded bg-black/10 dark:bg-white/10" />
         </div>
         <div
-          v-if="mobileImageAttribution?.credit"
+          v-if="props.theme?.image_url"
           class="homepage-v3-image-credit"
           :class="{ 'homepage-v3-image-credit--collapsed': !imageCreditExpanded }"
         >
@@ -76,10 +76,21 @@
             </button>
           </NTooltip>
           <div class="homepage-v3-image-credit-content" :aria-hidden="!imageCreditExpanded" :inert="!imageCreditExpanded">
-            <span>{{ $t('home.image_credit_prefix') }} </span>
-            <a v-if="mobileImageAttribution?.sourceUrl" :href="mobileImageAttribution.sourceUrl" target="_blank" rel="noreferrer noopener">{{ mobileImageAttribution?.credit }}</a>
-            <span v-else>{{ mobileImageAttribution?.credit }}</span>
-            <span v-if="mobileImageAttribution?.license"> · {{ mobileImageAttribution.license }}</span>
+            <template v-if="mobileImageAttribution?.credit">
+              <span>{{ $t('home.image_credit_prefix') }} </span>
+              <a v-if="mobileImageAttribution.sourceUrl" :href="mobileImageAttribution.sourceUrl" target="_blank" rel="noreferrer noopener">{{ mobileImageAttribution.credit }}</a>
+              <span v-else>{{ mobileImageAttribution.credit }}</span>
+              <span v-if="mobileImageAttribution.license"> · {{ mobileImageAttribution.license }}</span>
+            </template>
+            <button
+              v-if="props.theme?.id"
+              type="button"
+              class="ml-2 inline-flex items-center gap-1 rounded-sm underline decoration-dotted underline-offset-2 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              @click.stop="showImageReportDrawer = true"
+            >
+              <NIcon name="i-tabler-flag-3" class="h-3.5 w-3.5" aria-hidden="true" />
+              {{ $t('home.report_image') }}
+            </button>
           </div>
         </div>
       </div>
@@ -341,6 +352,7 @@
       <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">{{ $t('home.be_first_contribute') }}</p>
     </div>
   </div>
+  <ReportDrawer v-if="imageReportContext" v-model:open="showImageReportDrawer" :image-report="imageReportContext" />
 </template>
 
 <script setup lang="ts">
@@ -363,6 +375,7 @@ interface Props {
     curatedLoading?: Ref<boolean>
   }
   theme?: {
+    id: number
     slug: string
     name: string
     description: string | null
@@ -411,6 +424,10 @@ const emit = defineEmits<{
 
 const hasScrolled = ref(false)
 const imageCreditExpanded = ref(true)
+const showImageReportDrawer = ref(false)
+const imageReportContext = computed(() => props.theme?.id
+  ? { themeId: props.theme.id, imageVariant: props.theme.mobile_image_url ? 'mobile' as const : 'desktop' as const }
+  : null)
 const mobileImageAttribution = computed(() => {
   const theme = props.theme
   if (!theme) return null
