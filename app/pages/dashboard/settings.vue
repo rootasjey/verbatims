@@ -116,14 +116,25 @@
         </div>
       </div>
       <div class="pt-2">
-        <NButton
-          :disabled="savingProfile"
-          btn="solid-black"
-          class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
-          @click="saveProfile"
-        >
-          {{ savingProfile ? $t('saving') : $t('save_profile') }}
-        </NButton>
+        <div class="flex flex-wrap items-center gap-3">
+          <NButton
+            :disabled="savingProfile || !hasProfileChanges"
+            btn="solid-black"
+            class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
+            @click="saveProfile"
+          >
+            {{ savingProfile ? $t('saving') : $t('save_profile') }}
+          </NButton>
+          <NButton
+            v-if="hasProfileChanges"
+            :disabled="savingProfile"
+            btn="outline-gray"
+            class="min-h-10 justify-center px-4 font-sans text-sm font-600"
+            @click="discardProfileChanges"
+          >
+            {{ $t('discard_changes') }}
+          </NButton>
+        </div>
       </div>
     </div>
     <div v-else-if="activeTab === 'privacy'" key="privacy" class="max-w-xl space-y-1">
@@ -393,6 +404,15 @@ const profileForm = ref<ProfileForm>({
   name: user.value?.name || '',
   bio: (user.value as any)?.bio || ''
 })
+const savedProfile = ref<ProfileForm>({ ...profileForm.value })
+const hasProfileChanges = computed(() =>
+  profileForm.value.name !== savedProfile.value.name || profileForm.value.bio !== savedProfile.value.bio
+)
+
+const discardProfileChanges = () => {
+  profileForm.value = { ...savedProfile.value }
+}
+
 const currentEmail = computed(() => user.value?.email || '')
 const emailForm = ref(user.value?.email || '')
 const pendingEmail = ref<string | null>(null)
@@ -519,12 +539,22 @@ const savePassword = async () => {
 }
 
 const saveProfile = async () => {
+  const formAtSubmit = { ...profileForm.value }
+  const submittedProfile = {
+    name: formAtSubmit.name.trim(),
+    bio: formAtSubmit.bio.trim()
+  }
+
   savingProfile.value = true
   try {
     await $fetch('/api/user/profile', {
       method: 'PUT',
-      body: { name: profileForm.value.name, bio: profileForm.value.bio }
+      body: submittedProfile
     })
+    savedProfile.value = submittedProfile
+    if (profileForm.value.name === formAtSubmit.name && profileForm.value.bio === formAtSubmit.bio) {
+      profileForm.value = { ...submittedProfile }
+    }
   } catch (error) {
     console.error('Failed to save profile:', error)
     showErrorToast(error, $t('error_save_profile') as string)
