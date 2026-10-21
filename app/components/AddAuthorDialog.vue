@@ -181,7 +181,13 @@ const setPanelRef = (tab: AuthorEditorTab, element: Element | ComponentPublicIns
   panelRefs.value[tab] = element as HTMLElement | null
 }
 
-const measureActivePanel = async () => {
+const measureActivePanel = async (preserveCurrentHeight = false) => {
+  if (preserveCurrentHeight && props.modelValue && panelViewportRef.value) {
+    panelHeight.value = panelViewportRef.value.getBoundingClientRect().height
+    await nextTick()
+    panelViewportRef.value.getBoundingClientRect()
+  }
+
   await nextTick()
   if (!props.modelValue) return
   panelHeight.value = panelRefs.value[activeTab.value]?.scrollHeight ?? 0
@@ -472,7 +478,7 @@ watch(() => props.modelValue, (open) => {
   }
 })
 
-watch(activeTab, () => { void measureActivePanel() })
+watch(activeTab, () => { void measureActivePanel(true) })
 watch(activeTranslationLanguage, () => { void measureActivePanel() })
 
 const submitAuthor = async () => {
