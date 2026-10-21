@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql } from 'drizzle-orm'
+import { getContentLanguage, localizeAuthors } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -36,9 +37,10 @@ export default defineEventHandler(async (event) => {
       LIMIT ${limit}
     `)
     
+    const localizedAuthors = await localizeAuthors(authors as unknown as Author[], getContentLanguage(event))
     return {
       success: true,
-      data: authors as unknown as Author[]
+      data: localizedAuthors
     }
   } catch (error) {
     console.error('Author search error:', error)

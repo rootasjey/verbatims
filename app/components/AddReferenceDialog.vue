@@ -207,6 +207,18 @@
           </NBadge>
         </template>
       </NInput>
+
+      <details class="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
+        <summary class="cursor-pointer text-sm font-medium text-gray-800 dark:text-gray-200">{{ $t('components.dialogs.translations_title') }}</summary>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.translations_hint') }}</p>
+        <div class="mt-4 space-y-4">
+          <section v-for="language in translationLanguages" :key="language" class="space-y-2">
+            <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ language === 'en' ? $t('components.dialogs.translation_english') : $t('components.dialogs.translation_french') }}</h4>
+            <NInput v-model="form.translations[language].name" :placeholder="$t('components.dialogs.translated_title') as string" :disabled="submitting" />
+            <NInput v-model="form.translations[language].description" type="textarea" :placeholder="$t('components.dialogs.description') as string" :rows="3" :disabled="submitting" />
+          </section>
+        </div>
+      </details>
     </form>
   </AppDialog>
 </template>
@@ -240,6 +252,17 @@ const dialogTitle = computed(() => isEditMode.value ? $t('components.dialogs.edi
 const submitButtonText = computed(() => isEditMode.value ? $t('components.dialogs.update_reference') : $t('components.dialogs.create_reference'))
 
 const emptyImageAttribution = () => ({ image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '' })
+const translationLanguages = ['en', 'fr'] as const
+const emptyTranslations = () => ({ en: { name: '', description: '' }, fr: { name: '', description: '' } })
+const readTranslations = (rows?: QuoteReference['translations']) => {
+  const result = emptyTranslations()
+  for (const row of rows || []) {
+    if (row.language === 'en' || row.language === 'fr') {
+      result[row.language] = { name: row.name || '', description: row.description || '' }
+    }
+  }
+  return result
+}
 
 const form = ref({
   name: '',
@@ -249,7 +272,8 @@ const form = ref({
   original_language: { label: 'English', value: 'en' },
   image_url: '',
   image_attribution: emptyImageAttribution(),
-  description: ''
+  description: '',
+  translations: emptyTranslations()
 })
 
 const titleQuery = ref('')
@@ -420,7 +444,8 @@ const selectExistingReference = (reference: QuoteReference) => {
       image_alt: reference.image_alt || '', image_credit: reference.image_credit || '', image_source_url: reference.image_source_url || '',
       image_license: reference.image_license || '', image_date: reference.image_date || '', image_location: reference.image_location || ''
     },
-    description: reference.description || ''
+    description: reference.description || '',
+    translations: emptyTranslations()
   }
   titleQuery.value = reference.name
   showTitleSuggestions.value = false
@@ -442,7 +467,8 @@ const resetForm = () => {
     original_language: { label: 'English', value: 'en' },
     image_url: '',
     image_attribution: emptyImageAttribution(),
-    description: ''
+    description: '',
+    translations: emptyTranslations()
   }
   titleQuery.value = ''
   titleSuggestions.value = []
@@ -468,7 +494,8 @@ const initializeFormForEdit = () => {
       image_alt: reference.image_alt || '', image_credit: reference.image_credit || '', image_source_url: reference.image_source_url || '',
       image_license: reference.image_license || '', image_date: reference.image_date || '', image_location: reference.image_location || ''
     },
-    description: reference.description || ''
+    description: reference.description || '',
+    translations: readTranslations(reference.translations)
   }
   titleQuery.value = reference.name
 }
@@ -510,7 +537,11 @@ const submitReference = async () => {
       image_license: form.value.image_attribution.image_license.trim() || null,
       image_date: form.value.image_attribution.image_date.trim() || null,
       image_location: form.value.image_attribution.image_location.trim() || null,
-      description: form.value.description.trim() || null
+      description: form.value.description.trim() || null,
+      translations: {
+        en: { name: form.value.translations.en.name.trim() || null, description: form.value.translations.en.description.trim() || null },
+        fr: { name: form.value.translations.fr.name.trim() || null, description: form.value.translations.fr.description.trim() || null }
+      }
     }
 
     if (isEditMode.value && props.editReference) {

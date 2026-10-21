@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, getTableColumns } from 'drizzle-orm'
 import { normalizeAdminAuthor } from '~~/server/utils/admin-author-transformer'
+import { getAuthorTranslations } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -26,7 +27,8 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Author not found')
     }
 
-    return { success: true, data: normalizeAdminAuthor(authorResult as any) }
+    const translations = await getAuthorTranslations(Number(authorId))
+    return { success: true, data: { ...normalizeAdminAuthor(authorResult as any), translations } }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error fetching admin author details:', error)

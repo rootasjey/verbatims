@@ -65,6 +65,7 @@ export interface Author {
   
   /** Biographical description */
   description?: string;
+  translations?: Array<{ language: string; job: string | null; description: string | null }>;
   
   /** URL to author's profile image */
   image_url?: string;
@@ -130,6 +131,7 @@ export interface CreateAuthorData {
   death_location?: string | null;
   job?: string | null;
   description?: string | null;
+  translations?: Record<'en' | 'fr', { job?: string | null; description?: string | null }>;
   image_url?: string | null;
   image_alt?: string | null;
   image_credit?: string | null;

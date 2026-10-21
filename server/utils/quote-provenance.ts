@@ -1,8 +1,9 @@
 import { db, schema } from 'hub:db'
 import { and, eq, inArray } from 'drizzle-orm'
 import { toISOStringOrNull } from './date-normalization'
+import type { ContentLanguage } from './entity-translations'
 
-export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
+export async function getPrimaryQuoteProvenance(quoteIds: number[], language?: ContentLanguage) {
   if (quoteIds.length === 0) return new Map<number, { attributions: any[]; sources: any[] }>()
 
   const [attributions, sources] = await Promise.all([
@@ -46,6 +47,15 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       .all(),
   ])
 
+  const referenceIds = [...new Set(attributions.map(item => item.referenceId).filter((id): id is number => id !== null))]
+  const referenceTranslations = language && referenceIds.length
+    ? await db.select().from(schema.referenceTranslations).where(and(
+      inArray(schema.referenceTranslations.referenceId, referenceIds),
+      eq(schema.referenceTranslations.language, language),
+    )).all()
+    : []
+  const referenceTranslationById = new Map(referenceTranslations.map(row => [row.referenceId, row]))
+
   const result = new Map<number, { attributions: any[]; sources: any[] }>()
   for (const quoteId of quoteIds) result.set(quoteId, { attributions: [], sources: [] })
   for (const attribution of attributions) {
@@ -60,7 +70,12 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       verified_at: toISOStringOrNull(attribution.verifiedAt),
       notes: attribution.notes,
       author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName, is_fictional: attribution.authorIsFictional, image_url: attribution.authorImageUrl } : undefined,
-      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType, image_url: attribution.referenceImageUrl } : undefined,
+      reference: attribution.referenceId ? {
+        id: attribution.referenceId,
+        name: referenceTranslationById.get(attribution.referenceId)?.name || attribution.referenceName,
+        primary_type: attribution.referencePrimaryType,
+        image_url: attribution.referenceImageUrl,
+      } : undefined,
     })
   }
   for (const source of sources) {

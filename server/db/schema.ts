@@ -86,6 +86,28 @@ export const quoteReferences = sqliteTable('quote_references', {
   typeIdx: index('idx_references_type').on(table.primaryType),
 }))
 
+export const authorTranslations = sqliteTable('author_translations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  authorId: integer('author_id').notNull().references(() => authors.id, { onDelete: 'cascade' }),
+  language: text('language').notNull(),
+  job: text('job'),
+  description: text('description'),
+}, (table) => ({
+  authorIdx: index('idx_author_translations_author').on(table.authorId),
+  uniqueAuthorLanguage: uniqueIndex('idx_author_translations_unique').on(table.authorId, table.language),
+}))
+
+export const referenceTranslations = sqliteTable('reference_translations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  referenceId: integer('reference_id').notNull().references(() => quoteReferences.id, { onDelete: 'cascade' }),
+  language: text('language').notNull(),
+  name: text('name'),
+  description: text('description'),
+}, (table) => ({
+  referenceIdx: index('idx_reference_translations_reference').on(table.referenceId),
+  uniqueReferenceLanguage: uniqueIndex('idx_reference_translations_unique').on(table.referenceId, table.language),
+}))
+
 export const entityVerificationState = sqliteTable('entity_verification_state', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   entityType: text('entity_type', { enum: ENRICHMENT_ENTITY_TYPES }).notNull(),

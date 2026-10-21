@@ -71,7 +71,7 @@ function buildQuoteWhere(filters: QuoteFilters) {
   return conditions
 }
 
-export async function findQuotes(filters: QuoteFilters) {
+export async function findQuotes(filters: QuoteFilters, language?: import('~~/server/utils/entity-translations').ContentLanguage) {
   const { page, limit, offset } = getPagination(filters)
   const conditions = buildQuoteWhere(filters)
 
@@ -96,7 +96,7 @@ export async function findQuotes(filters: QuoteFilters) {
   const total = Number(countResult[0]?.total) || 0
   const pagination = buildPaginationMeta(total, page, limit)
 
-  const provenance = await getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+  const provenance = await getPrimaryQuoteProvenance(quotes.map(quote => quote.id), language)
   const enrichedQuotes = quotes.map(quote => ({
     ...quote,
     provenance: provenance.get(quote.id),

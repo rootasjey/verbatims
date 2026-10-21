@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql } from 'drizzle-orm'
+import { getContentLanguage, localizeReferences } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -38,9 +39,10 @@ export default defineEventHandler(async (event) => {
       LIMIT ${limit}
     `)
     
+    const localizedReferences = await localizeReferences(references as unknown as QuoteReference[], getContentLanguage(event))
     return {
       success: true,
-      data: references as unknown as QuoteReference[]
+      data: localizedReferences
     }
   } catch (error) {
     console.error('Reference search error:', error)

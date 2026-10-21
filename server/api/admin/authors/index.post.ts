@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { createAuthorSchema } from '../../../validation/schemas'
+import { saveAuthorTranslations } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -43,6 +44,8 @@ export default defineEventHandler(async (event) => {
       })
       .returning()
       .get()
+
+    await saveAuthorTranslations(result.id, body.translations)
 
     let finalImageUrl: string | null = null
     if (body.image_url) {

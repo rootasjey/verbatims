@@ -574,7 +574,14 @@ const editReferenceLinks = (reference: QuoteReferenceWithMetadata) => { linksTar
 
 const onLinksSaved = () => { showEditLinksDialog.value = false; linksTargetReference.value = null; loadReferences() }
 
-const editReference = (reference: QuoteReferenceWithMetadata) => { selectedReference.value = reference; showAddReferenceDialog.value = true }
+const editReference = async (reference: QuoteReferenceWithMetadata) => {
+  selectedReference.value = reference
+  showAddReferenceDialog.value = true
+  try {
+    const response = await $fetch<any>(`/api/admin/references/${reference.id}`)
+    if (response.data) selectedReference.value = response.data
+  } catch (error) { console.error('Failed to load full reference details:', error) }
+}
 const deleteReference = async (reference: QuoteReferenceWithMetadata) => { referenceToDelete.value = reference; showDeleteReferenceDialog.value = true }
 const mergeReference = async (reference: QuoteReferenceWithMetadata) => { referenceToMerge.value = reference; initialMergeTarget.value = null; showMergeDialog.value = true }
 const mergeSelectedReferences = () => {

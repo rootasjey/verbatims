@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { createReferenceSchema } from '../../../validation/schemas'
+import { saveReferenceTranslations } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -41,6 +42,8 @@ export default defineEventHandler(async (event) => {
       } as any)
       .returning()
       .get()
+
+    await saveReferenceTranslations(result.id, body.translations)
 
     let finalImageUrl: string | null = null
     if (body.image_url) {

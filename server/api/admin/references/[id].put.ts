@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateReferenceSchema } from '../../../validation/schemas'
+import { saveReferenceTranslations } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -75,7 +76,7 @@ export default defineEventHandler(async (event) => {
       // If newUrl === oldUrl, no change needed — skip entirely
     }
 
-    if (Object.keys(updateData).length === 1) { // Only updatedAt was added
+    if (Object.keys(updateData).length === 1 && !body.translations) { // Only updatedAt was added
       throwServer(400, 'No fields to update')
     }
 
@@ -85,6 +86,8 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
       .returning()
       .get()
+
+    await saveReferenceTranslations(parseInt(referenceId), body.translations)
 
     return {
       success: true,

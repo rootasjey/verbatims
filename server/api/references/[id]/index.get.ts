@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
+import { getContentLanguage, localizeReferences } from '~~/server/utils/entity-translations'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -14,6 +15,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!reference) { throwServer(404, 'Reference not found'); return }
+    const localizedReference = (await localizeReferences([reference], getContentLanguage(event)))[0] ?? reference
 
     // Count approved quotes for this reference
     const quotesCountResult = await db.select({ count: sql<number>`count(*)` })
@@ -29,6 +31,8 @@ export default defineEventHandler(async (event) => {
 
     const transformedReference = {
       ...reference,
+      name: localizedReference.name,
+      description: localizedReference.description,
       primary_type: reference.primaryType,
       secondary_type: reference.secondaryType,
       release_date: reference.releaseDate,

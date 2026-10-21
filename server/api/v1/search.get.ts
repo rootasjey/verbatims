@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, or, like, desc, sql, count } from 'drizzle-orm'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { getContentLanguage, localizeAuthors, localizeReferences } from '~~/server/utils/entity-translations'
 
 defineRouteMeta({
   openAPI: {
@@ -54,9 +55,10 @@ export default defineEventHandler(async (event) => {
       .offset(offset)
       .all()
 
+    const localizedAuthors = await localizeAuthors(authors, getContentLanguage(event))
     return {
       success: true,
-      data: authors.map(a => ({ id: a.id, name: a.name, image_url: a.imageUrl, job: a.job, type: 'author' })),
+      data: localizedAuthors.map(a => ({ id: a.id, name: a.name, image_url: a.imageUrl, job: a.job, type: 'author' })),
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit), hasMore: page * limit < total },
     }
   }
@@ -84,9 +86,10 @@ export default defineEventHandler(async (event) => {
       .offset(offset)
       .all()
 
+    const localizedReferences = await localizeReferences(refs, getContentLanguage(event))
     return {
       success: true,
-      data: refs.map(r => ({ id: r.id, name: r.name, type: r.primaryType, image_url: r.imageUrl, entity_type: 'reference' })),
+      data: localizedReferences.map(r => ({ id: r.id, name: r.name, type: r.primaryType, image_url: r.imageUrl, entity_type: 'reference' })),
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit), hasMore: page * limit < total },
     }
   }
