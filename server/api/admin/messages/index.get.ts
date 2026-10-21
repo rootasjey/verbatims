@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, desc, eq, like, or, sql } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, isNull, like, or, sql } from 'drizzle-orm'
 import { toISOStringOrEmpty, toISOStringOrNull } from '~~/server/utils/date-normalization'
 
 export default defineEventHandler(async (event): Promise<AdminMessagesListResponse> => {
@@ -11,18 +11,24 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
   const offset = (page - 1) * limit
   const status = (query.status as ReportStatus) || undefined
   const category = (query.category as ReportCategory) || undefined
-  const targetType = (query.target_type as ReportTargetType) || undefined
+  const subject = (query.subject as ThemeImageReportSubject) || undefined
+  const targetType = (query.target_type as ReportTargetType | 'theme') || undefined
   const search = (query.search as string) || ''
 
   const conditions = []
   if (status) conditions.push(eq(schema.userMessages.status, status))
   if (category) conditions.push(eq(schema.userMessages.category, category))
-  if (targetType) conditions.push(eq(schema.userMessages.targetType, targetType))
+  if (subject) conditions.push(eq(schema.userMessages.subject, subject))
+  if (targetType === 'theme') conditions.push(isNotNull(schema.userMessages.themeId))
+  else if (targetType === 'general') conditions.push(and(eq(schema.userMessages.targetType, 'general'), isNull(schema.userMessages.themeId)))
+  else if (targetType) conditions.push(eq(schema.userMessages.targetType, targetType))
   if (search) {
     conditions.push(or(
       like(schema.userMessages.message, `%${search}%`),
+      like(sql`COALESCE(${schema.userMessages.subject}, '')`, `%${search}%`),
       like(sql`COALESCE(${schema.userMessages.name}, '')`, `%${search}%`),
-      like(sql`COALESCE(${schema.userMessages.email}, '')`, `%${search}%`)
+      like(sql`COALESCE(${schema.userMessages.email}, '')`, `%${search}%`),
+      like(sql`COALESCE(${schema.themes.name}, '')`, `%${search}%`)
     ))
   }
 
@@ -41,10 +47,14 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
       name: schema.userMessages.name,
       email: schema.userMessages.email,
       category: schema.userMessages.category,
+      subject: schema.userMessages.subject,
       tags: schema.userMessages.tags,
       message: schema.userMessages.message,
       target_type: schema.userMessages.targetType,
       target_id: schema.userMessages.targetId,
+      theme_id: schema.userMessages.themeId,
+      image_variant: schema.userMessages.imageVariant,
+      reported_image_url: schema.userMessages.reportedImageUrl,
       ip_address: schema.userMessages.ipAddress,
       user_agent: schema.userMessages.userAgent,
       status: schema.userMessages.status,
@@ -56,6 +66,7 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
       quote_text: schema.quotes.name,
       author_name: schema.authors.name,
       reference_name: schema.quoteReferences.name,
+      theme_name: schema.themes.name,
     })
     .from(schema.userMessages)
     .leftJoin(schema.quotes, and(
@@ -70,6 +81,7 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
       eq(schema.userMessages.targetType, 'reference'),
       eq(schema.quoteReferences.id, schema.userMessages.targetId)
     ))
+    .leftJoin(schema.themes, eq(schema.themes.id, schema.userMessages.themeId))
     .leftJoin(schema.users, eq(schema.userMessages.userId, schema.users.id))
     .where(whereClause)
     .orderBy(desc(schema.userMessages.createdAt))
@@ -82,10 +94,14 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
       name: row.name ?? null,
       email: row.email ?? null,
       category: row.category,
+      subject: row.subject ?? null,
       tags: parseJSONSafely(row.tags) || [],
       message: row.message,
-      target_type: (row.target_type || 'general') as ReportTargetType,
+      target_type: row.theme_id ? 'theme' : (row.target_type || 'general') as ReportTargetType,
       target_id: row.target_id ?? null,
+      theme_id: row.theme_id ?? null,
+      image_variant: row.image_variant ?? null,
+      reported_image_url: row.reported_image_url ?? null,
       ip_address: row.ip_address ?? null,
       user_agent: row.user_agent ?? null,
       status: row.status,
@@ -97,7 +113,8 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
       quote_text: row.quote_text ?? null,
       author_name: row.author_name ?? null,
       reference_name: row.reference_name ?? null,
-      target_label: row.target_type === 'quote' ? (row.quote_text ?? '')
+      theme_name: row.theme_name ?? null,
+      target_label: row.theme_id ? (row.theme_name ?? '') : row.target_type === 'quote' ? (row.quote_text ?? '')
         : row.target_type === 'author' ? (row.author_name ?? '')
         : row.target_type === 'reference' ? (row.reference_name ?? '')
         : 'General'

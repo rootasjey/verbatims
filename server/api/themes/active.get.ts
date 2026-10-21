@@ -4,6 +4,7 @@ import { parseThemeHomeCopy } from '~~/server/utils/theme'
 import type { ThemeHomeCopy } from '~~/shared/types/theme'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<{
+  id: number
   slug: string
   name: string
   description: string | null
@@ -76,6 +77,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
     return {
       success: true,
       data: {
+        id: theme.id,
         slug: theme.slug,
         name: localized.name,
         description: localized.description,

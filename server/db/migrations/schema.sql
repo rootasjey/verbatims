@@ -317,10 +317,14 @@ CREATE TABLE IF NOT EXISTS user_messages (
   name TEXT,
   email TEXT,
   category TEXT NOT NULL CHECK (category IN ('bug', 'feature', 'feedback', 'content', 'other')),
+  subject TEXT,
   tags TEXT DEFAULT '[]' CHECK (json_valid(tags)),
   message TEXT NOT NULL CHECK (length(message) >= 10 AND length(message) <= 4000),
   target_type TEXT DEFAULT 'general' CHECK (target_type IN ('general', 'quote', 'author', 'reference')),
   target_id INTEGER,
+  theme_id INTEGER,
+  image_variant TEXT,
+  reported_image_url TEXT,
   ip_address TEXT,
   user_agent TEXT,
   status TEXT DEFAULT 'new' CHECK (status IN ('new', 'triaged', 'spam', 'resolved')),
@@ -328,7 +332,8 @@ CREATE TABLE IF NOT EXISTS user_messages (
   reviewed_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-  FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+  FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (theme_id) REFERENCES themes(id) ON DELETE SET NULL
 );
 
 -- ============================================================================

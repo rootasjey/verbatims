@@ -202,6 +202,7 @@ const languageStore = useLanguageStore()
 const feed = useHomeFeed()
 
 const themeData = ref<{
+  id: number
   slug: string
   name: string
   description: string | null

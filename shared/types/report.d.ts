@@ -1,6 +1,9 @@
 export type ReportCategory = 'bug' | 'feature' | 'feedback' | 'content' | 'other'
 export type ReportTargetType = 'general' | 'quote' | 'author' | 'reference'
+export type AdminReportTargetType = ReportTargetType | 'theme'
 export type ReportStatus = 'new' | 'triaged' | 'spam' | 'resolved'
+export type ThemeImageReportSubject = 'image_rights' | 'image_credit' | 'image_removal' | 'image_other'
+export type ThemeImageVariant = 'desktop' | 'mobile'
 
 export interface UserMessage {
   id: number
@@ -8,10 +11,14 @@ export interface UserMessage {
   name: string | null
   email: string | null
   category: ReportCategory
+  subject: ThemeImageReportSubject | null
   tags: string[]
   message: string
-  target_type: ReportTargetType
+  target_type: AdminReportTargetType
   target_id: number | null
+  theme_id: number | null
+  image_variant: ThemeImageVariant | null
+  reported_image_url: string | null
   ip_address: string | null
   user_agent: string | null
   status: ReportStatus
@@ -28,6 +35,11 @@ export interface CreateUserMessageInput {
   email?: string
   target_type?: ReportTargetType
   target_id?: number | null
+  theme_image_report?: {
+    subject: ThemeImageReportSubject
+    theme_id: number
+    image_variant: ThemeImageVariant
+  }
 }
 
 export interface CreateUserMessageResult {
@@ -49,6 +61,7 @@ export interface AdminUserMessage extends UserMessage {
   quote_text?: string | null
   author_name?: string | null
   reference_name?: string | null
+  theme_name?: string | null
 }
 
 /**
