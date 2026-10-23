@@ -90,9 +90,10 @@
             <span>{{ item.label }}</span>
             <NAvatar
               v-if="item.label === $t('nav.contribute') && user"
+              size="2"
               :src="user.avatar_url"
               :alt="user.name"
-              class="ml-1.5 h-10 w-10 rounded-full"
+              class="ml-1.5"
             >
               <template #fallback>
                 <BrandAvatarFallback />
