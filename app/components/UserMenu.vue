@@ -7,9 +7,9 @@
       class="hover:scale-105 active:scale-95 transition-transform min-w-0 min-h-0"
     >
       <NAvatar
+        size="2"
         :src="user.avatar_url" 
         :alt="user.name"
-        class="h-10 w-10 rounded-full"
       >
         <template #fallback>
           <BrandAvatarFallback />
