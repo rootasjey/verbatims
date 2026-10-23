@@ -223,6 +223,7 @@
     "stories": "Stories",
     "featured_references": "Featured References",
     "see_more": "See More",
+    "theme_details": "Theme details",
     "related_authors": "Related Authors",
     "unknown": "Unknown",
     "quote_singular": "quote",
@@ -618,6 +619,10 @@
     "submit_quote": "Submit a quote",
     "load_more": "Load more",
     "loading": "Loading..."
+  },
+  "nuxtSiteConfig": {
+    "name": "Verbatims",
+    "description": "Explore inspiring quotes from authors, films, books, and more."
   },
   "content_language": {
     "all": "All Languages",

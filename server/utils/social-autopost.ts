@@ -1372,12 +1372,10 @@ async function fetchImagePayload(imageUrl: string): Promise<{ bytes: ArrayBuffer
 
   if (internalPath) {
     try {
-      const response = await $fetch.raw<ArrayBuffer>(internalPath, {
-        responseType: 'arrayBuffer'
-      })
+      const response = await fetch(new URL(internalPath, imageUrl))
 
       return {
-        bytes: toArrayBuffer(response._data),
+        bytes: await response.arrayBuffer(),
         contentType: response.headers.get('content-type') || 'image/png'
       }
     } catch {

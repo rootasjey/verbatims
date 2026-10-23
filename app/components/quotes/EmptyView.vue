@@ -22,7 +22,7 @@
         </NButton>
 
         <NButton
-          btn="light:soft-secondary dark:soft-blue"
+          btn="light:soft-gray dark:soft-blue"
           leading="i-ph-plus-circle"
           class="transition-[transform] duration-150 hover:scale-102 active:scale-99"
           @click="$emit('openSubmitQuote')"

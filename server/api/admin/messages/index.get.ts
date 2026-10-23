@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { and, desc, eq, isNotNull, isNull, like, or, sql } from 'drizzle-orm'
+import type { ReportStatus } from '#shared/types/report'
 import { toISOStringOrEmpty, toISOStringOrNull } from '~~/server/utils/date-normalization'
 
 export default defineEventHandler(async (event): Promise<AdminMessagesListResponse> => {

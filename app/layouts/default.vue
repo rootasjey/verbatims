@@ -52,7 +52,7 @@
 
         <span class="flex-1" aria-hidden="true" />
         <NButton
-          v-if="route.path === '/' && homeTheme"
+          v-if="isHydrated && route.path === '/' && homeTheme"
           icon
           btn="ghost-gray"
           label="i-lucide-book-open"
@@ -295,6 +295,7 @@ const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
 const { locale } = useI18nLocale()
 const { user, clear } = useUserSession()
+const isHydrated = ref(false)
 
 watch(() => route.path, (path, previousPath) => {
   if (!path.startsWith('/dashboard') || !previousPath.startsWith('/dashboard')) return
@@ -311,7 +312,6 @@ const showReportDrawer = ref(false)
 const showMobileMenu = ref(false)
 const showMobileTheme = ref(false)
 const previousBodyOverflow = ref('')
-const previousDocumentOverflow = ref('')
 
 const mobileMenuItems = computed(() => [
   { label: String($t('nav.explore')), leading: 'i-ph-compass', to: '/quotes' },
@@ -434,17 +434,15 @@ watch([showMobileMenu, showMobileTheme], ([menuOpen, themeOpen]) => {
   if (isOpen) {
     if (document.body.style.overflow !== 'hidden') {
       previousBodyOverflow.value = document.body.style.overflow
-      previousDocumentOverflow.value = document.documentElement.style.overflow
     }
     document.body.style.overflow = 'hidden'
-    document.documentElement.style.overflow = 'hidden'
   } else {
     document.body.style.overflow = previousBodyOverflow.value
-    document.documentElement.style.overflow = previousDocumentOverflow.value
   }
 })
 
 onMounted(() => {
+  isHydrated.value = true
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('keydown', handleMobileMenuKeydown)
   scrollY.value = window.scrollY
@@ -455,7 +453,6 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleMobileMenuKeydown)
   if (import.meta.client) {
     document.body.style.overflow = previousBodyOverflow.value
-    document.documentElement.style.overflow = previousDocumentOverflow.value
   }
 })
 

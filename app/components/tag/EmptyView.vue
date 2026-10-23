@@ -26,7 +26,7 @@
         <div class="mt-7">
           <NButton
             leading="i-ph-plus-circle"
-            btn="light:soft-secondary dark:soft-blue"
+            btn="light:soft-gray dark:soft-blue"
             class="hover:scale-102 active:scale-99 transition-[transform] duration-150"
             @click="$emit('createTag')"
           >

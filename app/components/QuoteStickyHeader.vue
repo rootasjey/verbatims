@@ -50,6 +50,9 @@
 </template>
 
 <script setup lang="ts">
+import { getLanguageName } from '~/utils/quote'
+import { getReferenceIcon } from '~/utils/reference'
+
 const props = defineProps({
   quote: { type: Object, required: true },
   user: { type: Object, default: null },

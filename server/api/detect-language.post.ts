@@ -1,4 +1,5 @@
 import { createError, readBody } from 'h3'
+import { ofetch } from 'ofetch'
 
 const SUPPORTED_ISO3_CODES = ['eng', 'fra', 'lat', 'spa', 'deu', 'ita', 'por', 'rus', 'jpn', 'cmn', 'zho']
 const MIN_LENGTH = 12
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
     throwServer(500, 'Language detection not configured')
   }
 
-  const response = await $fetch(`${runtimeConfig.francisApiUrl}/api/v1/detect`, {
+  const response = await ofetch(`${runtimeConfig.francisApiUrl}/api/v1/detect`, {
     method: 'POST',
     headers: { 'x-api-key': runtimeConfig.francisApiKey },
     body: {
