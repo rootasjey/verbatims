@@ -18,7 +18,7 @@
           <span class="font-subtitle font-700 italic tracking-[0.1rem] text-xl relative z-1 transition-colors duration-300 group-hover:text-white dark:group-hover:text-[#0C0A09]">verbatims</span>
           <span class="absolute inset-0 bg-[#0C0A09] dark:bg-[#FAFAF9] w-0 group-hover:w-full transition-all duration-300 ease-out -z-0" />
         </NuxtLink>
-        <div v-if="route.path === '/' && homeTheme" class="hidden sm:block">
+        <div v-if="isHydrated && route.path === '/' && homeTheme" class="hidden sm:block">
           <span class="mr-3 inline-block h-3 w-px align-[-0.05em] bg-gray-300/70 dark:bg-white/20" aria-hidden="true" />
           <NPopover
             v-model:open="showThemePopover"
@@ -205,29 +205,7 @@ const mastheadHeight = ref(0)
 const mastheadPinned = ref(false)
 const modalScrollLocked = useState<boolean>('app-modal-scroll-locked', () => false)
 let bodyLockObserver: MutationObserver | null = null
-let rootOverflowBeforeDialog: { value: string; priority: string } | undefined
-
-const lockDocumentScroll = () => {
-  const rootStyle = document.documentElement.style
-  if (!rootOverflowBeforeDialog) {
-    rootOverflowBeforeDialog = {
-      value: rootStyle.getPropertyValue('overflow'),
-      priority: rootStyle.getPropertyPriority('overflow')
-    }
-  }
-  rootStyle.setProperty('overflow', 'hidden')
-}
-const restoreDocumentScroll = () => {
-  if (!rootOverflowBeforeDialog) return
-
-  const rootStyle = document.documentElement.style
-  if (rootOverflowBeforeDialog.value) {
-    rootStyle.setProperty('overflow', rootOverflowBeforeDialog.value, rootOverflowBeforeDialog.priority)
-  } else {
-    rootStyle.removeProperty('overflow')
-  }
-  rootOverflowBeforeDialog = undefined
-}
+const isHydrated = ref(false)
 
 const isBodyScrollLocked = () => document.body.style.overflow === 'hidden' || document.body.style.pointerEvents === 'none'
 const syncModalChrome = () => {
@@ -237,17 +215,16 @@ const syncModalChrome = () => {
 
     mastheadHeight.value = mastheadElement.value?.getBoundingClientRect().height ?? 0
     mastheadPinned.value = true
-    lockDocumentScroll()
     return
   }
 
   if (!mastheadPinned.value) return
-  restoreDocumentScroll()
   mastheadPinned.value = false
   modalScrollLocked.value = false
 }
 
 onMounted(() => {
+  isHydrated.value = true
   bodyLockObserver = new MutationObserver(syncModalChrome)
   bodyLockObserver.observe(document.body, { attributes: true, attributeFilter: ['style'] })
   syncModalChrome()
@@ -255,7 +232,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   bodyLockObserver?.disconnect()
-  restoreDocumentScroll()
 })
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || route.path.startsWith('/dashboard') || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || route.path === '/login' || route.path === '/signup')
 const { user, clear } = useUserSession()

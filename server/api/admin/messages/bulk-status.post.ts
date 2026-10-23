@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { inArray } from 'drizzle-orm'
+import type { ReportStatus } from '#shared/types/report'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)

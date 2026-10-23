@@ -100,6 +100,8 @@
 </template>
 
 <script setup lang="ts">
+import { navigateTo } from 'nuxt/app'
+
 const { $t } = useI18n()
 
 interface SimilarAuthor {

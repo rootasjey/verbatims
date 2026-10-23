@@ -120,6 +120,8 @@ export default {
       // Provide a sane link-style "ghost" color mapping (ghost is not a color token)
       // Prevents: text-ghost-600 and focus-visible:ring-ghost-600
       "btn-link-ghost": "text-gray-600 underline underline-offset-4 decoration-gray-400 hover:text-gray-700 hover:decoration-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-400 dark:hover:text-gray-300 dark:focus-visible:ring-gray-400",
+      // UnaUI's dynamic `none` input color produces invalid `ring-none-*` utilities.
+      "input-outline-none": "border border-input focus-visible:outline-none focus-visible:ring-0",
     },
   ],
   extractors: [

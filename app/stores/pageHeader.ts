@@ -129,8 +129,10 @@ export const usePageHeaderStore = defineStore('pageHeader', () => {
 
   return {
     // State
-    currentPage: readonly(currentPage),
-    isVisible: readonly(isVisible),
+    // Keep setup-store state writable for Pinia hydration. Consumers outside
+    // this store use the actions and the derived refs exposed by usePageHeader.
+    currentPage,
+    isVisible,
 
     // Getters
     pageTitle,

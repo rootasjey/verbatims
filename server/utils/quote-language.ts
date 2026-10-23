@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { ofetch } from 'ofetch'
 import type { QuoteLanguage } from '#shared/types/quote'
 import { detectQuoteLanguage as detectQuoteLanguageFallback } from './harvest/language'
 
@@ -55,7 +56,7 @@ export async function detectSubmittedQuoteLanguage(event: H3Event, text: string)
   if (!config.francisApiKey) return fallback
 
   try {
-    const detection = await $fetch<LanguageDetectionResult>(`${config.francisApiUrl}/api/v1/detect`, {
+    const detection = await ofetch<LanguageDetectionResult>(`${config.francisApiUrl}/api/v1/detect`, {
       method: 'POST',
       headers: { 'x-api-key': config.francisApiKey },
       body: {
