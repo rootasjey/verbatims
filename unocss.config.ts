@@ -5,7 +5,6 @@ import presetAnimations from 'unocss-preset-animations'
 import { createLocalFontProcessor } from '@unocss/preset-web-fonts/local'
 
 import {
-  presetAttributify,
   presetIcons,
   presetWebFonts,
   presetWind3,
@@ -16,7 +15,6 @@ import {
 export default {
   presets: [
     presetWind3(),
-    presetAttributify(),
     presetIcons({
       scale: 1.2,
       extraProperties: {
