@@ -216,19 +216,50 @@
       </div>
     </div>
 
-    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-2xl overflow-x-hidden' }">
-      <template #header>
-        <div class="w-full min-w-0 px-2">
-          <h3 class="font-serif text-2xl font-400 text-gray-950 dark:text-gray-50">{{ editMode ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h3>
-          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ editMode ? $t('dialog_edit_desc') : $t('dialog_create_desc') }}</p>
+    <AppDialog
+      v-model="showEditDialog"
+      :title="(editMode ? $t('dialog_edit_title') : $t('dialog_create_title')) as string"
+      title-class="sr-only"
+      hide-header-border
+      compact-header
+      max-width="xl"
+      scrollable
+      :dialog-content-style="{ width: 'calc(100vw - 2rem)', maxWidth: '42rem' }"
+      :una="{ dialogContent: 'top-[calc(50%+1.25rem)] max-h-[calc(100dvh_-_5rem)] box-border max-w-[calc(100vw_-_2rem)] overflow-x-hidden px-3 sm:px-4 [&_*:focus-visible]:ring-stone-600 dark:[&_*:focus-visible]:ring-stone-400', dialogOverlay: 'z-[39] bg-black/45' }"
+    >
+      <template #header-title>
+        <div role="tablist" :aria-label="$t('dialog_sections') as string" class="grid min-w-0 flex-1 grid-cols-4 gap-2 sm:gap-3">
+          <button
+            v-for="(tab, index) in tabs"
+            :key="tab.value"
+            :id="`theme-tab-${tab.value}`"
+            type="button"
+            role="tab"
+            :aria-label="tab.name as string"
+            :aria-selected="activeTab === tab.value"
+            :aria-controls="`theme-panel-${tab.value}`"
+            :tabindex="activeTab === tab.value ? 0 : -1"
+            :class="['min-h-10 min-w-0 border-b-2 pb-2 text-left font-sans text-[10px] leading-tight transition-colors focus-visible:outline-none focus-visible:ring-0 focus-visible:bg-stone-200/70 dark:focus-visible:bg-white/10 sm:text-sm', activeTab === tab.value ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']"
+            @click="activeTab = tab.value"
+            @keydown="onThemeTabKeydown($event, index)"
+          >
+            <span class="mr-1.5 text-[9px] tabular-nums opacity-60 sm:text-xs">0{{ index + 1 }}</span>
+            <span class="truncate sm:hidden">{{ tab.shortName }}</span>
+            <span class="hidden truncate sm:inline">{{ tab.name }}</span>
+          </button>
         </div>
       </template>
-      <div class="w-full min-w-0 px-4">
-        <NTabs v-model="activeTab" :items="tabs" class="px-2" :una="{ tabsList: 'max-w-xl overflow-x-auto' }">
-          <template #content="{ item }">
-            <div class="mt-5 min-h-[32vh] max-h-[60vh] overflow-y-auto">
+      <div class="w-full min-w-0 px-0">
+        <div
+          ref="themePanelRef"
+          :id="`theme-panel-${activeTab}`"
+          role="tabpanel"
+          :aria-label="activeTabName"
+          tabindex="0"
+          class="mt-0 min-h-[24vh] px-2 pr-1 pt-1 focus-visible:outline-none"
+        >
               <!-- General -->
-              <div v-if="item.value === 'general'" class="p-1 space-y-5 overflow-y-auto max-h-[58vh]">
+              <div v-if="activeTab === 'general'" class="space-y-5">
                 <div class="grid grid-cols-1 gap-4">
                   <div>
                     <NInput
@@ -242,23 +273,21 @@
                       </template>
                     </NInput>
                   </div>
-                  <div class="flex justify-between gap-4 flex-wrap">
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,12rem)] sm:items-center">
                     <NInput
                       v-model="form.slug"
                       :placeholder="$t('dialog_slug_placeholder') as string"
                       :disabled="submitting"
-                      class="pl-22"
+                      class="min-w-0 pl-22"
                       required>
                       <template #leading>
                         <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_slug_label') }}</span>
                       </template>
                     </NInput>
 
-                    <NSeparator orientation="vertical" class="h-full" />
-
-                    <div class="flex items-center gap-1 max-w-200px">
+                    <div class="grid min-w-0 w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
                       <label class="block bg-gray-100 dark:bg-gray-800 p-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_priority') }}</label>
-                      <NNumberField v-model="form.priority" :min="0" :disabled="submitting" class="min-w-0" />
+                      <NNumberField v-model="form.priority" :min="0" :disabled="submitting" class="min-w-0 w-full" />
                     </div>
                   </div>
                 </div>
@@ -268,7 +297,7 @@
                   <NInput type="textarea" v-model="form.description" :rows="2" :placeholder="$t('dialog_desc_placeholder') as string" :disabled="submitting" />
                 </div>
 
-                <div class="flex gap-4 wrap items-center">
+                <div class="flex flex-wrap items-center gap-3">
                   <div class="flex items-center gap-2">
                     <label class="block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_lang_label') }}</label>
                     <NTooltip :content="$t('dialog_lang_hint')?.toString()">
@@ -314,7 +343,7 @@
                     </NCombobox>
                   </div>
 
-                  <NSeparator orientation="vertical" class="mx-2 h-7" />
+                  <NSeparator orientation="vertical" class="mx-2 hidden h-7 sm:block" />
 
                   <div class="flex items-center gap-2">
                     <NTooltip :content="(form.is_active ? $t('dialog_deactivate') : $t('dialog_activate')) as string">
@@ -329,7 +358,7 @@
                       />
                     </NTooltip>
 
-                    <NSeparator orientation="vertical" class="mx-2 h-7" />
+                    <NSeparator orientation="vertical" class="mx-2 hidden h-7 sm:block" />
 
                     <NTooltip :content="form.is_default ? $t('dialog_unset_default')?.toString() : $t('dialog_set_default')?.toString()">
                       <NToggle
@@ -360,7 +389,7 @@
                   </NCollapsibleTrigger>
                   <NCollapsibleContent>
                     <div class="px-4 pb-4 space-y-4">
-                      <div v-for="(t, idx) in translations" :key="t._key" class="p-1 grid grid-cols-[6rem_1fr_1fr_auto] gap-2 items-start">
+                      <div v-for="(t, idx) in translations" :key="t._key" class="grid w-full min-w-0 grid-cols-[6rem_minmax(0,1fr)_minmax(0,1fr)_auto] items-start gap-2 p-1">
                         <NSelect v-model="t.language" :items="['en', 'fr']" size="xs" class="w-full" :disabled="submitting" />
                         <NInput v-model="t.name" :placeholder="$t('dialog_i18n_name_placeholder')?.toString()" size="sm" :disabled="submitting" />
                         <NInput v-model="t.description" :placeholder="$t('dialog_i18n_desc_placeholder')?.toString()" size="sm" :disabled="submitting" />
@@ -368,7 +397,9 @@
                         <NTooltip :content="$t('dialog_i18n_remove_translation')?.toString()">
                           <NButton btn="soft-gray" class="h-8 w-8" @click="removeTranslation(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></NButton>
                         </NTooltip>
-                        <NInput v-model="t.home_copy_json" class="col-span-full" type="textarea" :rows="2" placeholder="Homepage editorial copy (JSON)" size="sm" :disabled="submitting" />
+                        <div class="col-span-full min-w-0">
+                          <NInput v-model="t.home_copy_json" class="w-full min-w-0" type="textarea" :rows="2" placeholder="Homepage editorial copy (JSON)" size="sm" :disabled="submitting" />
+                        </div>
                       </div>
                       <p v-if="translations.length === 0" class="animate-fade-in text-sm text-gray-500 dark:text-gray-400">{{ $t('dialog_i18n_empty') }}</p>
                     </div>
@@ -377,88 +408,198 @@
               </div>
 
               <!-- Appearance -->
-              <div v-if="item.value === 'appearance'" class="p-1 space-y-6">
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-4 sm:px-6">
+              <div v-if="activeTab === 'appearance'" class="space-y-6">
+                <div class="py-3">
                   <h4 class="py-2 text-md font-400 text-gray-900 dark:text-white">{{ $t('dialog_theme_image') }}</h4>
                   <div class="space-y-4">
+                    <div class="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-neutral-900">
+                      <input ref="desktopImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="hidden" :disabled="submitting || !!uploadingThemeImage" @change="onThemeImageSelected($event, 'desktop')">
+                      <template v-if="form.image_url">
+                        <NTooltip :content="$t('dialog_image_replace')?.toString()">
+                          <button
+                            type="button"
+                            class="group relative block h-36 w-full overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+                            :aria-label="$t('dialog_image_replace')?.toString()"
+                            :disabled="submitting || !!uploadingThemeImage"
+                            @click="desktopImageInput?.click()"
+                          >
+                            <img v-if="!desktopImagePreviewFailed" :src="form.image_url" :alt="form.image_alt || ''" class="h-full w-full object-cover transition-[filter] group-hover:brightness-90" @error="desktopImagePreviewFailed = true" />
+                            <div v-else class="flex h-full items-center justify-center gap-2 px-4 text-sm text-gray-500 dark:text-gray-400">
+                              <NIcon name="i-ph-image-broken" class="h-5 w-5 shrink-0" />
+                              <span>{{ $t('dialog_image_preview_unavailable') }}</span>
+                            </div>
+                            <span class="absolute left-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-sm dark:bg-neutral-900/90 dark:text-white">
+                              <NIcon :name="uploadingThemeImage === 'desktop' ? 'i-ph-circle-notch' : 'i-ph-upload-simple'" class="h-4 w-4" :class="uploadingThemeImage === 'desktop' ? 'animate-spin' : ''" />
+                            </span>
+                          </button>
+                        </NTooltip>
+                        <NTooltip :content="$t('dialog_image_remove')?.toString()">
+                          <NButton btn="soft-gray" class="absolute right-2 top-2 z-10 h-9 w-9 rounded-full shadow-sm" :aria-label="$t('dialog_image_remove')?.toString()" :disabled="submitting || !!uploadingThemeImage" @click.stop="clearThemeImage('desktop')">
+                            <NIcon name="i-ph-x" class="h-4 w-4" />
+                          </NButton>
+                        </NTooltip>
+                      </template>
+                      <button
+                        v-else
+                        type="button"
+                        class="flex h-36 w-full flex-col items-center justify-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:text-gray-300 dark:hover:bg-neutral-800"
+                        :aria-label="$t('dialog_image_upload')?.toString()"
+                        :disabled="submitting || !!uploadingThemeImage"
+                        @click="desktopImageInput?.click()"
+                      >
+                        <NIcon :name="uploadingThemeImage === 'desktop' ? 'i-ph-circle-notch' : 'i-ph-upload-simple'" class="h-5 w-5" :class="uploadingThemeImage === 'desktop' ? 'animate-spin' : ''" />
+                        <span>{{ uploadingThemeImage === 'desktop' ? $t('dialog_image_uploading') : $t('dialog_image_upload') }}</span>
+                      </button>
+                    </div>
                     <div>
                       <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_url') }}</label>
-                      <NInput v-model="form.image_url" :placeholder="$t('dialog_image_placeholder') as string" :disabled="submitting" />
-                    </div>
-                    <div v-if="form.image_url" class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-                      <img :src="form.image_url" :alt="form.image_alt || ''" class="h-36 w-full object-cover" />
+                      <div class="min-w-0">
+                        <NInput v-model="form.image_url" class="w-full min-w-0" :placeholder="$t('dialog_image_placeholder') as string" :disabled="submitting" />
+                      </div>
+                      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $t('dialog_image_upload_limit') }}</p>
                     </div>
                     <div>
                       <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_alt') }}</label>
                       <NInput v-model="form.image_alt" :placeholder="$t('dialog_image_alt_placeholder') as string" :disabled="submitting" />
                     </div>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_credit') }}</label>
-                        <NInput v-model="form.image_credit" :placeholder="$t('dialog_image_credit_placeholder') as string" :disabled="submitting" />
-                      </div>
-                      <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_license') }}</label>
-                        <NInput v-model="form.image_license" :placeholder="$t('dialog_image_license_placeholder') as string" :disabled="submitting" />
-                      </div>
-                      <div class="sm:col-span-2">
-                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_source_url') }}</label>
-                        <NInput v-model="form.image_source_url" :placeholder="$t('dialog_image_source_url_placeholder') as string" :disabled="submitting" />
-                      </div>
-                      <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_date') }}</label>
-                        <NInput v-model="form.image_date" :placeholder="$t('dialog_image_date_placeholder') as string" :disabled="submitting" />
-                      </div>
-                      <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_location') }}</label>
-                        <NInput v-model="form.image_location" :placeholder="$t('dialog_image_location_placeholder') as string" :disabled="submitting" />
-                      </div>
-                    </div>
-                    <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-                      <h5 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_mobile_theme_image') }}</h5>
-                      <div class="space-y-4">
+                    <NCollapsible v-model:open="showDesktopAttribution" class="border-t border-gray-200/80 pt-3 dark:border-neutral-700/80">
+                      <NCollapsibleTrigger as-child>
+                        <button class="flex w-full items-center justify-between gap-3 text-left text-sm font-medium text-gray-700 transition-colors hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:text-gray-300 dark:hover:text-white">
+                          <span>{{ $t('dialog_image_attribution_details') }}</span>
+                          <NIcon name="i-ph-caret-down" class="h-4 w-4 shrink-0 transition-transform" :class="showDesktopAttribution ? 'rotate-180' : ''" />
+                        </button>
+                      </NCollapsibleTrigger>
+                      <NCollapsibleContent>
+                        <div class="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2">
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_credit') }}</label>
+                            <NInput v-model="form.image_credit" :placeholder="$t('dialog_image_credit_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_license') }}</label>
+                            <NInput v-model="form.image_license" :placeholder="$t('dialog_image_license_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <div class="sm:col-span-2">
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_source_url') }}</label>
+                            <NInput v-model="form.image_source_url" :placeholder="$t('dialog_image_source_url_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_date') }}</label>
+                            <NInput v-model="form.image_date" :placeholder="$t('dialog_image_date_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_location') }}</label>
+                            <NInput v-model="form.image_location" :placeholder="$t('dialog_image_location_placeholder') as string" :disabled="submitting" />
+                          </div>
+                        </div>
+                      </NCollapsibleContent>
+                    </NCollapsible>
+                    <NCollapsible v-model:open="showMobileImage">
+                      <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
+                        <NCollapsibleTrigger as-child>
+                          <button class="flex w-full items-center justify-between gap-3 text-left text-sm font-medium text-gray-700 transition-colors hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:text-gray-300 dark:hover:text-white">
+                            <span class="flex items-center gap-2">
+                              <NIcon name="i-ph-caret-down" class="h-4 w-4 shrink-0 transition-transform" :class="showMobileImage ? 'rotate-180' : ''" />
+                              <span>{{ $t(showMobileImage || hasMobileImageSettings ? 'dialog_mobile_theme_image' : 'dialog_mobile_image_add') }}</span>
+                            </span>
+                          </button>
+                        </NCollapsibleTrigger>
+                        <p class="mt-1 pl-6 text-xs text-gray-500 dark:text-gray-400">{{ $t('dialog_mobile_image_optional_help') }}</p>
+                        <NCollapsibleContent>
+                          <div class="space-y-4 pt-4">
+                        <div class="relative w-32 overflow-hidden rounded-xl border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-neutral-900">
+                          <input ref="mobileImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="hidden" :disabled="submitting || !!uploadingThemeImage" @change="onThemeImageSelected($event, 'mobile')">
+                          <template v-if="form.mobile_image_url">
+                            <NTooltip :content="$t('dialog_image_replace')?.toString()">
+                              <button
+                                type="button"
+                                class="group relative block h-56 w-full overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+                                :aria-label="$t('dialog_image_replace')?.toString()"
+                                :disabled="submitting || !!uploadingThemeImage"
+                                @click="mobileImageInput?.click()"
+                              >
+                                <img v-if="!mobileImagePreviewFailed" :src="form.mobile_image_url" :alt="form.mobile_image_alt || ''" class="h-full w-full object-cover transition-[filter] group-hover:brightness-90" @error="mobileImagePreviewFailed = true" />
+                                <div v-else class="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-xs text-gray-500 dark:text-gray-400">
+                                  <NIcon name="i-ph-image-broken" class="h-5 w-5 shrink-0" />
+                                  <span>{{ $t('dialog_image_preview_unavailable') }}</span>
+                                </div>
+                                <span class="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-sm dark:bg-neutral-900/90 dark:text-white">
+                                  <NIcon :name="uploadingThemeImage === 'mobile' ? 'i-ph-circle-notch' : 'i-ph-upload-simple'" class="h-4 w-4" :class="uploadingThemeImage === 'mobile' ? 'animate-spin' : ''" />
+                                </span>
+                              </button>
+                            </NTooltip>
+                            <NTooltip :content="$t('dialog_image_remove')?.toString()">
+                              <NButton btn="soft-gray" class="absolute right-2 top-2 z-10 h-8 w-8 rounded-full shadow-sm" :aria-label="$t('dialog_image_remove')?.toString()" :disabled="submitting || !!uploadingThemeImage" @click.stop="clearThemeImage('mobile')">
+                                <NIcon name="i-ph-x" class="h-4 w-4" />
+                              </NButton>
+                            </NTooltip>
+                          </template>
+                          <button
+                            v-else
+                            type="button"
+                            class="flex h-56 w-full flex-col items-center justify-center gap-2 px-2 text-center text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:text-gray-300 dark:hover:bg-neutral-800"
+                            :aria-label="$t('dialog_image_upload')?.toString()"
+                            :disabled="submitting || !!uploadingThemeImage"
+                            @click="mobileImageInput?.click()"
+                          >
+                            <NIcon :name="uploadingThemeImage === 'mobile' ? 'i-ph-circle-notch' : 'i-ph-upload-simple'" class="h-5 w-5" :class="uploadingThemeImage === 'mobile' ? 'animate-spin' : ''" />
+                            <span>{{ uploadingThemeImage === 'mobile' ? $t('dialog_image_uploading') : $t('dialog_image_upload') }}</span>
+                          </button>
+                        </div>
                         <div>
                           <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_url') }}</label>
-                          <NInput v-model="form.mobile_image_url" :placeholder="$t('dialog_mobile_image_url_placeholder') as string" :disabled="submitting" />
-                        </div>
-                        <div v-if="form.mobile_image_url" class="mx-auto h-64 w-36 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-                          <img :src="form.mobile_image_url" :alt="form.mobile_image_alt || ''" class="h-full w-full object-cover" />
+                          <div class="min-w-0">
+                            <NInput v-model="form.mobile_image_url" class="w-full min-w-0" :placeholder="$t('dialog_mobile_image_url_placeholder') as string" :disabled="submitting" />
+                          </div>
+                          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $t('dialog_image_upload_limit') }}</p>
                         </div>
                         <div>
                           <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_alt') }}</label>
                           <NInput v-model="form.mobile_image_alt" :placeholder="$t('dialog_image_alt_placeholder') as string" :disabled="submitting" />
                         </div>
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                          <div>
-                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_credit') }}</label>
-                            <NInput v-model="form.mobile_image_credit" :placeholder="$t('dialog_image_credit_placeholder') as string" :disabled="submitting" />
+                        <NCollapsible v-model:open="showMobileAttribution" class="border-t border-gray-200/80 pt-3 dark:border-neutral-700/80">
+                          <NCollapsibleTrigger as-child>
+                            <button class="flex w-full items-center justify-between gap-3 text-left text-sm font-medium text-gray-700 transition-colors hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:text-gray-300 dark:hover:text-white">
+                              <span>{{ $t('dialog_image_attribution_details') }}</span>
+                              <NIcon name="i-ph-caret-down" class="h-4 w-4 shrink-0 transition-transform" :class="showMobileAttribution ? 'rotate-180' : ''" />
+                            </button>
+                          </NCollapsibleTrigger>
+                          <NCollapsibleContent>
+                            <div class="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2">
+                              <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_credit') }}</label>
+                                <NInput v-model="form.mobile_image_credit" :placeholder="$t('dialog_image_credit_placeholder') as string" :disabled="submitting" />
+                              </div>
+                              <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_license') }}</label>
+                                <NInput v-model="form.mobile_image_license" :placeholder="$t('dialog_image_license_placeholder') as string" :disabled="submitting" />
+                              </div>
+                              <div class="sm:col-span-2">
+                                <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_source_url') }}</label>
+                                <NInput v-model="form.mobile_image_source_url" :placeholder="$t('dialog_image_source_url_placeholder') as string" :disabled="submitting" />
+                              </div>
+                              <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_date') }}</label>
+                                <NInput v-model="form.mobile_image_date" :placeholder="$t('dialog_image_date_placeholder') as string" :disabled="submitting" />
+                              </div>
+                              <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_location') }}</label>
+                                <NInput v-model="form.mobile_image_location" :placeholder="$t('dialog_image_location_placeholder') as string" :disabled="submitting" />
+                              </div>
+                            </div>
+                          </NCollapsibleContent>
+                        </NCollapsible>
                           </div>
-                          <div>
-                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_license') }}</label>
-                            <NInput v-model="form.mobile_image_license" :placeholder="$t('dialog_image_license_placeholder') as string" :disabled="submitting" />
-                          </div>
-                          <div class="sm:col-span-2">
-                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_source_url') }}</label>
-                            <NInput v-model="form.mobile_image_source_url" :placeholder="$t('dialog_image_source_url_placeholder') as string" :disabled="submitting" />
-                          </div>
-                          <div>
-                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_date') }}</label>
-                            <NInput v-model="form.mobile_image_date" :placeholder="$t('dialog_image_date_placeholder') as string" :disabled="submitting" />
-                          </div>
-                          <div>
-                            <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_image_location') }}</label>
-                            <NInput v-model="form.mobile_image_location" :placeholder="$t('dialog_image_location_placeholder') as string" :disabled="submitting" />
-                          </div>
-                        </div>
+                        </NCollapsibleContent>
                       </div>
-                    </div>
+                    </NCollapsible>
                   </div>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-6">
-                  <h4 class="py-2 rounded-2 text-md font-400 text-gray-900 dark:text-white mb-4">{{ $t('dialog_colors') }}</h4>
-                  <div class="flex gap-16">
-                    <div>
-                      <div class="flex items-center gap-3">
+                <div class="py-5">
+                  <h4 class="mb-5 text-center font-serif text-xl text-gray-900 dark:text-white">{{ $t('dialog_colors') }}</h4>
+                  <div class="grid grid-cols-2 justify-items-center gap-4 sm:gap-8">
+                    <div class="flex min-w-0 flex-col items-center text-center">
+                      <div class="mb-3 flex justify-center">
                         <BlossomColorPicker
                           :value="primaryPickerValue"
                           @change="onPrimaryChange"
@@ -467,11 +608,11 @@
                           :petal-size="28"
                         />
                       </div>
-                      <label class="block text-sm font-medium text-gray-900 dark:text-white mb-1">{{ $t('dialog_primary') }}</label>
-                      <NInput :model-value="form.color_primary" @update:model-value="onPrimaryHexInput" size="sm" class="w-28 mb-2 font-mono" />
+                      <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_primary') }}</label>
+                      <NInput :model-value="form.color_primary" @update:model-value="onPrimaryHexInput" size="sm" class="mb-2 w-28 max-w-full font-mono text-center" />
                     </div>
-                    <div>
-                      <div class="flex items-center gap-3">
+                    <div class="flex min-w-0 flex-col items-center text-center">
+                      <div class="mb-3 flex justify-center">
                         <BlossomColorPicker
                           :value="secondaryPickerValue"
                           @change="onSecondaryChange"
@@ -480,22 +621,21 @@
                           :petal-size="28"
                         />
                       </div>
-                      <label class="block text-sm font-medium text-gray-900 dark:text-white mb-1">{{ $t('dialog_secondary') }}</label>
-                      <NInput :model-value="form.color_secondary" @update:model-value="onSecondaryHexInput" size="sm" class="w-28 mb-2 font-mono" />
+                      <label class="mb-1 block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_secondary') }}</label>
+                      <NInput :model-value="form.color_secondary" @update:model-value="onSecondaryHexInput" size="sm" class="mb-2 w-28 max-w-full font-mono text-center" />
                     </div>
                   </div>
                 </div>
               </div>
 
               <!-- Featured -->
-              <div v-if="item.value === 'featured'" class="p-1 space-y-6 overflow-y-auto max-h-full">
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-6">
-                  <h4 class="py-2 rounded-2 text-md font-400 text-gray-900 dark:text-white mb-4">{{ $t('dialog_featured_quote') }}</h4>
+              <div v-if="activeTab === 'curation'" class="space-y-8">
+                <div class="space-y-3">
+                  <h4 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('dialog_featured_quote') }}</h4>
                   <div class="relative">
                     <NInput
                       v-model="featuredQuoteQuery"
                       :placeholder="$t('dialog_featured_quote_placeholder') as string"
-                      size="sm"
                       :loading="featuredQuoteLoading"
                       @input="onFeaturedQuoteSearch"
                       @focus="onFeaturedQuoteSearch"
@@ -504,13 +644,16 @@
                     />
                     <div
                       v-if="featuredQuoteActive && featuredQuoteResults.length"
-                      class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+                      role="listbox"
+                      class="absolute bottom-full left-0 right-0 z-50 mb-1 max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
                     >
                       <div
                         v-for="(s, si) in featuredQuoteResults"
                         :key="s.value"
-                        class="px-3 py-1.5 text-xs cursor-pointer truncate"
-                        :class="si === featuredQuoteHighlighted ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"
+                        role="option"
+                        :aria-selected="si === featuredQuoteHighlighted"
+                        class="cursor-pointer truncate px-4 py-2.5 text-sm transition-colors"
+                        :class="si === featuredQuoteHighlighted ? 'bg-gray-100 text-gray-950 dark:bg-white/10 dark:text-white' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5'"
                         @mousedown.prevent="selectFeaturedQuote(s)"
                         @mouseenter="featuredQuoteHighlighted = si"
                       >
@@ -518,19 +661,20 @@
                       </div>
                     </div>
                   </div>
-                  <p v-if="form.featured_quote_id" class="font-sans text-xs text-green-600 dark:text-green-400 mt-2">
-                    ✓ {{ $t('dialog_featured_selected') }} <NTooltip v-if="featuredQuoteQuery" :content="featuredQuoteQuery"><span class="font-mono text-gray-400 cursor-help">(#{{ form.featured_quote_id }})</span></NTooltip><span v-else class="font-mono text-gray-400">(#{{ form.featured_quote_id }})</span>
-                    <button class="ml-1 p-0.5 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors align-middle" @click="clearFeaturedQuote" :title="$t('common.clear')?.toString()"><NIcon name="i-ph-x" class="w-3 h-3" /></button>
-                  </p>
+                  <div v-if="form.featured_quote_id" class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <NIcon name="i-ph-check-circle" class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+                    <span>{{ $t('dialog_featured_selected') }}</span>
+                    <NTooltip v-if="featuredQuoteQuery" :content="featuredQuoteQuery"><span class="cursor-help font-mono text-xs text-gray-500">#{{ form.featured_quote_id }}</span></NTooltip><span v-else class="font-mono text-xs text-gray-500">#{{ form.featured_quote_id }}</span>
+                    <NTooltip :content="$t('common.clear')?.toString()"><NButton btn="ghost-gray" size="xs" icon label="i-ph-x" :aria-label="$t('common.clear')?.toString()" class="ml-auto h-8 w-8" @click="clearFeaturedQuote" /></NTooltip>
+                  </div>
                 </div>
 
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-6">
-                  <h4 class="py-2 rounded-2 text-md font-400 text-gray-900 dark:text-white mb-4">{{ $t('dialog_featured_reference') }}</h4>
+                <div class="space-y-3 border-t border-gray-200/80 pt-6 dark:border-neutral-700/80">
+                  <h4 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('dialog_featured_reference') }}</h4>
                   <div class="relative">
                     <NInput
                       v-model="featuredRefQuery"
                       :placeholder="$t('dialog_featured_reference_placeholder') as string"
-                      size="sm"
                       :loading="featuredRefLoading"
                       @input="onFeaturedRefSearch"
                       @focus="onFeaturedRefSearch"
@@ -539,13 +683,16 @@
                     />
                     <div
                       v-if="featuredRefActive && featuredRefResults.length"
-                      class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+                      role="listbox"
+                      class="absolute bottom-full left-0 right-0 z-50 mb-1 max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
                     >
                       <div
                         v-for="(s, si) in featuredRefResults"
                         :key="s.value"
-                        class="px-3 py-1.5 text-xs cursor-pointer truncate"
-                        :class="si === featuredRefHighlighted ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"
+                        role="option"
+                        :aria-selected="si === featuredRefHighlighted"
+                        class="cursor-pointer truncate px-4 py-2.5 text-sm transition-colors"
+                        :class="si === featuredRefHighlighted ? 'bg-gray-100 text-gray-950 dark:bg-white/10 dark:text-white' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5'"
                         @mousedown.prevent="selectFeaturedRef(s)"
                         @mouseenter="featuredRefHighlighted = si"
                       >
@@ -553,15 +700,17 @@
                       </div>
                     </div>
                   </div>
-                  <p v-if="form.featured_reference_id" class="font-sans text-xs text-green-600 dark:text-green-400 mt-2">
-                    ✓ {{ $t('dialog_featured_selected') }} <NTooltip v-if="featuredRefQuery" :content="featuredRefQuery"><span class="font-mono text-gray-400 cursor-help">(#{{ form.featured_reference_id }})</span></NTooltip><span v-else class="font-mono text-gray-400">(#{{ form.featured_reference_id }})</span>
-                    <button class="ml-1 p-0.5 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors align-middle" @click="clearFeaturedRef" :title="$t('common.clear')?.toString()"><NIcon name="i-ph-x" class="w-3 h-3" /></button>
-                  </p>
+                  <div v-if="form.featured_reference_id" class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <NIcon name="i-ph-check-circle" class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+                    <span>{{ $t('dialog_featured_selected') }}</span>
+                    <NTooltip v-if="featuredRefQuery" :content="featuredRefQuery"><span class="cursor-help font-mono text-xs text-gray-500">#{{ form.featured_reference_id }}</span></NTooltip><span v-else class="font-mono text-xs text-gray-500">#{{ form.featured_reference_id }}</span>
+                    <NTooltip :content="$t('common.clear')?.toString()"><NButton btn="ghost-gray" size="xs" icon label="i-ph-x" :aria-label="$t('common.clear')?.toString()" class="ml-auto h-8 w-8" @click="clearFeaturedRef" /></NTooltip>
+                  </div>
                 </div>
               </div>
 
               <!-- Scheduling -->
-              <div v-if="item.value === 'scheduling'" class="p-1 space-y-6 overflow-y-auto max-h-full">
+              <div v-if="activeTab === 'scheduling'" class="space-y-6 overflow-y-auto max-h-full">
                 <div class="flex flex-col gap-4 max-w-xs">
                   <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_start') }}</label>
@@ -575,25 +724,22 @@
               </div>
 
               <!-- Filters -->
-              <div v-if="item.value === 'filters'" class="p-1 space-y-14 overflow-y-auto max-h-full">
+              <div v-if="activeTab === 'curation'" class="mt-8 border-t border-gray-200/80 pt-6 dark:border-neutral-700/80">
                 <div>
-                  <div class="flex items-center gap-6">
-                    <h4 class="text-xl font-200 text-gray-900 dark:text-white">{{ $t('dialog_filters') }}</h4>
-                    <NTooltip :content="$t('dialog_add_filter')?.toString()">
-                      <NButton btn="soft-blue" icon class="h-6 w-6 hover:scale-110 active:scale-99 transition-[transform]" @click="addFilter"><span class="i-ph-plus-bold" /></NButton>
-                    </NTooltip>
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h4 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('dialog_filters') }}</h4>
+                    <NButton btn="outline-gray" class="min-h-9 gap-2 px-3" @click="addFilter"><NIcon name="i-ph-plus" class="h-4 w-4" />{{ $t('dialog_add_filter') }}</NButton>
                   </div>
 
                   <div class="space-y-2 mt-4 mb-3">
-                    <div v-for="(filter, idx) in filters" :key="filter.id || idx" class="grid grid-cols-[9rem_1fr_auto] gap-2 items-center">
+                    <div v-for="(filter, idx) in filters" :key="filter.id || idx" class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_auto]">
                       <NSelect
-                        v-model="filter.type"
-                        :items="filterTypeOptions"
-                        size="sm"
+                        :model-value="displayFilterType(filter.type)"
+                        :items="filterTypeLabels"
                         class="w-full"
-                        @update:model-value="onFilterValueInput(idx)"
+                        @update:model-value="(label: string) => setFilterType(idx, label)"
                       />
-                      <div class="relative min-w-0 transition-all duration-300" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
+                      <div class="relative col-span-2 min-w-0 transition-all duration-300 sm:col-span-1 sm:col-start-2" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
                         <NInput v-model="filter.value" :placeholder="$t('dialog_filter_value') as string" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
                         <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                           <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                          :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
@@ -601,14 +747,14 @@
                           </div>
                         </div>
                       </div>
-                      <button class="p-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors" @click="removeFilter(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
+                      <button class="col-start-2 row-start-1 flex min-h-9 min-w-9 items-center justify-center rounded-1 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-300 sm:col-auto sm:row-auto" :aria-label="$t('common.delete')?.toString()" @click="removeFilter(idx)"><NIcon name="i-ph-x" class="h-4 w-4" /></button>
                     </div>
                   </div>
                   <div class="flex items-center gap-2 flex-wrap">
                     <template v-if="filterRecommendations.length">
                       <NTooltip v-for="r in filterRecommendations" :key="`${r.type}:${r.value}`" :content="$t('dialog_suggestions_label')?.toString()">
                         <NBadge badge="solid-gray" :key="`${r.type}:${r.value}`" icon="i-tabler-sparkles text-primary"  class="cursor-pointer hover:scale-102 active:scale-99 transition-[colors,transform]" @click="applyFilterRecommendation(r)">
-                          {{ r.label }}<span v-if="r.type !== 'tag_name'" class="ml-1 opacity-50"> — {{ r.type.replace('_name', '').slice(0, 3) }}</span>
+                          {{ r.label }}<span class="ml-1 text-gray-500 dark:text-gray-400"> · {{ displayFilterType(r.type) }}</span>
                         </NBadge>
                       </NTooltip>
                     </template>
@@ -641,7 +787,7 @@
               </div>
 
               <!-- AI Suggestions (create mode only) -->
-              <div v-if="item.value === 'ai'" class="p-1 px-4 space-y-6 overflow-y-auto max-h-full max-w-xl">
+              <div v-if="activeTab === 'ai'" class="p-1 px-4 space-y-6 overflow-y-auto max-h-full max-w-xl">
                 <!-- Step header -->
                 <div>
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('dialog_ai_step_title') }}</h3>
@@ -772,33 +918,50 @@
                   </div>
                 </div>
               </div>
-            </div>
-          </template>
-        </NTabs>
+        </div>
       </div>
 
       <template #footer>
-        <div class="flex w-full min-w-0 justify-end gap-3 px-4 pb-2">
-          <NButton btn="gray-link" class="hover:underline decoration-offset-6" :disabled="submitting" @click="showEditDialog = false">{{ $t('common.cancel') }}</NButton>
-          <PrimaryButton class="px-6" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
+        <div class="flex w-full min-w-0 justify-end gap-3 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
+          <NButton btn="ghost-gray" class="min-h-10 rounded-1 px-4 font-600" :disabled="submitting" @click="showEditDialog = false">{{ $t('common.cancel') }}</NButton>
+          <NButton btn="solid-black" class="min-h-10 rounded-1 px-4" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
             {{ editMode ? $t('dialog_update') : $t('dialog_create') }}
-          </PrimaryButton>
+            <NIcon v-if="!submitting" name="i-ph-check" class="ml-2 h-4 w-4" aria-hidden="true" />
+          </NButton>
         </div>
       </template>
-    </NDialog>
+    </AppDialog>
 
-    <NDialog v-model:open="showDeleteDialog" :una="{ dialogContent: 'md:max-w-sm' }">
-      <div>
-        <h3 class="font-title uppercase text-size-4 font-600 mb-3 ml-4">{{ $t('dialog_delete_title') }}</h3>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-          {{ $t('dialog_delete_body', { name: themeToDelete?.name }) }}
+    <AppDialog
+      v-model="showDeleteDialog"
+      :title="$t('dialog_delete_title') as string"
+      :submitting="submitting"
+      cancel-button-class="min-h-10 px-4"
+      max-width="md"
+      :can-submit="!deleteDisabled"
+      @submit="confirmDelete"
+    >
+      <div class="space-y-5">
+        <p class="font-semibold text-gray-900 dark:text-gray-100">
+          <template v-if="themeToDelete">
+            {{ themeToDelete.name }} <span class="font-normal text-gray-500 dark:text-gray-400">· #{{ themeToDelete.id }}</span>
+          </template>
+          <template v-else>
+            {{ $t('dialog_delete_bulk_identity', { count: selectedIds.length }) }}
+          </template>
         </p>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" :disabled="submitting" @click="showDeleteDialog = false">{{ $t('common.cancel') }}</button>
-          <OutlinedButton variant="destructive" :loading="submitting" @click="confirmDelete">{{ $t('common.delete') }}</OutlinedButton>
-        </div>
+
+        <DeleteWarningPanel>
+          {{ $t(themeToDelete ? 'dialog_delete_single_body' : 'dialog_delete_bulk_body', { count: selectedIds.length }) }}
+        </DeleteWarningPanel>
       </div>
-    </NDialog>
+
+      <template #submit>
+        <NButton :btn="deleteDisabled ? 'soft-gray' : 'solid-red'" class="min-h-10 px-4" :loading="submitting" :disabled="deleteDisabled" @click="confirmDelete">
+          {{ $t('common.delete') }}
+        </NButton>
+      </template>
+    </AppDialog>
 
     <NDialog v-model:open="showAISettings" :una="{ dialogContent: 'md:max-w-md' }">
       <template #header>
@@ -891,12 +1054,33 @@ const editingPriority = ref<number | null>(null)
 const priorityEditValue = ref(0)
 
 const showEditDialog = ref(false)
+const themeEditorOpen = useState<boolean>('admin-theme-dialog-open', () => false)
 const editMode = ref(false)
 const editingThemeId = ref<number | null>(null)
 const submitting = ref(false)
+const desktopImageInput = ref<HTMLInputElement | null>(null)
+const mobileImageInput = ref<HTMLInputElement | null>(null)
+const desktopImagePreviewFailed = ref(false)
+const mobileImagePreviewFailed = ref(false)
+const showDesktopAttribution = ref(false)
+const showMobileAttribution = ref(false)
+const showMobileImage = ref(false)
+const uploadingThemeImage = ref<'desktop' | 'mobile' | null>(null)
+const stagedThemeImageUrls = ref<string[]>([])
+
+const hasMobileImageSettings = computed(() => [
+  form.value.mobile_image_url,
+  form.value.mobile_image_alt,
+  form.value.mobile_image_credit,
+  form.value.mobile_image_source_url,
+  form.value.mobile_image_license,
+  form.value.mobile_image_date,
+  form.value.mobile_image_location,
+].some(value => value.trim().length > 0))
 
 const showDeleteDialog = ref(false)
 const themeToDelete = ref<any>(null)
+const deleteDisabled = computed(() => submitting.value || (!themeToDelete.value && selectedIds.value.length === 0))
 
 const showAISettings = ref(false)
 const showTranslations = ref(false)
@@ -905,16 +1089,62 @@ const savingAISettings = ref(false)
 const testingConnection = ref(false)
 
 const activeTab = ref('general')
+const themePanelRef = ref<HTMLElement | null>(null)
+let themeDialogResizeAnimation: Animation | null = null
+
+watch(activeTab, async () => {
+  const dialog = themePanelRef.value?.closest<HTMLElement>('[role="dialog"]')
+  if (!dialog) return
+  const startHeight = dialog.getBoundingClientRect().height
+  themeDialogResizeAnimation?.cancel()
+  themeDialogResizeAnimation = null
+
+  if (import.meta.client && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return
+  }
+
+  await nextTick()
+  const endHeight = dialog.getBoundingClientRect().height
+  if (Math.abs(endHeight - startHeight) < 1) return
+
+  themeDialogResizeAnimation = dialog.animate(
+    [{ height: `${startHeight}px` }, { height: `${endHeight}px` }],
+    { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+  )
+  themeDialogResizeAnimation.onfinish = () => {
+    themeDialogResizeAnimation?.cancel()
+    themeDialogResizeAnimation = null
+  }
+}, { flush: 'pre' })
 
 const tabs = computed(() => {
   return [
-    { name: $t('tab_general'), value: 'general', _tabsTrigger: { leading: 'i-ph-info' } },
-    { name: $t('tab_appearance'), value: 'appearance', _tabsTrigger: { leading: 'i-ph-palette' } },
-    { name: $t('tab_featured'), value: 'featured', _tabsTrigger: { leading: 'i-ph-star' } },
-    { name: $t('tab_scheduling'), value: 'scheduling', _tabsTrigger: { leading: 'i-ph-calendar-blank' } },
-    { name: $t('tab_filters'), value: 'filters', _tabsTrigger: { leading: 'i-ph-funnel' } },
+    { name: $t('tab_details'), shortName: $t('tab_details_short'), value: 'general' },
+    { name: $t('tab_appearance'), shortName: $t('tab_appearance_short'), value: 'appearance' },
+    { name: $t('tab_curation'), shortName: $t('tab_curation_short'), value: 'curation' },
+    { name: $t('tab_scheduling'), shortName: $t('tab_scheduling_short'), value: 'scheduling' },
   ]
 })
+const activeTabName = computed(() => tabs.value.find(tab => tab.value === activeTab.value)?.name as string || '')
+
+const onThemeTabKeydown = (event: KeyboardEvent, index: number) => {
+  const lastIndex = tabs.value.length - 1
+  const nextIndex = event.key === 'ArrowRight'
+    ? (index + 1) % tabs.value.length
+    : event.key === 'ArrowLeft'
+      ? (index - 1 + tabs.value.length) % tabs.value.length
+      : event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? lastIndex
+          : -1
+  if (nextIndex < 0) return
+
+  event.preventDefault()
+  activeTab.value = tabs.value[nextIndex]!.value
+  const tablist = (event.currentTarget as HTMLElement).parentElement
+  nextTick(() => tablist?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus())
+}
 
 const languageOptions = [
   { value: 'en', label: 'English', flag: '/images/languages/usa.png' },
@@ -1256,6 +1486,71 @@ const form = ref({
   featured_reference_id: null as number | null,
 })
 
+watch(() => form.value.image_url, () => { desktopImagePreviewFailed.value = false })
+watch(() => form.value.mobile_image_url, () => { mobileImagePreviewFailed.value = false })
+
+const isStagedThemeImageUrl = (url: string) => url.startsWith('/blob/images/theme-staging/')
+
+const deleteStagedThemeImage = async (url: string) => {
+  if (!isStagedThemeImageUrl(url)) return
+  try {
+    await $fetch('/api/admin/themes/staged-image', { method: 'DELETE', body: { url } })
+  } catch (error) {
+    // The scheduled cleanup removes staged objects if an immediate delete fails.
+    console.warn('Failed to remove staged theme image:', error)
+  }
+}
+
+const discardStagedThemeImages = async () => {
+  const urls = [...new Set(stagedThemeImageUrls.value)]
+  stagedThemeImageUrls.value = []
+  await Promise.allSettled(urls.map(deleteStagedThemeImage))
+}
+
+const onThemeImageSelected = async (event: Event, variant: 'desktop' | 'mobile') => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  uploadingThemeImage.value = variant
+  try {
+    const formData = new FormData()
+    formData.append('image', file)
+    const response = await $fetch<{ data: { url: string } }>('/api/admin/themes/staged-image', {
+      method: 'POST',
+      body: formData,
+    })
+    const uploadedUrl = response.data.url
+
+    if (!showEditDialog.value) {
+      await deleteStagedThemeImage(uploadedUrl)
+      return
+    }
+
+    if (!stagedThemeImageUrls.value.includes(uploadedUrl)) stagedThemeImageUrls.value.push(uploadedUrl)
+    if (variant === 'desktop') form.value.image_url = uploadedUrl
+    else form.value.mobile_image_url = uploadedUrl
+  } catch (error) {
+    showErrorToast(error, { title: $t('toast_error') as string, fallback: $t('dialog_image_upload_failed') as string })
+  } finally {
+    uploadingThemeImage.value = null
+    input.value = ''
+  }
+}
+
+const clearThemeImage = (variant: 'desktop' | 'mobile') => {
+  if (variant === 'desktop') form.value.image_url = ''
+  else form.value.mobile_image_url = ''
+}
+
+watch(() => [form.value.image_url, form.value.mobile_image_url], (currentUrls) => {
+  const stillUsed = new Set(currentUrls)
+  const unused = stagedThemeImageUrls.value.filter(url => !stillUsed.has(url))
+  if (!unused.length) return
+  stagedThemeImageUrls.value = stagedThemeImageUrls.value.filter(url => stillUsed.has(url))
+  void Promise.allSettled(unused.map(deleteStagedThemeImage))
+})
+
 const primaryPickerValue = ref(hexToBlossomValue('#6366f1'))
 const secondaryPickerValue = ref(hexToBlossomValue('#f59e0b'))
 
@@ -1288,7 +1583,27 @@ function onSecondaryHexInput(value: string) {
 
 const filters = ref<any[]>([])
 
-const filterTypeOptions = ['keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id', 'language']
+const filterTypeOptions = [
+  { value: 'keyword', label: String($t('dialog_filter_keyword')) },
+  { value: 'tag_name', label: String($t('dialog_filter_tag')) },
+  { value: 'author_name', label: String($t('dialog_filter_author')) },
+  { value: 'reference_name', label: String($t('dialog_filter_reference')) },
+  { value: 'author_id', label: String($t('dialog_filter_author_id')) },
+  { value: 'reference_id', label: String($t('dialog_filter_reference_id')) },
+  { value: 'language', label: String($t('dialog_filter_language')) },
+]
+const filterTypeLabels = filterTypeOptions.map(option => option.label)
+
+function displayFilterType(type: string) {
+  return filterTypeOptions.find(option => option.value === type)?.label || type
+}
+
+function setFilterType(index: number, label: string) {
+  const option = filterTypeOptions.find(candidate => candidate.label === label)
+  if (!option || !filters.value[index]) return
+  filters.value[index].type = option.value
+  onFilterValueInput(index)
+}
 
 // multi-select state
 const rowSelection = ref<Record<number, boolean>>({})
@@ -1301,7 +1616,10 @@ const bulkSelectionActions = computed(() => [
 ])
 
 const onBulkSelectionAction = (key: string) => {
-  if (key === 'delete') showDeleteDialog.value = true
+  if (key === 'delete') {
+    themeToDelete.value = null
+    showDeleteDialog.value = true
+  }
 }
 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
@@ -1338,7 +1656,12 @@ useAdminKeyboardShortcuts({
   hasSelection: () => selectedIds.value.length > 0,
   isDialogOpen: () => isAnyDialogOpen.value,
   isDropdownOpen: () => false,
-  onDelete: () => { if (selectedIds.value.length) showDeleteDialog.value = true },
+  onDelete: () => {
+    if (selectedIds.value.length) {
+      themeToDelete.value = null
+      showDeleteDialog.value = true
+    }
+  },
   onConfirmDialog: () => { if (showDeleteDialog.value) confirmDelete() },
   highlightedRowIndex: () => highlightedRowIndex.value,
   onSingleEdit: () => {
@@ -1415,7 +1738,7 @@ const totalPages = computed(() => Math.ceil(totalThemes.value / pageSize.value))
 const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedIds.value.length > 0) {
-    actions.push({ label: $t('dropdown_delete_selected'), leading: 'i-ph-trash', shortcut: 'D', onclick: () => { showDeleteDialog.value = true } })
+    actions.push({ label: $t('dropdown_delete_selected'), leading: 'i-ph-trash', shortcut: 'D', onclick: () => { themeToDelete.value = null; showDeleteDialog.value = true } })
   }
   if (actions.length > 0) actions.push({})
   actions.push({ label: $t('dropdown_add'), leading: 'i-ph-plus', onclick: () => { openCreate() } })
@@ -1467,6 +1790,7 @@ const duplicateTheme = async (theme: any) => {
       featured_quote_id: themeConfig.featured_quote_id ?? null,
       featured_reference_id: themeConfig.featured_reference_id ?? null,
     }
+    showMobileImage.value = hasMobileImageSettings.value
     translations.value = (data.translations || []).map((t: any) => ({
       _key: translationKeyCounter++,
       language: t.language,
@@ -1600,6 +1924,10 @@ const removeTranslation = (idx: number) => {
 }
 
 const resetForm = () => {
+  void discardStagedThemeImages()
+  showDesktopAttribution.value = false
+  showMobileAttribution.value = false
+  showMobileImage.value = false
   form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
@@ -1666,6 +1994,7 @@ const openEdit = async (theme: any) => {
       featured_quote_id: themeConfig.featured_quote_id ?? null,
       featured_reference_id: themeConfig.featured_reference_id ?? null,
     }
+    showMobileImage.value = hasMobileImageSettings.value
     if (themeConfig.featured_quote_id) {
       resolveFeaturedName('quote', themeConfig.featured_quote_id, featuredQuoteQuery)
     }
@@ -1949,6 +2278,7 @@ const onFilterKeydown = async (idx: number, e: KeyboardEvent) => {
 let globalKeyHandler: ((e: KeyboardEvent) => void) | undefined
 
 watch(showEditDialog, (open) => {
+  themeEditorOpen.value = open
   if (open) {
     globalKeyHandler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -1962,8 +2292,9 @@ watch(showEditDialog, (open) => {
       document.removeEventListener('keydown', globalKeyHandler)
       globalKeyHandler = undefined
     }
+    void discardStagedThemeImages()
   }
-})
+}, { immediate: true })
 
 const selectFilterSuggestion = (idx: number, suggestion: { label: string; value: string }) => {
   if (filters.value[idx]) {
@@ -2102,6 +2433,12 @@ const saveTheme = async () => {
       }
     }
 
+    const stagedUrlsUsedBySavedTheme = new Set(
+      [form.value.image_url, form.value.mobile_image_url].filter(isStagedThemeImageUrl),
+    )
+    const unusedStagedUrls = stagedThemeImageUrls.value.filter(url => !stagedUrlsUsedBySavedTheme.has(url))
+    stagedThemeImageUrls.value = []
+    await Promise.allSettled(unusedStagedUrls.map(deleteStagedThemeImage))
     showEditDialog.value = false
     await loadThemes()
   } catch (error: any) {
@@ -2117,7 +2454,7 @@ const saveTheme = async () => {
 }
 
 const confirmDelete = async () => {
-  if (!themeToDelete.value && selectedIds.value.length === 0) return
+  if (deleteDisabled.value) return
   submitting.value = true
   try {
     if (themeToDelete.value) {
@@ -2198,6 +2535,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  themeEditorOpen.value = false
   if (footerObserver) footerObserver.disconnect()
   window.removeEventListener('resize', updateFooterPosition)
 })

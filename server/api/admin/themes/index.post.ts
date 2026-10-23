@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { finishThemeImageCommit, prepareThemeImageCommit, rollbackThemeImageCommit } from '~~/server/utils/theme-image-storage'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -50,20 +51,27 @@ export default defineEventHandler(async (event) => {
       throwServer(409, 'Theme with this slug already exists')
     }
 
-    await db.insert(schema.themes).values({
-      slug,
-      name,
-      description,
-      language,
-      ...imageFields,
-      config,
-      isActive,
-      isDefault,
-      scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
-      scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
-      priority,
-    })
-
+    const imageCommit = await prepareThemeImageCommit(imageFields.imageUrl, imageFields.mobileImageUrl)
+    try {
+      await db.insert(schema.themes).values({
+        slug,
+        name,
+        description,
+        language,
+        ...imageFields,
+        imageUrl: imageCommit.imageUrl,
+        mobileImageUrl: imageCommit.mobileImageUrl,
+        config,
+        isActive,
+        isDefault,
+        scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
+        scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
+        priority,
+      })
+    } catch (error) {
+      await rollbackThemeImageCommit(imageCommit)
+      throw error
+    }
     const theme = await db.select()
       .from(schema.themes)
       .where(eq(schema.themes.slug, slug))
@@ -84,6 +92,8 @@ export default defineEventHandler(async (event) => {
         }))
       )
     }
+
+    await finishThemeImageCommit(imageCommit)
 
     return { success: true, data: theme }
   } catch (error: any) {

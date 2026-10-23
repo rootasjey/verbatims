@@ -20,6 +20,8 @@
   },
   "triggers": {
     "crons": [
+      // Remove abandoned, unsaved theme image uploads every six hours.
+      "0 */6 * * *",
       // Repair abandoned social queue items every five minutes.
       "*/5 * * * *",
       // Refill enabled social queues at 08:00 Europe/Paris (daylight saving time).
