@@ -93,6 +93,7 @@ export default defineNuxtConfig({
     meta: true,
     redirects: false,
     translationPayloads: {
+      mode: 'source',
       prerenderRoutes: false,
     },
   },
