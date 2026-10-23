@@ -39,7 +39,7 @@
   "label_write_window": "Write window (seconds)",
   "warning_save": "Save this key — it won't be shown again!",
   "dialog_delete_title": "Delete API Key",
-  "dialog_delete_body": "Are you sure you want to delete the key {name}? This action cannot be undone.",
+  "dialog_delete_body": "Any integrations using this key will lose API access, and its usage history will be deleted.",
   "error_save": "Failed to save API key",
   "error_delete": "Failed to delete API key",
   "error_load": "Failed to load API keys",

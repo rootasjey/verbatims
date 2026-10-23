@@ -19,7 +19,7 @@
           <NTooltip :content="$t('refresh') as string">
             <button type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" :aria-label="$t('refresh') as string" :disabled="loading" @click="loadQueue"><NIcon name="i-ph-arrow-clockwise" class="h-4 w-4" /></button>
           </NTooltip>
-          <NButton btn="solid-primary" size="sm" :loading="processing" :disabled="processing || queueStats.jobs.queued === 0" @click="processQueuedJobs"><NIcon v-if="!processing" name="i-ph-play" class="mr-1.5 h-4 w-4" />{{ $t('process_batch') }}</NButton>
+          <NButton btn="solid-black" size="sm" :loading="processing" :disabled="processing || queueStats.jobs.queued === 0" class="h-9 min-h-9 rounded-xl px-4 font-sans font-medium" @click="processQueuedJobs"><NIcon v-if="!processing" name="i-ph-play" class="mr-1.5 h-4 w-4" />{{ $t('process_batch') }}</NButton>
           <NTooltip :content="$t('settings') as string">
             <button type="button" class="grid h-9 w-9 place-items-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" :aria-label="$t('settings') as string" @click="openEnrichmentConfigDialog"><NIcon name="i-ph-gear" class="h-4 w-4" /></button>
           </NTooltip>

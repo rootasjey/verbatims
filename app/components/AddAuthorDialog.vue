@@ -6,13 +6,13 @@
     :submitting="submitting"
     :can-submit="!!nameQuery.trim()"
     title-class="sr-only"
+    hide-header-border
     max-width="2xl"
     scrollable
     @submit="submitAuthor"
   >
     <template #header-title>
       <div class="min-w-0 flex-1">
-        <h2 v-if="!isEditMode" class="mb-3 font-serif text-2xl font-400 tracking-tight text-gray-900 dark:text-gray-100">{{ dialogTitle }}</h2>
         <div role="tablist" :aria-label="$t('components.dialogs.author_sections') as string" class="flex min-w-0 gap-2 overflow-x-auto px-2 sm:gap-7 sm:px-3">
           <button
             v-for="(tab, index) in authorTabs"

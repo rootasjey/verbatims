@@ -6,13 +6,13 @@
     :submitting="submitting"
     :can-submit="!!titleQuery.trim()"
     title-class="sr-only"
+    hide-header-border
     max-width="2xl"
     scrollable
     @submit="submitReference"
   >
     <template #header-title>
       <div class="min-w-0 flex-1">
-        <h2 v-if="!isEditMode" class="mb-3 font-serif text-2xl font-400 tracking-tight text-gray-900 dark:text-gray-100">{{ dialogTitle }}</h2>
         <div role="tablist" :aria-label="$t('components.dialogs.reference_sections') as string" class="flex min-w-0 gap-2 overflow-x-auto px-2 sm:gap-7 sm:px-3">
           <button v-for="(tab, index) in referenceTabs" :key="tab.id" :ref="element => setTabRef(tab.id, element)" type="button" role="tab" :id="`reference-tab-${tab.id}`" :aria-selected="activeTab === tab.id" :aria-controls="`reference-panel-${tab.id}`" :tabindex="activeTab === tab.id ? 0 : -1" :class="['flex shrink-0 items-center gap-1.5 border-b-2 pb-2.5 font-sans text-xs transition-colors focus-visible:outline-none focus-visible:ring-0 sm:text-sm', activeTab === tab.id ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200']" @click="activeTab = tab.id" @keydown="onTabKeydown($event, index)">
             <span v-if="tab.id === 'image'" class="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-gray-200 dark:bg-neutral-800"><img v-if="referencePreviewUrl" :src="referencePreviewUrl" :alt="$t('components.dialogs.cover_preview') as string" class="h-full w-full object-cover"><NIcon v-else name="i-ph-image" class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" /></span>

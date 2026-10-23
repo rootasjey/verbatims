@@ -192,48 +192,50 @@
     </div>
 
     <!-- Create/Edit Dialog -->
-    <NDialog v-model:open="showDialog">
+    <NDialog v-model:open="showDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] max-w-xl gap-6 overflow-y-auto rounded-xl p-5 sm:p-7' }">
       <template #header>
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ editingKey ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h3>
+        <div>
+          <h2 class="font-serif text-2xl font-400 tracking-tight text-gray-900 dark:text-gray-100">{{ editingKey ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h2>
+        </div>
       </template>
-      <div class="space-y-4">
+      <div class="space-y-5">
         <div>
-          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_name') }}</label>
-          <input v-model="form.name" type="text" :placeholder="$t('placeholder_name') as string" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-400" />
+          <label class="mb-1.5 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_name') }}</label>
+          <input v-model="form.name" type="text" :placeholder="$t('placeholder_name') as string" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 placeholder-gray-400 outline-none transition focus-visible:ring-2 focus-visible:ring-stone-500/70 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100 dark:placeholder-gray-500" />
         </div>
         <div>
-          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_tier') }}</label>
-          <select v-model="form.tier" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400 cursor-pointer">
-            <option v-for="t in tierOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
-          </select>
+          <label class="mb-1.5 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_tier') }}</label>
+          <NCombobox v-model="selectedTierOption" :items="tierOptions" by="value" :_combobox-list="{ class: 'min-w-[220px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'md', trailing: 'i-lucide-chevron-down', class: 'min-h-11 w-full justify-between rounded-lg font-sans text-sm' }">
+            <template #trigger="{ modelValue }"><span class="truncate">{{ modelValue?.label }}</span></template>
+          </NCombobox>
         </div>
         <div>
-          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_permissions') }}</label>
-          <div class="flex gap-3 flex-wrap">
-            <label v-for="perm in availablePermissions" :key="perm.value" class="flex items-center gap-2 font-sans text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+          <label class="mb-2 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_permissions') }}</label>
+          <div class="flex flex-wrap gap-x-5 gap-y-3 rounded-lg border border-gray-200 p-4 dark:border-neutral-700">
+            <label v-for="perm in availablePermissions" :key="perm.value" class="flex cursor-pointer items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
               <input type="checkbox" :value="perm.value" v-model="form.permissions" class="accent-gray-700 dark:accent-gray-300" />
               {{ perm.label }}
             </label>
           </div>
         </div>
-          <div class="flex gap-4">
+          <div class="grid gap-4 sm:grid-cols-2">
             <div class="flex-1">
-              <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_rate_limit') }}</label>
-              <input v-model.number="form.readRateLimit" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+              <label class="mb-1.5 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_rate_limit') }}</label>
+              <input v-model.number="form.readRateLimit" type="number" min="1" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-stone-500/70 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100" />
             </div>
             <div class="flex-1">
-              <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_read_window') }}</label>
-              <input v-model.number="form.readWindowSec" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+              <label class="mb-1.5 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_read_window') }}</label>
+              <input v-model.number="form.readWindowSec" type="number" min="1" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-stone-500/70 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100" />
             </div>
           </div>
-          <div class="flex gap-4">
+          <div class="grid gap-4 sm:grid-cols-2">
             <div class="flex-1">
-              <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_write_rate_limit') }}</label>
-              <input v-model.number="form.writeRateLimit" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+              <label class="mb-1.5 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_write_rate_limit') }}</label>
+              <input v-model.number="form.writeRateLimit" type="number" min="1" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-stone-500/70 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100" />
             </div>
             <div class="flex-1">
-              <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_write_window') }}</label>
-              <input v-model.number="form.writeWindowSec" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+              <label class="mb-1.5 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_write_window') }}</label>
+              <input v-model.number="form.writeWindowSec" type="number" min="1" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-stone-500/70 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100" />
             </div>
           </div>
 
@@ -247,26 +249,36 @@
         </div>
       </div>
       <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="closeDialog">{{ $t('common.cancel') }}</button>
-          <OutlinedButton :loading="saving" :variant="editingKey ? undefined : undefined" @click="save">{{ editingKey ? $t('common.save') : $t('dialog_create_title') }}</OutlinedButton>
+        <div class="-mx-5 -mb-5 flex w-[calc(100%+2.5rem)] justify-end gap-3 border-t border-gray-200 px-5 pt-4 pb-5 dark:border-neutral-700 sm:-mx-7 sm:-mb-7 sm:w-[calc(100%+3.5rem)] sm:px-7 sm:pb-7">
+          <NButton btn="ghost-gray" class="min-h-10 px-4" @click="closeDialog">{{ $t('common.cancel') }}</NButton>
+          <NButton btn="solid-black" class="min-h-10 rounded-lg px-4" :loading="saving" @click="save">{{ editingKey ? $t('common.save') : $t('dialog_create_title') }}</NButton>
         </div>
       </template>
     </NDialog>
 
     <!-- Delete Dialog -->
-    <NDialog v-model:open="showDeleteDialog">
-      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_delete_title') }}</h3></template>
-      <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">
-        {{ $t('dialog_delete_body', { name: deletingKey?.name }) }}
-      </p>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showDeleteDialog = false">{{ $t('common.cancel') }}</button>
-          <OutlinedButton variant="destructive" :loading="deleting" @click="confirmDelete">{{ $t('common.delete') }}</OutlinedButton>
-        </div>
+    <AppDialog
+      v-model="showDeleteDialog"
+      :title="$t('dialog_delete_title') as string"
+      :submitting="deleting"
+      cancel-button-class="min-h-10 px-4"
+      max-width="md"
+      @submit="confirmDelete"
+    >
+      <div class="space-y-5">
+        <p class="break-words font-semibold text-gray-900 dark:text-gray-100">
+          {{ deletingKey?.name }} <span class="font-normal text-gray-500 dark:text-gray-400">· #{{ deletingKey?.id }}</span>
+        </p>
+
+        <DeleteWarningPanel>{{ $t('dialog_delete_body') }}</DeleteWarningPanel>
+      </div>
+
+      <template #submit>
+        <NButton btn="solid-red" :loading="deleting" :disabled="deleting || !deletingKey" class="min-h-10 px-4" @click="confirmDelete">
+          {{ $t('common.delete') }}
+        </NButton>
       </template>
-    </NDialog>
+    </AppDialog>
     <PageJumpDialog
       v-model="showPageJumpDialog"
       :total-pages="totalPages"
@@ -372,6 +384,11 @@ const form = reactive({
   readWindowSec: 3600,
   writeRateLimit: 1000,
   writeWindowSec: 3600,
+})
+
+const selectedTierOption = computed({
+  get: () => tierOptions.find(option => option.value === form.tier) ?? tierOptions[0]!,
+  set: (option: typeof tierOptions[number] | null) => { if (option) form.tier = option.value }
 })
 
 const tierClass = (tier: string) => {

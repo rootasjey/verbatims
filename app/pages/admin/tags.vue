@@ -28,7 +28,7 @@
               <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
-          <NButton btn="solid-black" size="sm" trailing="i-lucide-tag-plus" class="gap-2 rounded-lg" @click="showAddDialog = true">
+          <NButton btn="solid-black" size="sm" trailing="i-lucide-tag-plus" class="gap-2 rounded-lg" @click="openCreateTagDialog">
             {{ $t('add_button') }}
           </NButton>
           <NButton btn="soft-gray" size="sm" leading="i-lucide-refresh-cw" class="gap-2 rounded-lg" @click="showBackfillDialog = true">
@@ -40,7 +40,7 @@
         <div class="flex gap-2">
           <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder_mobile') as string" class="min-w-0 flex-1 font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400" />
           <NTooltip :content="$t('add_button') as string">
-            <NButton btn="solid-black" icon label="i-lucide-tag-plus" size="md" class="h-10 w-10 flex-shrink-0 rounded-lg" :aria-label="$t('add_button') as string" @click="showAddDialog = true" />
+            <NButton btn="solid-black" icon label="i-lucide-tag-plus" size="md" class="h-10 w-10 flex-shrink-0 rounded-lg" :aria-label="$t('add_button') as string" @click="openCreateTagDialog" />
           </NTooltip>
           <NTooltip :content="$t('backfill') as string">
             <NButton btn="soft-gray" icon label="i-lucide-refresh-cw" size="md" class="h-10 w-10 flex-shrink-0 rounded-lg" :aria-label="$t('backfill') as string" @click="showBackfillDialog = true" />
@@ -316,7 +316,7 @@ useAdminKeyboardShortcuts({
   onDelete: () => { showBulkDeleteDialog.value = true },
   onConfirmDialog: () => { if (showBulkDeleteDialog.value) confirmBulkDelete() },
   highlightedRowIndex: () => highlightedRowIndex.value,
-  onSingleEdit: () => { if (highlightedTag.value) { selectedTag.value = highlightedTag.value; showAddDialog.value = true } },
+  onSingleEdit: () => { if (highlightedTag.value) editTag(highlightedTag.value) },
   onSingleView: () => { if (highlightedTag.value) navigateTo(`/tags/${encodeURIComponent(highlightedTag.value.name)}`) },
   onSingleDelete: () => { if (highlightedTag.value) { tagToDelete.value = highlightedTag.value; showDeleteDialog.value = true } }
 })
@@ -391,11 +391,12 @@ const loadTags = async () => {
 const resetFilters = () => {   searchQuery.value = ''; selectedSort.value = sortOptions.value[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const getTagActions = (tag: any) => [
-  { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => { selectedTag.value = tag; showAddDialog.value = true } },
+  { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => editTag(tag) },
   { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/tags/${encodeURIComponent(tag.name)}`) },
   {}, { label: $t('dropdown_delete') as string, leading: 'i-ph-trash', onclick: () => { tagToDelete.value = tag; showDeleteDialog.value = true } }
 ]
 
+const openCreateTagDialog = () => { selectedTag.value = null; showAddDialog.value = true }
 const editTag = (tag: any) => { selectedTag.value = tag; showAddDialog.value = true }
 
 const updateTagColor = async (tag: any, color: BlossomColorPickerColor) => {

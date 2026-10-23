@@ -7,13 +7,7 @@
     @submit="confirmDeletion"
   >
     <div class="space-y-4">
-      <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md p-3 flex items-start">
-        <NIcon name="i-ph-warning" class="w-5 h-5 text-indigo-600 mt-0.5 mr-2" />
-        <div class="text-sm text-indigo-800 dark:text-indigo-300">
-          <p class="font-medium">{{ $t('components.dialogs.delete_permanent') }}</p>
-          <p class="mt-1">{{ $t('components.dialogs.confirm_delete_desc') }}</p>
-        </div>
-      </div>
+      <DeleteWarningPanel>{{ $t('components.dialogs.confirm_delete_desc') }}</DeleteWarningPanel>
 
       <div v-if="selectedCount > 0 && selectedCount <= 3" class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
         <p class="font-medium mb-2">{{ $t('components.dialogs.users_to_delete') }}</p>

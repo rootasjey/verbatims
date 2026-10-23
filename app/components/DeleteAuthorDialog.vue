@@ -6,33 +6,31 @@
     :submitting="submitting"
     @submit="confirmDeletion"
   >
-    <div class="space-y-4">
-      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
-        <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
-        <div class="text-sm text-red-800 dark:text-red-300">
-          <p class="font-medium">{{ $t('components.dialogs.delete_permanent') }}</p>
-          <p class="mt-1">{{ $t('components.dialogs.confirm_delete_desc') }} <span class="font-semibold">{{ props.author?.name }}</span>.</p>
-        </div>
-      </div>
+    <div class="space-y-5">
+      <p class="font-semibold text-gray-900 dark:text-gray-100">
+        {{ props.author?.name }} <span class="font-normal text-gray-500 dark:text-gray-400">· #{{ props.author?.id }}</span>
+      </p>
+
+      <DeleteWarningPanel>{{ $t('components.dialogs.confirm_delete_desc') }}</DeleteWarningPanel>
 
       <div v-if="quotesCount > 0" class="space-y-3">
         <p class="text-sm text-gray-700 dark:text-gray-300">
-          {{ $t('components.dialogs.confirm_delete_desc') }} <span class="font-semibold">{{ quotesCount }}</span> {{ $t('components.dialogs.delete_related_quotes', { count: quotesCount }) }}.
+          {{ relatedQuotesMessage }}
         </p>
 
         <NRadioGroup v-model="strategy" class="space-y-2">
-          <NRadioGroupItem value="delete" class="flex items-start gap-3">
+          <NRadioGroupItem value="delete" :una="radioUna" class="flex items-start gap-3">
             <div class="w-4 h-4 mt-1" />
-            <div>
+            <div class="space-y-0.5">
               <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.dialogs.delete_related_radiobox_delete') }}</div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.delete_related_quotes', { count: quotesCount }) }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.delete_author_delete_quotes_desc') }}</div>
             </div>
           </NRadioGroupItem>
-          <NRadioGroupItem value="anonymize" class="flex items-start gap-3">
+          <NRadioGroupItem value="anonymize" :una="radioUna" class="flex items-start gap-3">
             <div class="w-4 h-4 mt-1" />
-            <div>
+            <div class="space-y-0.5">
               <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.dialogs.delete_related_radiobox_anonymize') }}</div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.delete_related_radiobox_anonymize') }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.delete_author_anonymize_quotes_desc') }}</div>
             </div>
           </NRadioGroupItem>
         </NRadioGroup>
@@ -44,7 +42,7 @@
     </div>
 
     <template #submit>
-      <NButton btn="soft-red" :loading="submitting" @click="confirmDeletion">{{ $t('common.delete') }}</NButton>
+      <NButton :btn="deleteButtonDisabled ? 'soft-gray' : 'solid-red'" :loading="submitting" :disabled="deleteButtonDisabled" @click="confirmDeletion">{{ $t('common.delete') }}</NButton>
     </template>
   </AppDialog>
 </template>
@@ -70,11 +68,25 @@ const isOpen = computed({
 
 const submitting = ref(false)
 const quotesCount = ref<number>(props.author?.quotes_count ?? 0)
-const strategy = ref<'delete' | 'anonymize'>(quotesCount.value > 0 ? 'anonymize' : 'delete')
+const strategy = ref<'delete' | 'anonymize' | null>(null)
 const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
+const deleteButtonDisabled = computed(() => submitting.value || (quotesCount.value > 0 && !strategy.value))
+const radioUna = {
+  radioGroupItem: 'border-stone-400 text-stone-400 dark:border-stone-500 dark:text-stone-400 focus-visible:ring-stone-500 dark:focus-visible:ring-stone-400',
+  radioGroupIndicatorIcon: 'fill-stone-700 dark:fill-stone-300'
+}
+
+const relatedQuotesMessage = computed(() => $t(
+  quotesCount.value === 1
+    ? 'components.dialogs.delete_author_one_related_quote'
+    : 'components.dialogs.delete_author_many_related_quotes',
+  { count: quotesCount.value }
+))
 
 watch(() => props.author?.id, async (newId) => {
+  quotesCount.value = Number(props.author?.quotes_count || 0)
+  strategy.value = null
   if (!newId) return
   try {
     const authorPath = `/api/admin/authors/${newId}` as '/api/admin/authors/:id'
@@ -83,20 +95,23 @@ watch(() => props.author?.id, async (newId) => {
       '/api/admin/authors/:id'
     >(authorPath)
     quotesCount.value = Number(res?.data?.quotes_count || 0)
-    if (quotesCount.value === 0) strategy.value = 'delete'
   } catch (e) {
     console.error('Failed to fetch author details', e)
   }
 }, { immediate: true })
 
+watch(() => props.modelValue, (isVisible) => {
+  if (isVisible) strategy.value = null
+})
+
 const confirmDeletion = async () => {
-  if (!props.author) return
+  if (!props.author || (quotesCount.value > 0 && !strategy.value)) return
   submitting.value = true
   try {
     const deleteAuthorPath = `/api/admin/authors/${props.author.id}` as '/api/admin/authors/:id'
     await $fetch<{ success: boolean }, '/api/admin/authors/:id'>(deleteAuthorPath, {
       method: 'DELETE',
-      body: quotesCount.value > 0 ? { strategy: strategy.value } : undefined
+      body: quotesCount.value > 0 && strategy.value ? { strategy: strategy.value } : undefined
     })
 
     useToast().toast({

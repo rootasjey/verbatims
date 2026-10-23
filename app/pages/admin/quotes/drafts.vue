@@ -155,7 +155,11 @@
               </td>
               <td class="px-3 py-3">
                 <div class="flex items-center gap-2">
-                  <NAvatar :src="quote.user?.avatar_url" :alt="quote.user?.name" size="xs" />
+                  <NAvatar :src="quote.user?.avatar_url" :alt="quote.user?.name" size="xs">
+                    <template #fallback>
+                      <BrandAvatarFallback />
+                    </template>
+                  </NAvatar>
                   <div>
                     <p class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ quote.user?.name }}</p>
                     <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.user?.email }}</p>
@@ -246,7 +250,7 @@
       <AdminQuoteDetailDialog v-model:open="showQuoteDialog" :quote="selectedQuote" @edit="editQuote" />
     </ClientOnly>
     <ClientOnly>
-      <DeleteDraftDialog v-model:open="showDeleteModal" :deleting="deleting" @delete-draft="deleteDraft" />
+      <DeleteDraftDialog v-model:open="showDeleteModal" :deleting="deleting" :quote="selectedQuote" @delete-draft="deleteDraft" />
     </ClientOnly>
     <ClientOnly>
       <DeleteQuoteInBulkDialog v-model:open="showBulkDeleteModal" :deleting="bulkProcessing" :selected-quotes="selectedQuotesData" @bulk-delete="bulkDelete" />

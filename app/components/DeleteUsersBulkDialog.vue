@@ -8,17 +8,11 @@
     @submit="confirm"
   >
     <div class="space-y-4">
-      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
-        <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
-        <div class="text-sm text-red-800 dark:text-red-300">
-          <p class="font-medium">{{ $t('components.dialogs.delete_permanent') }}</p>
-          <p class="mt-1">
-            {{ deletableCount > 0
-              ? $t('components.dialogs.delete_users_selected_desc', { n: deletableCount })
-              : $t('components.dialogs.delete_users_none_eligible') }}
-          </p>
-        </div>
-      </div>
+      <DeleteWarningPanel>
+        {{ deletableCount > 0
+          ? $t('components.dialogs.delete_users_selected_desc', { n: deletableCount })
+          : $t('components.dialogs.delete_users_none_eligible') }}
+      </DeleteWarningPanel>
 
       <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
         <p>

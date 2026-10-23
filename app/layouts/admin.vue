@@ -2,7 +2,7 @@
   <div data-admin-workbench class="min-h-screen bg-[#FAFAF9] text-gray-950 dark:bg-[#0C0A09] dark:text-gray-50">
     <AppMastheadBar />
 
-    <header class="fixed inset-x-0 top-0 z-40 flex items-center justify-between bg-[#FAFAF9] px-4 py-2.5 dark:bg-[#0C0A09] md:hidden">
+    <header :class="['fixed inset-x-0 top-0 flex items-center justify-between px-4 py-2.5 transition-colors md:hidden', (themeEditorOpen || modalScrollLocked) ? 'pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'z-40 bg-[#FAFAF9] dark:bg-[#0C0A09]']">
       <NuxtLink to="/" class="font-subtitle text-xl font-700 italic tracking-[0.1rem] text-gray-950 dark:text-gray-50">
         verbatims
       </NuxtLink>
@@ -265,6 +265,8 @@ const route = useRoute()
 const { user, clear } = useUserSession()
 const mobileMenuOpen = ref(false)
 const showAddQuote = useState('app-add-quote-dialog-open', () => false)
+const themeEditorOpen = useState<boolean>('admin-theme-dialog-open', () => false)
+const modalScrollLocked = useState<boolean>('app-modal-scroll-locked', () => false)
 
 const mobileDate = computed(() => new Date().toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
   weekday: 'short',

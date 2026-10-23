@@ -39,7 +39,7 @@
   "label_write_window": "Fenêtre écriture (secondes)",
   "warning_save": "Enregistrez cette clé — elle ne sera plus jamais affichée !",
   "dialog_delete_title": "Supprimer la clé API",
-  "dialog_delete_body": "Êtes-vous sûr de vouloir supprimer la clé {name} ? Cette action est irréversible.",
+  "dialog_delete_body": "Les intégrations qui utilisent cette clé perdront l’accès à l’API, et son historique d’utilisation sera supprimé.",
   "error_save": "Échec de l'enregistrement",
   "error_delete": "Échec de la suppression",
   "error_load": "Échec du chargement",

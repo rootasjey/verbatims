@@ -16,8 +16,9 @@
   >
     <template #header>
       <div :class="[
-        'mb-5 grid w-full min-w-0 items-center gap-4 pb-4',
-        !$slots['header-progress'] && 'border-b border-gray-200/80 dark:border-neutral-700/80',
+        compactHeader ? 'mb-1 pb-1' : 'mb-5 pb-4',
+        'grid w-full min-w-0 items-center gap-4',
+        !$slots['header-progress'] && !hideHeaderBorder && 'border-b border-gray-200/80 dark:border-neutral-700/80',
         $slots['header-progress'] ? 'relative grid-cols-[minmax(0,1fr)]' : centerTitle ? 'grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)_auto]'
       ]">
         <div v-if="$slots['header-progress']" class="mx-2 min-w-0">
@@ -58,7 +59,7 @@
     <template v-if="!hideFooter" #footer>
       <slot name="footer">
         <div class="w-full flex justify-end gap-3 pt-4 border-t border-gray-200/80 dark:border-neutral-700/80">
-          <NButton btn="ghost-gray" class="font-600" :disabled="submitting" @click="close">{{ cancelText }}</NButton>
+          <NButton btn="ghost-gray" :class="['font-600', cancelButtonClass]" :disabled="submitting" @click="close">{{ cancelText }}</NButton>
           <slot name="submit">
             <PrimaryButton :disabled="!canSubmit" :loading="submitting" @click="$emit('submit')" class="rounded-full px-5">
               <span class="flex items-center gap-2">
@@ -81,15 +82,19 @@ interface Props {
   centerTitle?: boolean
   submitText?: string
   cancelText?: string
+  cancelButtonClass?: string
   submitting?: boolean
   canSubmit?: boolean
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   maxHeight?: 'none' | 'sm' | 'md' | 'lg'
   hideFooter?: boolean
+  hideHeaderBorder?: boolean
+  compactHeader?: boolean
   scrollable?: boolean
   scrollableContentClass?: string
   una?: Record<string, string>
   preserveAppChrome?: boolean
+  dialogContentStyle?: Record<string, string>
 }
 
 interface Emits {
@@ -105,6 +110,8 @@ const props = withDefaults(defineProps<Props>(), {
   maxWidth: 'sm',
   maxHeight: 'none',
   hideFooter: false,
+  hideHeaderBorder: false,
+  compactHeader: false,
   scrollable: false,
   preserveAppChrome: false,
   una: () => ({})
@@ -149,7 +156,7 @@ const maxHeightClass = computed(() => {
 const unaConfig = computed(() => ({
   ...props.una,
   dialogContent: [
-    'w-[calc(100vw-2rem)] border border-gray-200 bg-[#FAFAF9] text-gray-900 shadow-2xl rounded-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FAFAF9] dark:border-neutral-800 dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-stone-400/80 dark:focus-visible:ring-offset-[#151515]',
+    'w-[calc(100vw_-_2rem)] max-w-[calc(100vw_-_2rem)] border border-gray-200 bg-[#FAFAF9] text-gray-900 shadow-2xl rounded-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FAFAF9] dark:border-neutral-800 dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-stone-400/80 dark:focus-visible:ring-offset-[#151515]',
     maxWidthClass.value,
     maxHeightClass.value,
     props.scrollable && 'grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden',
@@ -180,6 +187,9 @@ function handleOpenAutoFocus(event: Event) {
 
 // `NDialogContentProps` doesn't type the reka-ui `openAutoFocus` handler, but
 // UnaUI's DialogContent forwards extra attributes ($attrs) to reka-ui at runtime.
-const dialogContentProps = { onOpenAutoFocus: handleOpenAutoFocus } as any
+const dialogContentProps = computed(() => ({
+  onOpenAutoFocus: handleOpenAutoFocus,
+  style: props.dialogContentStyle,
+})) as any
 
 </script>
