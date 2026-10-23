@@ -13,6 +13,8 @@
   "col_user": "Utilisateur",
   "col_language": "Langue",
   "col_created": "Créé le",
+  "sort_most_recent": "Plus récents",
+  "sort_oldest_first": "Plus anciens",
   "dialog_submit_title": "Soumettre {n} brouillons",
   "dialog_submit_body": "Êtes-vous sûr de vouloir soumettre {n} {count, plural, one {brouillon} other {brouillons}} pour révision ?",
   "dialog_submit_button": "Tout soumettre",

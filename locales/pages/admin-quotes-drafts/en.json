@@ -13,6 +13,8 @@
   "col_user": "User",
   "col_language": "Language",
   "col_created": "Created",
+  "sort_most_recent": "Most Recent",
+  "sort_oldest_first": "Oldest First",
   "dialog_submit_title": "Submit {n} Drafts",
   "dialog_submit_body": "Are you sure you want to submit {n} {count, plural, one {draft} other {drafts}} for review?",
   "dialog_submit_button": "Submit All",
