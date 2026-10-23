@@ -3,7 +3,7 @@
  * Represents database query results with JOIN operations and computed fields
  */
 
-import type { Quote, QuoteLanguage, QuoteStatus, QuoteReferencePrimaryType } from './index';
+import type { Quote, QuoteLanguage, QuoteStatus, QuoteReferencePrimaryType } from '../../shared/types/quote';
 
 /**
  * Database result type for quote creation queries

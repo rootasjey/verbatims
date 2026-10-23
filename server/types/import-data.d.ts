@@ -53,7 +53,7 @@ interface ImportSummary {
   totalRecordsImported: number
 }
 
-interface ImportPagination {
+export interface ImportPagination {
   limit: number
   total: number
   hasMore: boolean

@@ -9,9 +9,8 @@ export type {
   FeaturedQuoteResult,
   ProcessedTags,
   TagProcessor,
-  DatabaseQuoteWithRelations,
-  DatabaseAdminQuote,
-} from './api-results';
+} from './types/api-results';
+export type { DatabaseQuoteWithRelations, DatabaseAdminQuote } from '../shared/types/quote';
 
 // Data import types (server-side import processing)
 export type {
@@ -20,16 +19,9 @@ export type {
   ImportProgress,
   ImportOptions,
   ImportConflictOptions,
-  ImportSummary,
   ImportPagination,
   UpdateStrategy,
-  ImportResult,
-  ImportValidation,
-  ImportError,
-  ImportStats,
-  ImportLog,
-  ImportLogWithDetails,
-} from './import-data';
+} from './types/import-data';
 
 // Session management types (server-side)
 export type {
@@ -37,16 +29,13 @@ export type {
   CreateSessionData,
   SessionValidation,
   SessionCleanupOptions,
-} from './session';
+} from './types/session';
 
 // Quality analysis types (server-side data processing)
 export type {
-  QualityScore,
   QualityIssue,
   QualityAnalysisResult,
-  DataQualityMetrics,
-  QualityAnalysisOptions,
-} from './quality-analysis';
+} from './types/quality-analysis';
 
 // Search result types (database search processing)
 export type {
@@ -60,22 +49,19 @@ export type {
   SearchQuery,
   SearchApiResponse,
   QuotesSearchPayload,
-} from './search';
+} from './types/search';
 
 // Moderation types (server-side moderation logic)
 export type {
   QuoteReport,
   ReportReason,
-  ReportStatus,
   QuoteReportWithRelations,
   CreateReportData,
   UpdateReportData,
   ReportFilters,
   ModerationStats,
   BulkModerationAction,
-  ModerationAction,
-  ModerationHistory,
-} from './moderation';
+} from './types/moderation';
 
 // Re-export auth module augmentation
-export type {} from './nuxt-auth-utils';
+export type {} from './types/nuxt-auth-utils';
