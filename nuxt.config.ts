@@ -145,6 +145,8 @@ export default defineNuxtConfig({
       external: [/^@react-email/]
     },
     scheduledTasks: {
+      // Remove abandoned, unsaved theme image uploads every six hours.
+      '0 */6 * * *': ['themes:cleanup-staged-images'],
       // Repair abandoned processing items without retrying ambiguous publications.
       '*/5 * * * *': ['social:reconcile'],
       // Refill active quote queues at 08:00 Europe/Paris, before the 08:08 post.
