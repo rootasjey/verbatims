@@ -226,7 +226,11 @@
   transform: translateX(50%) scaleX(1);
 }
 
-.homepage-v3-cover--with-image .homepage-v3-quote-word { display: inline-block; }
+.homepage-v3-cover--with-image .homepage-v3-quote-word {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
 
 @media (prefers-reduced-motion: no-preference) {
   .homepage-v3-cover--with-image .homepage-v3-quote::after {
