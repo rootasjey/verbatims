@@ -28,39 +28,57 @@ que le libellé du bouton de tri change de sens.
 
 1. Ouvrir **Contribute → Add Quote** depuis l’en-tête.
 2. Saisir une citation synthétique réservée au test, puis passer à l’attribution.
-3. Choisir l’auteur temporaire créé dans le parcours ci-dessous.
-4. Enregistrer comme brouillon.
-5. Dans `/admin/quotes/drafts`, retrouver le brouillon de test, ouvrir son menu,
+3. Choisir l’auteur temporaire créé avant ce parcours.
+4. Dans le champ de référence, saisir un titre unique réservé au test puis
+   choisir **Create new reference**. Vérifier que la référence apparaît comme
+   attribution de la citation.
+5. Enregistrer comme brouillon et vérifier que la citation et la référence sont
+   visibles dans le brouillon.
+6. Dans `/admin/quotes/drafts`, retrouver le brouillon de test, ouvrir son menu,
    choisir **Delete Draft**, puis confirmer.
-6. Vérifier que le brouillon disparaît et que le compteur revient à sa valeur
+7. Vérifier que le brouillon disparaît et que le compteur revient à sa valeur
    précédente.
 
-### Création, mise à jour et suppression d’un auteur temporaire
+### Création, mise à jour et suppression d’un auteur et d’une référence temporaires
 
 1. Dans `/admin/authors`, choisir **Add New Author** et créer un auteur dont le
    nom indique clairement qu’il s’agit d’une donnée temporaire de smoke test.
-2. Rechercher cet auteur, ouvrir son menu, puis **Edit Author**.
-3. Modifier sa description et enregistrer. Vérifier la confirmation de succès.
-4. Après suppression du brouillon qui lui est attribué, rouvrir le menu de
-   l’auteur, choisir **Delete Author**, puis confirmer.
-5. Vérifier que l’auteur n’apparaît plus et que le compteur est revenu à sa
-   valeur initiale.
+2. Créer la citation et sa référence temporaire dans le formulaire de citation,
+   comme décrit ci-dessus.
+3. Rechercher l’auteur, ouvrir son menu, puis **Edit Author**. Modifier sa
+   description et enregistrer. Vérifier que la nouvelle description apparaît.
+4. Dans `/admin/references`, rechercher la référence créée avec la citation,
+   ouvrir son menu, puis **Edit Reference**. Modifier sa description et
+   enregistrer. Vérifier que la mise à jour apparaît.
+5. Supprimer d’abord le brouillon qui utilise ces deux enregistrements.
+6. Supprimer ensuite la référence temporaire depuis `/admin/references`, puis
+   l’auteur depuis `/admin/authors`, en confirmant chaque dialogue.
+7. Vérifier que la citation, la référence et l’auteur ont disparu et que les
+   compteurs reviennent à leurs valeurs de départ.
 
 ## Nettoyage et résultats observés
 
 Supprimer uniquement les enregistrements créés pour le parcours. Le 23 octobre
 2026, la navigation, la recherche, le filtre, le tri, la création et la
 suppression d’un brouillon, ainsi que la création, la mise à jour et la
-suppression d’un auteur temporaire ont fonctionné sur la base locale. Les
-compteurs d’auteurs et de brouillons sont revenus à leurs valeurs de départ.
+suppression d’un auteur temporaire ont fonctionné sur la base locale. La
+création de la référence depuis le formulaire de citation, puis sa mise à jour
+et sa suppression, ont également fonctionné. La référence est apparue sur la
+citation avec un compteur de 1, puis à 0 après la suppression du brouillon. Le
+brouillon et la référence ont disparu après suppression ; le compteur des
+références est revenu à 402. L’auteur temporaire a lui aussi disparu de la
+recherche après suppression.
 
-Le brouillon de test a été affiché avec la langue **Latin** malgré son texte
-anglais. C’est un résultat à examiner avant de considérer la création d’une
-citation complètement vérifiée. À l’ouverture du dialogue UnaUI, la largeur
-disponible du document est passée de 1245 à 1260 pixels pendant le verrouillage
-du défilement ; la position et la largeur du menu de navigation du masthead sont
-restées identiques dans la mesure effectuée. Vérifier aussi visuellement le reste
-de la page lors des futures mises à jour de la modale.
+Le brouillon anglais de test a été affiché une fois avec la langue **Latin**.
+Le test n’a pas établi si la requête de détection était encore en cours ou si
+c’était son résultat final. Après une mise à jour, attendre la fin de la requête
+et vérifier de nouveau : si Latin persiste dans le résultat final, traiter cela
+comme une possible erreur de détection et non comme un résultat intermédiaire.
+
+Le premier contrôle du dialogue UnaUI avait montré une largeur du document qui
+passait de 1245 à 1260 pixels pendant le verrouillage du défilement. Après le
+correctif, une nouvelle vérification sur `/admin/authors` a conservé la largeur
+utile à 1245 px, le masthead à x=0 et largeur 1245 px, ainsi que `scrollY=0`.
 
 Ne pas utiliser le raccourci `Ctrl/Cmd+A` depuis les tableaux d’administration
 pour ouvrir le formulaire de citation : dans ce contexte, il a aussi sélectionné

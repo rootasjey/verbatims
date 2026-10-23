@@ -75,6 +75,11 @@ export default defineNuxtConfig({
     'nuxt-i18n-micro',
   ],
 
+  site: {
+    url: normalizedSiteUrl,
+    name: 'Verbatims',
+  },
+
   i18n: {
     locales: [
       { code: 'en', iso: 'en-US', dir: 'ltr', displayName: 'English' },
