@@ -344,17 +344,9 @@
     </div>
 
     <ClientOnly>
-      <Teleport to="#teleports">
-        <div
-          v-if="showAuditSettingsDialog"
-          class="fixed inset-0 z-[49] bg-black/45"
-          aria-hidden="true"
-          @click="showAuditSettingsDialog = false"
-        />
-      </Teleport>
       <NDialog
         v-model:open="showAuditSettingsDialog"
-        :modal="false"
+        :modal="true"
         :una="{
           dialogContent: 'flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-2xl flex-col overflow-hidden p-0',
           dialogFooter: 'shrink-0 flex-col gap-3 border-t border-gray-200 bg-[#FAFAF9] px-6 py-4 dark:border-gray-800 dark:bg-[#0C0A09] sm:flex-row sm:items-center sm:justify-between',

@@ -15,27 +15,20 @@
       <div class="mt-6 flex flex-wrap items-end gap-3">
         <label class="text-xs text-gray-500 dark:text-gray-400">
           References
-          <input v-model.number="auditLimit" type="number" min="1" max="50" class="mt-1 block w-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
+          <input v-model.number="auditLimit" type="number" min="1" max="50" class="mt-1 block min-h-10 w-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
         </label>
         <label class="text-xs text-gray-500 dark:text-gray-400">
           Type
-          <select v-model="auditType" class="mt-1 block min-h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
-            <option value="">All types</option>
-            <option value="music">Music</option>
-            <option value="tv_series">TV series</option>
-          </select>
+          <NCombobox v-model="selectedAuditType" :items="auditTypeOptions" by="value" :_combobox-input="{ placeholder: 'Search types…', class: 'text-sm' }" :_combobox-list="{ class: 'min-w-[160px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'mt-1 h-10 min-h-10 w-36 justify-between rounded-lg' }">
+            <template #trigger="{ modelValue }">{{ modelValue?.label }}</template>
+          </NCombobox>
         </label>
-        <button
-          type="button"
-          class="inline-flex min-h-11 items-center gap-2 rounded-md bg-gray-950 px-5 text-sm font-600 text-white transition-colors hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-gray-500 disabled:cursor-wait disabled:opacity-70 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
-          :disabled="loading"
-          @click="runAudit"
-        >
+        <NButton btn="solid-black" size="sm" class="h-10 min-h-10 rounded-xl px-4 font-sans font-medium" :disabled="loading" @click="runAudit">
           <NIcon v-if="loading" name="i-ph-spinner" class="h-4 w-4 animate-spin" />
           {{ loading ? 'Auditing…' : 'Run audit' }}
           <NIcon v-if="!loading" name="i-ph-arrow-right" class="h-4 w-4" />
-        </button>
-        <NButton btn="outline-gray" :disabled="loading" @click="resetFilters">Reset filters</NButton>
+        </NButton>
+        <NButton btn="outline-gray" class="h-10 min-h-10 rounded-xl px-4" :disabled="loading" @click="resetFilters">Reset filters</NButton>
         <span v-if="loading" class="text-xs text-gray-500 dark:text-gray-400">Processed {{ results.length }} / {{ auditLimit }} in batches of 5</span>
       </div>
     </div>
@@ -160,6 +153,19 @@ definePageMeta({ layout: 'admin', middleware: 'admin' })
 
 const auditLimit = ref(20)
 const auditType = ref('')
+interface AuditTypeOption {
+  label: string
+  value: string
+}
+const auditTypeOptions: AuditTypeOption[] = [
+  { label: 'All types', value: '' },
+  { label: 'Music', value: 'music' },
+  { label: 'TV series', value: 'tv_series' }
+]
+const selectedAuditType = computed<AuditTypeOption>({
+  get: () => auditTypeOptions.find(option => option.value === auditType.value) ?? auditTypeOptions[0]!,
+  set: option => { auditType.value = option.value }
+})
 const filtersReady = ref(false)
 const loading = ref(false)
 const results = ref<AuditResult[]>([])

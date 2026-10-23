@@ -6,92 +6,75 @@
     @submit="$emit('save')"
   >
     <template #header-title>
-      <div>
-        <h3 class="font-title uppercase text-size-4 font-600">
+      <div class="min-w-0 pr-8">
+        <h3 class="font-serif text-2xl font-400 tracking-tight text-gray-900 dark:text-gray-100">
           {{ $t('admin_social.image_design_title') }}
         </h3>
-        <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mb-4 leading-relaxed">
+        <p class="mt-1 max-w-prose font-sans text-sm leading-6 text-gray-600 dark:text-gray-400">
           {{ $t('admin_social.image_design_desc') }}
         </p>
       </div>
     </template>
 
-    <div class="mt-2 space-y-8">
-      <!-- Background palette -->
-      <div>
-        <label class="block font-sans text-xs font-600 tracking-wider text-gray-900 dark:text-white uppercase mb-4">
+    <div class="space-y-7">
+      <section aria-labelledby="social-image-background-label">
+        <h4 id="social-image-background-label" class="mb-3 font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
           {{ $t('admin_social.image_background') }}
-        </label>
+        </h4>
 
-        <div class="flex gap-3 flex-wrap">
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <button
             v-for="opt in backgroundOptions"
             :key="opt.value"
+            type="button"
+            :aria-pressed="form.background === opt.value"
             :class="[
-              'flex flex-col items-center gap-2.5 p-3.5 rounded-xl border-2 transition-all w-[100px]',
+              'group flex min-h-20 items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500',
               form.background === opt.value
-                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
-                : 'border-transparent bg-gray-100/50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-900'
+                ? 'border-gray-900 bg-gray-50 dark:border-gray-100 dark:bg-neutral-900'
+                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:bg-neutral-900'
             ]"
             @click="form.background = opt.value"
           >
-            <!-- Stamp -->
             <div
-              class="w-full aspect-square rounded-lg overflow-hidden relative"
-              :class="form.background === opt.value ? 'ring-blue-400 ring-offset-2 ring-offset-gray-50 dark:ring-offset-[#0C0A09]' : ''"
-              :style="opt.isPhoto ? { borderRadius: '8px' } : opt.previewStyle"
+              class="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg"
+              :style="opt.previewStyle"
             >
-              <!-- CSS gradient fallback (bottom layer) -->
-              <div v-if="opt.isPhoto" class="absolute inset-0" :style="opt.previewStyle" />
-              <!-- Photo image -->
-              <img v-if="opt.isPhoto && opt.exampleImage" :src="opt.exampleImage" alt="" class="absolute inset-0 w-full h-full object-cover" crossorigin="anonymous" />
-              <!-- Dark overlay gradient (top layer) -->
-              <div v-if="opt.isPhoto" class="absolute inset-0" :style="{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.1) 100%)' }" />
-
-              <!-- Quote text hint (thin lines) -->
+              <img v-if="opt.isPhoto && opt.exampleImage" :src="opt.exampleImage" alt="" class="absolute inset-0 h-full w-full object-cover" crossorigin="anonymous" />
+              <div v-if="opt.isPhoto" class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
               <div v-if="!opt.isPhoto" class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-2">
-                <div class="w-4/5 h-1 rounded-full" :class="form.background === opt.value ? 'bg-blue-300/60' : 'bg-gray-300/60 dark:bg-gray-600/60'" />
-                <div class="w-3/5 h-1 rounded-full" :class="form.background === opt.value ? 'bg-blue-300/40' : 'bg-gray-300/40 dark:bg-gray-600/40'" />
-              </div>
-
-              <!-- Author label hint for photo stamps -->
-              <div v-if="opt.isPhoto" class="absolute bottom-2 left-0 right-0 text-center">
-                <div v-if="opt.value === 'reference-image'" class="inline-block w-3 h-3 rounded-full mx-auto mb-1 border border-white/40" />
-                <div class="w-8 h-0.5 rounded-full bg-white/50 mx-auto" />
+                <div class="h-1 w-4/5 rounded-full" :class="opt.value === 'solid' ? 'bg-gray-500/70 dark:bg-gray-300/60' : 'bg-gray-400/50 dark:bg-gray-600/60'" />
+                <div class="h-1 w-3/5 rounded-full" :class="opt.value === 'solid' ? 'bg-gray-400/60 dark:bg-gray-400/50' : 'bg-gray-400/35 dark:bg-gray-600/40'" />
               </div>
             </div>
 
-            <span class="font-sans text-xs font-500 text-gray-700 dark:text-gray-300 leading-tight text-center">
-              {{ opt.label }}
-            </span>
+            <span class="min-w-0 flex-1 font-sans text-sm font-500 leading-snug text-gray-800 dark:text-gray-200">{{ opt.label }}</span>
+            <NIcon v-if="form.background === opt.value" name="i-ph-check-circle" class="h-5 w-5 shrink-0 text-gray-900 dark:text-gray-100" />
           </button>
         </div>
 
-        <p class="mt-3 font-sans text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5"
-          :class="{
-            'opacity-0': form.background !== 'author-image' && form.background !== 'reference-image',
-            'animate-fade-in': form.background === 'author-image' || form.background === 'reference-image',
-          }">
+        <p v-if="form.background === 'author-image' || form.background === 'reference-image'" class="mt-3 flex items-start gap-1.5 font-sans text-xs leading-5 text-amber-700 dark:text-amber-300">
           <NIcon name="i-ph-warning" class="w-3.5 h-3.5 shrink-0" />
-          <span >{{ $t('admin_social.image_photo_hint') }}</span>
+          <span>{{ $t('admin_social.image_photo_hint') }}</span>
         </p>
-      </div>
+      </section>
 
-      <!-- Theme -->
-      <div>
-        <label class="block font-sans text-xs font-600 tracking-wider text-gray-900 dark:text-white uppercase mb-4">
+      <section aria-labelledby="social-image-theme-label">
+        <h4 id="social-image-theme-label" class="mb-3 font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
           {{ $t('admin_social.image_theme') }}
-        </label>
+        </h4>
 
-        <div class="flex bg-gray-100 dark:bg-gray-900 rounded-xl p-1 w-fit">
+        <div class="grid max-w-sm grid-cols-2 gap-2">
           <button
             v-for="opt in themeOptions"
             :key="opt.value"
+            type="button"
+            :aria-pressed="form.theme === opt.value"
             :class="[
-              'flex items-center gap-2 px-5 py-2.5 rounded-lg font-sans text-sm font-500 transition-all',
+              'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-4 font-sans text-sm font-500 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500',
               form.theme === opt.value
-                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400'
+                ? 'border-gray-900 bg-gray-900 text-white dark:border-gray-100 dark:bg-gray-100 dark:text-gray-950'
+                : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-neutral-800 dark:bg-neutral-950 dark:text-gray-400 dark:hover:bg-neutral-900'
             ]"
             @click="form.theme = opt.value"
           >
@@ -99,11 +82,11 @@
             {{ opt.label }}
           </button>
         </div>
-      </div>
+      </section>
 
-      <div v-if="state.updatedAt" class="font-sans text-xs text-gray-400 dark:text-gray-500">
+      <p v-if="state.updatedAt" class="border-t border-gray-200 pt-4 font-sans text-xs leading-5 text-gray-500 dark:border-neutral-800 dark:text-gray-400">
         {{ $t('admin_social.last_updated', { date: formatDate(state.updatedAt) }) }}
-      </div>
+      </p>
     </div>
   </AppDialog>
 </template>
@@ -160,13 +143,13 @@ const backgroundOptions = computed<BgOption[]>(() => [
     label: String($t('admin_social.background_solid')),
     value: 'solid',
     isPhoto: false,
-    previewStyle: { backgroundColor: '#FAFAF9', border: '3px solid #3C82F6', borderRadius: '8px', background: '' }
+    previewStyle: { backgroundColor: '#FAFAF9', border: '1px solid #d6d3d1', borderRadius: '8px', background: '' }
   },
   {
     label: String($t('admin_social.background_transparent')),
     value: 'transparent',
     isPhoto: false,
-    previewStyle: { border: '2px dashed #3C82F6', borderRadius: '8px', background: '', backgroundColor: '' }
+    previewStyle: { border: '1px dashed #a8a29e', borderRadius: '8px', background: '', backgroundColor: '#f5f5f4' }
   },
   {
     label: String($t('admin_social.background_author_image')),

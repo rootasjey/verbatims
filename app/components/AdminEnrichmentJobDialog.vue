@@ -1,25 +1,15 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title=""
-    max-width="md"
+    :title="reviewTitle"
+    max-width="xl"
+    max-height="lg"
+    scrollable
     @close="emit('update:open', false)"
   >
-    <template #title>
-      <div class="flex items-start justify-between gap-4 w-full">
-        <div>
-          <span>
-            {{ job?.entityName || entity?.name || preview?.entity_name || $t('admin_enrichment.enrichment_title') }}
-            <span class="font-300"> → {{ job?.entityType === 'reference' ? $t('admin_enrichment.reference_review') : $t('admin_enrichment.author_review') }}</span>
-          </span>
-        </div>
-      </div>
-    </template>
+    <div class="space-y-4">
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ jobSummary }}</p>
 
-    <div>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">{{ jobSummary }}</p>
-
-      <div class="min-h-0 overflow-y-auto space-y-4">
         <div v-if="loading" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
           {{ $t('common.loading') }}
         </div>
@@ -44,7 +34,7 @@
                 <p class="font-medium text-gray-900 dark:text-white">{{ formatTimestamp(job?.appliedAt) }}</p>
               </div>
             </div>
-            <div v-if="job?.errorMessage" class="mt-3 rounded-md border border-dashed border-red-200 bg-red-50/70 p-3 dark:border-red-900/70 dark:bg-red-950/20">
+            <div v-if="job?.errorMessage" class="mt-3 rounded-lg border border-red-200 bg-red-50/70 p-3 dark:border-red-900/70 dark:bg-red-950/20">
               <p class="text-xs font-medium uppercase tracking-wide text-red-600 dark:text-red-300">{{ $t('admin_enrichment.error_details') }}</p>
               <pre class="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words pr-2 text-xs text-red-700 dark:text-red-200">{{ job.errorMessage }}</pre>
             </div>
@@ -55,7 +45,7 @@
             <NBadge v-if="job?.reason" badge="soft-blue" size="xs">{{ job.reason }}</NBadge>
           </div>
 
-          <div v-if="preview?.notes?.length" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4 space-y-1">
+          <div v-if="preview?.notes?.length" class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-1">
             <p v-for="note in preview.notes" :key="note" class="text-xs text-gray-500 dark:text-gray-400">{{ note }}</p>
           </div>
 
@@ -71,12 +61,12 @@
               <NButton btn="text-gray" size="sm" :disabled="!proposalList.length" @click="emit('select-recommended')">{{ $t('admin_enrichment.select_recommended') }}</NButton>
             </div>
 
-            <div v-if="proposalList.length === 0" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div v-if="proposalList.length === 0" class="rounded-lg border border-gray-200 dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
               {{ $t('admin_enrichment.no_proposals') }}
             </div>
 
             <div v-else class="space-y-3 max-h-[42vh] overflow-auto pr-1">
-              <div v-for="proposal in proposalList" :key="proposal.field" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+              <div v-for="proposal in proposalList" :key="proposal.field" class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-start justify-between gap-4">
                   <div class="flex items-start gap-3 min-w-0">
                     <NCheckbox checkbox="gray" :disabled="Boolean(job?.appliedAt)" :model-value="selectedFields.includes(proposal.field)" @update:model-value="emit('toggle-field', proposal.field, $event)" />
@@ -96,7 +86,7 @@
                     <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">{{ $t('admin_enrichment.current') }}</p>
                     <pre class="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">{{ proposal.current_value || proposal.currentValue || $t('admin_enrichment.empty') }}</pre>
                   </div>
-                  <div class="rounded-md bg-blue-50/70 dark:bg-blue-950/20 p-3 border border-dashed border-blue-200 dark:border-blue-800/60">
+                  <div class="rounded-md bg-blue-50/70 dark:bg-blue-950/20 p-3 border border-blue-200 dark:border-blue-800/60">
                     <p class="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-300 mb-2">{{ $t('admin_enrichment.proposed') }}</p>
                     <pre class="text-xs text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{{ proposal.proposed_value || proposal.proposedValue || $t('admin_enrichment.empty') }}</pre>
                   </div>
@@ -114,11 +104,11 @@
 
           <div>
             <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">{{ $t('admin_enrichment.applied_history') }}</h4>
-            <div v-if="!changeHistory.length" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div v-if="!changeHistory.length" class="rounded-lg border border-gray-200 dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
               {{ $t('admin_enrichment.no_applied_changes') }}
             </div>
             <div v-else class="space-y-2">
-              <div v-for="change in changeHistory" :key="change.id" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+              <div v-for="change in changeHistory" :key="change.id" class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center justify-between gap-3">
                   <div>
                     <p class="text-sm font-medium text-gray-900 dark:text-white">{{ humanizeField(change.fieldName) }}</p>
@@ -131,7 +121,7 @@
                     <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">{{ $t('admin_enrichment.previous') }}</p>
                     <pre class="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">{{ change.previousValue || $t('admin_enrichment.empty') }}</pre>
                   </div>
-                  <div class="rounded-md bg-green-50/70 dark:bg-green-950/20 p-3 border border-dashed border-green-200 dark:border-green-800/60">
+                  <div class="rounded-md bg-green-50/70 dark:bg-green-950/20 p-3 border border-green-200 dark:border-green-800/60">
                     <p class="text-xs uppercase tracking-wide text-green-600 dark:text-green-300 mb-2">{{ $t('admin_enrichment.new_value') }}</p>
                     <pre class="text-xs text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{{ change.newValue || $t('admin_enrichment.empty') }}</pre>
                   </div>
@@ -140,7 +130,6 @@
             </div>
           </div>
         </template>
-      </div>
     </div>
 
     <template #footer>
@@ -181,6 +170,12 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   proposals: () => [],
   changeHistory: () => [],
+})
+
+const reviewTitle = computed(() => {
+  const name = props.job?.entityName || props.entity?.name || props.preview?.entity_name || String($t('admin_enrichment.enrichment_title'))
+  const label = props.job?.entityType === 'reference' ? $t('admin_enrichment.reference_review') : $t('admin_enrichment.author_review')
+  return `${name} → ${label}`
 })
 
 const emit = defineEmits<Emits>()

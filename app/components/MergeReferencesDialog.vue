@@ -11,7 +11,7 @@
   >
     <div class="space-y-5">
       <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-center">
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4 bg-gray-50/50 dark:bg-gray-900/20 overflow-hidden min-w-0">
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-900/20 overflow-hidden min-w-0">
           <div class="flex items-center gap-3">
             <div class="flex-shrink-0">
               <div v-if="localSourceReference?.image_url" class="w-10 h-12 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-sm">
@@ -27,10 +27,10 @@
               </NTooltip>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ localSourceReference?.primary_type?.replace('_', ' ') }} &middot; {{ sourceQuotesCount }} {{ $t('common.quote_plural') }}</p>
 
-              <NTooltip :content="$t('components.dialogs.will_drop') as string">
+            <NTooltip :content="$t('components.dialogs.will_drop') as string">
                 <div class="flex items-center gap-2 mt-1 rounded-4 px-2 py-0.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                    <NIcon name="i-tabler-trash-x" size="xs" class="text-red-600" />
-                   <h4 class="font-sans text-xs font-500 lowercase tracking-wider text-red-600 dark:text-gray-400">{{ $t('components.dialogs.source') }}</h4>
+                   <h4 class="font-sans text-xs font-500 text-red-700 dark:text-red-300">{{ $t('components.dialogs.will_drop') }}</h4>
                 </div>
               </NTooltip>
             </div>
@@ -41,12 +41,12 @@
           <NIcon name="i-tabler-arrow-iteration" size="2xl" class="text-gray-400 dark:text-gray-500" />
           <button
             v-if="selectedTarget"
-            class="font-sans text-xs font-600 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors underline decoration-dashed underline-offset-2"
+            class="font-sans text-xs font-600 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors underline underline-offset-2"
             @click="swapReferences"
           >{{ $t('components.dialogs.switch') }}</button>
         </div>
 
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4 overflow-hidden min-w-0">
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 overflow-hidden min-w-0">
           <div v-if="selectedTarget" class="flex items-center gap-3">
             <div class="flex-shrink-0">
               <div v-if="selectedTarget.image_url" class="w-10 h-12 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-sm">
@@ -125,10 +125,10 @@
       </div>
 
       <div v-if="selectedTarget && localSourceReference">
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
           <table class="w-full text-sm table-fixed">
             <thead>
-              <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+              <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                 <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 w-1/4">{{ $t('components.dialogs.field') }}</th>
                 <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 max-w-0">{{ $t('components.dialogs.source') }}</th>
                 <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 max-w-0">{{ $t('components.dialogs.target') }}</th>
@@ -207,15 +207,16 @@
     </div>
 
     <template #submit>
-      <PrimaryButton
+      <NButton
+        btn="solid-black"
         :loading="submitting"
         :disabled="!selectedTarget"
-        class="px-6"
+        class="min-h-10 rounded-lg px-4"
         @click="confirmMerge"
         >
-          <span class="ml-2">{{ $t('components.dialogs.merge_button') }}</span>
+          {{ $t('components.dialogs.merge_button') }}
           <NIcon name="i-tabler-arrow-merge-right" class="ml-2" />
-        </PrimaryButton>
+        </NButton>
     </template>
   </AppDialog>
 </template>

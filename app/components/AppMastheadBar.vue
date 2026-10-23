@@ -1,10 +1,16 @@
 <template>
+  <div v-if="mastheadPinned" aria-hidden="true" class="hidden md:block" :style="{ height: `${mastheadHeight}px` }" />
   <div
-    class="sticky top-0 z-40 w-full hidden md:block transition-all duration-300"
-    :class="scrollY === 0
-      ? (usesWarmEditorialSurface ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
-      : (usesWarmEditorialSurface ? 'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md' : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md')
-    "
+    ref="mastheadElement"
+    class="w-full hidden md:block transition-all duration-300"
+    :class="[
+      mastheadPinned ? 'fixed inset-x-0 top-0 pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'sticky top-0 z-40',
+      !mastheadPinned && scrollY === 0
+        ? (usesWarmEditorialSurface ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
+        : !mastheadPinned
+          ? (usesWarmEditorialSurface ? 'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md' : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md')
+          : ''
+    ]"
   >
     <div class="flex items-center justify-between px-4 lg:px-8 py-3 mx-auto">
       <div class="flex items-center gap-3">
@@ -194,6 +200,63 @@
 const { $t, $switchLocale } = useI18n() as any
 const { locale } = useI18nLocale()
 const route = useRoute()
+const mastheadElement = ref<HTMLElement | null>(null)
+const mastheadHeight = ref(0)
+const mastheadPinned = ref(false)
+const modalScrollLocked = useState<boolean>('app-modal-scroll-locked', () => false)
+let bodyLockObserver: MutationObserver | null = null
+let rootOverflowBeforeDialog: { value: string; priority: string } | undefined
+
+const lockDocumentScroll = () => {
+  const rootStyle = document.documentElement.style
+  if (!rootOverflowBeforeDialog) {
+    rootOverflowBeforeDialog = {
+      value: rootStyle.getPropertyValue('overflow'),
+      priority: rootStyle.getPropertyPriority('overflow')
+    }
+  }
+  rootStyle.setProperty('overflow', 'hidden')
+}
+const restoreDocumentScroll = () => {
+  if (!rootOverflowBeforeDialog) return
+
+  const rootStyle = document.documentElement.style
+  if (rootOverflowBeforeDialog.value) {
+    rootStyle.setProperty('overflow', rootOverflowBeforeDialog.value, rootOverflowBeforeDialog.priority)
+  } else {
+    rootStyle.removeProperty('overflow')
+  }
+  rootOverflowBeforeDialog = undefined
+}
+
+const isBodyScrollLocked = () => document.body.style.overflow === 'hidden' || document.body.style.pointerEvents === 'none'
+const syncModalChrome = () => {
+  if (isBodyScrollLocked()) {
+    modalScrollLocked.value = true
+    if (mastheadPinned.value) return
+
+    mastheadHeight.value = mastheadElement.value?.getBoundingClientRect().height ?? 0
+    mastheadPinned.value = true
+    lockDocumentScroll()
+    return
+  }
+
+  if (!mastheadPinned.value) return
+  restoreDocumentScroll()
+  mastheadPinned.value = false
+  modalScrollLocked.value = false
+}
+
+onMounted(() => {
+  bodyLockObserver = new MutationObserver(syncModalChrome)
+  bodyLockObserver.observe(document.body, { attributes: true, attributeFilter: ['style'] })
+  syncModalChrome()
+})
+
+onBeforeUnmount(() => {
+  bodyLockObserver?.disconnect()
+  restoreDocumentScroll()
+})
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || route.path.startsWith('/dashboard') || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || route.path === '/login' || route.path === '/signup')
 const { user, clear } = useUserSession()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)

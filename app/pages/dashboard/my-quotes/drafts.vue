@@ -294,6 +294,7 @@
       <DeleteDraftDialog
         v-model:open="showDeleteModal"
         :deleting="deleting"
+        :quote="selectedQuote"
         @delete-draft="deleteDraft"
       />
     </ClientOnly>

@@ -2,24 +2,37 @@
   <AppDialog
     v-model="isOpen"
     :title="$t('components.dialogs.delete_tag') as string"
-    :submit-text="$t('common.delete') as string"
     :submitting="submitting"
-    :can-submit="usageCount < highUsageThreshold || confirmHighUsage"
+    cancel-button-class="min-h-10"
+    :can-submit="!deleteDisabled"
     @submit="confirmDelete"
   >
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-      {{ $t('components.dialogs.confirm_delete') }} <span class="font-medium">#{{ tag?.name }}</span>? {{ $t('components.dialogs.confirm_delete_desc') }}
-    </p>
-    <p v-if="usageLoading" class="text-xs text-gray-500 dark:text-gray-400 mb-6">{{ $t('common.loading') }}</p>
-    <p v-else class="text-xs text-gray-500 dark:text-gray-400 mb-6">
-      {{ $t('common.quote_plural') }}: <span class="font-medium">{{ usageCount }}</span>
-    </p>
-    <div v-if="usageCount >= highUsageThreshold" class="mb-4">
-      <NCheckbox v-model="confirmHighUsage" :label="$t('components.dialogs.confirm_delete') as string" />
+    <div class="space-y-5">
+      <p class="font-semibold text-gray-900 dark:text-gray-100">#{{ tag?.name }}</p>
+
+      <DeleteWarningPanel>
+        <p>
+          <template v-if="usageLoading">{{ $t('common.loading') }}</template>
+          <template v-else-if="usageError">{{ $t('components.dialogs.delete_tag_usage_error') }}</template>
+          <template v-else-if="usageCount > 0">
+            {{ $t(usageCount === 1 ? 'components.dialogs.delete_tag_one_related_quote' : 'components.dialogs.delete_tag_many_related_quotes', { count: usageCount }) }}
+          </template>
+          <template v-else>{{ $t('components.dialogs.delete_tag_no_related_quotes') }}</template>
+        </p>
+      </DeleteWarningPanel>
+
+      <NCheckbox
+        v-if="usageCount >= highUsageThreshold && !usageError"
+        v-model="confirmHighUsage"
+        checkbox="gray"
+        :label="$t('components.dialogs.delete_tag_high_usage_confirmation', { count: usageCount }) as string"
+      />
     </div>
 
     <template #submit>
-      <NButton btn="soft-red" :loading="submitting" :disabled="usageCount >= highUsageThreshold && !confirmHighUsage" @click="confirmDelete">{{ $t('common.delete') }}</NButton>
+      <NButton :btn="deleteDisabled ? 'soft-gray' : 'solid-red'" :loading="submitting" :disabled="deleteDisabled" class="min-h-10 px-4" @click="confirmDelete">
+        {{ $t('common.delete') }}
+      </NButton>
     </template>
   </AppDialog>
 </template>
@@ -35,12 +48,14 @@ const submitting = ref(false)
 const usageCount = ref(0)
 const usageLoading = ref(false)
 const confirmHighUsage = ref(false)
+const usageError = ref(false)
 const { $t } = useI18n()
 const highUsageThreshold = 20
 const { showErrorToast } = useErrorToast()
+const deleteDisabled = computed(() => submitting.value || usageLoading.value || usageError.value || (usageCount.value >= highUsageThreshold && !confirmHighUsage.value))
 
 const confirmDelete = async () => {
-  if (!props.tag) return
+  if (!props.tag || deleteDisabled.value) return
   submitting.value = true
   try {
     const deleteTagPath = `/api/admin/tags/${props.tag.id}` as '/api/admin/tags/:id'
@@ -59,6 +74,7 @@ const confirmDelete = async () => {
 watch(isOpen, async (open) => {
   if (open && props.tag) {
     confirmHighUsage.value = false
+    usageError.value = false
     usageLoading.value = true
     try {
       type TagUsageResponse = { data?: { quotes_count?: number } }
@@ -66,7 +82,9 @@ watch(isOpen, async (open) => {
       const res = await $fetch<TagUsageResponse, '/api/admin/tags/:id'>(tagPath)
       usageCount.value = Number(res.data?.quotes_count || 0)
     } catch (e) {
+      usageError.value = true
       usageCount.value = 0
+      console.error('Failed to fetch tag usage', e)
     } finally {
       usageLoading.value = false
     }

@@ -8,7 +8,6 @@
     :submitting="submitting"
     :can-submit="!!form.content.trim()"
     :hide-footer="true"
-    preserve-app-chrome
     max-width="md"
     scrollable
     @submit="submitQuote"
@@ -154,15 +153,17 @@
           <div class="grid gap-3 sm:grid-cols-2">
             <div>
               <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">Source type</label>
-              <select
-                v-model="form.sourceType"
+              <NCombobox
+                v-model="selectedSourceType"
+                :items="sourceTypeOptions"
+                by="value"
                 :disabled="submitting"
-                class="w-full rounded-1 border border-gray-300 bg-transparent px-3 py-2 font-sans text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-600 dark:text-gray-100"
+                :_combobox-input="{ placeholder: 'Search source type...', class: 'text-sm' }"
+                :_combobox-list="{ class: 'min-w-[220px]' }"
+                :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'w-full justify-between rounded-lg' }"
               >
-                <option value="" class="dark:bg-gray-800">No source type</option>
-                <option value="wikiquote-en" class="dark:bg-gray-800">Wikiquote (English)</option>
-                <option value="wikiquote-fr" class="dark:bg-gray-800">Wikiquote (French)</option>
-              </select>
+                <template #trigger="{ modelValue }">{{ modelValue?.label || 'No source type' }}</template>
+              </NCombobox>
             </div>
             <div>
               <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">Source URL</label>
@@ -282,6 +283,16 @@ const {
   createPayload
 } = useQuoteForm()
 
+const sourceTypeOptions = [
+  { label: 'No source type', value: '' },
+  { label: 'Wikiquote (English)', value: 'wikiquote-en' },
+  { label: 'Wikiquote (French)', value: 'wikiquote-fr' }
+]
+const selectedSourceType = computed({
+  get: () => sourceTypeOptions.find(option => option.value === form.value.sourceType) ?? sourceTypeOptions[0],
+  set: (option: typeof sourceTypeOptions[number] | null) => { form.value.sourceType = option?.value ?? '' }
+})
+
 const authorSuggestionsHeight = ref('0px')
 const referenceSuggestionsHeight = ref('0px')
 
@@ -328,13 +339,15 @@ const hasAttribution = computed(() => Boolean(form.value.selectedAuthor || form.
 const { showErrorToast } = useErrorToast()
 
 const handleQuoteFormKeydown = (event: KeyboardEvent) => {
-  if (event.defaultPrevented || event.isComposing) return
+  if (event.isComposing) return
 
   if (quoteStep.value === 1 && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
     event.preventDefault()
     void goToAttributionStep()
     return
   }
+
+  if (event.defaultPrevented) return
 
   if (quoteStep.value === 2 && event.key === 'Enter' && !submitting.value) {
     event.preventDefault()

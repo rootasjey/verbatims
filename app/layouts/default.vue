@@ -10,17 +10,17 @@
 
     <!-- Mobile header: hidden on screens >= 768px -->
     <header
-      class="fixed top-0 left-0 right-0 z-40 md:hidden
-        px-4 py-3 safe-area-pt"
-      :style="isQuoteDetailPage && scrollY === 0 ? { backgroundColor: 'transparent', backdropFilter: 'none' } : undefined"
-        :class="[
+      :class="[
+        'fixed top-0 left-0 right-0 md:hidden px-4 py-3 safe-area-pt transition-colors',
+        modalScrollLocked ? 'pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'z-40',
           {
-            'bg-[#F7F5EF] dark:bg-[#0C0A09]': scrollY === 0 && usesWarmEditorialSurface,
-            'bg-[#FAFAF9] dark:bg-[#0C0A09]': scrollY === 0 && !usesWarmEditorialSurface,
-            'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && usesWarmEditorialSurface,
-            'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && !usesWarmEditorialSurface
+            'bg-[#F7F5EF] dark:bg-[#0C0A09]': !modalScrollLocked && scrollY === 0 && usesWarmEditorialSurface,
+            'bg-[#FAFAF9] dark:bg-[#0C0A09]': !modalScrollLocked && scrollY === 0 && !usesWarmEditorialSurface,
+            'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': !modalScrollLocked && scrollY !== 0 && usesWarmEditorialSurface,
+            'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': !modalScrollLocked && scrollY !== 0 && !usesWarmEditorialSurface
           }
         ]"
+      :style="!modalScrollLocked && isQuoteDetailPage && scrollY === 0 ? { backgroundColor: 'transparent', backdropFilter: 'none' } : undefined"
     >
       <div
         class="flex items-center justify-between gap-3"
@@ -289,6 +289,7 @@ const isDashboardPage = computed(() => route.path.startsWith('/dashboard'))
 const isDashboardListsIndex = computed(() => route.path === '/dashboard/lists')
 const isDashboardListsPage = computed(() => isDashboardListsIndex.value || route.path.startsWith('/dashboard/lists/'))
 const dashboardViewTransitionPending = useState('dashboard-view-transition-pending', () => false)
+const modalScrollLocked = useState<boolean>('app-modal-scroll-locked', () => false)
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || isAuthPage.value || isDashboardPage.value)
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
