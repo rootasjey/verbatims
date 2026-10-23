@@ -11,7 +11,7 @@ export type ReportReason = 'spam' | 'inappropriate' | 'copyright' | 'misinformat
 /**
  * Report status for moderation workflow
  */
-export type ReportStatus = 'pending' | 'reviewed' | 'resolved';
+export type QuoteReportStatus = 'pending' | 'reviewed' | 'resolved';
 
 /**
  * Quote Report entity from the database
@@ -33,7 +33,7 @@ export interface QuoteReport {
   description: string | null;
   
   /** Current status of the report */
-  status: ReportStatus;
+  status: QuoteReportStatus;
   
   /** ID of the moderator who reviewed this report */
   reviewed_by: number | null;
@@ -80,7 +80,7 @@ export interface CreateReportData {
  */
 export interface UpdateReportData {
   id: number;
-  status: ReportStatus;
+  status: QuoteReportStatus;
   reviewed_by: number;
   reviewed_at?: string;
 }
@@ -89,7 +89,7 @@ export interface UpdateReportData {
  * Report filters for moderation dashboard
  */
 export interface ReportFilters {
-  status?: ReportStatus;
+  status?: QuoteReportStatus;
   reason?: ReportReason;
   reporter_id?: number;
   reviewed_by?: number;
@@ -107,7 +107,7 @@ export interface ModerationStats {
   reviewed_reports: number;
   resolved_reports: number;
   reports_by_reason: Record<ReportReason, number>;
-  reports_by_status: Record<ReportStatus, number>;
+  reports_by_status: Record<QuoteReportStatus, number>;
   top_reporters: Array<{
     user_id: number;
     user_name: string;
