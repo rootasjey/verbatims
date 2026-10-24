@@ -1,5 +1,14 @@
 {
   "legal_contents": "Sur cette page",
+  "error_page": {
+    "title_404": "Cette page s’est égarée.",
+    "title_error": "Un détour imprévu.",
+    "description_404": "Cette page n’est plus dans nos archives. Vous pouvez explorer les citations ou revenir à l’accueil.",
+    "navigation": "Navigation de la page d’erreur",
+    "home": "Retour à l’accueil",
+    "explore": "Explorer les citations",
+    "generic_message": "Une erreur est survenue."
+  },
   "nav": {
     "menu": "Ouvrir le menu",
     "explore": "Explorer",

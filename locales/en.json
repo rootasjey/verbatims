@@ -1,5 +1,14 @@
 {
   "legal_contents": "On this page",
+  "error_page": {
+    "title_404": "This page has wandered off.",
+    "title_error": "An unexpected detour.",
+    "description_404": "This page is no longer in our archive. You can explore the quotes or head back home.",
+    "navigation": "Error page navigation",
+    "home": "Back to home",
+    "explore": "Explore quotes",
+    "generic_message": "Something went wrong."
+  },
   "nav": {
     "menu": "Open menu",
     "explore": "Explore",

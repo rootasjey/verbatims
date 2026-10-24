@@ -4,7 +4,9 @@
     ref="mastheadElement"
     class="w-full hidden md:block transition-all duration-300"
     :class="[
-      mastheadPinned ? 'fixed inset-x-0 top-0 pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'sticky top-0 z-40',
+      mastheadPinned
+        ? (usesWarmEditorialSurface ? 'fixed inset-x-0 top-0 pointer-events-none z-[60] bg-[#F7F5EF]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'fixed inset-x-0 top-0 pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60')
+        : 'sticky top-0 z-40',
       !mastheadPinned && scrollY === 0
         ? (usesWarmEditorialSurface ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
         : !mastheadPinned
@@ -197,6 +199,13 @@
 </template>
 
 <script setup lang="ts">
+interface Props {
+  surface?: 'auto' | 'warm'
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  surface: 'auto'
+})
 const { $t, $switchLocale } = useI18n() as any
 const { locale } = useI18nLocale()
 const route = useRoute()
@@ -233,7 +242,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   bodyLockObserver?.disconnect()
 })
-const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || route.path.startsWith('/dashboard') || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || route.path === '/login' || route.path === '/signup')
+const usesWarmEditorialSurface = computed(() => props.surface === 'warm' || route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || route.path.startsWith('/dashboard') || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || route.path === '/login' || route.path === '/signup')
 const { user, clear } = useUserSession()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
