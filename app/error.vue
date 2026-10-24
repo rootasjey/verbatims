@@ -36,25 +36,25 @@
     </ClientOnly>
 
     <main class="relative isolate mx-auto flex min-h-[calc(100svh-4rem)] max-w-5xl flex-col items-center justify-center px-6 py-20 text-center">
-      <div v-if="statusCode === 404" class="mb-8 flex h-16 items-center justify-center gap-3 xl:hidden">
+      <TransitionGroup v-if="statusCode === 404" name="archive-bubble" tag="div" class="mb-8 flex h-16 items-center justify-center gap-3 xl:hidden">
         <div
           v-for="(bubble, index) in archiveBubbles.slice(0, 3)"
           :key="bubble.key"
           class="relative block shrink-0 overflow-visible rounded-full grayscale"
           :class="mobileImageSizes[index]"
-          :style="{ opacity: mobileImageOpacities[index] }"
         >
-          <NuxtLink :to="bubble.to" :aria-label="bubble.name" class="archive-bubble-link block h-full w-full overflow-hidden rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3C82F6]">
+          <NuxtLink :to="bubble.to" :aria-label="bubble.name" class="archive-bubble-link block h-full w-full overflow-hidden rounded-full opacity-[var(--bubble-opacity)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3C82F6]" :style="{ '--bubble-opacity': mobileImageOpacities[index], '--bubble-delay': `${index * 90}ms` }">
             <img :src="bubble.image" alt="" loading="lazy" class="h-full w-full object-cover" @error="removeArchiveBubble(bubble.key)" />
           </NuxtLink>
         </div>
-      </div>
-      <div v-if="statusCode === 404" class="pointer-events-none absolute inset-0 z-10 hidden xl:block">
+      </TransitionGroup>
+      <TransitionGroup v-if="statusCode === 404" name="archive-bubble" tag="div" class="pointer-events-none absolute inset-0 z-10 hidden xl:block">
         <div
           v-for="(bubble, index) in archiveBubbles"
           :key="bubble.key"
           class="group pointer-events-auto absolute overflow-visible rounded-full"
           :class="desktopImagePositions[index]"
+          :style="{ '--bubble-delay': `${index * 80}ms` }"
           @pointermove="moveBubbleWithPointer"
           @pointerleave="resetBubblePointer"
         >
@@ -72,8 +72,9 @@
             </svg>
           </span>
         </div>
-      </div>
+      </TransitionGroup>
 
+      <div class="error-copy flex w-full flex-col items-center">
       <div
         class="select-none font-serif text-[clamp(8rem,25vw,13rem)] font-500 leading-[0.78] tracking-[-0.08em] text-gray-900 dark:text-gray-100"
         aria-hidden="true"
@@ -89,16 +90,20 @@
       </p>
 
       <nav class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3" :aria-label="String(t('error_page.navigation'))">
-        <NuxtLink to="/" class="inline-flex min-h-11 items-center rounded-sm bg-gray-950 px-5 font-sans text-sm font-600 text-white transition-colors hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#3C82F6] dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white">
+        <NuxtLink to="/" class="home-action inline-flex min-h-11 items-center rounded-sm bg-gray-950 px-5 font-sans text-sm font-600 text-white transition-[transform,background-color] duration-200 ease-out hover:scale-[1.03] active:scale-[0.97] hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#3C82F6] dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white">
           {{ t('error_page.home') }}
         </NuxtLink>
         <NuxtLink to="/quotes" class="group inline-flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-sm font-sans text-sm font-600 text-gray-800 transition-colors hover:text-gray-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3C82F6] dark:text-gray-200 dark:hover:text-white">
           <span>{{ t('error_page.explore') }}</span>
-          <svg class="h-2 w-18 text-gray-500 transition-colors group-hover:text-gray-800 dark:text-gray-500 dark:group-hover:text-gray-300" viewBox="0 0 108 12" fill="none" aria-hidden="true">
-            <path d="M3 6 C8 2 15 2 20 6 C25 10 32 10 37 6 C42 2 49 2 54 6 C59 10 66 10 71 6 C76 2 83 2 88 6 C93 10 100 10 105 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <svg class="h-2 w-18 overflow-hidden text-gray-500 transition-colors group-hover:text-gray-800 dark:text-gray-500 dark:group-hover:text-gray-300" viewBox="0 0 108 12" fill="none" aria-hidden="true">
+            <g class="explore-wave-flow">
+              <path d="M3 6 C8 2 15 2 20 6 C25 10 32 10 37 6 C42 2 49 2 54 6 C59 10 66 10 71 6 C76 2 83 2 88 6 C93 10 100 10 105 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              <path d="M3 6 C8 2 15 2 20 6 C25 10 32 10 37 6 C42 2 49 2 54 6 C59 10 66 10 71 6 C76 2 83 2 88 6 C93 10 100 10 105 6" transform="translate(102 0)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </g>
           </svg>
         </NuxtLink>
       </nav>
+      </div>
     </main>
   </div>
 </template>
@@ -267,6 +272,50 @@ function resetBubblePointer(event: PointerEvent) {
 </script>
 
 <style scoped>
+@keyframes error-copy-enter {
+  from {
+    opacity: 0;
+    filter: blur(7px);
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+.error-copy {
+  animation: error-copy-enter 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.explore-wave-flow {
+  transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .explore-wave-flow {
+    animation: explore-wave-flow 4.8s linear infinite;
+  }
+}
+
+@keyframes explore-wave-flow {
+  to {
+    transform: translateX(-102px);
+  }
+}
+
+.archive-bubble-enter-active {
+  transition: opacity 480ms ease-out, transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--bubble-delay, 0ms);
+}
+
+.archive-bubble-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0) scale(0.94);
+}
+
 .archive-bubble-link {
   transform: translate3d(var(--bubble-x, 0), var(--bubble-y, 0), 0) scale(1);
   transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease-out, filter 300ms ease-out;
@@ -312,6 +361,32 @@ function resetBubblePointer(event: PointerEvent) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .group:hover .explore-wave-flow {
+    animation: none;
+  }
+
+  .home-action {
+    transition: none;
+  }
+
+  .home-action:hover,
+  .home-action:active {
+    transform: none;
+  }
+
+  .error-copy {
+    animation: none;
+  }
+
+  .archive-bubble-enter-active {
+    transition: none;
+  }
+
+  .archive-bubble-enter-from {
+    opacity: 1;
+    transform: none;
+  }
+
   .group:hover .bubble-label svg,
   .group:focus-within .bubble-label svg {
     animation: none;
