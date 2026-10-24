@@ -347,9 +347,17 @@
     </div>
 
     <!-- ── Empty state when no quotes ── -->
-    <div v-if="allAuthors.length === 0 && allReferences.length === 0 && quotesList.length === 0 && !curatedLoading" class="px-6 py-16 text-center">
-      <p class="font-serif text-xl text-gray-500 dark:text-gray-400">{{ $t('home.no_content') }}</p>
-      <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">{{ $t('home.be_first_contribute') }}</p>
+    <div v-if="props.theme
+      ? quotesList.length === 0 && !feed.initialLoading?.value
+      : allAuthors.length === 0 && allReferences.length === 0 && quotesList.length === 0 && !curatedLoading" class="px-6 py-16 text-center" aria-live="polite">
+      <template v-if="props.theme">
+        <p class="font-serif text-xl text-gray-500 dark:text-gray-400">{{ $t('home.theme_no_quotes_title') }}</p>
+        <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">{{ $t('home.theme_no_quotes_description') }}</p>
+      </template>
+      <template v-else>
+        <p class="font-serif text-xl text-gray-500 dark:text-gray-400">{{ $t('home.no_content') }}</p>
+        <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">{{ $t('home.be_first_contribute') }}</p>
+      </template>
     </div>
   </div>
   <ReportDrawer v-if="imageReportContext" v-model:open="showImageReportDrawer" :image-report="imageReportContext" />

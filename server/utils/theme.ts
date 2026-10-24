@@ -1,7 +1,8 @@
 import { db, schema } from 'hub:db'
-import { eq, and, like, inArray, desc } from 'drizzle-orm'
+import { eq, and, like, inArray, desc, sql } from 'drizzle-orm'
 import { combineFilterMatchSets, getThemeContentLanguages } from './theme-selection'
 import { getPrimaryQuoteProvenance } from './quote-provenance'
+import { localizeAuthors, localizeReferences, type ContentLanguage } from './entity-translations'
 import type { ThemeHomeCopy } from '~~/shared/types/theme'
 
 type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh' | 'la'
@@ -12,7 +13,7 @@ export interface ThemeTranslationRow {
   language: string
   name: string
   description: string | null
-  home_copy: string | null
+  homeCopy: string | null
 }
 
 export function parseThemeHomeCopy(value: string | null | undefined): ThemeHomeCopy | null {
@@ -139,10 +140,18 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
 
     const filters = await getThemeFilters(themeRow.id)
 
-    const contentLanguages = getThemeContentLanguages(themeRow.language, filters) as QuoteLanguage[] | null
-    const languageCondition = contentLanguages?.length
-      ? inArray(schema.quotes.language, contentLanguages)
-      : undefined
+    const configuredLanguages = getThemeContentLanguages(themeRow.language, filters) as QuoteLanguage[] | null
+    const requestedLanguage = language === 'en' || language === 'fr' ? language as ContentLanguage : null
+    const contentLanguages = configuredLanguages === null
+      ? requestedLanguage ? [requestedLanguage] : null
+      : requestedLanguage
+        ? configuredLanguages.filter(configuredLanguage => configuredLanguage === requestedLanguage)
+        : configuredLanguages
+    const languageCondition = contentLanguages === null
+      ? undefined
+      : contentLanguages.length
+        ? inArray(schema.quotes.language, contentLanguages)
+        : sql`1 = 0`
     const baseQFilter = eq(schema.quotes.status, 'approved')
     const contentFilters = filters.filter(f => f.type !== 'language')
     const filterMatchSets: { ids: number[]; matchMode: string }[] = []
@@ -247,7 +256,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       totalVal = merged.length
     }
 
-    const provenance = await getPrimaryQuoteProvenance(quotes.map(row => row.id))
+    const provenance = await getPrimaryQuoteProvenance(quotes.map(row => row.id), requestedLanguage ?? undefined)
     const primaryAttributions = quotes.map((quote) => {
       const quoteProvenance = provenance.get(quote.id)
       return quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
@@ -290,13 +299,16 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       })
     }
 
-    const processedAuthors = authorRows.map((row: any) => ({
+    const localizedAuthorRows = requestedLanguage ? await localizeAuthors(authorRows, requestedLanguage) : authorRows
+    const localizedReferenceRows = requestedLanguage ? await localizeReferences(referenceRows, requestedLanguage) : referenceRows
+
+    const processedAuthors = localizedAuthorRows.map((row: any) => ({
       id: row.id, name: row.name, job: row.job, description: row.description,
       image_url: row.imageUrl, likes_count: row.likesCount || 0,
       quotes_count: authorQuoteCounts.get(row.id) || 0,
     }))
 
-    const processedReferences = referenceRows.map((row: any) => ({
+    const processedReferences = localizedReferenceRows.map((row: any) => ({
       id: row.id, name: row.name, description: row.description,
       primary_type: row.primaryType, image_url: row.imageUrl, likes_count: row.likesCount || 0,
     }))

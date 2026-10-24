@@ -15,6 +15,7 @@ export interface HomeFeedState {
 
 export function useHomeFeed() {
   const quotesFeed = useQuoteSearchFeed()
+  const { locale } = useI18nLocale()
 
   const authors = ref<Author[]>([])
   const references = ref<QuoteReference[]>([])
@@ -80,7 +81,9 @@ export function useHomeFeed() {
     themedLoading.value = true
     try {
       const languageStore = useLanguageStore()
-      const query = languageStore.getLanguageQuery()
+      const query = languageStore.currentLanguageValue === 'all'
+        ? { language: locale.value || 'en' }
+        : languageStore.getLanguageQuery()
       const res = await $fetch<ApiResponse<{ quotes: ProcessedQuoteResult[]; authors: Author[]; references: QuoteReference[] }>>(`/api/themes/${theme.slug}/feed`, { query })
       if (res.success && res.data) {
         themedQuotes.value = res.data.quotes || []

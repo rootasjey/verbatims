@@ -229,8 +229,12 @@ const { data: statsData, status: statsRequestStatus } = await useFetch<{ data?: 
 const { data: onboardingData, status: onboardingRequestStatus } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
 
 const route = useRoute()
+const { locale } = useI18nLocale()
+const homeContentLanguage = computed(() => languageStore.currentLanguageValue === 'all'
+  ? (locale.value || 'en')
+  : languageStore.currentLanguageValue)
 const themeQuery = computed(() => {
-  const query: Record<string, string> = languageStore.getLanguageQuery()
+  const query: Record<string, string> = { language: homeContentLanguage.value }
   const themePreview = route.query.theme
   if (themePreview) {
     query.theme = String(Array.isArray(themePreview) ? themePreview[0] : themePreview)
@@ -408,12 +412,12 @@ const restoreFeedFromSnapshot = async () => {
   return true
 }
 
-// Refresh active theme when content language changes
+// Refresh active theme when its effective content language changes.
 // Skip during SSR→client hydration: the language store initializes from
 // localStorage after onNuxtReady fires, which would discard the SSR-fetched
 // theme before the UI becomes visible. Without this guard, refreshing the
 // page shows no theme until a client navigation re-fetches it.
-watch(() => languageStore.currentLanguageValue, async (newLang, oldLang) => {
+watch(homeContentLanguage, async (newLang, oldLang) => {
   if (!import.meta.client || newLang === oldLang) return
   if (!hydrated.value) return
   await refreshActiveTheme()
