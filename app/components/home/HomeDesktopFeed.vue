@@ -112,15 +112,25 @@
             </div>
         </div>
         <div class="homepage-v3-cover-actions relative mx-4 mb-16 flex items-center justify-center gap-4">
+            <button
+              v-if="hasThemeWithoutQuotes"
+              type="button"
+              class="homepage-v3-primary inline-flex w-56 items-center justify-center rounded-full px-5 py-2.5 font-sans text-xs font-600 active:scale-99 transition-[width,colors,transform] duration-300"
+              @click="showThemeLanguageDialog = true"
+            >
+              <span>{{ $t('home.view_available_languages') }}</span>
+              <NIcon name="i-lucide-languages" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
+            </button>
             <a
-              :href="hasThemeWithoutQuotes ? '#content-language-selector' : hasScrolled ? '#top' : '#home-exploration'"
-              :class="hasThemeWithoutQuotes ? 'w-56' : hasScrolled ? 'w-48' : 'w-44'"
+              v-else
+              :href="hasScrolled ? '#top' : '#home-exploration'"
+              :class="hasScrolled ? 'w-48' : 'w-44'"
               class="homepage-v3-primary inline-flex items-center justify-center rounded-full px-5 py-2.5 font-sans text-xs font-600
                active:scale-99 transition-[width,colors,transform] duration-300"
               @click="handleExploreClick"
             >
-              <span>{{ $t(hasThemeWithoutQuotes ? 'home.choose_content_language' : hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
-              <NIcon :name="hasThemeWithoutQuotes ? 'i-lucide-languages' : hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
+              <span>{{ $t(hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
+              <NIcon :name="hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
             </a>
             <div v-if="featuredQuote" class="homepage-v3-actions mt-0 flex items-center gap-1 lg:absolute lg:right-0">
               <NTooltip :content="String($t('home.copy_quote'))">
@@ -316,7 +326,10 @@
   <DeleteQuoteDialog v-model="showDeleteQuoteDialog" :quote="selectedQuote as any" @quote-deleted="onQuoteDeleted" />
 
   <ReportDialog v-model="showReportDialog" targetType="quote" :targetId="selectedQuote?.id" />
-  <ReportDialog v-if="imageReportContext" v-model="showImageReportDialog" :image-report="imageReportContext" />
+  <ClientOnly>
+    <ThemeLanguageDialog v-if="props.theme" v-model="showThemeLanguageDialog" :theme-slug="props.theme.slug" />
+    <ReportDialog v-if="imageReportContext" v-model="showImageReportDialog" :image-report="imageReportContext" />
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
@@ -397,11 +410,11 @@ onMounted(() => {
 
 const handleExploreClick = (event: MouseEvent) => {
   event.preventDefault()
-  if (hasThemeWithoutQuotes.value) document.querySelector('#content-language-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  else if (hasScrolled.value) window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (hasScrolled.value) window.scrollTo({ top: 0, behavior: 'smooth' })
   else document.querySelector('#home-exploration')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 const hasThemeWithoutQuotes = computed(() => Boolean(props.theme && !props.feed.initialLoading.value && !featuredQuote.value))
+const showThemeLanguageDialog = ref(false)
 const selectedQuote = ref<ProcessedQuoteResult | null>(null)
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
