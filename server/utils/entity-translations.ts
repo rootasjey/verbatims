@@ -1,11 +1,10 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import { db, schema } from 'hub:db'
+import { chunkForD1Bindings } from './d1-parameter-batching'
 
 export const CONTENT_LANGUAGES = ['en', 'fr'] as const
 export type ContentLanguage = typeof CONTENT_LANGUAGES[number]
-
-const TRANSLATION_QUERY_BATCH_SIZE = 99
 
 export function getContentLanguage(event: H3Event): ContentLanguage {
   const queryLanguage = getQuery(event).language
@@ -28,8 +27,7 @@ export async function localizeAuthors<T extends { id: number; job?: string | nul
   if (!rows.length) return rows
 
   const translations: (typeof schema.authorTranslations.$inferSelect)[] = []
-  for (let start = 0; start < rows.length; start += TRANSLATION_QUERY_BATCH_SIZE) {
-    const authorIds = rows.slice(start, start + TRANSLATION_QUERY_BATCH_SIZE).map(row => row.id)
+  for (const authorIds of chunkForD1Bindings(rows.map(row => row.id), 1, 1)) {
     const batchTranslations = await db.select().from(schema.authorTranslations)
       .where(and(inArray(schema.authorTranslations.authorId, authorIds), eq(schema.authorTranslations.language, language))).all()
     translations.push(...batchTranslations)
@@ -50,8 +48,7 @@ export async function localizeReferences<T extends { id: number; name?: string |
   if (!rows.length) return rows
 
   const translations: (typeof schema.referenceTranslations.$inferSelect)[] = []
-  for (let start = 0; start < rows.length; start += TRANSLATION_QUERY_BATCH_SIZE) {
-    const referenceIds = rows.slice(start, start + TRANSLATION_QUERY_BATCH_SIZE).map(row => row.id)
+  for (const referenceIds of chunkForD1Bindings(rows.map(row => row.id), 1, 1)) {
     const batchTranslations = await db.select().from(schema.referenceTranslations)
       .where(and(inArray(schema.referenceTranslations.referenceId, referenceIds), eq(schema.referenceTranslations.language, language))).all()
     translations.push(...batchTranslations)

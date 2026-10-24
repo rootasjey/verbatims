@@ -339,6 +339,10 @@ wrangler d1 execute verbatims --remote --file server/db/migrations/sqlite/0021_a
 
 Cloudflare D1 does not support application-managed `BEGIN`, `COMMIT`, or `ROLLBACK` statements. For an atomic sequence of mutations, build the Drizzle statements first and execute them with `await db.batch(statements as any)`. Validate all inputs and required reads before the batch; if a generated parent ID makes batching impossible, use a compensating delete on failure rather than issuing manual transaction statements.
 
+### D1 bound-parameter limits
+
+D1 limits each individual SQL statement to 100 bound parameters. Count every placeholder in the statement, including `SET` values and fixed `WHERE` filters, not only the IDs inside an `IN (...)` list. When a list can approach the limit, use `chunkForD1Bindings` from `server/utils/d1-parameter-batching.ts`, passing the number of bindings per value and any other bound parameters. Apply the same budget to each statement inside `db.batch()` and to multi-row inserts.
+
 ### D1 schema rebuild safety
 
 Never rebuild or drop a parent table that has `ON DELETE CASCADE` dependents as a shortcut for removing columns. On D1, `PRAGMA foreign_keys = OFF` cannot disable enforcement inside its implicit transaction, and `PRAGMA defer_foreign_keys = ON` does **not** suppress cascade actions. Dropping the parent would delete dependent rows.

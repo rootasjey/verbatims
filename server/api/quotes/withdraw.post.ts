@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, inArray, sql } from 'drizzle-orm'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -25,16 +26,20 @@ export default defineEventHandler(async (event) => {
     }
 
     // Only allow withdrawing quotes owned by the user and currently pending
-    const existing = await db.select({ id: schema.quotes.id })
-      .from(schema.quotes)
-      .where(and(
-        inArray(schema.quotes.id, ids),
-        eq(schema.quotes.userId, user.id),
-        eq(schema.quotes.status, 'pending')
-      ))
-      .all()
+    const updatableIdSet = new Set<number>()
+    for (const idBatch of chunkForD1Bindings(ids, 1, 2)) {
+      const existing = await db.select({ id: schema.quotes.id })
+        .from(schema.quotes)
+        .where(and(
+          inArray(schema.quotes.id, idBatch),
+          eq(schema.quotes.userId, user.id),
+          eq(schema.quotes.status, 'pending')
+        ))
+        .all()
+      for (const row of existing) updatableIdSet.add(row.id)
+    }
 
-    const updatableIds = existing.map(r => r.id)
+    const updatableIds = [...updatableIdSet]
     const skippedIds = ids.filter(id => !updatableIds.includes(id))
 
     if (updatableIds.length === 0) {
@@ -47,22 +52,24 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const updateResult = await db.update(schema.quotes)
-      .set({
-        status: 'draft',
-        moderatorId: null,
-        moderatedAt: null,
-        rejectionReason: null,
-        updatedAt: new Date()
-      })
-      .where(and(
-        inArray(schema.quotes.id, updatableIds),
-        eq(schema.quotes.userId, user.id),
-        eq(schema.quotes.status, 'pending')
-      ))
-      .run()
-
-    const updatedCount = Number(updateResult.rowsAffected ?? 0)
+    let updatedCount = 0
+    for (const idBatch of chunkForD1Bindings(updatableIds, 1, 2)) {
+      const updateResult = await db.update(schema.quotes)
+        .set({
+          status: 'draft',
+          moderatorId: null,
+          moderatedAt: null,
+          rejectionReason: null,
+          updatedAt: new Date()
+        })
+        .where(and(
+          inArray(schema.quotes.id, idBatch),
+          eq(schema.quotes.userId, user.id),
+          eq(schema.quotes.status, 'pending')
+        ))
+        .run()
+      updatedCount += Number(updateResult.rowsAffected ?? 0)
+    }
 
     return {
       success: true,

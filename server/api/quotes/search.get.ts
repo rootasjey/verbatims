@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, and, gte, lte, inArray, sql, desc, asc, count } from 'drizzle-orm'
 import type { ProcessedQuoteResult } from '~~/server/types'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -149,15 +150,17 @@ export default defineEventHandler(async (event) => {
     const session = await getUserSession(event)
     const likedQuoteIds = new Set<number>()
     if (session.user?.id && rows.length) {
-      const likes = await db.select({ quoteId: schema.userLikes.likeableId })
-        .from(schema.userLikes)
-        .where(and(
-          eq(schema.userLikes.userId, session.user.id),
-          eq(schema.userLikes.likeableType, 'quote'),
-          inArray(schema.userLikes.likeableId, rows.map(row => row.id))
-        ))
-        .all()
-      for (const like of likes) likedQuoteIds.add(like.quoteId)
+      for (const quoteIdBatch of chunkForD1Bindings(rows.map(row => row.id), 1, 2)) {
+        const likes = await db.select({ quoteId: schema.userLikes.likeableId })
+          .from(schema.userLikes)
+          .where(and(
+            eq(schema.userLikes.userId, session.user.id),
+            eq(schema.userLikes.likeableType, 'quote'),
+            inArray(schema.userLikes.likeableId, quoteIdBatch)
+          ))
+          .all()
+        for (const like of likes) likedQuoteIds.add(like.quoteId)
+      }
     }
 
     const provenance = await getPrimaryQuoteProvenance(rows.map(row => row.id))

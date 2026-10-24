@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { inArray } from 'drizzle-orm'
 import type { ReportStatus } from '#shared/types/report'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -15,13 +16,15 @@ export default defineEventHandler(async (event) => {
     throwServer(400, 'Too many IDs (max 200)')
   }
 
-  await db.update(schema.userMessages)
-    .set({
-      status,
-      reviewedBy: user.id,
-      reviewedAt: new Date()
-    })
-    .where(inArray(schema.userMessages.id, ids))
+  for (const idBatch of chunkForD1Bindings(ids, 1, 3)) {
+    await db.update(schema.userMessages)
+      .set({
+        status,
+        reviewedBy: user.id,
+        reviewedAt: new Date()
+      })
+      .where(inArray(schema.userMessages.id, idBatch))
+  }
 
   return { ok: true, updated: ids.length }
 })

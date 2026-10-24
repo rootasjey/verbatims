@@ -1,9 +1,10 @@
 import { db, schema } from 'hub:db'
 import { inArray } from 'drizzle-orm'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireAdmin(event)
+    const { user: sessionUser } = await requireAdmin(event)
 
     const body = await readBody(event)
     const ids = Array.from(new Set(
@@ -19,27 +20,32 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Too many user IDs (max 200)')
     }
 
-    const selectedUsers = await db.select({
-      id: schema.users.id,
-      name: schema.users.name,
-      role: schema.users.role
-    })
-      .from(schema.users)
-      .where(inArray(schema.users.id, ids))
+    const selectedUsers: Pick<typeof schema.users.$inferSelect, 'id' | 'name' | 'role'>[] = []
+    for (const idBatch of chunkForD1Bindings(ids)) {
+      selectedUsers.push(...await db.select({
+        id: schema.users.id,
+        name: schema.users.name,
+        role: schema.users.role
+      })
+        .from(schema.users)
+        .where(inArray(schema.users.id, idBatch)))
+    }
 
     const foundIds = new Set(selectedUsers.map(user => user.id))
-    const skippedSelf = selectedUsers.filter(user => user.id === user!.id)
-    const skippedAdmins = selectedUsers.filter(user => user.role === 'admin')
-    const deletableUsers = selectedUsers.filter(user => user.id !== user!.id && user.role !== 'admin')
+    const skippedSelf = selectedUsers.filter(selectedUser => selectedUser.id === sessionUser.id)
+    const skippedAdmins = selectedUsers.filter(selectedUser => selectedUser.role === 'admin')
+    const deletableUsers = selectedUsers.filter(selectedUser => selectedUser.id !== sessionUser.id && selectedUser.role !== 'admin')
 
     if (deletableUsers.length > 0) {
-      await db.delete(schema.users).where(inArray(schema.users.id, deletableUsers.map(user => user.id)))
+      for (const idBatch of chunkForD1Bindings(deletableUsers.map(selectedUser => selectedUser.id))) {
+        await db.delete(schema.users).where(inArray(schema.users.id, idBatch))
+      }
     }
 
     return {
       success: true,
       deletedCount: deletableUsers.length,
-      deletedIds: deletableUsers.map(user => user.id),
+      deletedIds: deletableUsers.map(selectedUser => selectedUser.id),
       skipped: {
         self: skippedSelf.length,
         admins: skippedAdmins.length,

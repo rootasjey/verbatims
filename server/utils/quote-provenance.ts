@@ -1,13 +1,13 @@
 import { db, schema } from 'hub:db'
 import { and, eq, inArray } from 'drizzle-orm'
 import { toISOStringOrNull } from './date-normalization'
-import type { ContentLanguage } from './entity-translations'
+import { localizeReferences, type ContentLanguage } from './entity-translations'
+import { chunkForD1Bindings } from './d1-parameter-batching'
 
 export async function getPrimaryQuoteProvenance(quoteIds: number[], language?: ContentLanguage) {
   if (quoteIds.length === 0) return new Map<number, { attributions: any[]; sources: any[] }>()
 
-  const [attributions, sources] = await Promise.all([
-    db.select({
+  const fetchAttributions = (ids: number[]) => db.select({
       id: schema.quoteAttributions.id,
       quoteId: schema.quoteAttributions.quoteId,
       authorId: schema.quoteAttributions.authorId,
@@ -27,9 +27,9 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[], language?: C
       .from(schema.quoteAttributions)
       .leftJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
       .leftJoin(schema.quoteReferences, eq(schema.quoteAttributions.referenceId, schema.quoteReferences.id))
-      .where(inArray(schema.quoteAttributions.quoteId, quoteIds))
-      .all(),
-    db.select({
+      .where(inArray(schema.quoteAttributions.quoteId, ids))
+      .all()
+  const fetchSources = (ids: number[]) => db.select({
       id: schema.quoteSources.id,
       quoteId: schema.quoteSources.quoteId,
       attributionId: schema.quoteSources.attributionId,
@@ -43,18 +43,30 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[], language?: C
       isPrimary: schema.quoteSources.isPrimary,
     })
       .from(schema.quoteSources)
-      .where(inArray(schema.quoteSources.quoteId, quoteIds))
-      .all(),
-  ])
+      .where(inArray(schema.quoteSources.quoteId, ids))
+      .all()
+
+  const attributions: Awaited<ReturnType<typeof fetchAttributions>> = []
+  const sources: Awaited<ReturnType<typeof fetchSources>> = []
+  for (const quoteIdBatch of chunkForD1Bindings(quoteIds)) {
+    const [attributionBatch, sourceBatch] = await Promise.all([
+      fetchAttributions(quoteIdBatch),
+      fetchSources(quoteIdBatch),
+    ])
+    attributions.push(...attributionBatch)
+    sources.push(...sourceBatch)
+  }
 
   const referenceIds = [...new Set(attributions.map(item => item.referenceId).filter((id): id is number => id !== null))]
-  const referenceTranslations = language && referenceIds.length
-    ? await db.select().from(schema.referenceTranslations).where(and(
-      inArray(schema.referenceTranslations.referenceId, referenceIds),
-      eq(schema.referenceTranslations.language, language),
-    )).all()
+  const referenceRows = language && referenceIds.length
+    ? [...new Map(attributions
+      .filter(item => item.referenceId !== null)
+      .map(item => [item.referenceId!, { id: item.referenceId!, name: item.referenceName }])).values()]
     : []
-  const referenceTranslationById = new Map(referenceTranslations.map(row => [row.referenceId, row]))
+  const localizedReferences = language
+    ? await localizeReferences(referenceRows, language)
+    : referenceRows
+  const referenceNameById = new Map(localizedReferences.map(row => [row.id, row.name]))
 
   const result = new Map<number, { attributions: any[]; sources: any[] }>()
   for (const quoteId of quoteIds) result.set(quoteId, { attributions: [], sources: [] })
@@ -72,7 +84,7 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[], language?: C
       author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName, is_fictional: attribution.authorIsFictional, image_url: attribution.authorImageUrl } : undefined,
       reference: attribution.referenceId ? {
         id: attribution.referenceId,
-        name: referenceTranslationById.get(attribution.referenceId)?.name || attribution.referenceName,
+        name: referenceNameById.get(attribution.referenceId) || attribution.referenceName,
         primary_type: attribution.referencePrimaryType,
         image_url: attribution.referenceImageUrl,
       } : undefined,

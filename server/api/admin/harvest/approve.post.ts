@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, inArray } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -25,28 +26,31 @@ const targetStatus = new_status || 'draft'
 
   const statusValue = targetStatus as 'draft' | 'pending'
 
-  const harvestQuotes = await db.select({ id: schema.quotes.id, name: schema.quotes.name })
-    .from(schema.quotes)
-    .where(and(
-      inArray(schema.quotes.id, quote_ids),
-      eq(schema.quotes.status, 'harvested'),
-    ))
-    .all()
+  const harvestQuotes = []
+  let approvedCount = 0
+  for (const quoteIdBatch of chunkForD1Bindings(quote_ids, 1, 1)) {
+    harvestQuotes.push(...await db.select({ id: schema.quotes.id, name: schema.quotes.name })
+      .from(schema.quotes)
+      .where(and(
+        inArray(schema.quotes.id, quoteIdBatch),
+        eq(schema.quotes.status, 'harvested'),
+      ))
+      .all())
 
-  const result = await db.update(schema.quotes)
-    .set({
-      status: statusValue,
-      moderatorId: user.id,
-      moderatedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(and(
-      inArray(schema.quotes.id, quote_ids),
-      eq(schema.quotes.status, 'harvested'),
-    ))
-    .execute()
-
-  const approvedCount = result?.rowsAffected ?? 0
+    const result = await db.update(schema.quotes)
+      .set({
+        status: statusValue,
+        moderatorId: user.id,
+        moderatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(
+        inArray(schema.quotes.id, quoteIdBatch),
+        eq(schema.quotes.status, 'harvested'),
+      ))
+      .execute()
+    approvedCount += result?.rowsAffected ?? 0
+  }
 
   for (const id of quote_ids) {
     const quoteName = harvestQuotes.find(q => q.id === id)?.name || ''

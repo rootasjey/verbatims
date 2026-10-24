@@ -1,5 +1,6 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuth(event)
@@ -23,24 +24,31 @@ export default defineEventHandler(async (event) => {
   if (!collection) throwServer(404, 'Collection not found')
   if (collection.userId !== user.id) throwServer(403, 'Access denied')
 
-  const existingQuotes = await db.select({ quoteId: schema.collectionQuotes.quoteId })
-    .from(schema.collectionQuotes)
-    .where(and(
-      eq(schema.collectionQuotes.collectionId, collectionId),
-      inArray(schema.collectionQuotes.quoteId, quoteIds)
-    ))
-    .all()
+  const quoteIdBatches = chunkForD1Bindings(quoteIds, 1, 1)
+  const existingQuoteIds = new Set<number>()
+  for (const quoteIdBatch of quoteIdBatches) {
+    const existingQuotes = await db.select({ quoteId: schema.collectionQuotes.quoteId })
+      .from(schema.collectionQuotes)
+      .where(and(
+        eq(schema.collectionQuotes.collectionId, collectionId),
+        inArray(schema.collectionQuotes.quoteId, quoteIdBatch)
+      ))
+      .all()
+    for (const quote of existingQuotes) {
+      if (quote.quoteId !== null) existingQuoteIds.add(quote.quoteId)
+    }
+  }
 
-  if (existingQuotes.length !== quoteIds.length) {
+  if (existingQuoteIds.size !== quoteIds.length) {
     throwServer(404, 'One or more quotes were not found in this collection')
   }
 
   await db.batch([
-    db.delete(schema.collectionQuotes)
+    ...quoteIdBatches.map(quoteIdBatch => db.delete(schema.collectionQuotes)
       .where(and(
         eq(schema.collectionQuotes.collectionId, collectionId),
-        inArray(schema.collectionQuotes.quoteId, quoteIds)
-      )),
+        inArray(schema.collectionQuotes.quoteId, quoteIdBatch)
+      ))),
     db.update(schema.userCollections)
       .set({ updatedAt: new Date() })
       .where(eq(schema.userCollections.id, collectionId))

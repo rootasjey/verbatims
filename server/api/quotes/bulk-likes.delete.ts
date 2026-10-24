@@ -1,6 +1,7 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { removeQuoteLikes } from '../../services/like.service'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuth(event)
@@ -12,15 +13,19 @@ export default defineEventHandler(async (event) => {
   }
 
   const quoteIds = [...new Set(rawIds as number[])]
-  const publishedQuotes = await db.select({ id: schema.quotes.id })
-    .from(schema.quotes)
-    .where(and(
-      inArray(schema.quotes.id, quoteIds),
-      eq(schema.quotes.status, 'approved')
-    ))
-    .all()
+  const publishedQuoteIds = new Set<number>()
+  for (const quoteIdBatch of chunkForD1Bindings(quoteIds, 1, 1)) {
+    const publishedQuotes = await db.select({ id: schema.quotes.id })
+      .from(schema.quotes)
+      .where(and(
+        inArray(schema.quotes.id, quoteIdBatch),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .all()
+    for (const quote of publishedQuotes) publishedQuoteIds.add(quote.id)
+  }
 
-  if (publishedQuotes.length !== quoteIds.length) {
+  if (publishedQuoteIds.size !== quoteIds.length) {
     throwServer(404, 'One or more quotes were not found or are not published')
   }
 

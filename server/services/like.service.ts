@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, inArray } from 'drizzle-orm'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export type LikeableEntity = 'quote' | 'author' | 'reference'
 
@@ -95,11 +96,14 @@ export async function toggleLike(
 export async function addQuoteLikes(quoteIds: number[], userId: number): Promise<number[]> {
   if (quoteIds.length === 0) return []
 
-  const insertedLikes = await db.insert(schema.userLikes)
-    .values(quoteIds.map(likeableId => ({ userId, likeableType: 'quote' as const, likeableId })))
-    .onConflictDoNothing()
-    .returning({ quoteId: schema.userLikes.likeableId })
-    .all()
+  const insertedLikes: { quoteId: number }[] = []
+  for (const quoteIdBatch of chunkForD1Bindings(quoteIds, 3)) {
+    insertedLikes.push(...await db.insert(schema.userLikes)
+      .values(quoteIdBatch.map(likeableId => ({ userId, likeableType: 'quote' as const, likeableId })))
+      .onConflictDoNothing()
+      .returning({ quoteId: schema.userLikes.likeableId })
+      .all())
+  }
 
   return insertedLikes.map(like => like.quoteId)
 }
@@ -107,11 +111,13 @@ export async function addQuoteLikes(quoteIds: number[], userId: number): Promise
 export async function removeQuoteLikes(quoteIds: number[], userId: number): Promise<void> {
   if (quoteIds.length === 0) return
 
-  await db.delete(schema.userLikes)
-    .where(and(
-      eq(schema.userLikes.userId, userId),
-      eq(schema.userLikes.likeableType, 'quote'),
-      inArray(schema.userLikes.likeableId, quoteIds)
-    ))
-    .run()
+  for (const quoteIdBatch of chunkForD1Bindings(quoteIds, 1, 2)) {
+    await db.delete(schema.userLikes)
+      .where(and(
+        eq(schema.userLikes.userId, userId),
+        eq(schema.userLikes.likeableType, 'quote'),
+        inArray(schema.userLikes.likeableId, quoteIdBatch)
+      ))
+      .run()
+  }
 }

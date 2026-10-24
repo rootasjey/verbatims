@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and, inArray } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -27,13 +28,16 @@ export default defineEventHandler(async (event) => {
     }
 
     // Filter to only currently approved quotes to avoid unnecessary writes
-    const rows = await db.select({ id: schema.quotes.id, name: schema.quotes.name })
-      .from(schema.quotes)
-      .where(and(
-        inArray(schema.quotes.id, ids),
-        eq(schema.quotes.status, 'approved')
-      ))
-      .all()
+    const rows = []
+    for (const idBatch of chunkForD1Bindings(ids, 1, 1)) {
+      rows.push(...await db.select({ id: schema.quotes.id, name: schema.quotes.name })
+        .from(schema.quotes)
+        .where(and(
+          inArray(schema.quotes.id, idBatch),
+          eq(schema.quotes.status, 'approved')
+        ))
+        .all())
+    }
 
     const updatableIds = rows.map(r => r.id)
     const skippedIds = ids.filter(id => !updatableIds.includes(id))
@@ -48,21 +52,23 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const updateResult = await db.update(schema.quotes)
-      .set({
-        status: 'draft',
-        moderatorId: null,
-        moderatedAt: null,
-        rejectionReason: null,
-        updatedAt: sql`CURRENT_TIMESTAMP`
-      })
-      .where(and(
-        inArray(schema.quotes.id, updatableIds),
-        eq(schema.quotes.status, 'approved')
-      ))
-      .run()
-
-    const updatedCount = (updateResult as any)?.changes ?? 0
+    let updatedCount = 0
+    for (const idBatch of chunkForD1Bindings(updatableIds, 1, 1)) {
+      const updateResult = await db.update(schema.quotes)
+        .set({
+          status: 'draft',
+          moderatorId: null,
+          moderatedAt: null,
+          rejectionReason: null,
+          updatedAt: sql`CURRENT_TIMESTAMP`
+        })
+        .where(and(
+          inArray(schema.quotes.id, idBatch),
+          eq(schema.quotes.status, 'approved')
+        ))
+        .run()
+      updatedCount += Number((updateResult as any)?.changes ?? 0)
+    }
 
     for (const id of updatableIds) {
       const quoteName = rows.find(r => r.id === id)?.name || ''

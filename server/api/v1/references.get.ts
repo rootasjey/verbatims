@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, desc, sql, count, like, inArray, and } from 'drizzle-orm'
 import { getContentLanguage, localizeReferences } from '~~/server/utils/entity-translations'
+import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
 
 defineRouteMeta({
   openAPI: {
@@ -67,18 +68,20 @@ export default defineEventHandler(async (event) => {
   if (include.includes('quotes_count')) {
     const refIds = references.map(r => r.id)
     if (refIds.length > 0) {
-      const counts = await db
-        .select({ referenceId: schema.quoteAttributions.referenceId, count: count() })
-        .from(schema.quoteAttributions)
-        .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
-        .where(and(
-          inArray(schema.quoteAttributions.referenceId, refIds),
-          eq(schema.quotes.status, 'approved'),
-        ))
-        .groupBy(schema.quoteAttributions.referenceId)
-        .all()
-      for (const c of counts) {
-        if (c.referenceId !== null) quotesCountMap[c.referenceId] = c.count
+      for (const referenceIdBatch of chunkForD1Bindings(refIds, 1, 1)) {
+        const counts = await db
+          .select({ referenceId: schema.quoteAttributions.referenceId, count: count() })
+          .from(schema.quoteAttributions)
+          .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
+          .where(and(
+            inArray(schema.quoteAttributions.referenceId, referenceIdBatch),
+            eq(schema.quotes.status, 'approved'),
+          ))
+          .groupBy(schema.quoteAttributions.referenceId)
+          .all()
+        for (const c of counts) {
+          if (c.referenceId !== null) quotesCountMap[c.referenceId] = c.count
+        }
       }
     }
   }
