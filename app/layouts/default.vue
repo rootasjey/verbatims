@@ -456,9 +456,9 @@ onUnmounted(() => {
   }
 })
 
-useHead({
+useHead(() => ({
   htmlAttrs: {
-    lang: 'en'
+    lang: locale.value || 'en'
   },
   link: [
     {
@@ -467,7 +467,7 @@ useHead({
       href: '/favicon.ico'
     }
   ]
-})
+}))
 </script>
 
 <style scoped>
