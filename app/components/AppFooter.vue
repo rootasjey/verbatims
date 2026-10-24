@@ -4,7 +4,7 @@
     class="app-footer pt-8 border-gray-3/20 dark:border-gray-8/80"
     :class="{ 'border-t': route.path !== '/' }"
     role="contentinfo"
-    aria-label="Site footer"
+    :aria-label="$t('footer.site_footer') as string"
     data-testid="footer"
   >
     <div class="u-container py-12">
@@ -27,12 +27,12 @@
         </div>
 
         <!-- Simple nav groups -->
-        <nav aria-label="Footer navigation" class="grid grid-cols-2 sm:grid-cols-4 gap-8">
+        <nav :aria-label="$t('footer.navigation') as string" class="grid grid-cols-2 sm:grid-cols-4 gap-8">
           <section aria-labelledby="footer-explore" data-testid="footer-explore">
             <h3 id="footer-explore" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.explore') }}</h3>
             <ul class="mt-3 text-sm">
               <li v-for="link in sectionExplore" :key="link.path">
-                <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
+                <NuxtLink class="link-muted" :to="link.path">{{ routeLabel(link) }}</NuxtLink>
               </li>
             </ul>
           </section>
@@ -41,7 +41,7 @@
             <h3 id="footer-about" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.about') }}</h3>
             <ul class="mt-3 text-sm">
               <li v-for="link in sectionAbout" :key="link.path">
-                <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
+                <NuxtLink class="link-muted" :to="link.path">{{ routeLabel(link) }}</NuxtLink>
               </li>
             </ul>
           </section>
@@ -50,7 +50,7 @@
             <h3 id="footer-contribute" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.contribute') }}</h3>
             <ul class="mt-3 text-sm">
               <li v-for="link in sectionContribute" :key="link.path">
-                <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
+                <NuxtLink class="link-muted" :to="link.path">{{ routeLabel(link) }}</NuxtLink>
               </li>
             </ul>
           </section>
@@ -59,7 +59,7 @@
             <h3 id="footer-account" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.account') }}</h3>
             <ul class="mt-3 text-sm">
               <li v-for="link in sectionAccount" :key="link.path">
-                <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
+                <NuxtLink class="link-muted" :to="link.path">{{ routeLabel(link) }}</NuxtLink>
               </li>
             </ul>
           </section>
@@ -68,7 +68,7 @@
             <h3 id="footer-admin" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.admin') }}</h3>
             <ul class="mt-3 text-sm">
               <li v-for="link in sectionAdmin" :key="link.path">
-                <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
+                <NuxtLink class="link-muted" :to="link.path">{{ routeLabel(link) }}</NuxtLink>
               </li>
             </ul>
           </section>
@@ -93,7 +93,7 @@
             </template>
           </div>
 
-          <div class="homepage-v3-footer-preferences flex items-center gap-2">
+          <div id="content-language-selector" class="homepage-v3-footer-preferences flex items-center gap-2">
             <I18nSelector />
             <ThemeSelector />
           </div>
@@ -117,6 +117,45 @@ const isAdmin = computed(() => user.value?.role === 'admin')
 const isLoggedIn = computed(() => Boolean(user.value))
 
 type RouteLink = { path: string; label: string }
+
+const routeLabelKeys: Record<string, string> = {
+  '/': 'nav.browse_quotes',
+  '/authors': 'nav.authors',
+  '/references': 'nav.references',
+  '/about': 'nav.about',
+  '/presskit/logo': 'footer.logo',
+  '/dashboard': 'dashboard.headers.overview',
+  '/dashboard/collections': 'components.user_menu.collections',
+  '/dashboard/lists': 'nav.lists',
+  '/dashboard/my-quotes/drafts': 'dashboard.headers.drafts',
+  '/dashboard/my-quotes/pending': 'dashboard.headers.pending',
+  '/dashboard/my-quotes/published': 'dashboard.headers.published',
+  '/login': 'auth.sign_in_link',
+  '/signup': 'auth.sign_up_link',
+  '/admin': 'admin.nav.overview',
+  '/admin/api-keys': 'admin.nav.api_keys',
+  '/admin/authors': 'admin.nav.authors',
+  '/admin/enrichment-audit': 'admin.nav.enrichment_audit',
+  '/admin/enrichment': 'admin.nav.enrichment_queue',
+  '/admin/export': 'admin.nav.export_data',
+  '/admin/harvest': 'admin.nav.harvest_quotes',
+  '/admin/import': 'admin.nav.import_data',
+  '/admin/maintenance': 'admin.nav.database_maintenance',
+  '/admin/messages': 'admin.nav.messages',
+  '/admin/quotes/drafts': 'admin.nav.drafts',
+  '/admin/quotes/pending': 'admin.nav.pending',
+  '/admin/quotes/published': 'admin.nav.published',
+  '/admin/references': 'admin.nav.references',
+  '/admin/social-queue': 'admin.nav.social_queue',
+  '/admin/tags': 'admin.nav.tags',
+  '/admin/themes': 'admin.nav.themes',
+  '/admin/users': 'admin.nav.users',
+}
+
+function routeLabel(link: RouteLink) {
+  const key = routeLabelKeys[link.path]
+  return key ? $t(key) : link.label
+}
 
 // Collect route paths without eagerly importing each page component.
 const pageModules = import.meta.glob('../pages/**/*.vue')

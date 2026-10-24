@@ -59,6 +59,10 @@
           <div class="mx-auto h-4 w-40 rounded bg-black/10 dark:bg-white/10" />
           <div class="mx-auto h-3 w-24 rounded bg-black/10 dark:bg-white/10" />
         </div>
+        <div v-else-if="hasThemeWithoutQuotes" class="homepage-v3-cover-empty-state max-w-sm px-3" :class="props.theme?.image_url ? 'text-white' : 'text-gray-900 dark:text-gray-100'">
+          <h2 class="font-serif text-2xl leading-tight drop-shadow-md">{{ $t('home.theme_no_quotes_title') }}</h2>
+          <p class="mt-3 font-sans text-sm leading-relaxed drop-shadow-sm" :class="props.theme?.image_url ? 'text-white/85' : 'text-gray-500 dark:text-gray-400'">{{ $t('home.theme_no_quotes_description') }}</p>
+        </div>
         <div
           v-if="props.theme?.image_url"
           class="homepage-v3-image-credit"
@@ -96,15 +100,15 @@
       </div>
       <div class="homepage-v3-cover-actions mb-14 flex items-center justify-center gap-3">
         <a
-          :href="hasScrolled ? '#top' : '#home-exploration'"
-          :class="hasScrolled ? 'w-48' : 'w-44'"
+          :href="hasThemeWithoutQuotes ? '#content-language-selector' : hasScrolled ? '#top' : '#home-exploration'"
+          :class="hasThemeWithoutQuotes ? 'w-56' : hasScrolled ? 'w-48' : 'w-44'"
           class="homepage-v3-primary inline-flex items-center justify-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-[width,colors] duration-300"
           @click="handleExploreClick"
         >
-          <span>{{ $t(hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
-          <NIcon :name="hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
+          <span>{{ $t(hasThemeWithoutQuotes ? 'home.choose_content_language' : hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
+          <NIcon :name="hasThemeWithoutQuotes ? 'i-lucide-languages' : hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
         </a>
-        <div class="homepage-v3-actions mt-0 flex items-center gap-1">
+        <div v-if="featuredQuote" class="homepage-v3-actions mt-0 flex items-center gap-1">
           <NTooltip :content="String($t('home.copy_quote'))">
             <button
               type="button"
@@ -347,17 +351,9 @@
     </div>
 
     <!-- ── Empty state when no quotes ── -->
-    <div v-if="props.theme
-      ? quotesList.length === 0 && !feed.initialLoading?.value
-      : allAuthors.length === 0 && allReferences.length === 0 && quotesList.length === 0 && !curatedLoading" class="px-6 py-16 text-center" aria-live="polite">
-      <template v-if="props.theme">
-        <p class="font-serif text-xl text-gray-500 dark:text-gray-400">{{ $t('home.theme_no_quotes_title') }}</p>
-        <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">{{ $t('home.theme_no_quotes_description') }}</p>
-      </template>
-      <template v-else>
-        <p class="font-serif text-xl text-gray-500 dark:text-gray-400">{{ $t('home.no_content') }}</p>
-        <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">{{ $t('home.be_first_contribute') }}</p>
-      </template>
+    <div v-if="!props.theme && allAuthors.length === 0 && allReferences.length === 0 && quotesList.length === 0 && !curatedLoading" class="px-6 py-16 text-center" aria-live="polite">
+      <p class="font-serif text-xl text-gray-500 dark:text-gray-400">{{ $t('home.no_content') }}</p>
+      <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">{{ $t('home.be_first_contribute') }}</p>
     </div>
   </div>
   <ReportDrawer v-if="imageReportContext" v-model:open="showImageReportDrawer" :image-report="imageReportContext" />
@@ -454,9 +450,11 @@ onMounted(() => {
 
 const handleExploreClick = (event: MouseEvent) => {
   event.preventDefault()
-  if (hasScrolled.value) window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (hasThemeWithoutQuotes.value) document.querySelector('#content-language-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  else if (hasScrolled.value) window.scrollTo({ top: 0, behavior: 'smooth' })
   else document.querySelector('#home-exploration')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
+const hasThemeWithoutQuotes = computed(() => Boolean(props.theme && !props.feed.initialLoading?.value && !featuredQuote.value))
 
 const featuredQuote = computed(() => {
   const qs = props.feed.quotes.value || []
