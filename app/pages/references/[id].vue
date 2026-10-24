@@ -111,7 +111,7 @@
           </div>
 
           <h1
-            class="max-w-4xl font-serif font-400 hyphens-auto overflow-hidden break-words leading-[0.95] tracking-[-0.035em] mb-8 transform-gpu transition-all duration-700 ease-out"
+            class="max-w-4xl font-serif font-400 hyphens-auto break-words leading-[0.95] tracking-[-0.035em] mb-8 transform-gpu transition-all duration-700 ease-out"
             :class="[titleSizeClass, headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]']"
             :style="enterAnim(0)"
           >
