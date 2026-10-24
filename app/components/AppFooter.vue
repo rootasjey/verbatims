@@ -93,7 +93,7 @@
             </template>
           </div>
 
-          <div id="content-language-selector" class="homepage-v3-footer-preferences flex items-center gap-2">
+          <div class="homepage-v3-footer-preferences flex items-center gap-2">
             <I18nSelector />
             <ThemeSelector />
           </div>
