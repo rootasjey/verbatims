@@ -89,6 +89,15 @@
         <li>
           <a href="https://www.flaticon.com/free-icons/france" title="france icons">France icons created by Freepik - Flaticon<NIcon name="i-tabler-arrow-up-right" class="licenses-external-link-icon" aria-hidden="true" /></a>
         </li>
+        <li>
+          <a href="https://www.flaticon.com/free-icon/shield_2234489" title="shield icons">Shield icon designed by Magnific from Flaticon<NIcon name="i-tabler-arrow-up-right" class="licenses-external-link-icon" aria-hidden="true" /></a>
+        </li>
+        <li>
+          <a href="https://www.flaticon.com/free-icon/love_5189460" title="love icons">Love icon designed by Magnific from Flaticon<NIcon name="i-tabler-arrow-up-right" class="licenses-external-link-icon" aria-hidden="true" /></a>
+        </li>
+        <li>
+          <a href="https://www.flaticon.com/free-icon/roman-emperor_12482702" title="roman emperor icons">Roman Emperor icon designed by Magnific from Flaticon<NIcon name="i-tabler-arrow-up-right" class="licenses-external-link-icon" aria-hidden="true" /></a>
+        </li>
       </ul>
       <p class="licenses-muted-copy">
         Icon sets are governed by their own licenses. Please consult each project's LICENSE for details.

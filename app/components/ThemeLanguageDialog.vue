@@ -26,15 +26,16 @@
           type="button"
           :disabled="option.quote_count === 0 || applyingLanguage"
           :aria-pressed="option.language === activeLanguage"
-          class="group flex min-h-24 items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition-colors hover:border-gray-400 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500 dark:hover:bg-neutral-800"
+          class="group relative flex min-h-32 flex-col items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-4 text-center transition-colors hover:border-gray-400 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500 dark:hover:bg-neutral-800"
           @click="selectLanguage(option.language)"
         >
-          <NIcon :name="option.icon" class="h-7 w-7 shrink-0" aria-hidden="true" />
+          <img v-if="option.image" :src="option.image" alt="" class="h-9 w-9 object-contain" aria-hidden="true">
+          <NIcon v-else :name="option.icon" class="h-9 w-9 shrink-0" aria-hidden="true" />
           <span class="min-w-0">
             <span class="block font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ option.display }}</span>
             <span class="mt-1 block font-sans text-xs text-gray-500 dark:text-gray-400">{{ quoteCountLabel(option.quote_count) }}</span>
           </span>
-          <NIcon v-if="option.language === activeLanguage" name="i-lucide-check" class="ml-auto h-4 w-4 shrink-0" aria-hidden="true" />
+          <NIcon v-if="option.language === activeLanguage" name="i-lucide-check" class="absolute right-3 top-3 h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 
@@ -68,6 +69,11 @@ const languageStore = useLanguageStore()
 const activeLanguage = computed(() => languageStore.currentLanguageValue === 'all'
   ? locale.value
   : languageStore.currentLanguageValue)
+const languageIconImages: Record<string, string> = {
+  en: '/images/languages/english-shield.png',
+  fr: '/images/languages/french-love.png',
+  la: '/images/languages/latin-emperor.png',
+}
 const isOpen = computed({
   get: () => props.modelValue,
   set: value => emit('update:modelValue', value),
@@ -83,6 +89,7 @@ const languageOptions = computed(() => languageStore.availableLanguages
   .map((language: LanguageOption) => ({
     language: language.value,
     icon: language.icon,
+    image: languageIconImages[language.value] ?? null,
     display: String($t(`content_language.${language.value}`)),
     quote_count: languageCounts.value.find(item => item.language === language.value)?.quote_count ?? 0,
   })))
