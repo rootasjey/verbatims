@@ -31,13 +31,13 @@
 
 
             <!-- Source -->
-            <div v-if="primarySource?.source_url" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
+            <div v-if="primarySource?.source_url || primarySource?.translator_name" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-link" class="w-4 h-4 mr-2 text-gray-400" />
-                Source
+                {{ $t('components.quote_metadata.source') }}
               </dt>
               <dd class="sm:col-span-2 ml-0 text-base text-size-3.5 font-sans font-500">
-                <a
+                <a v-if="primarySource.source_url"
                   :href="primarySource.source_url"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -47,6 +47,10 @@
                   <NIcon name="i-ph-arrow-square-out" class="w-3.5 h-3.5" />
                   <span class="sr-only">(opens in a new tab)</span>
                 </a>
+                <span v-else>{{ getSourceLabel(primarySource.source_type) }}</span>
+                <div v-if="primarySource.translator_name" class="mt-1 text-sm font-normal text-gray-600 dark:text-gray-400">
+                  {{ $t('components.quote_metadata.translator') }}: {{ primarySource.translator_name }}
+                </div>
               </dd>
             </div>
 

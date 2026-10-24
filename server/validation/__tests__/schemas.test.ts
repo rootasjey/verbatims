@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createQuoteSchema, createV1QuoteSchema, updateQuoteSchema, updateV1QuoteSchema } from '../schemas'
+import { createQuoteSchema, createQuoteSourceSchema, createV1QuoteSchema, updateQuoteSchema, updateQuoteSourceSchema, updateV1QuoteSchema } from '../schemas'
 
 describe('quote attribution validation', () => {
   it('accepts an attribution on user quote creation', () => {
@@ -77,5 +77,22 @@ describe('quote attribution validation', () => {
       attributions: [{ author_id: 1, is_primary: true }],
       provenance: { reference_id: 2 },
     })).toThrow()
+  })
+})
+
+describe('quote source validation', () => {
+  it('accepts an optional translator credit and trims the value', () => {
+    const source = createQuoteSourceSchema.parse({
+      attribution_id: 1,
+      source_type: 'book',
+      translator_name: '  Marguerite Yourcenar  ',
+    })
+
+    expect(source.translator_name).toBe('Marguerite Yourcenar')
+    expect(createQuoteSourceSchema.parse({ attribution_id: 1, source_type: 'book' }).translator_name).toBeUndefined()
+  })
+
+  it('accepts clearing a translator credit on source updates', () => {
+    expect(updateQuoteSourceSchema.parse({ translator_name: null }).translator_name).toBeNull()
   })
 })

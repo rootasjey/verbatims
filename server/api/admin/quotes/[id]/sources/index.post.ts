@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
     sourceType: body.source_type,
     sourceUrl: body.source_url || null,
     label: body.label || null,
+    translatorName: body.translator_name || null,
     verificationStatus: body.verification_status,
     notes: body.notes || null,
     isPrimary: body.is_primary,

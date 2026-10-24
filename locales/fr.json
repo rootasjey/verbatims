@@ -789,6 +789,10 @@
       "saved": "Enregistré",
       "more": "Plus d'actions"
     },
+    "quote_metadata": {
+      "source": "Source",
+      "translator": "Traducteur"
+    },
     "app_dialog": {
       "close": "Fermer",
       "save": "Enregistrer",

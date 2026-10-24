@@ -115,6 +115,7 @@ export const createQuoteSourceSchema = z.object({
   source_type: z.string().min(1).max(100).trim(),
   source_url: z.string().url().optional().nullable(),
   label: z.string().max(200).trim().optional().nullable(),
+  translator_name: z.string().max(200).trim().optional().nullable(),
   verification_status: provenanceStatus.optional().default('unverified'),
   notes: z.string().max(5000).trim().optional().nullable(),
   is_primary: z.boolean().optional().default(false),

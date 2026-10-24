@@ -255,7 +255,7 @@ describe('Admin quote provenance routes', () => {
     const source = await $fetch('/api/admin/quotes/1/sources', {
       ...adminHeaders(),
       method: 'POST',
-      body: { attribution_id: attributionId, source_type: 'book', source_url: 'https://example.com/source', label: 'Integration source' },
+      body: { attribution_id: attributionId, source_type: 'book', source_url: 'https://example.com/source', label: 'Integration source', translator_name: 'Marguerite Yourcenar' },
     })
     sourceId = source.data.id
     expect(source.success).toBe(true)
@@ -271,13 +271,15 @@ describe('Admin quote provenance routes', () => {
     const attribution = detail.data.attributions.find((item: { id: number }) => item.id === attributionId)
     expect(attribution.status).toBe('disputed')
     expect(attribution.notes).toBe('Needs a stronger source')
+    const detailSource = detail.data.sources.find((item: { id: number }) => item.id === sourceId)
+    expect(detailSource.translator_name).toBe('Marguerite Yourcenar')
   })
 
   test('updates and deletes a source and attribution', async () => {
     const updated = await $fetch(`/api/admin/quotes/1/sources/${sourceId}`, {
       ...adminHeaders(),
       method: 'PUT',
-      body: { label: 'Updated Wikiquote reference', verification_status: 'externally_verified' },
+      body: { label: 'Updated Wikiquote reference', translator_name: 'New translator', verification_status: 'externally_verified' },
     })
     expect(updated.success).toBe(true)
 

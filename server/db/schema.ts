@@ -325,6 +325,7 @@ export const quoteSources = sqliteTable('quote_sources', {
   sourceType: text('source_type').notNull(),
   sourceUrl: text('source_url'),
   label: text('label'),
+  translatorName: text('translator_name'),
   verificationStatus: text('verification_status', { enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }).notNull().default('unverified'),
   verifiedBy: integer('verified_by').references(() => users.id, { onDelete: 'set null' }),
   verifiedAt: integer('verified_at', { mode: 'timestamp' }),

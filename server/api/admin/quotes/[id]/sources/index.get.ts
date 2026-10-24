@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
     source_type: schema.quoteSources.sourceType,
     source_url: schema.quoteSources.sourceUrl,
     label: schema.quoteSources.label,
+    translator_name: schema.quoteSources.translatorName,
     verification_status: schema.quoteSources.verificationStatus,
     verified_by: schema.quoteSources.verifiedBy,
     verified_at: schema.quoteSources.verifiedAt,

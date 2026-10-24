@@ -208,6 +208,7 @@ CREATE TABLE IF NOT EXISTS quote_sources (
   source_type TEXT NOT NULL,
   source_url TEXT,
   label TEXT,
+  translator_name TEXT,
   verification_status TEXT NOT NULL DEFAULT 'unverified' CHECK (verification_status IN ('unverified', 'manually_verified', 'externally_verified', 'disputed')),
   verified_by INTEGER,
   verified_at DATETIME,

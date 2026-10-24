@@ -770,6 +770,10 @@
       "saved": "Saved",
       "more": "More actions"
     },
+    "quote_metadata": {
+      "source": "Source",
+      "translator": "Translator"
+    },
     "app_dialog": {
       "close": "Close",
       "save": "Save",

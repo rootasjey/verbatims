@@ -239,6 +239,13 @@
       "when": 1792684800001,
       "tag": "0045_add_structured_author_life_dates",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1792881373000,
+      "tag": "0046_add_quote_source_translator",
+      "breakpoints": true
     }
   ]
 }

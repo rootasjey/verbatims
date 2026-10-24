@@ -110,6 +110,7 @@ export interface QuoteSource {
   source_type: string
   source_url?: string | null
   label?: string | null
+  translator_name?: string | null
   verification_status: QuoteProvenanceStatus
   verified_by?: number | null
   verified_at?: string | null

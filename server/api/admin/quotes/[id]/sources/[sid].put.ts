@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
     ...(body.source_type !== undefined ? { sourceType: body.source_type } : {}),
     ...(body.source_url !== undefined ? { sourceUrl: body.source_url } : {}),
     ...(body.label !== undefined ? { label: body.label } : {}),
+    ...(body.translator_name !== undefined ? { translatorName: body.translator_name } : {}),
     ...(body.verification_status !== undefined ? { verificationStatus: body.verification_status, verifiedBy: verified ? user.id : null, verifiedAt: verified ? new Date() : null } : {}),
     ...(body.notes !== undefined ? { notes: body.notes } : {}),
     ...(body.is_primary !== undefined ? { isPrimary: body.is_primary } : {}),
