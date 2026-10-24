@@ -142,6 +142,11 @@
             </div>
           </div>
 
+        <section v-if="props.theme && !feed.initialLoading.value && !feed.quotes.value.length" class="mx-4 mb-24 border-t border-gray-200 py-10 dark:border-gray-800" aria-live="polite">
+          <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100">{{ $t('home.theme_no_quotes_title') }}</h2>
+          <p class="mt-3 max-w-xl font-sans text-base leading-relaxed text-gray-500 dark:text-gray-400">{{ $t('home.theme_no_quotes_description') }}</p>
+        </section>
+
         <!-- Editorial introduction -->
         <section v-if="opinionQuotes.length" id="home-exploration" class="homepage-v3-editorial mx-4 mb-24 scroll-mt-24 pt-14">
           <p class="font-sans font-600 text-xs uppercase tracking-[0.2em] text-[#9B7A30]">

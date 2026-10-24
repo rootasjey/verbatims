@@ -96,7 +96,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
         mobile_image_date: theme.mobileImageDate,
         mobile_image_location: theme.mobileImageLocation,
         config,
-        home_copy: parseThemeHomeCopy(localizedTranslation?.home_copy),
+        home_copy: parseThemeHomeCopy(localizedTranslation?.homeCopy),
         filters_count: filters.length,
       },
     }
