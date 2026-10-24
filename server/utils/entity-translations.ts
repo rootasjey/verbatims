@@ -5,6 +5,8 @@ import { db, schema } from 'hub:db'
 export const CONTENT_LANGUAGES = ['en', 'fr'] as const
 export type ContentLanguage = typeof CONTENT_LANGUAGES[number]
 
+const TRANSLATION_QUERY_BATCH_SIZE = 99
+
 export function getContentLanguage(event: H3Event): ContentLanguage {
   const queryLanguage = getQuery(event).language
   const cookieLanguage = getCookie(event, 'verbatims-locale')
@@ -24,8 +26,15 @@ export async function getReferenceTranslations(referenceId: number) {
 
 export async function localizeAuthors<T extends { id: number; job?: string | null; description?: string | null }>(rows: T[], language: ContentLanguage): Promise<T[]> {
   if (!rows.length) return rows
-  const translations = await db.select().from(schema.authorTranslations)
-    .where(and(inArray(schema.authorTranslations.authorId, rows.map(row => row.id)), eq(schema.authorTranslations.language, language))).all()
+
+  const translations: (typeof schema.authorTranslations.$inferSelect)[] = []
+  for (let start = 0; start < rows.length; start += TRANSLATION_QUERY_BATCH_SIZE) {
+    const authorIds = rows.slice(start, start + TRANSLATION_QUERY_BATCH_SIZE).map(row => row.id)
+    const batchTranslations = await db.select().from(schema.authorTranslations)
+      .where(and(inArray(schema.authorTranslations.authorId, authorIds), eq(schema.authorTranslations.language, language))).all()
+    translations.push(...batchTranslations)
+  }
+
   const byId = new Map(translations.map(row => [row.authorId, row]))
   return rows.map(row => {
     const translation = byId.get(row.id)
@@ -39,8 +48,15 @@ export async function localizeAuthors<T extends { id: number; job?: string | nul
 
 export async function localizeReferences<T extends { id: number; name?: string | null; description?: string | null }>(rows: T[], language: ContentLanguage): Promise<T[]> {
   if (!rows.length) return rows
-  const translations = await db.select().from(schema.referenceTranslations)
-    .where(and(inArray(schema.referenceTranslations.referenceId, rows.map(row => row.id)), eq(schema.referenceTranslations.language, language))).all()
+
+  const translations: (typeof schema.referenceTranslations.$inferSelect)[] = []
+  for (let start = 0; start < rows.length; start += TRANSLATION_QUERY_BATCH_SIZE) {
+    const referenceIds = rows.slice(start, start + TRANSLATION_QUERY_BATCH_SIZE).map(row => row.id)
+    const batchTranslations = await db.select().from(schema.referenceTranslations)
+      .where(and(inArray(schema.referenceTranslations.referenceId, referenceIds), eq(schema.referenceTranslations.language, language))).all()
+    translations.push(...batchTranslations)
+  }
+
   const byId = new Map(translations.map(row => [row.referenceId, row]))
   return rows.map(row => {
     const translation = byId.get(row.id)
