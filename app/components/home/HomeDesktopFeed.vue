@@ -100,6 +100,10 @@
                 </div>
               </div>
             </template>
+            <div v-else-if="hasThemeWithoutQuotes" class="homepage-v3-cover-empty-state max-w-2xl px-4" :class="props.theme?.image_url ? 'text-white' : 'text-gray-900 dark:text-gray-100'">
+              <h2 class="font-serif text-3xl leading-tight drop-shadow-md lg:text-4xl">{{ $t('home.theme_no_quotes_title') }}</h2>
+              <p class="mx-auto mt-4 max-w-xl font-sans text-base leading-relaxed drop-shadow-sm" :class="props.theme?.image_url ? 'text-white/85' : 'text-gray-500 dark:text-gray-400'">{{ $t('home.theme_no_quotes_description') }}</p>
+            </div>
             <div v-else-if="feed.initialLoading.value" class="w-full max-w-[960px] space-y-5 animate-pulse" aria-hidden="true">
               <div class="mx-auto h-12 w-5/6 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
               <div class="mx-auto h-12 w-2/3 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
@@ -109,16 +113,16 @@
         </div>
         <div class="homepage-v3-cover-actions relative mx-4 mb-16 flex items-center justify-center gap-4">
             <a
-              :href="hasScrolled ? '#top' : '#home-exploration'"
-              :class="hasScrolled ? 'w-48' : 'w-44'"
+              :href="hasThemeWithoutQuotes ? '#content-language-selector' : hasScrolled ? '#top' : '#home-exploration'"
+              :class="hasThemeWithoutQuotes ? 'w-56' : hasScrolled ? 'w-48' : 'w-44'"
               class="homepage-v3-primary inline-flex items-center justify-center rounded-full px-5 py-2.5 font-sans text-xs font-600
                active:scale-99 transition-[width,colors,transform] duration-300"
               @click="handleExploreClick"
             >
-              <span>{{ $t(hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
-              <NIcon :name="hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
+              <span>{{ $t(hasThemeWithoutQuotes ? 'home.choose_content_language' : hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
+              <NIcon :name="hasThemeWithoutQuotes ? 'i-lucide-languages' : hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
             </a>
-            <div class="homepage-v3-actions mt-0 flex items-center gap-1 lg:absolute lg:right-0">
+            <div v-if="featuredQuote" class="homepage-v3-actions mt-0 flex items-center gap-1 lg:absolute lg:right-0">
               <NTooltip :content="String($t('home.copy_quote'))">
                 <button
                   type="button"
@@ -141,11 +145,6 @@
               </NTooltip>
             </div>
           </div>
-
-        <section v-if="props.theme && !feed.initialLoading.value && !feed.quotes.value.length" class="mx-4 mb-24 border-t border-gray-200 py-10 dark:border-gray-800" aria-live="polite">
-          <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100">{{ $t('home.theme_no_quotes_title') }}</h2>
-          <p class="mt-3 max-w-xl font-sans text-base leading-relaxed text-gray-500 dark:text-gray-400">{{ $t('home.theme_no_quotes_description') }}</p>
-        </section>
 
         <!-- Editorial introduction -->
         <section v-if="opinionQuotes.length" id="home-exploration" class="homepage-v3-editorial mx-4 mb-24 scroll-mt-24 pt-14">
@@ -398,9 +397,11 @@ onMounted(() => {
 
 const handleExploreClick = (event: MouseEvent) => {
   event.preventDefault()
-  if (hasScrolled.value) window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (hasThemeWithoutQuotes.value) document.querySelector('#content-language-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  else if (hasScrolled.value) window.scrollTo({ top: 0, behavior: 'smooth' })
   else document.querySelector('#home-exploration')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
+const hasThemeWithoutQuotes = computed(() => Boolean(props.theme && !props.feed.initialLoading.value && !featuredQuote.value))
 const selectedQuote = ref<ProcessedQuoteResult | null>(null)
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)

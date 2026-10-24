@@ -58,6 +58,9 @@
   },
   "footer": {
     "tagline": "Discover and share memorable quotes from films, books, music, and more.",
+    "site_footer": "Site footer",
+    "navigation": "Footer navigation",
+    "logo": "Logo",
     "about": "About",
     "explore": "Explore",
     "contribute": "Contribute",
@@ -207,6 +210,7 @@
     "editorial_desc": "A selection of voices, places, and moments composing today's edition.",
     "theme_no_quotes_title": "No quotes in this language yet",
     "theme_no_quotes_description": "This theme does not have quotes in the selected content language yet. Choose another content language to explore its available quotes.",
+    "choose_content_language": "Choose another language",
     "explore_theme": "Explore the theme",
     "back_to_cover": "Back to the cover",
     "copy_quote": "Copy quote",
