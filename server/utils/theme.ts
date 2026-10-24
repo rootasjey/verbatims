@@ -6,6 +6,7 @@ import { localizeAuthors, localizeReferences, type ContentLanguage } from './ent
 import type { ThemeHomeCopy } from '~~/shared/types/theme'
 
 type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh' | 'la'
+const quoteLanguages: readonly string[] = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la']
 
 export interface ThemeTranslationRow {
   id: number
@@ -141,7 +142,12 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
     const filters = await getThemeFilters(themeRow.id)
 
     const configuredLanguages = getThemeContentLanguages(themeRow.language, filters) as QuoteLanguage[] | null
-    const requestedLanguage = language === 'en' || language === 'fr' ? language as ContentLanguage : null
+    const requestedLanguage = language && quoteLanguages.includes(language)
+      ? language as QuoteLanguage
+      : null
+    const localizedLanguage: ContentLanguage | undefined = requestedLanguage === 'en' || requestedLanguage === 'fr'
+      ? requestedLanguage
+      : undefined
     const contentLanguages = configuredLanguages === null
       ? requestedLanguage ? [requestedLanguage] : null
       : requestedLanguage
@@ -256,7 +262,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       totalVal = merged.length
     }
 
-    const provenance = await getPrimaryQuoteProvenance(quotes.map(row => row.id), requestedLanguage ?? undefined)
+    const provenance = await getPrimaryQuoteProvenance(quotes.map(row => row.id), localizedLanguage)
     const primaryAttributions = quotes.map((quote) => {
       const quoteProvenance = provenance.get(quote.id)
       return quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
@@ -299,8 +305,8 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       })
     }
 
-    const localizedAuthorRows = requestedLanguage ? await localizeAuthors(authorRows, requestedLanguage) : authorRows
-    const localizedReferenceRows = requestedLanguage ? await localizeReferences(referenceRows, requestedLanguage) : referenceRows
+    const localizedAuthorRows = localizedLanguage ? await localizeAuthors(authorRows, localizedLanguage) : authorRows
+    const localizedReferenceRows = localizedLanguage ? await localizeReferences(referenceRows, localizedLanguage) : referenceRows
 
     const processedAuthors = localizedAuthorRows.map((row: any) => ({
       id: row.id, name: row.name, job: row.job, description: row.description,
