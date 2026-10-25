@@ -48,6 +48,7 @@
 
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
+import { getLanguageImage } from '~/utils/language'
 
 interface ThemeLanguageCount {
   language: string
@@ -69,11 +70,6 @@ const languageStore = useLanguageStore()
 const activeLanguage = computed(() => languageStore.currentLanguageValue === 'all'
   ? locale.value
   : languageStore.currentLanguageValue)
-const languageIconImages: Record<string, string> = {
-  en: '/images/languages/english-shield.png',
-  fr: '/images/languages/french-love.png',
-  la: '/images/languages/latin-emperor.png',
-}
 const isOpen = computed({
   get: () => props.modelValue,
   set: value => emit('update:modelValue', value),
@@ -89,7 +85,7 @@ const languageOptions = computed(() => languageStore.availableLanguages
   .map((language: LanguageOption) => ({
     language: language.value,
     icon: language.icon,
-    image: languageIconImages[language.value] ?? null,
+    image: getLanguageImage(language.value) ?? null,
     display: String($t(`content_language.${language.value}`)),
     quote_count: languageCounts.value.find(item => item.language === language.value)?.quote_count ?? 0,
   })))

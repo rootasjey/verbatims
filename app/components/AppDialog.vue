@@ -18,7 +18,8 @@
       <div :class="[
         compactHeader ? 'mb-1 pb-1' : 'mb-5 pb-4',
         'grid w-full min-w-0 items-center gap-4',
-        !$slots['header-progress'] && !hideHeaderBorder && 'border-b border-gray-200/80 dark:border-neutral-700/80',
+        $slots['header-divider'] && 'relative',
+        !$slots['header-progress'] && !$slots['header-divider'] && !hideHeaderBorder && 'border-b border-gray-200/80 dark:border-neutral-700/80',
         $slots['header-progress'] ? 'relative grid-cols-[minmax(0,1fr)]' : centerTitle ? 'grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)_auto]'
       ]">
         <div v-if="$slots['header-progress']" class="mx-2 min-w-0">
@@ -41,6 +42,13 @@
           <NTooltip :content="$t('components.app_dialog.close')?.toString()">
             <NButton btn="ghost-gray" @click="close" size="sm" label="i-ph-x" icon class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500 dark:focus-visible:ring-stone-400" />
           </NTooltip>
+        </div>
+        <div
+          v-if="$slots['header-divider'] && !hideHeaderBorder"
+          class="pointer-events-none absolute inset-x-0 bottom-0 translate-y-1/2"
+          aria-hidden="true"
+        >
+          <slot name="header-divider" />
         </div>
       </div>
     </template>

@@ -21,6 +21,28 @@ const isDashboardPage = computed(() => route.path.startsWith('/dashboard'))
 const isAdminPage = computed(() => route.path.startsWith('/admin'))
 const dashboardViewTransitionPending = useState('dashboard-view-transition-pending', () => false)
 let dashboardTransitionFallback: ReturnType<typeof setTimeout> | undefined
+let bodyScrollLockObserver: MutationObserver | null = null
+let previousRootOverflowY = ''
+let rootScrollLockApplied = false
+
+const syncRootScrollLock = () => {
+  const bodyLocked = document.body.style.overflow === 'hidden'
+    || document.body.style.pointerEvents === 'none'
+
+  if (bodyLocked) {
+    if (!rootScrollLockApplied) {
+      previousRootOverflowY = document.documentElement.style.overflowY
+      document.documentElement.style.overflowY = 'hidden'
+      rootScrollLockApplied = true
+    }
+    return
+  }
+
+  if (!rootScrollLockApplied) return
+
+  document.documentElement.style.overflowY = previousRootOverflowY
+  rootScrollLockApplied = false
+}
 
 const finishDashboardPageTransition = () => {
   if (dashboardTransitionFallback) clearTimeout(dashboardTransitionFallback)
@@ -47,5 +69,21 @@ const dashboardPageTransition = {
 const appReady = useState('app-ready', () => false)
 onNuxtReady(() => {
   appReady.value = true
+})
+
+onMounted(() => {
+  bodyScrollLockObserver = new MutationObserver(syncRootScrollLock)
+  bodyScrollLockObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['style']
+  })
+  syncRootScrollLock()
+})
+
+onUnmounted(() => {
+  bodyScrollLockObserver?.disconnect()
+  if (rootScrollLockApplied) {
+    document.documentElement.style.overflowY = previousRootOverflowY
+  }
 })
 </script>

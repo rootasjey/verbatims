@@ -225,9 +225,12 @@
     </div>
     <div v-else-if="activeTab === 'preferences'" key="preferences" class="max-w-2xl space-y-5">
       <section class="border-b border-gray-200 pb-5 dark:border-white/10">
-        <h2 class="mb-4 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
-          {{ $t('label_preferred_language') }}
-        </h2>
+        <div class="mb-4 flex items-center gap-2">
+          <h2 class="font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
+            {{ $t('label_preferred_language') }}
+          </h2>
+          <DashboardContentLanguageInfo />
+        </div>
         <div class="max-w-xl">
           <LanguageSelector appearance="toolbar" :aria-label="$t('label_preferred_language') as string" />
           <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_language') }}</p>

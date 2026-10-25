@@ -24,7 +24,14 @@
       <template #trigger="{ modelValue }">
         <template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
           <div class="flex items-center gap-2">
-            <NIcon v-if="!props.compact && props.appearance !== 'compact-toolbar'" :name="modelValue.icon" />
+            <img
+              v-if="getLanguageImage(modelValue.value)"
+              :src="getLanguageImage(modelValue.value)"
+              alt=""
+              class="h-5 w-5 shrink-0 object-contain"
+              aria-hidden="true"
+            >
+            <NIcon v-else-if="modelValue.value !== 'all' && !props.compact && props.appearance !== 'compact-toolbar'" :name="modelValue.icon" />
             {{ modelValue.display }}
           </div>
         </template>
@@ -35,7 +42,14 @@
 
       <template #label="{ item }">
         <div class="flex items-center gap-2">
-          <NIcon :name="item.icon"  />
+          <img
+            v-if="getLanguageImage(item.value)"
+            :src="getLanguageImage(item.value)"
+            alt=""
+            class="h-6 w-6 shrink-0 object-contain"
+            aria-hidden="true"
+          >
+          <NIcon v-else-if="item.value !== 'all'" :name="item.icon" />
           {{ item.display }}
         </div>
       </template>
@@ -45,6 +59,7 @@
 
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
+import { getLanguageImage } from '~/utils/language'
 
 // Props
 interface Props {
