@@ -157,7 +157,7 @@ export default defineNuxtConfig({
       '0 5 * * 1': ['images:cleanup-uploads'],
       // Repair abandoned processing items without retrying ambiguous publications.
       '*/5 * * * *': ['social:reconcile'],
-      // Refill active quote queues at 08:00 Europe/Paris, before the 08:08 post.
+      // Refill active quote queues at 08:00 Europe/Paris, before the 08:08 post; the task filters the inactive UTC offset.
       '0 6 * * *': ['social:replenish'],
       '0 7 * * *': ['social:replenish', 'quote-audit:run'],
       // 08:08 Europe/Paris during daylight saving time (UTC+2)
