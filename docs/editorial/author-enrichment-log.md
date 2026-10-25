@@ -2,7 +2,7 @@
 
 Internal tracking for production author reviews. Use this log to avoid proposing the same biography work twice and to distinguish approved, applied, and still-pending changes.
 
-Keep schema-dependent date follow-ups in [the review backlog](./review-backlog.md); this log records batch history and current production status.
+This log records batch history and current production status.
 
 ## Current status
 
@@ -12,9 +12,32 @@ Keep schema-dependent date follow-ups in [the review backlog](./review-backlog.m
 | Viktor E. Frankl | [169](https://verbatims.cc/authors/169) | Applied and read back · 2026-10-21 | Dates, locations, job, and image provenance updated in production. Image location remains blank because it is not sourced. |
 | Stephen Fry | [242](https://verbatims.cc/authors/242) | Applied and read back · 2026-10-21 | Birth date/location and job updated. Existing portrait provenance remains blank; its public-domain status is explicitly jurisdiction-limited to the United States. |
 | Guillaume Apollinaire | [293](https://verbatims.cc/authors/293) | Applied and read back · 2026-10-21 | Birth/death dates and locations and job updated. Existing portrait provenance remains blank pending research. |
+| Aristotle | [45](https://verbatims.cc/authors/45) | Structured ancient dates applied and read back · 2026-10-25 | Birth 384 BCE and death 322 BCE; existing biography and image metadata preserved. |
+| Socrates | [128](https://verbatims.cc/authors/128) | Structured ancient dates applied and read back · 2026-10-25 | Approximate birth c. 469 BCE and death c. 399 BCE; existing biography and image metadata preserved. |
+| Confucius | [1](https://verbatims.cc/authors/1) | Structured ancient dates applied and read back · 2026-10-25 | Traditional approximate birth c. 551 BCE and death c. 479 BCE; existing biography and image metadata preserved. |
 | Maya Angelou | [403](https://verbatims.cc/authors/403) | Biography complete; image provenance pending | Dates and locations were present in production on 2026-10-21. The image credit, source, license, date, and location fields were empty. Do not propose her again as a general biography-enrichment candidate; decide separately whether to complete image provenance. |
 | Henry Ford | [264](https://verbatims.cc/authors/264) | Applied and read back · 2026-10-21 | Added sourced birth/death dates, locations, and Ford Motor Company founder role. Left image provenance untouched pending confirmation of French copyright status. Sources: [Ford Motor Company biography](https://corporate.ford.com/corporate/corporate/articles/history/henry-ford-biography/), [current portrait on Commons](https://commons.wikimedia.org/wiki/File:Henry_Ford_1919.jpg). |
 | Gloria Steinem | [190](https://verbatims.cc/authors/190) | Applied and read back · 2026-10-21 | Added sourced birth/death dates and locations, journalist/activist role, and existing portrait credit, source, license, date, and location. Sources: [Associated Press obituary](https://apnews.com/article/724836935f6547fda60f361c15238d14), [portrait on Commons](https://commons.wikimedia.org/wiki/File:Gloria_Steinem_(29126367513)_(cropped).jpg). |
+
+## Completed batch · 2026-10-25
+
+### Aristotle · record 45
+
+- Added structured dates: born 384 BCE and died 322 BCE. Month and day remain unknown; both dates are displayed as year-level dates, not marked approximate.
+- Read-back confirmed the structured BCE fields. Existing biography and image metadata were preserved.
+- Source: [Stanford Encyclopedia of Philosophy, Aristotle](https://plato.stanford.edu/entries/aristotle/).
+
+### Socrates · record 128
+
+- Added approximate structured dates: born c. 469 BCE and died c. 399 BCE. Month and day remain unknown.
+- Read-back confirmed both dates and their approximate flags. Existing biography and image metadata were preserved.
+- Source: [Stanford Encyclopedia of Philosophy, Socrates](https://plato.stanford.edu/entries/socrates/); it notes that the biographical record is second-hand and vigorously disputed.
+
+### Confucius · record 1
+
+- Added traditional approximate structured dates: born c. 551 BCE and died c. 479 BCE. Month and day remain unknown.
+- Read-back confirmed both dates and their approximate flags. Existing biography and image metadata were preserved.
+- Source: [Stanford Encyclopedia of Philosophy, Confucius](https://plato.stanford.edu/entries/confucius/).
 
 ## Completed batch · 2026-10-21
 
@@ -35,7 +58,7 @@ Keep schema-dependent date follow-ups in [the review backlog](./review-backlog.m
 ### Socrates · record 128
 
 - Production snapshot: job “Philosopher”; birth/death dates and locations empty; image provenance fields empty; 15 approved quotes.
-- Biography recorded: job “Ancient Greek philosopher”; birth/death locations set to Athens, ancient Greece. BCE dates remain in the review backlog because the current fields cannot represent them.
+- Biography recorded: job “Ancient Greek philosopher”; birth/death locations set to Athens, ancient Greece. Structured dates were added later in the 2026-10-25 batch above.
 - Existing-image provenance recorded: credit Eric Gaba (Wikimedia Commons user Sting); Commons file-page source; CC BY-SA 2.5 for the photograph; image date 2005-07-13; image location Louvre Museum, Paris, France. Commons identifies the photographed Roman bust separately as public domain.
 - Read-back confirmed the saved values. The write was guarded on the original empty biography and image-provenance fields and exact image URL.
 - Sources: [Stanford Encyclopedia of Philosophy](https://plato.stanford.edu/entries/socrates/), [Commons image file](https://commons.wikimedia.org/wiki/File:Socrates_Louvre.jpg).
@@ -43,7 +66,7 @@ Keep schema-dependent date follow-ups in [the review backlog](./review-backlog.m
 ### Confucius · record 1
 
 - Production snapshot: job “Chinese philosopher”; birth/death dates and locations empty; image provenance fields empty; 14 approved quotes.
-- Biography recorded: birth location “Zou, present-day Shandong, China.” Dates traditionally given as 551–479 BCE remain in the review backlog because the current fields cannot represent them. Death location remains blank pending stronger confirmation.
+- Biography recorded: birth location “Zou, present-day Shandong, China.” Traditional BCE dates were added later in the 2026-10-25 batch above. Death location remains blank pending stronger confirmation.
 - Leave image provenance unchanged for now: Commons attributes the existing image to Wu Daozi and the 8th century, but its cited source is Pinterest and the file is a grandfathered upload; verify its provenance before recording metadata.
 - Read-back confirmed the saved birth location. The write was guarded on the original empty biography/provenance fields and exact image URL.
 - Sources: [Stanford Encyclopedia of Philosophy, Confucius](https://plato.stanford.edu/archives/spr2022/entries/confucius/), [Commons image file](https://commons.wikimedia.org/wiki/File:Confucius_Tang_Dynasty.jpg).
@@ -77,7 +100,7 @@ Keep schema-dependent date follow-ups in [the review backlog](./review-backlog.m
 These items were discussed or approved in earlier conversation, but this log does not yet record a verified production read-back for them:
 
 - Friedrich Nietzsche: duplicate records 466 and 316; confirm the merge state before further enrichment.
-- Aristotle / Aristote: merge and enrichment were approved; ancient dates remain tracked in the review backlog.
+- Aristotle / Aristote: structured date enrichment completed on 2026-10-25; confirm the historical duplicate-merge state only if it becomes relevant again.
 - Gandhi: an individual portrait was selected; confirm whether its image and provenance were applied.
 - Robert Frost and Jean-Paul Sartre: enrichments and portraits were approved; confirm production state before proposing either again.
 
