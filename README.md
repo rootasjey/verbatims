@@ -1,141 +1,112 @@
+# Verbatims
 
-![verbatims screenshot](./public/images/verbatims-home-v2-light.jpeg)
+**Discover, collect and share memorable quotes—with their authors and sources.**
 
-> ### verbatims is a quote platform and service for discovering, curating, and sharing timeless words, with moderation and admin workflows.
+[Visit verbatims.cc](https://verbatims.cc) · [Explore the API](https://verbatims.cc/api/v1/docs) · [About the project](https://verbatims.cc/about)
 
-💬 [verbatims.cc](https://verbatims.cc)
+![The Verbatims homepage featuring an attributed quote from William Shakespeare's Macbeth](./public/images/verbatims-homepage.png)
 
-## Overview
+Verbatims is a multilingual quote library for readers, researchers and curious minds. Browse quotes from books, films and more; follow their attributions to authors and references; and save or share the lines that stay with you.
 
-verbatims brings quotes, sources, and context together in one place. Browse by topic or author, build personal collections, and quickly share cleanly attributed quotes. The project focuses on accuracy, thoughtful curation, and a pleasant reading experience.
+## Explore and contribute
 
-Key ideas:
-- Delightful discovery with fast search and smart ranking
-- Accurate attribution with references to primary sources where possible
-- Community submissions with moderation for quality and clarity
-- Clean sharing: copy attribution-ready text or export visuals
+| Find | Keep | Share | Improve |
+| --- | --- | --- | --- |
+| Search quotes by text, author, reference or tag. Browse in English or French. | Save favourites and organise quotes into personal collections. | Copy attributed text or create an image to share. | Submit quotes and report corrections; submissions go through moderation. |
 
-## Features
+Quotes connect to authors, references and tags, so you can follow a line back to its context. The API also provides programmatic access to quotes and related catalogue data.
 
-- Browse and search by topic, author, keyword, or reference
-- Save favorites and build collections
-- Contribute quotes with sources (moderation workflow)
-- Report issues (typos, attribution, duplicates)
-- Share formatted quote cards or copy clean text with attribution
-- Accessible UI: keyboard navigation, high contrast, screen-reader labels
+## How the app is put together
 
-## Tech stack
-
-- Nuxt 4 (Vue 3) for the application framework and SSR
-- Pinia for state management
-- UnaUI + UnoCSS for UI primitives and utility-first styling
-- Nuxt Image for image handling and optimization
-- Cloudflare D1/SQLite for database and deployment on Cloudflare Workers
-- Drizzle ORM for type-safe database queries
-- Auth via `nuxt-auth-utils` (role-based: user, moderator, admin)
-
-See exact versions in `package.json` and configuration in `nuxt.config.ts`.
-
-## Architecture
-
-- Frontend: Nuxt 4 with SSR/SPA hybrid
-- Database: Cloudflare D1 (SQLite) via Drizzle ORM
-- API: File-based routes under `server/api/*`
-- Auth: `getUserSession(event)` on server, `useUserSession()` on client
-- State: Pinia stores for global state and preferences
-- Deployment: Cloudflare Workers
-
-Helpful references:
-- Schema: `server/db/migrations/schema.sql`
-- Types: `types/` (e.g., `Quote`, `QuoteWithRelations`)
-- Layouts: `layouts/` (`admin.vue`, `dashboard.vue`, `default.vue`)
-- Admin pages: `pages/admin/*`
-- Composables: `composables/` (e.g., `useDataExport.ts`)
-
-## Getting started
-
-Prerequisites: Node 18+ and your preferred package manager. The project uses Bun by default, but npm/pnpm/yarn work too.
-NOTE: You can use any package manager, just replace `bun` with `npm`/`pnpm`/`yarn` in the commands below.
-
-```bash
-bun install        # Install dependencies
-bun run dev        # Start the dev server at http://localhost:3000
-bun run build      # Build for production
-bun run preview    # Preview the production build locally
+```text
+Browser
+   │
+   ▼
+Nuxt 4 application ── server API ── Drizzle ORM
+                                         │
+                         ┌───────────────┴──────────────┐
+                         ▼                              ▼
+                SQLite in development          Cloudflare D1 in production
 ```
 
-Local development uses one file-backed SQLite database: `.data/db/sqlite.db` through the
-NuxtHub `libsql` driver. Production continues to use the Cloudflare D1 binding. The SQL
-schema lives in `server/db/migrations/schema.sql` and numbered migrations live in
-`server/db/migrations/sqlite/`.
+| Area | Technology |
+| --- | --- |
+| Application | Nuxt 4, Vue 3 and TypeScript |
+| Interface | UnaUI and UnoCSS |
+| State and utilities | Pinia and VueUse |
+| Data access | Drizzle ORM with SQLite / Cloudflare D1 |
+| Production platform | Cloudflare Workers, with NuxtHub storage integrations |
+| Authentication | `nuxt-auth-utils` and role-based access |
 
-Before `bun run dev`, the `predev` check runs `nuxi prepare` and verifies that the generated
-NuxtHub client still uses `libsql` and `.data/db/sqlite.db`. It fails rather than starting
-against the D1 emulator if the generated configuration drifts.
+The project uses file-based server routes in `server/api/`, shared domain types in `shared/types/`, and numbered SQLite migrations in `server/db/migrations/sqlite/`.
 
-## Scripts
+## Run it locally
 
-The most common scripts are:
-NOTE: You can use any package manager, just replace `bun` with `npm`/`pnpm`/`yarn` in the commands below.
+**Requirements:** [Bun](https://bun.sh/) and a recent Node.js runtime.
 
-- `bun run dev` - start development server
-- `bun run db:check` - regenerate and verify the local NuxtHub database driver
-- `bun run db:migrate` - apply pending migrations to `.data/db/sqlite.db`
-- `bun run db:sync-prod` - replace `.data/db/sqlite.db` with a backup of production data
-- `bun run build` - production build
-- `bun run preview` - preview the production build
+```bash
+git clone https://github.com/rootasjey/verbatims.git
+cd verbatims
+bun install
+bun run db:migrate
+bun run dev
+```
 
-Note: The legacy local CLI utilities under `scripts/` have been removed. Admin operations are now performed through the in-app Admin pages and server APIs (e.g., export, import, backup).
+Open [http://localhost:3002](http://localhost:3002). The `dev` command checks the local database setup before starting Nuxt.
 
-## Localization
+Local development uses the file-backed database at `.data/db/sqlite.db` through NuxtHub's `libsql` driver. Production uses the Cloudflare D1 binding. Migrations are not applied automatically in development, so run `bun run db:migrate` after pulling schema changes.
 
-The project uses `nuxt-i18n-micro` with English and French translations.
+> `bun run db:sync-prod` replaces the local database with a production-data copy after creating a backup. Use it only when you intend to refresh local data.
 
-Locale files live in `locales/` (root translations + page-specific files under `locales/pages/`).
-The module generates a dynamic server handler `/_locales/:page/:locale/data.json` to serve translations at runtime.
+## Useful commands
 
-### Build note (avoid OOM)
+| Command | What it does |
+| --- | --- |
+| `bun run dev` | Start the local app on port `3002` (runs the database precheck first). |
+| `bun run db:check` | Regenerate and verify NuxtHub's local database client. |
+| `bun run db:migrate` | Apply pending migrations to the local SQLite database. |
+| `bun run db:sync-prod` | Back up, then refresh the local database from production. |
+| `bun run typecheck` | Run Nuxt and TypeScript checks. |
+| `bun run test` | Run the Vitest suite. |
+| `bun run preview` | Preview a production build locally. |
 
-The i18n config sets `prerenderRoutes: false` in `nuxt.config.ts`. This is intentional and safe:
+## API
 
-- The project uses the `cloudflare-module` Nitro preset (SSR), not SSG. Translation data is served at runtime by the dynamic handler described above, so pre-rendering static JSON files during the build is unnecessary.
-- Skipping pre-render prevents memory spikes during the Nitro bundling step, which otherwise processes ~114 locale routes (57 page names × 2 locales) and can trigger `FATAL ERROR: Reached heap limit Allocation failed` on memory-constrained CI environments.
+The versioned API supports quotes, authors, references, tags, collections and search. API keys are managed from the developer dashboard; most endpoints require a key with the appropriate permissions.
 
-If you later switch to a static target, set `prerenderRoutes: true` (or remove the override) to restore static locale payloads.
+```bash
+curl 'https://verbatims.cc/api/v1/quotes?limit=5&language=en' \
+  -H "Authorization: Bearer $VERBATIMS_API_KEY"
+```
 
-## Data, privacy, and contributions
+See the [interactive API reference](https://verbatims.cc/api/v1/docs) or the in-app [developer guide](https://verbatims.cc/developers) for authentication, parameters and response formats.
 
-- Submissions are verified for wording and authorship before publishing; misattributions may be corrected or declined.
-- Community reports with citations are encouraged.
-- We store only what's needed to run the app (account info, favorites, collections, preferences). We don't sell personal data.
-- See in-app pages for details: `/privacy` and `/terms`.
+## SDK and CLI
 
-## Deployment
+The API can also be used from TypeScript or the terminal. The [Verbatims SDK and CLI repository](https://github.com/rootasjey/verbatims-sdk) contains the typed `@verbatims/sdk` client, an optional Nuxt module, and the `@verbatims/cli` command-line tool.
 
-This app targets Cloudflare Workers. 
-Follow Nuxt's deployment docs and the Cloudflare Workers guide. 
-CI typically runs `nuxt build` and deploys the output using Cloudflare tooling.
+```bash
+npm install @verbatims/sdk
+npm install -g @verbatims/cli
+
+verbatims config
+verbatims search "courage" --type quotes
+```
+
+The SDK covers quotes, authors, references, collections, search and more. The CLI provides commands for browsing and managing API resources. See the repository's [SDK guide](https://github.com/rootasjey/verbatims-sdk#readme) and [CLI guide](https://github.com/rootasjey/verbatims-sdk/tree/main/packages/cli) for options and examples.
+
+## Project notes
+
+- **Languages:** English and French, with locale files in `locales/`.
+- **Data and corrections:** The project aims to preserve attribution and source context. Readers can report issues from the app; quotes are reviewed before publication.
+- **Privacy:** See the [privacy policy](https://verbatims.cc/privacy) and [terms](https://verbatims.cc/terms).
+- **Admin and operations:** Operational guides live in [`docs/admin/`](docs/admin/) and [`docs/operations/`](docs/operations/).
+- **Design explorations:** Archived homepage and quote-page prototypes are in [`docs/design/archive/`](docs/design/archive/).
 
 ## Contributing
 
-Issues and PRs are welcome. Please follow the established code style (TypeScript, strict types, UnoCSS utilities, UnaUI components) and keep UI accessible.
+Bug reports, corrections and focused pull requests are welcome. Please keep changes consistent with the existing TypeScript, UnaUI and UnoCSS patterns, and include context for user-facing changes.
 
 ## License
 
-This project is licensed under the MIT License - see `LICENSE`.
-
-## Admin documentation
-
-Internal/operational documentation is available in `docs/admin/`:
-
-- **OG Image Generation** – dynamic OG images, caching, and admin cache controls → [`docs/admin/OG_IMAGE_GENERATION.md`](docs/admin/OG_IMAGE_GENERATION.md)
-- **Automated Social Posting** – social queue, provider config, scheduling, Meta reconnect flow → [`docs/admin/SOCIAL_AUTOPOST.md`](docs/admin/SOCIAL_AUTOPOST.md)
-
-## Design references
-
-Archived standalone prototypes for the editorial visual system are kept in
-[`docs/design/archive/`](docs/design/archive/). These HTML files are design references
-only and are not included in the Nuxt or Cloudflare build.
-
-- Homepage storyboard and density explorations → [`docs/design/archive/homepage/`](docs/design/archive/homepage/)
-- Quote page hero compositions → [`docs/design/archive/quote-page/`](docs/design/archive/quote-page/)
+Verbatims is released under the [MIT License](LICENSE).
