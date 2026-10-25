@@ -1,4 +1,6 @@
 import { blob } from 'hub:blob'
+import { db, schema } from 'hub:db'
+import { like, or } from 'drizzle-orm'
 
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': '.jpg',
@@ -18,6 +20,115 @@ export function isR2ImageUrl(url: string | null | undefined): boolean {
 }
 
 const IMAGES_PREFIX = 'images'
+const IMAGE_UPLOADS_PREFIX = 'images/uploads/'
+const DEFAULT_UPLOAD_RETENTION_MS = 90 * 24 * 60 * 60 * 1000
+
+function imageUploadKeyFromUrl(url: string | null | undefined): string | null {
+  if (!url?.startsWith('/blob/')) return null
+
+  const key = url.slice('/blob/'.length).split(/[?#]/, 1)[0]
+  return key?.startsWith(IMAGE_UPLOADS_PREFIX) ? key : null
+}
+
+async function getReferencedImageUploadKeys(): Promise<Set<string>> {
+  const [authors, references, themes, reportedImages] = await Promise.all([
+    db.select({ imageUrl: schema.authors.imageUrl })
+      .from(schema.authors)
+      .where(like(schema.authors.imageUrl, '/blob/images/uploads/%')),
+    db.select({ imageUrl: schema.quoteReferences.imageUrl })
+      .from(schema.quoteReferences)
+      .where(like(schema.quoteReferences.imageUrl, '/blob/images/uploads/%')),
+    db.select({ imageUrl: schema.themes.imageUrl, mobileImageUrl: schema.themes.mobileImageUrl })
+      .from(schema.themes)
+      .where(or(
+        like(schema.themes.imageUrl, '/blob/images/uploads/%'),
+        like(schema.themes.mobileImageUrl, '/blob/images/uploads/%'),
+      )),
+    db.select({ reportedImageUrl: schema.userMessages.reportedImageUrl })
+      .from(schema.userMessages)
+      .where(like(schema.userMessages.reportedImageUrl, '/blob/images/uploads/%')),
+  ])
+
+  const referencedKeys = new Set<string>()
+  const urls = [
+    ...authors.map(row => row.imageUrl),
+    ...references.map(row => row.imageUrl),
+    ...themes.flatMap(row => [row.imageUrl, row.mobileImageUrl]),
+    ...reportedImages.map(row => row.reportedImageUrl),
+  ]
+
+  for (const url of urls) {
+    const key = imageUploadKeyFromUrl(url)
+    if (key) referencedKeys.add(key)
+  }
+
+  return referencedKeys
+}
+
+export async function cleanupAbandonedImageUploads(options: {
+  maxAgeMs?: number
+  dryRun?: boolean
+} = {}) {
+  const {
+    maxAgeMs = DEFAULT_UPLOAD_RETENTION_MS,
+    dryRun = true,
+  } = options
+  const cutoff = Date.now() - maxAgeMs
+  const candidates: string[] = []
+  let scanned = 0
+  let tooRecent = 0
+  let missingTimestamp = 0
+  let referenced = 0
+  let cursor: string | undefined
+  let hasMore = true
+
+  while (hasMore) {
+    const page = await blob.list({ prefix: IMAGE_UPLOADS_PREFIX, limit: 1000, cursor })
+    for (const item of page.blobs) {
+      scanned++
+      if (!item.uploadedAt) {
+        missingTimestamp++
+        continue
+      }
+      if (item.uploadedAt.getTime() >= cutoff) {
+        tooRecent++
+        continue
+      }
+      candidates.push(item.pathname)
+    }
+    hasMore = page.hasMore
+    cursor = page.cursor
+  }
+
+  // Read references after the complete inventory so a partial listing never
+  // leads to deletion and recently attached URLs are protected.
+  const referencedKeys = await getReferencedImageUploadKeys()
+  const deletableKeys = candidates.filter((key) => {
+    if (referencedKeys.has(key)) {
+      referenced++
+      return false
+    }
+    return true
+  })
+
+  let deleted = 0
+  if (!dryRun) {
+    for (const key of deletableKeys) {
+      await blob.delete(key)
+      deleted++
+    }
+  }
+
+  return {
+    dryRun,
+    scanned,
+    tooRecent,
+    missingTimestamp,
+    referenced,
+    candidates: deletableKeys.length,
+    deleted,
+  }
+}
 
 export async function uploadAndStoreImage(
   sourceUrl: string,
