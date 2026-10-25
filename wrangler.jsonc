@@ -24,8 +24,8 @@
       "0 */6 * * *",
       // Report unreferenced image uploads older than 90 days each Sunday at 05:00 UTC.
       "0 5 * * 1",
-      // Repair abandoned social queue items every five minutes.
-      "*/5 * * * *",
+      // Repair abandoned social queue items every thirty minutes.
+      "*/30 * * * *",
       // 08:00 Europe/Paris candidate during daylight saving time; the task skips the other offset.
       "0 6 * * *",
       // 08:00 Europe/Paris candidate during standard time; the task skips the other offset.
