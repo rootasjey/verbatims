@@ -92,6 +92,10 @@ export default {
     'outline-gray', 'outline-blue', 'outline-green', 'outline-pink', 'outline-red', 'ghost-gray',
   ],
   shortcuts: [
+    [
+      /^btn-focus(?:-\S+)?$/,
+      () => 'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-500 dark:focus-visible:ring-stone-400',
+    ],
     {
       // Dynamic badge colors for quote status (pending, approved, rejected, draft)
       'badge-soft-pending': 'bg-yellow-50 n-yellow-700 ring-yellow-700/10 dark:bg-yellow-400/10 dark:n-yellow-400 dark:ring-yellow-400/30',

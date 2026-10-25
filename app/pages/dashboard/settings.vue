@@ -246,6 +246,44 @@
           <ThemeSelector appearance="settings" />
         </div>
       </section>
+      <section class="border-t border-gray-200 pt-5 dark:border-white/10">
+        <h2 class="mb-2 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
+          {{ $t('home_image_attribution_title') }}
+        </h2>
+        <p class="mb-4 max-w-xl font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+          {{ $t('home_image_attribution_description') }}
+        </p>
+        <div class="max-w-xl">
+          <NSelect
+            v-model="selectedHomeImageAttributionMode"
+            :items="homeImageAttributionModeOptions"
+            item-key="label"
+            value-key="value"
+            :aria-label="$t('home_image_attribution_title') as string"
+            size="sm"
+            :_select-trigger="{ class: '!h-10 !min-h-10 !w-full !min-w-36 !rounded-md !border !border-[#d2cfc6] !bg-[#f0efe9] !px-3 !py-2 !text-sm !font-medium !text-gray-800 hover:!bg-[#eae8e1] dark:!border-white/15 dark:!bg-white/[0.06] dark:!text-gray-200 dark:hover:!bg-white/10' }"
+            :_select-content="{ bodyLock: false }"
+            select="light:soft-gray dark:soft-gray"
+            select-item="light:gray dark:gray"
+          >
+            <template #value="{ modelValue }">
+              <span class="flex items-center gap-2">
+                <NIcon :name="(modelValue as HomeImageAttributionModeOption)?.icon" class="h-4 w-4" aria-hidden="true" />
+                {{ (modelValue as HomeImageAttributionModeOption)?.label }}
+              </span>
+            </template>
+            <template #item="{ item }">
+              <span class="flex items-center gap-2">
+                <NIcon :name="item.icon" class="h-4 w-4" aria-hidden="true" />
+                {{ item.label }}
+              </span>
+            </template>
+          </NSelect>
+          <p class="mt-2 font-sans text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+            {{ $t('home_image_attribution_auto_help') }}
+          </p>
+        </div>
+      </section>
     </div>
 
     <!-- Notifications Tab -->
@@ -374,6 +412,24 @@ onMounted(() => {
 })
 
 const { user, fetch: refreshUserSession } = useUserSession()
+const homeImageAttribution = useHomeImageAttributionPreference()
+
+interface HomeImageAttributionModeOption {
+  label: string
+  value: 'auto' | 'expanded' | 'collapsed'
+  icon: string
+}
+
+const homeImageAttributionModeOptions = computed<HomeImageAttributionModeOption[]>(() => [
+  { label: String($t('home_image_attribution_auto')), value: 'auto', icon: 'i-ph-timer-duotone' },
+  { label: String($t('home_image_attribution_expanded')), value: 'expanded', icon: 'i-ph-arrows-out-simple' },
+  { label: String($t('home_image_attribution_collapsed')), value: 'collapsed', icon: 'i-ph-arrows-in-simple' }
+])
+
+const selectedHomeImageAttributionMode = computed<HomeImageAttributionModeOption>({
+  get: () => homeImageAttributionModeOptions.value.find(option => option.value === homeImageAttribution.mode.value) ?? homeImageAttributionModeOptions.value[0]!,
+  set: option => { void updateHomeImageAttributionMode(option) }
+})
 
 const settingsTabValues = ['profile', 'preferences', 'privacy', 'notifications', 'security', 'data'] as const
 type SettingsTab = typeof settingsTabValues[number]
@@ -462,6 +518,14 @@ const loadPendingEmailChange = async () => {
     if (result.pendingEmail) emailForm.value = result.pendingEmail
   } catch (error) {
     console.error('Failed to load pending email change:', error)
+  }
+}
+
+const updateHomeImageAttributionMode = async (option: HomeImageAttributionModeOption) => {
+  try {
+    await homeImageAttribution.save(option.value)
+  } catch (error) {
+    showErrorToast(error, $t('error_save_profile') as string)
   }
 }
 
@@ -600,6 +664,7 @@ const deleteAccount = async () => {
 
 onMounted(async () => {
   void loadPendingEmailChange()
+  void homeImageAttribution.load()
   try {
     const [notificationData, privacyData] = await Promise.all([
       $fetch('/api/user/notifications'),

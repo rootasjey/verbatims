@@ -133,12 +133,12 @@
   margin: 0;
   padding: 0.45rem 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 9999px;
+  border-radius: 0.75rem;
   background: rgba(12, 10, 9, 0.72);
   color: rgba(255, 255, 255, 0.86);
   opacity: 0.72;
   text-align: left;
-  clip-path: inset(0 round 9999px);
+  clip-path: inset(0 round 0.75rem);
   transition: clip-path 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease, background-color 180ms ease, border-color 180ms ease;
 }
 .homepage-v3-image-credit-toggle {
@@ -163,7 +163,7 @@
 .homepage-v3-image-credit-content {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 42rem;
+  max-width: none;
   overflow: hidden;
   transition: opacity 160ms ease, transform 200ms ease;
 }
@@ -174,7 +174,7 @@
     flex-wrap: wrap;
   }
 }
-.homepage-v3-cover--with-image .homepage-v3-image-credit--collapsed { clip-path: inset(0 calc(100% - 3.5rem) 0 0 round 9999px); }
+.homepage-v3-cover--with-image .homepage-v3-image-credit--collapsed { clip-path: inset(0 calc(100% - 3.5rem) 0 0 round 0.75rem); }
 .homepage-v3-image-credit--collapsed .homepage-v3-image-credit-content { opacity: 0; transform: translateX(-0.35rem); }
 .homepage-v3-cover--with-image .homepage-v3-image-credit:hover,
 .homepage-v3-cover--with-image .homepage-v3-image-credit:focus-within {
@@ -474,7 +474,7 @@
   .homepage-v3-rich-item:nth-child(2n) { padding-left: 14px; border-left: 1px solid rgba(120, 120, 120, 0.22); }
   .homepage-v3-cover { min-height: 690px; padding: 70px 24px 92px; }
   .homepage-v3-cover--with-image .homepage-v3-image-credit { bottom: 1rem; left: 1rem; max-width: calc(100% - 2rem); font-size: 0.625rem; }
-  .homepage-v3-image-credit-content { max-width: calc(100vw - 6rem); }
+  .homepage-v3-image-credit-content { max-width: none; }
 }
 
 @media (min-width: 1200px) {

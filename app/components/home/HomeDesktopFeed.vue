@@ -69,6 +69,7 @@
                 v-if="props.theme?.image_url"
                 class="homepage-v3-image-credit"
                 :class="{ 'homepage-v3-image-credit--collapsed': !imageCreditExpanded }"
+                @contextmenu.prevent="openImageCreditContextMenu"
               >
                 <NTooltip :content="String($t(imageCreditExpanded ? 'home.collapse_image_credit' : 'home.expand_image_credit'))">
                   <button
@@ -76,9 +77,9 @@
                     class="homepage-v3-image-credit-toggle"
                     :aria-label="String($t(imageCreditExpanded ? 'home.collapse_image_credit' : 'home.expand_image_credit'))"
                     :aria-expanded="imageCreditExpanded"
-                    @click.stop="imageCreditExpanded = !imageCreditExpanded"
+                    @click.stop="toggleImageCredit"
                   >
-                    <NIcon name="i-tabler-info-square-rounded" class="h-4 w-4" aria-hidden="true" />
+                    <NIcon name="i-tabler-info-small" class="h-4 w-4" aria-hidden="true" />
                   </button>
                 </NTooltip>
                 <div class="homepage-v3-image-credit-content" :aria-hidden="!imageCreditExpanded" :inert="!imageCreditExpanded">
@@ -91,7 +92,7 @@
                   <button
                     v-if="props.theme.id"
                     type="button"
-                    class="ml-2 inline-flex items-center gap-1 rounded-sm underline decoration-dotted underline-offset-2 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    class="ml-2 inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-sm underline decoration-dotted underline-offset-2 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     @click.stop="showImageReportDialog = true"
                   >
                     <NIcon name="i-tabler-flag-3" class="h-3.5 w-3.5" aria-hidden="true" />
@@ -99,6 +100,16 @@
                   </button>
                 </div>
               </div>
+              <NDropdownMenu
+                v-if="imageCreditContextMenuPosition"
+                :open="imageCreditContextMenuOpen"
+                :items="imageCreditContextMenuItems"
+                :modal="false"
+                :_dropdown-menu-content="{ side: 'bottom', align: 'start', sideOffset: 4 }"
+                @update:open="imageCreditContextMenuOpen = $event"
+              >
+                <span aria-hidden="true" class="fixed z-50 h-px w-px" :style="imageCreditContextMenuPosition" />
+              </NDropdownMenu>
             </template>
             <div v-else-if="hasThemeWithoutQuotes" class="homepage-v3-cover-empty-state max-w-2xl px-4" :class="props.theme?.image_url ? 'text-white' : 'text-gray-900 dark:text-gray-100'">
               <h2 class="font-serif text-3xl leading-tight drop-shadow-md lg:text-4xl">{{ $t('home.theme_no_quotes_title') }}</h2>
@@ -384,7 +395,14 @@ const homeCopy = computed(() => ({
 
 const showSearch = ref(false)
 const hasScrolled = ref(false)
-const imageCreditExpanded = ref(true)
+const {
+  expanded: imageCreditExpanded,
+  menuItems: imageCreditContextMenuItems,
+  menuOpen: imageCreditContextMenuOpen,
+  menuPosition: imageCreditContextMenuPosition,
+  openMenu: openImageCreditContextMenu,
+  toggle: toggleImageCredit
+} = useHomeImageAttributionControls()
 const authorsCarousel = ref<HTMLElement | null>(null)
 const authorsAtStart = ref(true)
 const authorsAtEnd = ref(false)
