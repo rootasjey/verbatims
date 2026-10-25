@@ -74,7 +74,7 @@ export async function cleanupAbandonedImageUploads(options: {
     dryRun = true,
   } = options
   const cutoff = Date.now() - maxAgeMs
-  const candidates: string[] = []
+  const candidates: Array<{ key: string; uploadedAt: string; sizeBytes: number | null }> = []
   let scanned = 0
   let tooRecent = 0
   let missingTimestamp = 0
@@ -94,7 +94,11 @@ export async function cleanupAbandonedImageUploads(options: {
         tooRecent++
         continue
       }
-      candidates.push(item.pathname)
+      candidates.push({
+        key: item.pathname,
+        uploadedAt: item.uploadedAt.toISOString(),
+        sizeBytes: item.size ?? null,
+      })
     }
     hasMore = page.hasMore
     cursor = page.cursor
@@ -103,8 +107,8 @@ export async function cleanupAbandonedImageUploads(options: {
   // Read references after the complete inventory so a partial listing never
   // leads to deletion and recently attached URLs are protected.
   const referencedKeys = await getReferencedImageUploadKeys()
-  const deletableKeys = candidates.filter((key) => {
-    if (referencedKeys.has(key)) {
+  const deletableCandidates = candidates.filter((candidate) => {
+    if (referencedKeys.has(candidate.key)) {
       referenced++
       return false
     }
@@ -113,8 +117,8 @@ export async function cleanupAbandonedImageUploads(options: {
 
   let deleted = 0
   if (!dryRun) {
-    for (const key of deletableKeys) {
-      await blob.delete(key)
+    for (const candidate of deletableCandidates) {
+      await blob.delete(candidate.key)
       deleted++
     }
   }
@@ -125,7 +129,7 @@ export async function cleanupAbandonedImageUploads(options: {
     tooRecent,
     missingTimestamp,
     referenced,
-    candidates: deletableKeys.length,
+    candidates: deletableCandidates,
     deleted,
   }
 }

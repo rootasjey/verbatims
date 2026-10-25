@@ -7,7 +7,28 @@ export default defineTask({
   },
   async run() {
     const result = await cleanupAbandonedImageUploads({ dryRun: true })
-    console.info('[images:cleanup-uploads]', result)
-    return result
+    const runId = new Date().toISOString()
+
+    for (const candidate of result.candidates) {
+      console.info({
+        event: 'image_upload_cleanup_candidate',
+        runId,
+        ...candidate,
+      })
+    }
+
+    const summary = {
+      event: 'image_upload_cleanup_summary',
+      runId,
+      dryRun: result.dryRun,
+      scanned: result.scanned,
+      tooRecent: result.tooRecent,
+      missingTimestamp: result.missingTimestamp,
+      referenced: result.referenced,
+      candidateCount: result.candidates.length,
+      deleted: result.deleted,
+    }
+    console.info(summary)
+    return summary
   },
 })
