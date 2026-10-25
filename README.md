@@ -1,10 +1,9 @@
-# Verbatims
-
-**Discover, collect and share memorable quotes—with their authors and sources.**
-
-[Visit verbatims.cc](https://verbatims.cc) · [Explore the API](https://verbatims.cc/api/v1/docs) · [About the project](https://verbatims.cc/about)
-
-![The Verbatims homepage featuring an attributed quote from William Shakespeare's Macbeth](./public/images/verbatims-homepage.png)
+<div align="center">
+  <img src="./public/images/favicon-512.png" alt="Verbatims" width="120">
+  <p><strong>Share memorable quotes with their sources.</strong></p>
+  <p><a href="https://verbatims.cc">Visit verbatims.cc</a> · <a href="https://verbatims.cc/api/v1/docs">Explore the API</a> · <a href="https://verbatims.cc/about">About the project</a></p>
+  <img src="./public/images/verbatims-homepage.png" alt="The Verbatims homepage featuring an attributed quote from William Shakespeare's Macbeth" width="100%">
+</div>
 
 Verbatims is a multilingual quote library for readers, researchers and curious minds. Browse quotes from books, films and more; follow their attributions to authors and references; and save or share the lines that stay with you.
 
@@ -16,18 +15,7 @@ Verbatims is a multilingual quote library for readers, researchers and curious m
 
 Quotes connect to authors, references and tags, so you can follow a line back to its context. The API also provides programmatic access to quotes and related catalogue data.
 
-## How the app is put together
-
-```text
-Browser
-   │
-   ▼
-Nuxt 4 application ── server API ── Drizzle ORM
-                                         │
-                         ┌───────────────┴──────────────┐
-                         ▼                              ▼
-                SQLite in development          Cloudflare D1 in production
-```
+## Built with
 
 | Area | Technology |
 | --- | --- |
@@ -40,19 +28,27 @@ Nuxt 4 application ── server API ── Drizzle ORM
 
 The project uses file-based server routes in `server/api/`, shared domain types in `shared/types/`, and numbered SQLite migrations in `server/db/migrations/sqlite/`.
 
+### Cloudflare deployment
+
+The production Worker connects to Cloudflare's storage and platform services through bindings:
+
+<p align="center">
+  <img src="./public/images/verbatims-bindings.png" alt="Cloudflare deployment view showing the Verbatims Worker and its configured bindings" width="100%">
+</p>
+
 ## Run it locally
 
-**Requirements:** [Bun](https://bun.sh/) and a recent Node.js runtime.
+**Requirements:** A Node.js version supported by Nuxt. Use npm (included with Node.js), or install [Bun](https://bun.sh/) as an alternative package manager.
 
 ```bash
 git clone https://github.com/rootasjey/verbatims.git
 cd verbatims
-bun install
-bun run db:migrate
-bun run dev
+npm install
+npm run db:migrate
+npm run dev
 ```
 
-Open [http://localhost:3002](http://localhost:3002). The `dev` command checks the local database setup before starting Nuxt.
+Open [http://localhost:3002](http://localhost:3002). The `dev` command checks the local database setup with Node.js before starting Nuxt. You can use Bun instead by replacing `npm install` with `bun install` and `npm run` with `bun run`.
 
 Local development uses the file-backed database at `.data/db/sqlite.db` through NuxtHub's `libsql` driver. Production uses the Cloudflare D1 binding. Migrations are not applied automatically in development, so run `bun run db:migrate` after pulling schema changes.
 
