@@ -529,7 +529,7 @@ const storeQuery = computed({
   set: (v: string) => searchStore.setQuery(v)
 })
 
-type NavItemAccess = 'public' | 'guest' | 'authenticated' | 'staff'
+type NavItemAccess = 'public' | 'guest' | 'authenticated' | 'staff' | 'admin'
 
 interface SearchNavItem {
   label: string
@@ -541,7 +541,8 @@ interface SearchNavItem {
 }
 
 const navItems = computed<SearchNavItem[]>(() => {
-  const isStaff = user.value?.role === 'admin' || user.value?.role === 'moderator'
+  const isAdmin = user.value?.role === 'admin'
+  const isStaff = isAdmin || user.value?.role === 'moderator'
 
   const items: SearchNavItem[] = [
     { label: String($t('components.search_box.nav_home')), icon: 'i-ph-house', description: String($t('components.search_box.nav_home_desc')), to: '/', access: 'public' },
@@ -552,17 +553,37 @@ const navItems = computed<SearchNavItem[]>(() => {
     { label: String($t('components.search_box.nav_sign_in')), icon: 'i-ph-sign-in', description: String($t('components.search_box.nav_sign_in_desc')), to: '/login', access: 'guest', keywords: ['login', 'sign', 'signin'] },
     { label: String($t('components.search_box.nav_sign_up')), icon: 'i-ph-user-plus', description: String($t('components.search_box.nav_sign_up_desc')), to: '/signup', access: 'guest', keywords: ['signup', 'sign', 'register'] },
     { label: String($t('nav.dashboard')), icon: 'i-ph-square-split-vertical-duotone', description: String($t('nav.overview')), to: '/dashboard', access: 'authenticated' },
-    { label: String($t('nav.admin')), icon: 'i-ph-shield-check', description: 'Admin panel', to: '/admin', access: 'staff' },
-    { label: 'Pending Quotes', icon: 'i-ph-clock-countdown', description: 'Review and moderate pending quotes', to: '/admin/quotes/pending', access: 'staff' },
-    { label: String($t('nav.drafts')), icon: 'i-ph-file-text', description: 'Manage quote drafts', to: '/admin/quotes/drafts', access: 'staff' },
-    { label: 'Social Queue', icon: 'i-ph-share-network', description: 'Manage scheduled social media posts', to: '/admin/social-queue', access: 'staff' },
-    { label: String($t('nav.tags')), icon: 'i-ph-tag-duotone', description: 'Manage tag taxonomy', to: '/admin/tags', access: 'staff' },
+    { label: String($t('dashboard.headers.favourites')), icon: 'i-ph-heart', description: String($t('dashboard.headers.favourites_desc')), to: '/dashboard/favourites', access: 'authenticated', keywords: ['favorites', 'likes'] },
+    { label: String($t('dashboard.headers.lists')), icon: 'i-ph-books', description: String($t('dashboard.headers.lists_desc')), to: '/dashboard/lists', access: 'authenticated', keywords: ['collections'] },
+    { label: String($t('dashboard.headers.drafts')), icon: 'i-ph-file-text', description: String($t('dashboard.headers.drafts_desc')), to: '/dashboard/my-quotes/drafts', access: 'authenticated' },
+    { label: String($t('dashboard.headers.pending')), icon: 'i-ph-clock-countdown', description: String($t('dashboard.headers.pending_desc')), to: '/dashboard/my-quotes/pending', access: 'authenticated' },
+    { label: String($t('dashboard.headers.published')), icon: 'i-ph-check-circle', description: String($t('dashboard.headers.published_desc')), to: '/dashboard/my-quotes/published', access: 'authenticated' },
+    { label: String($t('dashboard.headers.settings')), icon: 'i-ph-gear', description: String($t('dashboard.headers.settings_desc')), to: '/dashboard/settings', access: 'authenticated' },
+    { label: String($t('nav.admin')), icon: 'i-ph-shield-check', description: String($t('admin.headers.panel_desc')), to: '/admin', access: 'staff' },
+    { label: String($t('admin.nav.pending')), icon: 'i-ph-clock-countdown', description: String($t('admin.headers.pending_desc')), to: '/admin/quotes/pending', access: 'staff' },
+    { label: String($t('admin.nav.published')), icon: 'i-ph-check-circle', description: String($t('admin.headers.published_desc')), to: '/admin/quotes/published', access: 'staff' },
+    { label: String($t('admin.nav.drafts')), icon: 'i-ph-file-text', description: String($t('admin.headers.drafts_desc')), to: '/admin/quotes/drafts', access: 'staff' },
+    { label: String($t('admin.nav.social_queue')), icon: 'i-ph-share-network', description: String($t('admin.headers.social_queue_desc')), to: '/admin/social-queue', access: 'staff' },
+    { label: String($t('admin.nav.authors')), icon: 'i-ph-user-list', description: String($t('admin.headers.authors_desc')), to: '/admin/authors', access: 'staff' },
+    { label: String($t('admin.nav.references')), icon: 'i-ph-books', description: String($t('admin.headers.references_desc')), to: '/admin/references', access: 'staff' },
+    { label: String($t('admin.nav.tags')), icon: 'i-ph-tag-duotone', description: String($t('admin.headers.tags')), to: '/admin/tags', access: 'staff' },
+    { label: String($t('admin.nav.themes')), icon: 'i-ph-palette', description: String($t('admin.headers.themes')), to: '/admin/themes', access: 'staff' },
+    { label: String($t('admin.nav.harvest_quotes')), icon: 'i-ph-download-simple', description: String($t('admin.headers.harvest')), to: '/admin/harvest', access: 'staff' },
+    { label: String($t('admin.nav.enrichment_queue')), icon: 'i-ph-sparkle', description: String($t('admin.headers.enrichment_desc')), to: '/admin/enrichment', access: 'staff' },
+    { label: String($t('admin.nav.enrichment_audit')), icon: 'i-ph-magnifying-glass', description: String($t('admin.headers.enrichment_desc')), to: '/admin/enrichment-audit', access: 'staff' },
+    { label: String($t('admin.nav.export_data')), icon: 'i-ph-export', description: String($t('admin.headers.export_desc')), to: '/admin/export', access: 'staff' },
+    { label: String($t('admin.nav.users')), icon: 'i-ph-users', description: String($t('admin.headers.users_desc')), to: '/admin/users', access: 'admin' },
+    { label: String($t('admin.nav.messages')), icon: 'i-ph-chat-circle', description: String($t('admin.headers.messages')), to: '/admin/messages', access: 'admin' },
+    { label: String($t('admin.nav.api_keys')), icon: 'i-ph-key', description: String($t('admin.headers.api_keys')), to: '/admin/api-keys', access: 'admin' },
+    { label: String($t('admin.nav.import_data')), icon: 'i-ph-upload-simple', description: String($t('admin.headers.import_desc')), to: '/admin/import', access: 'admin' },
+    { label: String($t('admin.nav.database_maintenance')), icon: 'i-ph-wrench', description: String($t('admin.headers.maintenance_desc')), to: '/admin/maintenance', access: 'admin' },
   ]
 
   return items.filter((item) => {
     if (item.access === 'guest') return !loggedIn.value
     if (item.access === 'authenticated') return loggedIn.value
     if (item.access === 'staff') return isStaff
+    if (item.access === 'admin') return isAdmin
     return true
   })
 })
