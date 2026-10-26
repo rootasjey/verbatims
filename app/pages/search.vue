@@ -547,6 +547,8 @@ function translateReferenceType(type: string | undefined | null): string {
 useVerbatimsSeo({
   title: $t('meta_title') as string,
   description: $t('meta_desc') as string,
+  imagePath: '/api/og/pages/search.png',
+  imageAlt: 'Search Verbatims quotes, authors, and references',
   type: 'website'
 })
 

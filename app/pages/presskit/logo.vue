@@ -84,6 +84,8 @@ import { useVerbatimsSeo } from '~/composables/useSeo'
 useVerbatimsSeo({
   title: 'Press Kit & Logo - Verbatims',
   description: 'Download Verbatims brand assets: logos, bar variants, and visual identity resources for press and media use.',
+  imagePath: '/api/og/pages/presskit.png',
+  imageAlt: 'Verbatims press kit and logo assets',
   type: 'website'
 })
 
