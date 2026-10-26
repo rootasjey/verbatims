@@ -4,11 +4,11 @@ const pages: Record<OgPageSlug, { title: string; eyebrow: string; description: s
   search: {
     title: 'Search',
     eyebrow: '',
-    description: 'Find quotes by words, authors, or sources.',
+    description: 'Find the quote. Follow its source.',
   },
   presskit: {
     title: 'Press kit',
-    eyebrow: 'Verbatims identity',
+    eyebrow: '',
     description: 'Logos and brand assets, ready to share.',
   },
 }
@@ -114,10 +114,9 @@ export default defineEventHandler((event) => {
       }
       .search-field {
         display: flex;
-        height: 84px;
+        height: 60px;
         align-items: center;
         gap: 18px;
-        border-bottom: 1px solid #A8A29E;
         color: #78716C;
         font-size: 22px;
       }
@@ -126,19 +125,6 @@ export default defineEventHandler((event) => {
         height: 27px;
         flex-shrink: 0;
         color: #78716C;
-      }
-      .search-categories {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 26px;
-        color: #57534E;
-        font-size: 16px;
-      }
-      .search-categories span + span::before {
-        content: '·';
-        margin-right: 12px;
-        color: #FAA533;
       }
       .logo-preview {
         display: flex;
@@ -200,9 +186,8 @@ function getSearchVisual(): string {
       <circle cx="10.8" cy="10.8" r="6.8"></circle>
       <path d="m16 16 4.2 4.2"></path>
     </svg>
-    <span>A quote, an author, or a source</span>
-  </div>
-  <div class="search-categories"><span>Quotes</span><span>Authors</span><span>Sources</span></div>`
+    <span>Quote text, author, or reference</span>
+  </div>`
 }
 
 function getPresskitVisual(): string {
