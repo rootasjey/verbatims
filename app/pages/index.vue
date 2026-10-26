@@ -278,15 +278,26 @@ const pageDescription = computed(() => {
   return $ts('home.page_desc')
 })
 
+const requestOrigin = useRequestURL().origin
+const configuredSiteUrl = String(useRuntimeConfig().public.siteUrl || 'https://verbatims.cc')
+const siteUrl = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)
+  ? requestOrigin
+  : configuredSiteUrl.replace(/\/$/, '')
+const homeOgImage = `${siteUrl}/images/og-home.png`
+
 useHead({
   title: pageTitle,
   meta: [
     { name: 'description', content: pageDescription },
     { property: 'og:title', content: pageTitle },
     { property: 'og:description', content: pageDescription },
+    { property: 'og:image', content: homeOgImage },
+    { property: 'og:image:alt', content: 'Verbatims — share memorable quotes with their sources' },
     { property: 'og:url', content: 'https://verbatims.cc' },
     { name: 'twitter:title', content: pageTitle },
     { name: 'twitter:description', content: pageDescription },
+    { name: 'twitter:image', content: homeOgImage },
+    { name: 'twitter:image:alt', content: 'Verbatims — share memorable quotes with their sources' },
   ],
 })
 
