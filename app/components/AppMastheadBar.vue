@@ -34,7 +34,7 @@
             <template #trigger>
               <button
                 type="button"
-                class="cursor-pointer font-sans font-500 text-xs text-gray-700 transition-colors hover:text-gray-950 dark:text-gray-300 dark:hover:text-gray-100"
+                class="cursor-pointer font-sans font-600 text-xs text-gray-700 transition-colors hover:text-gray-950 dark:text-gray-300 dark:hover:text-gray-100"
                 :aria-label="String($t('home.theme_details'))"
               >
                 {{ homeTheme.name }}
@@ -44,23 +44,34 @@
               <div class="flex items-start justify-between gap-3">
                 <p class="font-serif text-lg text-gray-900 dark:text-gray-100">{{ homeTheme.name }}</p>
                 <div class="flex shrink-0 items-center gap-1">
-                  <button
-                    type="button"
-                    class="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
-                    :aria-label="String($t('home.share_theme'))"
-                    :title="String($t('home.share_theme'))"
-                    @click="shareTheme"
+                  <NTooltip
+                    :content="String($t('home.share_theme'))"
+                    :ignore-non-keyboard-focus="true"
+                    :_tooltip-content="{ side: 'bottom' }"
                   >
-                    <NIcon name="i-ph-share-network" class="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
-                    :aria-label="String($t('close'))"
-                    @click="showThemePopover = false"
+                    <button
+                      type="button"
+                      class="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                      :aria-label="String($t('home.share_theme'))"
+                      @click="shareTheme"
+                    >
+                      <NIcon name="i-ph-share-network" class="h-4 w-4" />
+                    </button>
+                  </NTooltip>
+                  <NTooltip
+                    :content="String($t('common.close'))"
+                    :ignore-non-keyboard-focus="true"
+                    :_tooltip-content="{ side: 'bottom' }"
                   >
-                    <NIcon name="i-ph-x" class="h-4 w-4" />
-                  </button>
+                    <button
+                      type="button"
+                      class="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                      :aria-label="String($t('common.close'))"
+                      @click="showThemePopover = false"
+                    >
+                      <NIcon name="i-ph-x" class="h-4 w-4" />
+                    </button>
+                  </NTooltip>
                 </div>
               </div>
               <p v-if="homeTheme.description" class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">

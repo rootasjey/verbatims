@@ -33,6 +33,23 @@
   flex-direction: column;
 }
 
+@media (min-width: 681px) and (max-height: 990px) {
+  .homepage-v3-desktop .homepage-v3-cover--with-image {
+    width: 100%;
+    height: max(24rem, calc(100svh - 138px));
+    min-height: 0;
+    padding-block: clamp(1.5rem, 6svh, 3rem);
+  }
+
+  .homepage-v3-desktop .homepage-v3-cover-actions {
+    margin-bottom: 1.5rem;
+  }
+
+  .homepage-v3-desktop .homepage-v3-cover-image-content {
+    object-fit: cover;
+  }
+}
+
 .homepage-v3-cover::before,
 .homepage-v3-cover::after {
   position: absolute;
@@ -103,18 +120,22 @@
 .dark .homepage-v3-cover--with-image { --cover-image-tint: rgba(12, 10, 9, 0.16); }
 .homepage-v3-cover--with-image .homepage-v3-quote { text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3); }
 .homepage-v3-cover--with-image .homepage-v3-quote h2,
+.homepage-v3-cover--with-image .homepage-v3-quote blockquote,
 .homepage-v3-cover--with-image .homepage-v3-author-line p,
 .homepage-v3-cover--with-image .homepage-v3-author-reference,
 .homepage-v3-cover--with-image .homepage-v3-quote:hover h2,
+.homepage-v3-cover--with-image .homepage-v3-quote:hover blockquote,
 .homepage-v3-cover--with-image .homepage-v3-author-line:hover p,
 .homepage-v3-cover--with-image .homepage-v3-author-reference:hover {
   color: #fff;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
 }
 .dark .homepage-v3-cover--with-image .homepage-v3-quote h2,
+.dark .homepage-v3-cover--with-image .homepage-v3-quote blockquote,
 .dark .homepage-v3-cover--with-image .homepage-v3-author-line p,
 .dark .homepage-v3-cover--with-image .homepage-v3-author-reference,
 .dark .homepage-v3-cover--with-image .homepage-v3-quote:hover h2,
+.dark .homepage-v3-cover--with-image .homepage-v3-quote:hover blockquote,
 .dark .homepage-v3-cover--with-image .homepage-v3-author-line:hover p,
 .dark .homepage-v3-cover--with-image .homepage-v3-author-reference:hover {
   color: #fff;
@@ -155,7 +176,9 @@
   outline-offset: 2px;
   transition: background-color 180ms ease;
 }
-.homepage-v3-image-credit-toggle:hover,
+.homepage-v3-image-credit-toggle:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
 .homepage-v3-image-credit-toggle:focus-visible {
   background: rgba(255, 255, 255, 0.14);
   outline-color: rgba(255, 255, 255, 0.9);
@@ -484,6 +507,18 @@
   .homepage-v3-cover { min-height: 690px; padding: 70px 24px 92px; }
   .homepage-v3-cover--with-image .homepage-v3-image-credit { bottom: 1rem; left: 1rem; max-width: calc(100% - 2rem); font-size: 0.625rem; }
   .homepage-v3-image-credit-content { max-width: none; }
+}
+
+@media (max-width: 680px) and (max-height: 990px) {
+  .mobile-home-feed .homepage-v3-cover--with-image {
+    height: max(18rem, calc(100svh - 242px));
+    min-height: 0;
+    padding-block: clamp(1.5rem, 8svh, 3.5rem);
+  }
+
+  .mobile-home-feed .homepage-v3-cover-actions {
+    margin-bottom: 1rem;
+  }
 }
 
 @media (min-width: 1200px) {

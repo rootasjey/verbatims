@@ -79,7 +79,7 @@
                     :aria-expanded="imageCreditExpanded"
                     @click.stop="toggleImageCredit"
                   >
-                    <NIcon name="i-tabler-info-small" class="h-4 w-4" aria-hidden="true" />
+                    <NIcon name="i-tabler-info-circle" class="h-5 w-5" aria-hidden="true" />
                   </button>
                 </NTooltip>
                 <div class="homepage-v3-image-credit-content" :aria-hidden="!imageCreditExpanded" :inert="!imageCreditExpanded">
