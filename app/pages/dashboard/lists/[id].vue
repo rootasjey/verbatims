@@ -36,9 +36,26 @@
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0 flex-1">
             <div class="mb-3 flex flex-wrap items-center gap-3">
-              <h2 class="font-serif text-3xl font-500 leading-tight tracking-[-0.025em] text-gray-900 dark:text-gray-100 sm:text-4xl lg:text-5xl break-words">
-                {{ collection.name }}
-              </h2>
+              <ContextMenu :items="collectionActions" as-child>
+                <h2 class="font-serif text-3xl font-500 leading-tight tracking-[-0.025em] text-gray-900 dark:text-gray-100 sm:text-4xl lg:text-5xl break-words">
+                  {{ collection.name }}
+                </h2>
+              </ContextMenu>
+              <NDropdownMenu
+                :items="collectionActions"
+                :modal="false"
+                :_dropdown-menu-content="{ side: 'bottom', align: 'start', sideOffset: 4 }"
+              >
+                <NButton
+                  icon
+                  btn="ghost-gray"
+                  size="xs"
+                  label="i-ph-dots-three-vertical"
+                  :aria-label="$t('components.quote_actions.quick_actions') as string"
+                  class="h-9 w-9 rounded-full text-gray-500 transition-colors hover:bg-black/[0.06] hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                  @click.stop
+                />
+              </NDropdownMenu>
               <NTooltip :content="String(collection.is_public ? $t('common.public') : $t('common.private'))">
                 <span
                   class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-500 dark:text-gray-400"
@@ -69,11 +86,6 @@
             </div>
           </div>
 
-          <div class="flex flex-shrink-0 items-center">
-            <NDropdownMenu :items="collectionActions">
-              <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="rounded-full" @click.stop />
-            </NDropdownMenu>
-          </div>
         </div>
       </div>
 
