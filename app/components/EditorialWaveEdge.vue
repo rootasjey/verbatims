@@ -7,7 +7,7 @@
       <pattern :id="patternId" width="35" height="16" patternUnits="userSpaceOnUse">
         <path
           v-if="mode === 'masthead'"
-          d="M 0 0 C 5.6 0 12.1 12 17.5 12 C 22.9 12 29.4 0 35 0 L 35 0 H 0 Z"
+          d="M 0 0 C 5.6 0 12.1 6 17.5 6 C 22.9 6 29.4 0 35 0 L 35 0 H 0 Z"
           fill="currentColor"
         />
         <path

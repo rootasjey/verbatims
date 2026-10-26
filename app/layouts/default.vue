@@ -75,6 +75,7 @@
         />
       </div>
       <EditorialWaveEdge
+        v-if="scrollY > 24"
         mode="masthead"
         class="absolute inset-x-0 top-full z-1 h-4"
         :class="mastheadWaveSurfaceClass"
