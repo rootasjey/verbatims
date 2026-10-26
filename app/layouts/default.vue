@@ -311,7 +311,6 @@ const showAddQuote = useState('app-add-quote-drawer-open', () => false)
 const showReportDrawer = ref(false)
 const showMobileMenu = ref(false)
 const showMobileTheme = ref(false)
-const previousBodyOverflow = ref('')
 
 const mobileMenuItems = computed(() => [
   { label: String($t('nav.explore')), leading: 'i-ph-compass', to: '/quotes' },
@@ -427,20 +426,6 @@ const handleAddQuoteShortcut = (event: KeyboardEvent) => {
 onMounted(() => window.addEventListener('keydown', handleAddQuoteShortcut))
 onUnmounted(() => window.removeEventListener('keydown', handleAddQuoteShortcut))
 
-watch([showMobileMenu, showMobileTheme], ([menuOpen, themeOpen]) => {
-  if (!import.meta.client) return
-  const isOpen = menuOpen || themeOpen
-
-  if (isOpen) {
-    if (document.body.style.overflow !== 'hidden') {
-      previousBodyOverflow.value = document.body.style.overflow
-    }
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = previousBodyOverflow.value
-  }
-})
-
 onMounted(() => {
   isHydrated.value = true
   window.addEventListener('scroll', handleScroll)
@@ -451,9 +436,6 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('keydown', handleMobileMenuKeydown)
-  if (import.meta.client) {
-    document.body.style.overflow = previousBodyOverflow.value
-  }
 })
 
 useHead(() => ({
