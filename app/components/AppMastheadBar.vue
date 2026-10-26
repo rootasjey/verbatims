@@ -190,13 +190,15 @@
 
       </div>
     </div>
-    <EditorialWaveEdge
-      v-if="scrollY > 24"
-      mode="masthead"
-      class="absolute inset-x-0 top-full z-1 h-4"
-      :class="usesWarmEditorialSurface ? 'text-[#F7F5EF] dark:text-[#0C0A09]' : 'text-[#FAFAF9] dark:text-[#0C0A09]'"
-      :style="{ opacity: mastheadWaveOpacity }"
-    />
+    <Transition name="masthead-wave">
+      <EditorialWaveEdge
+        v-if="scrollY > 24"
+        mode="masthead"
+        class="absolute inset-x-0 top-full z-1 h-4"
+        :class="usesWarmEditorialSurface ? 'text-[#F7F5EF] dark:text-[#0C0A09]' : 'text-[#FAFAF9] dark:text-[#0C0A09]'"
+        :style="{ '--masthead-wave-opacity': mastheadWaveOpacity }"
+      />
+    </Transition>
   </div>
 
   <SearchBox

@@ -74,13 +74,15 @@
           @click="showMobileMenu = !showMobileMenu"
         />
       </div>
-      <EditorialWaveEdge
-        v-if="scrollY > 24"
-        mode="masthead"
-        class="absolute inset-x-0 top-full z-1 h-4"
-        :class="mastheadWaveSurfaceClass"
-        :style="{ opacity: mastheadWaveOpacity }"
-      />
+      <Transition name="masthead-wave">
+        <EditorialWaveEdge
+          v-if="scrollY > 24"
+          mode="masthead"
+          class="absolute inset-x-0 top-full z-1 h-4"
+          :class="mastheadWaveSurfaceClass"
+          :style="{ '--masthead-wave-opacity': mastheadWaveOpacity }"
+        />
+      </Transition>
     </header>
 
     <ClientOnly>
