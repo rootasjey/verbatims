@@ -3,7 +3,7 @@ type OgPageSlug = 'search' | 'presskit'
 const pages: Record<OgPageSlug, { title: string; eyebrow: string; description: string }> = {
   search: {
     title: 'Search',
-    eyebrow: 'Explore the collection',
+    eyebrow: '',
     description: 'Find quotes by words, authors, or sources.',
   },
   presskit: {
@@ -21,6 +21,9 @@ export default defineEventHandler((event) => {
   }
 
   const page = pages[slug as OgPageSlug]
+  const eyebrow = page.eyebrow
+    ? `<p class="eyebrow">${escapeHtml(page.eyebrow)}</p>`
+    : ''
   const visual = slug === 'search' ? getSearchVisual() : getPresskitVisual()
   const html = `<!doctype html>
 <html lang="en">
@@ -122,7 +125,7 @@ export default defineEventHandler((event) => {
         width: 27px;
         height: 27px;
         flex-shrink: 0;
-        color: #3C82F6;
+        color: #78716C;
       }
       .search-categories {
         display: flex;
@@ -137,21 +140,32 @@ export default defineEventHandler((event) => {
         margin-right: 12px;
         color: #FAA533;
       }
-      .logo-previews {
+      .logo-preview {
         display: flex;
-        min-width: 0;
         align-items: center;
-        gap: 20px;
+        flex-direction: column;
+        gap: 18px;
       }
-      .logo-previews img {
+      .logo-mark {
+        display: grid;
+        width: 224px;
+        height: 224px;
+        place-items: center;
+        border-radius: 50%;
+        background: #E8E5DC;
+      }
+      .logo-mark img {
         display: block;
-        width: 100%;
-        min-width: 0;
-        border-radius: 3px;
+        width: 148px;
+        height: 148px;
         object-fit: contain;
       }
-      .logo-bar { min-width: 0; flex: 1; }
-      .logo-monogram { width: 190px; max-width: 190px; flex-shrink: 0; }
+      .logo-caption {
+        margin: 0;
+        color: #78716C;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+      }
       footer {
         color: #78716C;
         font-size: 15px;
@@ -164,7 +178,7 @@ export default defineEventHandler((event) => {
       <div class="brand">verbatims</div>
       <main>
         <section class="copy">
-          <p class="eyebrow">${escapeHtml(page.eyebrow)}</p>
+          ${eyebrow}
           <h1>${escapeHtml(page.title)}</h1>
           <p class="description">${escapeHtml(page.description)}</p>
         </section>
@@ -192,9 +206,9 @@ function getSearchVisual(): string {
 }
 
 function getPresskitVisual(): string {
-  return `<div class="logo-previews">
-    <img class="logo-bar" src="/images/verbatims-bar.png" alt="">
-    <img class="logo-monogram" src="/images/vbt.png" alt="">
+  return `<div class="logo-preview">
+    <div class="logo-mark"><img src="/images/v-letter.png" alt=""></div>
+    <p class="logo-caption">The Verbatims mark · PNG</p>
   </div>`
 }
 
