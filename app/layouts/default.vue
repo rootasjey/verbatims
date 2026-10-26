@@ -313,6 +313,7 @@ const showMobileMenu = ref(false)
 const showMobileTheme = ref(false)
 
 const mobileMenuItems = computed(() => [
+  { label: String($t('nav.search')), leading: 'i-ph-magnifying-glass', to: '/search' },
   { label: String($t('nav.explore')), leading: 'i-ph-compass', to: '/quotes' },
   { label: String($t('nav.authors')), leading: 'i-ph-users-three', to: '/authors' },
   { label: String($t('nav.references')), leading: 'i-ph-book-open-text', to: '/references' },
