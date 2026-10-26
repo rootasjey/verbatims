@@ -34,7 +34,7 @@
             label="i-ph-arrow-left"
             size="sm"
             class="mr-1 min-h-11 min-w-11"
-            :aria-label="String($t('components.quote_sticky.back_to_results'))"
+            :aria-label="String($t('components.quote_sticky.back'))"
             @click.stop="navigateBackToQuoteResults"
           />
           <Transition name="quote-masthead-brand">

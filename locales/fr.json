@@ -787,8 +787,7 @@
       "try_again": "Veuillez réessayer."
     },
     "quote_sticky": {
-      "back": "Retour à la liste des citations",
-      "back_to_results": "Retour aux résultats",
+      "back": "Retour",
       "metadata": "Métadonnées",
       "pull_to_go_back": "Tirez vers le bas pour revenir",
       "release_to_go_back": "Relâchez pour revenir",

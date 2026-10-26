@@ -768,8 +768,7 @@
       "try_again": "Please try again."
     },
     "quote_sticky": {
-      "back": "Back to quotes list",
-      "back_to_results": "Back to results",
+      "back": "Back",
       "metadata": "Metadata",
       "pull_to_go_back": "Pull down to go back",
       "release_to_go_back": "Release to go back",

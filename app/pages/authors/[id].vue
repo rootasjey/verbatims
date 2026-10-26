@@ -84,7 +84,7 @@
                 @click="navigateBack"
               >
                 <NIcon name="i-ph-arrow-left" class="h-4 w-4" aria-hidden="true" />
-                <span>{{ $ts('components.quote_sticky.back_to_results') }}</span>
+                <span>{{ $ts('components.quote_sticky.back') }}</span>
               </button>
 
               <div
@@ -114,7 +114,7 @@
                   @click="navigateBack"
                 >
                   <NIcon name="i-ph-arrow-left" class="h-4 w-4" aria-hidden="true" />
-                  <span>{{ $ts('components.quote_sticky.back_to_results') }}</span>
+                  <span>{{ $ts('components.quote_sticky.back') }}</span>
                 </button>
               </div>
             </div>
