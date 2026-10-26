@@ -225,6 +225,15 @@ watch(() => route.fullPath, () => {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 
+/* Keep the canvas visible beneath mobile page padding on the same app surface. */
+:global(html:has(.mobile-bottom-navigation)) {
+  background-color: #F7F5EF;
+}
+
+:global(html.dark:has(.mobile-bottom-navigation)) {
+  background-color: #0C0A09;
+}
+
 /* Ensure navigation doesn't interfere with content */
 @media (max-width: 767px) {
   :global(body:has(.mobile-bottom-navigation)) {
