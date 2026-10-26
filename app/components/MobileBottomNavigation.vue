@@ -74,22 +74,45 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const isHidden = ref(false)
+const hasInteracted = ref(route.path !== '/')
+const isHidden = ref(route.path === '/')
 const lastScrollY = ref(0)
 
 const scrollThreshold = 8
 let scrollFramePending = false
 
+const interactionEvents = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const
+
+const removeInteractionListeners = () => {
+  if (!import.meta.client) return
+
+  for (const eventName of interactionEvents) {
+    window.removeEventListener(eventName, markInteracted)
+  }
+}
+
+const markInteracted = () => {
+  if (hasInteracted.value) return
+
+  hasInteracted.value = true
+  lastScrollY.value = Math.max(window.scrollY, 0)
+  isHidden.value = route.path === '/' && lastScrollY.value <= 24
+  removeInteractionListeners()
+}
+
 const updateVisibility = () => {
   if (!import.meta.client) return
+  if (!hasInteracted.value) return
 
   const currentScrollY = Math.max(window.scrollY, 0)
   const scrollDelta = currentScrollY - lastScrollY.value
   const maxScrollY = document.documentElement.scrollHeight - window.innerHeight
-  const isNearTop = currentScrollY <= 24
+  const isAtTop = currentScrollY <= 24
   const isNearBottom = maxScrollY > 0 && currentScrollY >= maxScrollY - 24
 
-  if (isNearTop || isNearBottom) {
+  if (isAtTop) {
+    isHidden.value = true
+  } else if (isNearBottom) {
     isHidden.value = false
   } else if (scrollDelta > scrollThreshold) {
     isHidden.value = true
@@ -151,17 +174,27 @@ const handleAddQuote = () => {
 onMounted(() => {
   lastScrollY.value = window.scrollY
   window.addEventListener('scroll', handleScroll, { passive: true })
+
+  if (!hasInteracted.value) {
+    for (const eventName of interactionEvents) {
+      window.addEventListener(eventName, markInteracted, { passive: true })
+    }
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
+  removeInteractionListeners()
 })
 
 watch(() => route.fullPath, () => {
-  isHidden.value = false
+  hasInteracted.value = true
+  isHidden.value = route.path === '/'
+  removeInteractionListeners()
 
   if (import.meta.client) {
     lastScrollY.value = window.scrollY
+    isHidden.value = route.path === '/' && lastScrollY.value <= 24
   }
 })
 </script>

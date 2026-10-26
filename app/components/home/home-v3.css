@@ -511,7 +511,7 @@
 
 @media (max-width: 680px) and (max-height: 990px) {
   .mobile-home-feed .homepage-v3-cover--with-image {
-    height: max(18rem, calc(100svh - 242px));
+    height: max(18rem, calc(100svh - 150px));
     min-height: 0;
     padding-block: clamp(1.5rem, 8svh, 3.5rem);
   }
