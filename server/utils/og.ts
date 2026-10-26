@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, asc } from 'drizzle-orm'
+import { eq, and, asc, sql } from 'drizzle-orm'
 import { getReferenceBadgeColor } from '#shared/constants/reference'
 import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
@@ -35,6 +35,15 @@ export interface ReferenceOgPayload {
   badgeColor: string
   secondaryType?: string
   description?: string
+  updatedAt: string | null
+}
+
+export interface TagOgPayload {
+  id: number
+  name: string
+  description?: string
+  color?: string
+  quoteCount: number
   updatedAt: string | null
 }
 
@@ -138,6 +147,44 @@ export async function getReferenceForOg(referenceId: string): Promise<ReferenceO
     secondaryType: record.secondaryType ?? undefined,
     description: record.description ?? undefined,
     updatedAt: toIsoString(record.updatedAt)
+  }
+}
+
+export async function getTagForOg(tagId: string): Promise<TagOgPayload | null> {
+  const id = Number(tagId)
+  if (!Number.isSafeInteger(id) || id < 1) return null
+
+  const [tag, countResult] = await Promise.all([
+    db.select({
+      id: schema.tags.id,
+      name: schema.tags.name,
+      description: schema.tags.description,
+      color: schema.tags.color,
+      updatedAt: schema.tags.updatedAt,
+    })
+      .from(schema.tags)
+      .where(eq(schema.tags.id, id))
+      .limit(1)
+      .get(),
+    db.select({ count: sql<number>`COUNT(*)` })
+      .from(schema.quoteTags)
+      .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+      .where(and(
+        eq(schema.quoteTags.tagId, id),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .get(),
+  ])
+
+  if (!tag) return null
+
+  return {
+    id: tag.id,
+    name: tag.name,
+    description: tag.description ?? undefined,
+    color: tag.color ?? undefined,
+    quoteCount: Number(countResult?.count ?? 0),
+    updatedAt: toIsoString(tag.updatedAt),
   }
 }
 

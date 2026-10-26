@@ -536,8 +536,9 @@ const toggleSortOrder = () => {
 }
 
 useVerbatimsSeo(() => {
-  const tagName = tag.value?.name
-  if (!tagName) {
+  const currentTag = tag.value
+  const tagName = currentTag?.name
+  if (!currentTag || !tagName) {
     return {
       title: $ts('tag_detail_meta_title_fallback'),
       description: $ts('tag_detail_meta_desc_fallback'),
@@ -546,7 +547,9 @@ useVerbatimsSeo(() => {
   }
   return {
     title: `${tagName} - Verbatims`,
-    description: tag.value?.description || `Browse quotes tagged with ${tagName} on Verbatims.`,
+    description: currentTag.description || `Browse quotes tagged with ${tagName} on Verbatims.`,
+    imagePath: `/api/og/tags/${currentTag.id}.png`,
+    imageAlt: `${tagName}: ${currentTag.usage_count ?? 0} quotes on Verbatims`,
     type: 'website'
   }
 })
