@@ -560,6 +560,11 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
 
   const role = user.value?.role
   const isAdminMod = role === 'admin' || role === 'moderator'
+  const isOwnerDraft = !!user.value
+    && !!quote.value.user
+    && quote.value.user.id === user.value.id
+    && quote.value.status === 'draft'
+  const canManageQuote = isAdminMod || isOwnerDraft
   const key = e.key.toLowerCase()
 
   // handle single-letter shortcuts
@@ -581,13 +586,13 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
       copyTextAndLink()
       break
     case 'd':
-      if (isAdminMod) {
+      if (canManageQuote) {
         e.preventDefault()
         showDeleteQuoteDialog.value = true
       }
       break
     case 'e':
-      if (isAdminMod) {
+      if (canManageQuote) {
         e.preventDefault()
         showEditQuoteDialog.value = true
       }
@@ -611,7 +616,7 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
       shareQuote()
       break
     case 't':
-      if (isAdminMod) {
+      if (canManageQuote) {
         e.preventDefault()
         showEditTagsDialog.value = true
       }
@@ -652,6 +657,7 @@ interface QuoteMenuItem {
   id?: string
   label: string
   leading: string
+  shortcut?: string
   onclick: () => void
 }
 
@@ -664,16 +670,19 @@ const headerMenuItems = computed<QuoteMenuItem[]>(() => {
     items.push({
       label: $ts('quote_detail_menu_edit'),
       leading: 'i-lucide-pencil',
+      shortcut: 'E',
       onclick: () => openDialogAfterMenuCloses(() => { showEditQuoteDialog.value = true })
     })
     items.push({
       label: $ts('quote_detail_menu_edit_tag'),
       leading: 'i-lucide-tag',
+      shortcut: 'T',
       onclick: () => { showEditTagsDialog.value = true }
     })
     items.push({
       label: $ts('quote_detail_menu_delete'),
       leading: 'i-lucide-trash-2',
+      shortcut: 'D',
       onclick: () => { showDeleteQuoteDialog.value = true }
     })
   }
@@ -697,6 +706,7 @@ const headerMenuItems = computed<QuoteMenuItem[]>(() => {
     {
       label: $ts('quote_detail_menu_report'),
       leading: 'i-lucide-flag',
+      shortcut: 'R',
       onclick: () => openDialogAfterMenuCloses(() => reportQuote())
     }
   )
@@ -705,6 +715,7 @@ const headerMenuItems = computed<QuoteMenuItem[]>(() => {
     items.push({
       label: savedState.value === 'saved' ? 'Saved' : 'Save to collection',
       leading: 'i-ph-folder-plus',
+      shortcut: 'A',
       onclick: () => addToCollection()
     })
   }
