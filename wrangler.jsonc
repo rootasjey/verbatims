@@ -22,8 +22,8 @@
     "crons": [
       // Remove abandoned, unsaved theme image uploads every six hours.
       "0 */6 * * *",
-      // Report unreferenced image uploads older than 90 days each Sunday at 05:00 UTC.
-      "0 5 * * 1",
+      // Report unreferenced image uploads older than 90 days each Monday at 05:00 UTC.
+      "0 5 * * MON",
       // Repair abandoned social queue items every thirty minutes.
       "*/30 * * * *",
       // 08:00 Europe/Paris candidate during daylight saving time; the task skips the other offset.
