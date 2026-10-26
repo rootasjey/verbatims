@@ -57,7 +57,7 @@
                 <span class="font-sans text-sm text-gray-500 dark:text-gray-400">Died in {{ author.death_location }}</span>
               </template>
             </div>
-          <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-16">
+          <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_14rem] md:items-start md:gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-16">
             <div>
               <h1
                 class="max-w-5xl font-serif font-400 hyphens-auto break-words leading-[1.05] tracking-[-0.035em] mb-8 transform-gpu transition-all duration-700 ease-out"
@@ -119,7 +119,7 @@
               </div>
             </div>
 
-            <div v-if="author.image_url" class="mx-auto w-full max-w-[14rem] md:max-w-[18rem] lg:mt-2 lg:max-w-[20rem]">
+            <div v-if="author.image_url" class="mx-auto w-full max-w-[14rem] md:sticky md:top-24 md:mt-2 md:max-w-none md:self-start lg:max-w-[20rem]">
               <button
                 type="button"
                 ref="avatarRef"
@@ -193,7 +193,7 @@
               </div>
             </div>
 
-            <div v-else-if="authorQuotes.length > 0" class="grid gap-x-16 gap-y-10 lg:grid-cols-2">
+            <div v-else-if="authorQuotes.length > 0" class="grid gap-y-8 md:grid-cols-2 md:gap-x-10 md:gap-y-10 lg:gap-x-16">
               <div
                 v-for="quote in authorQuotes"
                 :key="quote.id"

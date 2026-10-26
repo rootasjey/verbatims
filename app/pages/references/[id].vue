@@ -42,10 +42,10 @@
       </ClientOnly>
 
       <!-- Editorial reference layout -->
-      <div ref="referenceHero" class="reference-detail-layout mx-auto grid max-w-7xl grid-cols-1 gap-0 lg:grid-cols-12">
+      <div ref="referenceHero" class="reference-detail-layout mx-auto grid max-w-7xl grid-cols-1 gap-0 md:grid-cols-12">
         <!-- Poster column -->
-        <div class="lg:col-span-4 lg:pr-12">
-          <div class="px-4 pt-4 md:px-8 md:pt-8 lg:sticky lg:top-24">
+        <div class="md:col-span-4 md:pr-8 lg:pr-12">
+          <div class="px-4 pt-4 md:sticky md:top-24 md:px-4 md:pt-8">
             <div v-if="reference.imageUrl" class="group relative mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-gray-100 shadow-xl dark:bg-[#0C0A09] active:scale-99 transition-[transform]">
               <img
                 ref="posterImageRef"
@@ -95,7 +95,7 @@
         </div>
 
         <!-- Content column -->
-        <div class="lg:col-span-8 px-4 py-10 md:px-8 md:py-12 lg:pl-0 lg:pr-16">
+        <div class="md:col-span-8 px-4 py-10 md:px-8 md:py-12 lg:pl-0 lg:pr-16">
           <div class="mb-5 flex flex-wrap items-center gap-2">
             <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-600">
               {{ reference.primaryType ? formatReferenceType(reference.primaryType) : $t('reference_detail_label') }}
@@ -225,7 +225,7 @@
             </NButton>
           </div>
 
-          <div v-else-if="referenceQuotes.length > 0" class="grid gap-x-16 gap-y-10 lg:grid-cols-2">
+          <div v-else-if="referenceQuotes.length > 0" class="grid gap-y-8 md:grid-cols-2 md:gap-x-10 md:gap-y-10 lg:gap-x-16">
             <div v-for="quote in referenceQuotes" :key="quote.id" class="md:pb-5">
               <div v-if="(quote.author?.id && quote.author.name?.trim()) || quote.tags?.length" class="mb-2 flex flex-wrap items-center gap-x-2 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 md:mb-4">
                 <NuxtLink
@@ -509,10 +509,10 @@ const headerTitle = computed(() => {
 
 const titleSizeClass = computed(() => {
   const len = (reference.value?.name || '').length
-  if (len <= 20) return 'text-size-12 sm:text-size-18 md:text-size-28 lg:text-size-32'
-  if (len <= 40) return 'text-size-11 sm:text-size-16 md:text-size-24 lg:text-size-28'
-  if (len <= 60) return 'text-size-10 sm:text-size-14 md:text-size-16 lg:text-size-20'
-  return 'text-size-9 sm:text-size-12 md:text-size-18 lg:text-size-20'
+  if (len <= 20) return 'text-size-12 sm:text-size-18 md:text-size-24 lg:text-size-32'
+  if (len <= 40) return 'text-size-11 sm:text-size-16 md:text-size-18 lg:text-size-28'
+  if (len <= 60) return 'text-size-10 sm:text-size-14 md:text-size-14 lg:text-size-20'
+  return 'text-size-9 sm:text-size-12 md:text-size-12 lg:text-size-20'
 })
 
 // poster preview state and focus
