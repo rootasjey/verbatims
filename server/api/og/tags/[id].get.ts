@@ -25,8 +25,9 @@ export default defineEventHandler(async (event) => {
     name: tag.name,
     color: tag.color || '',
     quoteCount: tag.quoteCount,
+    featuredQuote: tag.featuredQuote || null,
     updatedAt: tag.updatedAt ? Date.parse(tag.updatedAt) : 0,
-    styleVersion,
+    styleVersion: `${styleVersion}:tag-quote-v2`,
   }))
 
   const latestKey = `og:tag:${tagId}:latest`

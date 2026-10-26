@@ -17,6 +17,10 @@ export default defineEventHandler(async (event) => {
   const titleSize = getTitleSize(tag.name)
   const quoteLabel = tag.quoteCount === 1 ? 'quote' : 'quotes'
   const count = tag.quoteCount.toLocaleString('en-US')
+  const quoteText = tag.featuredQuote ? getQuoteExcerpt(tag.featuredQuote.text) : undefined
+  const attribution = [tag.featuredQuote?.authorName, tag.featuredQuote?.referenceName]
+    .filter(Boolean)
+    .join(' · ')
   const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -54,7 +58,7 @@ export default defineEventHandler(async (event) => {
         height: 630px;
         flex-direction: column;
         overflow: hidden;
-        padding: 62px 74px 48px;
+        padding: 54px 74px 42px;
       }
       .brand {
         position: relative;
@@ -82,10 +86,15 @@ export default defineEventHandler(async (event) => {
         z-index: 1;
         display: flex;
         flex: 1;
+        align-items: center;
+        gap: 54px;
+        padding: 24px 0 30px;
+      }
+      .tag-details {
+        display: flex;
+        width: 38%;
         flex-direction: column;
         justify-content: center;
-        max-width: 900px;
-        padding-bottom: 12px;
       }
       h1 {
         margin: 0;
@@ -111,6 +120,38 @@ export default defineEventHandler(async (event) => {
         font-weight: 600;
         font-variant-numeric: tabular-nums;
       }
+      .quote {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+        align-self: stretch;
+        border-left: 1px solid #D6D3D1;
+        padding: 6px 0 6px 48px;
+      }
+      .quote-mark {
+        margin: 0 0 10px;
+        color: ${accentColor};
+        font-family: 'Fraunces', Georgia, serif;
+        font-size: 68px;
+        line-height: 0.7;
+      }
+      blockquote {
+        margin: 0;
+        font-family: 'Fraunces', Georgia, serif;
+        font-size: 37px;
+        font-weight: 450;
+        letter-spacing: -0.025em;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+      }
+      .attribution {
+        margin: 22px 0 0;
+        color: #78716C;
+        font-size: 16px;
+        line-height: 1.4;
+      }
       footer {
         position: relative;
         z-index: 1;
@@ -125,8 +166,15 @@ export default defineEventHandler(async (event) => {
       <div class="brand">verbatims</div>
       <div class="hash-mark" aria-hidden="true">#</div>
       <main>
-        <h1>${escapeHtml(tag.name)}</h1>
-        <p class="count"><strong>${count}</strong><span>${quoteLabel}</span></p>
+        <section class="tag-details">
+          <h1>${escapeHtml(tag.name)}</h1>
+          <p class="count"><strong>${count}</strong><span>${quoteLabel}</span></p>
+        </section>
+        ${quoteText ? `<section class="quote" aria-label="Featured quote">
+          <p class="quote-mark" aria-hidden="true">“</p>
+          <blockquote>${escapeHtml(quoteText)}</blockquote>
+          ${attribution ? `<p class="attribution">— ${escapeHtml(attribution)}</p>` : ''}
+        </section>` : ''}
       </main>
       <footer>verbatims.cc</footer>
     </div>
@@ -147,6 +195,16 @@ function getTitleSize(title: string): number {
   if (length > 34) return 66
   if (length > 24) return 78
   return 96
+}
+
+function getQuoteExcerpt(text: string): string {
+  const normalized = text.replace(/\s+/g, ' ').trim()
+  const maximumLength = 150
+  if (normalized.length <= maximumLength) return normalized
+
+  const excerpt = normalized.slice(0, maximumLength - 1)
+  const lastSpace = excerpt.lastIndexOf(' ')
+  return `${excerpt.slice(0, lastSpace > 90 ? lastSpace : excerpt.length).trimEnd()}…`
 }
 
 function escapeHtml(value: string): string {

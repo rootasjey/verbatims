@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, asc, sql } from 'drizzle-orm'
+import { eq, and, asc, desc, sql } from 'drizzle-orm'
 import { getReferenceBadgeColor } from '#shared/constants/reference'
 import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
@@ -44,6 +44,11 @@ export interface TagOgPayload {
   description?: string
   color?: string
   quoteCount: number
+  featuredQuote?: {
+    text: string
+    authorName?: string
+    referenceName?: string
+  }
   updatedAt: string | null
 }
 
@@ -178,12 +183,43 @@ export async function getTagForOg(tagId: string): Promise<TagOgPayload | null> {
 
   if (!tag) return null
 
+  const quoteCount = Number(countResult?.count ?? 0)
+  const featuredQuote = quoteCount > 0
+    ? await db.select({
+        text: schema.quotes.name,
+        authorName: schema.authors.name,
+        referenceName: schema.quoteReferences.name,
+      })
+        .from(schema.quoteTags)
+        .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+        .leftJoin(schema.quoteAttributions, and(
+          eq(schema.quoteAttributions.quoteId, schema.quotes.id),
+          eq(schema.quoteAttributions.isPrimary, true)
+        ))
+        .leftJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
+        .leftJoin(schema.quoteReferences, eq(schema.quoteAttributions.referenceId, schema.quoteReferences.id))
+        .where(and(
+          eq(schema.quoteTags.tagId, id),
+          eq(schema.quotes.status, 'approved')
+        ))
+        .orderBy(desc(schema.quotes.isFeatured), desc(schema.quotes.viewsCount), desc(schema.quotes.id))
+        .limit(1)
+        .get()
+    : undefined
+
   return {
     id: tag.id,
     name: tag.name,
     description: tag.description ?? undefined,
     color: tag.color ?? undefined,
-    quoteCount: Number(countResult?.count ?? 0),
+    quoteCount,
+    featuredQuote: featuredQuote
+      ? {
+          text: featuredQuote.text,
+          authorName: featuredQuote.authorName ?? undefined,
+          referenceName: featuredQuote.referenceName ?? undefined,
+        }
+      : undefined,
     updatedAt: toIsoString(tag.updatedAt),
   }
 }
