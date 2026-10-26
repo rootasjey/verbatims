@@ -2,7 +2,7 @@
   <div v-if="mastheadPinned" aria-hidden="true" class="hidden md:block" :style="{ height: `${mastheadHeight}px` }" />
   <div
     ref="mastheadElement"
-    class="relative w-full hidden md:block transition-all duration-300"
+    class="w-full hidden md:block transition-all duration-300"
     :class="[
       mastheadPinned
         ? (usesWarmEditorialSurface ? 'fixed inset-x-0 top-0 pointer-events-none z-[60] bg-[#F7F5EF]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'fixed inset-x-0 top-0 pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60')
