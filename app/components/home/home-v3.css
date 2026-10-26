@@ -343,6 +343,15 @@
 .homepage-v3-reference-grid { align-items: start; }
 .homepage-v3-reference-overlay { background: linear-gradient(180deg, rgba(20, 22, 24, 0.02) 35%, rgba(20, 22, 24, 0.82) 100%); }
 
+@media (min-width: 681px) and (max-width: 1023px) {
+  .homepage-v3-desktop .homepage-v3-reference-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .homepage-v3-desktop .homepage-v3-reference-card,
+  .homepage-v3-desktop .homepage-v3-reference-card:first-child {
+    height: auto;
+    aspect-ratio: 1.08 / 1;
+  }
+}
+
 .homepage-v3-rich {
   padding: 96px 7%;
 }

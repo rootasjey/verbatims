@@ -47,8 +47,8 @@
 
           <section class="mb-14 rounded-2xl bg-[#e7e4dd] px-6 py-16 dark:bg-[#252522] lg:px-10" aria-hidden="true">
             <h2 class="mb-8 font-serif text-4xl text-stone-700 dark:text-stone-300 lg:text-5xl">{{ $t('nav.references') }}</h2>
-            <div class="grid grid-cols-4 gap-4 animate-pulse">
-              <div v-for="item in 4" :key="item" class="flex h-[440px] flex-col justify-end rounded-xl bg-black/[0.08] p-5 dark:bg-white/[0.06]">
+            <div class="grid grid-cols-2 gap-4 animate-pulse lg:grid-cols-4">
+              <div v-for="item in 4" :key="item" class="flex aspect-[1.08/1] flex-col justify-end rounded-xl bg-black/[0.08] p-5 dark:bg-white/[0.06] lg:aspect-auto lg:h-[440px]">
                 <div class="h-5 w-4/5 rounded bg-black/10 dark:bg-white/10" />
                 <div class="mt-2 h-3 w-1/2 rounded bg-black/10 dark:bg-white/10" />
               </div>
