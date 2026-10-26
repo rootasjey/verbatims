@@ -190,7 +190,12 @@
 
       </div>
     </div>
-    <EditorialWaveEdge class="absolute inset-x-0 bottom-[-12px] z-1 h-4 text-black/10 dark:text-white/15" />
+    <EditorialWaveEdge
+      mode="masthead"
+      class="absolute inset-x-0 top-full z-1 h-4"
+      :class="usesWarmEditorialSurface ? 'text-[#F7F5EF] dark:text-[#0C0A09]' : 'text-[#FAFAF9] dark:text-[#0C0A09]'"
+      :style="{ opacity: mastheadWaveOpacity }"
+    />
   </div>
 
   <SearchBox
@@ -225,6 +230,7 @@ const mastheadElement = ref<HTMLElement | null>(null)
 const mastheadHeight = ref(0)
 const mastheadPinned = ref(false)
 const modalScrollLocked = useState<boolean>('app-modal-scroll-locked', () => false)
+const mastheadWaveOpacity = computed(() => mastheadPinned.value ? 0.6 : scrollY.value === 0 ? 1 : 0.8)
 let bodyLockObserver: MutationObserver | null = null
 const isHydrated = ref(false)
 

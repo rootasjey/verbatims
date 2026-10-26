@@ -74,7 +74,12 @@
           @click="showMobileMenu = !showMobileMenu"
         />
       </div>
-      <EditorialWaveEdge class="absolute inset-x-0 bottom-[-12px] z-1 h-4 text-black/10 dark:text-white/15" />
+      <EditorialWaveEdge
+        mode="masthead"
+        class="absolute inset-x-0 top-full z-1 h-4"
+        :class="mastheadWaveSurfaceClass"
+        :style="{ opacity: mastheadWaveOpacity }"
+      />
     </header>
 
     <ClientOnly>
@@ -291,6 +296,14 @@ const isDashboardListsIndex = computed(() => route.path === '/dashboard/lists')
 const isDashboardListsPage = computed(() => isDashboardListsIndex.value || route.path.startsWith('/dashboard/lists/'))
 const dashboardViewTransitionPending = useState('dashboard-view-transition-pending', () => false)
 const modalScrollLocked = useState<boolean>('app-modal-scroll-locked', () => false)
+const mastheadWaveSurfaceClass = computed(() => {
+  if (modalScrollLocked.value) return 'text-[#FAFAF9] dark:text-[#0C0A09]'
+  return usesWarmEditorialSurface.value ? 'text-[#F7F5EF] dark:text-[#0C0A09]' : 'text-[#FAFAF9] dark:text-[#0C0A09]'
+})
+const mastheadWaveOpacity = computed(() => {
+  if (modalScrollLocked.value) return 0.6
+  return scrollY.value === 0 && !isQuoteDetailPage.value ? 1 : 0.8
+})
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || isAuthPage.value || isDashboardPage.value)
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
