@@ -68,19 +68,6 @@ export default defineEventHandler(async (event) => {
         font-weight: 600;
         letter-spacing: -1px;
       }
-      .hash-mark {
-        position: absolute;
-        top: 50%;
-        right: 50px;
-        transform: translateY(-56%);
-        color: ${accentColor};
-        font-family: 'Fraunces', Georgia, serif;
-        font-size: 420px;
-        font-weight: 500;
-        line-height: 0.8;
-        opacity: 0.08;
-        user-select: none;
-      }
       main {
         position: relative;
         z-index: 1;
@@ -164,7 +151,6 @@ export default defineEventHandler(async (event) => {
   <body>
     <div class="frame" role="img" aria-label="Tag ${escapeHtml(tag.name)} with ${count} ${quoteLabel} on Verbatims">
       <div class="brand">verbatims</div>
-      <div class="hash-mark" aria-hidden="true">#</div>
       <main>
         <section class="tag-details">
           <h1>${escapeHtml(tag.name)}</h1>
