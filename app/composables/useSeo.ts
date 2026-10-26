@@ -16,7 +16,7 @@ export function useVerbatimsSeo(options: SeoOptions | (() => SeoOptions)) {
   const configuredBaseOrigin = typeof configuredOrigin === 'string' && configuredOrigin.length > 0
     ? configuredOrigin
     : requestOrigin
-  const preferRequestOrigin = import.meta.server && isLocalOrigin(requestOrigin)
+  const preferRequestOrigin = import.meta.dev && isLocalOrigin(requestOrigin)
   const baseOrigin = preferRequestOrigin ? requestOrigin : configuredBaseOrigin
   const origin = baseOrigin.endsWith('/') ? baseOrigin.slice(0, -1) : baseOrigin
   const resolveOptions = () => (typeof options === 'function' ? (options as () => SeoOptions)() : options)
@@ -27,7 +27,7 @@ export function useVerbatimsSeo(options: SeoOptions | (() => SeoOptions)) {
 
     let currentImage = current.imagePath
       ? (current.imagePath.startsWith('http') ? current.imagePath : `${origin}${current.imagePath}`)
-      : `${origin}/images/verbatims.jpeg`
+      : `${origin}/api/og/default.png`
 
     const meta = [
       { name: 'description', content: current.description },

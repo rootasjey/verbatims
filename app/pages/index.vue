@@ -280,7 +280,7 @@ const pageDescription = computed(() => {
 
 const requestOrigin = useRequestURL().origin
 const configuredSiteUrl = String(useRuntimeConfig().public.siteUrl || 'https://verbatims.cc')
-const siteUrl = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)
+const siteUrl = import.meta.dev && /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)
   ? requestOrigin
   : configuredSiteUrl.replace(/\/$/, '')
 const homeOgImage = `${siteUrl}/images/og-home.png`
