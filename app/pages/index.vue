@@ -45,7 +45,7 @@
             </div>
           </section>
 
-          <section class="mb-14 rounded-2xl bg-[#e7e4dd] px-6 py-16 dark:bg-[#252522] lg:px-10" aria-hidden="true">
+          <section class="mb-14 rounded-2xl bg-[#e6e4dd] px-6 py-16 dark:bg-[#252522] lg:px-10" aria-hidden="true">
             <h2 class="mb-8 font-serif text-4xl text-stone-700 dark:text-stone-300 lg:text-5xl">{{ $t('nav.references') }}</h2>
             <div class="grid grid-cols-2 gap-4 animate-pulse lg:grid-cols-4">
               <div v-for="item in 4" :key="item" class="flex aspect-[1.08/1] flex-col justify-end rounded-xl bg-black/[0.08] p-5 dark:bg-white/[0.06] lg:aspect-auto lg:h-[440px]">
@@ -149,7 +149,7 @@
           </div>
         </section>
 
-        <section class="bg-[#e7e4dd] px-6 py-14 dark:bg-[#252522]" aria-hidden="true">
+        <section class="bg-[#e6e4dd] px-6 py-14 dark:bg-[#252522]" aria-hidden="true">
           <h2 class="mb-3 font-serif text-4xl text-stone-700 dark:text-stone-300">{{ $t('home.nav.references') }}</h2>
           <div class="mb-8 h-4 w-3/4 rounded bg-black/10 dark:bg-white/10" />
           <div class="flex gap-3 overflow-hidden animate-pulse">

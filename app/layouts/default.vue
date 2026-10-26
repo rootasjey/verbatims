@@ -74,6 +74,7 @@
           @click="showMobileMenu = !showMobileMenu"
         />
       </div>
+      <EditorialWaveEdge class="absolute inset-x-0 bottom-[-12px] z-1 h-4 text-black/10 dark:text-white/15" />
     </header>
 
     <ClientOnly>

@@ -314,6 +314,7 @@
       <NuxtLink to="/references" class="mt-5 ml-auto block w-fit font-sans text-xs text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
         {{ $t('home.see_all') }} →
       </NuxtLink>
+      <EditorialWaveEdge mode="cutout" class="absolute inset-x-0 bottom-0 h-4 text-[#F7F5EF] dark:text-[#0C0A09]" />
     </div>
 
     <!-- ── Recent Quotes Section ── -->

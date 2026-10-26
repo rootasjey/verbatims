@@ -304,7 +304,7 @@
 
 .homepage-v3-references,
 .homepage-v3-authors { position: relative; }
-.homepage-v3-references { background: #e7e4dd; }
+.homepage-v3-references { background: #e6e4dd; }
 .dark .homepage-v3-references { background: #252522; }
 
 .homepage-v3-authors {
@@ -325,7 +325,7 @@
   pointer-events: none;
   background: linear-gradient(90deg, transparent, #17191e);
 }
-.mobile-home-feed .homepage-v3-references .homepage-v3-scroll-fade::after { background: linear-gradient(90deg, transparent, #e7e4dd); }
+.mobile-home-feed .homepage-v3-references .homepage-v3-scroll-fade::after { background: linear-gradient(90deg, transparent, #e6e4dd); }
 .dark .mobile-home-feed .homepage-v3-references .homepage-v3-scroll-fade::after { background: linear-gradient(90deg, transparent, #252522); }
 .homepage-v3-carousel-control {
   display: inline-flex;
