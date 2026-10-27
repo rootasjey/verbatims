@@ -91,7 +91,7 @@
         <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
           <label class="block min-w-0 space-y-1.5">
             <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.image_url') }}</span>
-            <input v-model="form.image_url" type="url" :placeholder="$t('components.dialogs.placeholder_url') as string" :disabled="submitting" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
+            <input ref="imageUrlInputRef" v-model="form.image_url" type="url" :placeholder="$t('components.dialogs.placeholder_url') as string" :disabled="submitting" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
             <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="onFileSelected">
           </label>
           <div class="flex min-w-0 items-center gap-4 rounded-xl bg-gray-100/60 p-4 dark:bg-neutral-900/60">
@@ -143,6 +143,7 @@ type AuthorTranslationLanguage = 'en' | 'fr'
 interface Props {
   modelValue: boolean
   editAuthor?: Author | null
+  initialTab?: AuthorEditorTab
 }
 
 interface Emits {
@@ -151,7 +152,9 @@ interface Emits {
   (e: 'author-updated'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  initialTab: 'profile'
+})
 const emit = defineEmits<Emits>()
 
 const { $t } = useI18n()
@@ -176,6 +179,7 @@ const panelRefs = ref<Record<AuthorEditorTab, HTMLElement | null>>({ profile: nu
 const panelHeight = ref(0)
 const panelViewportRef = ref<HTMLElement | null>(null)
 const languageTabButtonRefs = ref<Record<AuthorTranslationLanguage, HTMLButtonElement | null>>({ en: null, fr: null })
+const imageUrlInputRef = ref<HTMLInputElement | null>(null)
 
 const setPanelRef = (tab: AuthorEditorTab, element: Element | ComponentPublicInstance | null) => {
   panelRefs.value[tab] = element as HTMLElement | null
@@ -470,9 +474,16 @@ watch(() => props.editAuthor, (newAuthor) => {
 
 watch(() => props.modelValue, (open) => {
   if (open) {
-    activeTab.value = 'profile'
+    activeTab.value = props.initialTab
     activeTranslationLanguage.value = 'en'
-    void measureActivePanel()
+    void measureActivePanel().then(() => {
+      if (props.initialTab !== 'image') return
+      requestAnimationFrame(() => {
+        if (props.modelValue && activeTab.value === 'image') {
+          imageUrlInputRef.value?.focus({ preventScroll: true })
+        }
+      })
+    })
   } else {
     panelHeight.value = 0
   }

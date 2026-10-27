@@ -27,6 +27,20 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* Keep browser and component focus rings in the same neutral editorial palette. */
+:root {
+  --app-focus-ring-color: #78716c;
+}
+
+html.dark {
+  --app-focus-ring-color: #a8a29e;
+}
+
+html body :is(a, button, input, select, textarea, summary, [role='button'], [role='tab'], [tabindex]):focus-visible:not(:disabled) {
+  --un-ring-color: var(--app-focus-ring-color);
+  outline-color: var(--app-focus-ring-color);
+}
+
 /* Keep keyboard focus visible without competing with the editorial hierarchy. */
 .homepage-v3-desktop :where(a, button):focus-visible,
 .mobile-home-feed :where(a, button):focus-visible {
