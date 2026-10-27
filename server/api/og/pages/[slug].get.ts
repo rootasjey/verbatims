@@ -1,7 +1,7 @@
 import { kv } from 'hub:kv'
 import type { H3Event } from 'h3'
 
-const allowedPages = new Set(['search', 'presskit'])
+const allowedPages = new Set(['search', 'presskit', 'quotes', 'authors', 'references', 'tags', 'about', 'privacy', 'terms', 'licenses'])
 
 export default defineEventHandler(async (event) => {
   let slug = getRouterParam(event, 'slug')
@@ -17,12 +17,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
+  const locale = getQuery(event).locale === 'fr' ? 'fr' : 'en'
   const requestUrl = getRequestURL(event)
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
-  const styleVersion = `${String(config.public.ogStyleVersion || '1')}:page-og-v1`
+  const styleVersion = `${String(config.public.ogStyleVersion || '1')}:page-og-v3:${locale}`
   const hash = await sha1(`${slug}:${styleVersion}`)
-  const latestKey = `og:page:${slug}:latest`
-  const imageKey = (imageHash: string) => `og:page:${slug}:${imageHash}.png`
+  const latestKey = `og:page:${slug}:${locale}:latest`
+  const imageKey = (imageHash: string) => `og:page:${slug}:${locale}:${imageHash}.png`
   const latestHash = await kv.get<string>(latestKey)
   const cachedImage = await kv.get<string>(imageKey(latestHash === hash ? latestHash : hash))
 
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
   const { page } = await hubBrowser(event)
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   await page.goto(
-    `${origin}/api/og/templates/page?slug=${encodeURIComponent(slug)}&v=${encodeURIComponent(styleVersion)}`,
+    `${origin}/api/og/templates/page?slug=${encodeURIComponent(slug)}&locale=${locale}&v=${encodeURIComponent(styleVersion)}`,
     { waitUntil: 'networkidle0', timeout: 15000 }
   )
 

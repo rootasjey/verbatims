@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async () => {
   try {
-    const [quotes, authors, references, tags] = await Promise.all([
+    const [quotes, authors, references, tags, lists] = await Promise.all([
       db.select({
         id: schema.quotes.id,
         updatedAt: schema.quotes.updatedAt
@@ -31,6 +31,14 @@ export default defineEventHandler(async () => {
         updatedAt: schema.tags.updatedAt
       })
         .from(schema.tags)
+        .limit(50000),
+
+      db.select({
+        id: schema.userCollections.id,
+        updatedAt: schema.userCollections.updatedAt,
+      })
+        .from(schema.userCollections)
+        .where(eq(schema.userCollections.isPublic, true))
         .limit(50000)
     ])
 
@@ -71,6 +79,13 @@ export default defineEventHandler(async () => {
       priority: 0.6
     }))
 
+    const listUrls = lists.map((list) => ({
+      loc: `/lists/${list.id}`,
+      lastmod: formatDate(list.updatedAt),
+      changefreq: 'weekly',
+      priority: 0.6
+    }))
+
     return [
       { loc: '/', changefreq: 'daily', priority: 1.0 },
       { loc: '/quotes', changefreq: 'daily', priority: 0.9 },
@@ -81,10 +96,12 @@ export default defineEventHandler(async () => {
       { loc: '/search', changefreq: 'monthly', priority: 0.6 },
       { loc: '/terms', changefreq: 'yearly', priority: 0.3 },
       { loc: '/privacy', changefreq: 'yearly', priority: 0.3 },
+      { loc: '/licenses', changefreq: 'yearly', priority: 0.3 },
       ...quoteUrls,
       ...authorUrls,
       ...referenceUrls,
-      ...tagUrls
+      ...tagUrls,
+      ...listUrls
     ]
   } catch (error) {
     console.error('[Sitemap] Failed to generate sitemap URLs:', error)

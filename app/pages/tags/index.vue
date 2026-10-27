@@ -99,6 +99,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useVerbatimsSeo } from '~/composables/useSeo'
 import { useDebounceFn } from '@vueuse/core'
 import { useJsonLd } from '~/composables/useSeo'
 import { useTagsListStore } from '~/stores/tags'
@@ -147,14 +148,11 @@ const readTagsFiltersFromRoute = () => {
 }
 const initialTagsFilters = readTagsFiltersFromRoute()
 
-useHead({
+useVerbatimsSeo({
   title: $ts('tags_meta_title'),
-  meta: [
-    {
-      name: 'description',
-      content: $ts('tags_meta_desc'),
-    }
-  ]
+  description: $ts('tags_meta_desc'),
+  imagePath: '/api/og/pages/tags.png',
+  imageAlt: 'Topics and ideas explored through quotes',
 })
 
 useJsonLd({

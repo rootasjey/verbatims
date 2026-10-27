@@ -203,6 +203,7 @@ import { useDebounceFn } from '@vueuse/core'
 import { useReferencesListStore } from '~/stores/references'
 import { useJsonLd } from '~/composables/useSeo'
 import type { ReferencesListSnapshot } from '~/stores/references'
+import { useVerbatimsSeo } from '~/composables/useSeo'
 
 const { isMobile } = useMobileDetection()
 
@@ -214,14 +215,11 @@ definePageMeta({
 
 const { $t, $ts } = useI18n()
 
-useHead({
+useVerbatimsSeo({
   title: $ts('references_meta_title'),
-  meta: [
-    {
-      name: 'description',
-      content: $ts('references_meta_desc'),
-    }
-  ]
+  description: $ts('references_meta_desc'),
+  imagePath: '/api/og/pages/references.png',
+  imageAlt: 'Books, films, and other sources behind quotes',
 })
 
 useJsonLd({

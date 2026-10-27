@@ -18,6 +18,8 @@
   "toast_copied_clipboard": "Copié dans le presse-papier",
   "confirm_remove": "Retirer cette citation de la collection ?",
   "share_text": "Découvrez cette collection de citations : \"{name}\"",
+  "share_private_text": "Cette liste de citations est privée sur Verbatims.",
+  "share_private_title": "Liste privée — Verbatims",
   "share_title": "Citation de Verbatims",
   "error_remove": "Échec du retrait de la citation"
 }

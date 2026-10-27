@@ -18,6 +18,8 @@
   "toast_copied_clipboard": "Copied to clipboard",
   "confirm_remove": "Remove this quote from the collection?",
   "share_text": "Check out this collection of quotes: \"{name}\"",
+  "share_private_text": "This is a private quote list on Verbatims.",
+  "share_private_title": "Private list — Verbatims",
   "share_title": "Quote from Verbatims",
   "error_remove": "Failed to remove quote"
 }

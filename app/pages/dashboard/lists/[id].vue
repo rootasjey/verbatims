@@ -350,11 +350,14 @@ const shareCollection = async () => {
   if (!collection.value) return
 
   try {
-    const shareText = $t('share_text', { name: collection.value.name })
+    const isPublic = Boolean(collection.value.is_public)
+    const shareText = isPublic
+      ? $t('share_text', { name: collection.value.name })
+      : $t('share_private_text')
     const shareData = {
-      title: `${collection.value.name} - Verbatims Collection`,
+      title: isPublic ? `${collection.value.name} - Verbatims Collection` : String($t('share_private_title')),
       text: shareText as string,
-      url: window.location.href
+      url: new URL(`/lists/${collection.value.id}`, window.location.origin).toString()
     }
 
     if (navigator.share) {

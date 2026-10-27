@@ -6,7 +6,8 @@ export default defineEventHandler(async (event) => {
 
   if (referenceId.endsWith('.png')) referenceId = referenceId.slice(0, -4)
 
-  const reference = await getReferenceForOg(referenceId)
+  const locale = getOgLanguage(event)
+  const reference = await getReferenceForOg(referenceId, locale)
   if (!reference) { throwServer(404, 'Reference not found'); return }
 
   const config = useRuntimeConfig()
@@ -19,13 +20,14 @@ export default defineEventHandler(async (event) => {
     t: reference.primaryType,
     s: reference.secondaryType || '',
     d: reference.description || '',
+    locale,
     v: styleVersion || '1',
     u: reference.updatedAt ? Date.parse(reference.updatedAt) : 0
   })
 
   const hash = await sha1(basis)
-  const keyData = `og:reference:${referenceId}:latest`
-  const keyImage = (h: string) => `og:reference:${referenceId}:${h}.png`
+  const keyData = `og:reference:${referenceId}:${locale}:latest`
+  const keyImage = (h: string) => `og:reference:${referenceId}:${locale}:${h}.png`
 
   const latest = await kv.get<string>(keyData)
   const effectiveHash = latest && latest === hash ? latest : hash
@@ -40,7 +42,7 @@ export default defineEventHandler(async (event) => {
 
   const { page } = await hubBrowser(event)
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
-  const templateUrl = `${origin}/api/og/templates/reference?id=${encodeURIComponent(referenceId)}&v=${encodeURIComponent(styleVersion || '1')}`
+  const templateUrl = `${origin}/api/og/templates/reference?id=${encodeURIComponent(referenceId)}&locale=${locale}&v=${encodeURIComponent(styleVersion || '1')}`
 
   await page.goto(templateUrl, { waitUntil: 'networkidle0', timeout: 15000 })
   const png = await page.screenshot({ type: 'png' }) as Buffer

@@ -2,17 +2,22 @@ export default defineEventHandler(async (event) => {
   const id = getQuery(event).id as string | undefined
   if (!id) { throwServer(400, 'id is required'); return }
 
-  const author = await getAuthorForOg(id)
+  const locale = getOgLanguage(event)
+  const author = await getAuthorForOg(id, locale)
   if (!author) { throwServer(404, 'Author not found'); return }
 
-  const role = author.isFictional ? 'Fictional Character' : 'Author'
+  const role = locale === 'fr'
+    ? author.isFictional ? 'Personnage fictif' : 'Auteur'
+    : author.isFictional ? 'Fictional Character' : 'Author'
   const subtitle = [role, author.job].filter(Boolean).join(' • ')
   const description = author.description
     ? author.description
-    : `Discover quotes by ${author.name} on Verbatims.`
+    : locale === 'fr'
+      ? `Découvrez les citations de ${author.name} sur Verbatims.`
+      : `Discover quotes by ${author.name} on Verbatims.`
 
   const html = `<!doctype html>
-<html lang="en">
+<html lang="${locale}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -81,8 +86,8 @@ export default defineEventHandler(async (event) => {
     </style>
   </head>
   <body>
-    <div class="card" role="img" aria-label="Social share image for an author on Verbatims">
-      <span class="chip">${escapeHtml(subtitle || 'Author')}</span>
+    <div class="card" role="img" aria-label="${locale === 'fr' ? 'Image de partage d’un auteur sur Verbatims' : 'Social share image for an author on Verbatims'}">
+      <span class="chip">${escapeHtml(subtitle || role)}</span>
       <h1>${escapeHtml(wrapTitle(author.name, 72))}</h1>
       <p>${escapeHtml(wrapBody(description, 150))}</p>
       <div class="brand">verbatims.cc</div>

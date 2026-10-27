@@ -133,6 +133,7 @@
 </template>
 
 <script setup lang="ts">
+import { useVerbatimsSeo } from '~/composables/useSeo'
 const { $t, $ts } = useI18n()
 const { locale } = useI18nLocale()
 const privacyFirstPublishedIso = '2025-08-07'
@@ -210,12 +211,11 @@ onBeforeUnmount(() => {
   if (privacyScrollFrame) window.cancelAnimationFrame(privacyScrollFrame)
 })
 
-useHead({
+useVerbatimsSeo({
   title: $ts('privacy_title'),
-  meta: [
-    { name: 'robots', content: 'index,follow' },
-    { name: 'description', content: $ts('privacy_meta_desc') },
-  ],
+  description: $ts('privacy_meta_desc'),
+  imagePath: '/api/og/pages/privacy.png',
+  imageAlt: 'Verbatims privacy policy',
 });
 
 import { useJsonLd } from '../composables/useSeo'

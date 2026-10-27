@@ -1,7 +1,13 @@
 import { db, schema } from 'hub:db'
 import { eq, and, asc, desc, sql } from 'drizzle-orm'
+import type { H3Event } from 'h3'
 import { getReferenceBadgeColor } from '#shared/constants/reference'
-import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { localizeAuthors, localizeReferences, type ContentLanguage } from './entity-translations'
+
+export function getOgLanguage(event: H3Event): ContentLanguage {
+  return getQuery(event).locale === 'fr' ? 'fr' : 'en'
+}
 
 export interface QuoteOgPayload {
   id: number
@@ -52,7 +58,7 @@ export interface TagOgPayload {
   updatedAt: string | null
 }
 
-export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPayload | null> {
+export async function getApprovedQuoteForOg(quoteId: string, language: ContentLanguage = 'en'): Promise<QuoteOgPayload | null> {
   const record = await db.select({
     id: schema.quotes.id,
     name: schema.quotes.name,
@@ -69,8 +75,9 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
 
   if (!record) return null
 
-  const provenance = await getQuoteProvenance(record.id)
-  const attribution = provenance.attributions.find(item => item.is_primary) ?? provenance.attributions[0]
+  const provenance = await getPrimaryQuoteProvenance([record.id], language)
+  const attributions = provenance.get(record.id)?.attributions ?? []
+  const attribution = attributions.find(item => item.is_primary) ?? attributions[0]
 
   const tags = await db.select({
     id: schema.tags.id,
@@ -102,7 +109,7 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
   }
 }
 
-export async function getAuthorForOg(authorId: string): Promise<AuthorOgPayload | null> {
+export async function getAuthorForOg(authorId: string, language: ContentLanguage = 'en'): Promise<AuthorOgPayload | null> {
   const record = await db.select({
     id: schema.authors.id,
     name: schema.authors.name,
@@ -118,17 +125,19 @@ export async function getAuthorForOg(authorId: string): Promise<AuthorOgPayload 
 
   if (!record) return null
 
+  const author = (await localizeAuthors([record], language))[0] ?? record
+
   return {
-    id: record.id,
-    name: record.name,
-    job: record.job ?? undefined,
-    description: record.description ?? undefined,
-    isFictional: Boolean(record.isFictional),
+    id: author.id,
+    name: author.name,
+    job: author.job ?? undefined,
+    description: author.description ?? undefined,
+    isFictional: Boolean(author.isFictional),
     updatedAt: toIsoString(record.updatedAt)
   }
 }
 
-export async function getReferenceForOg(referenceId: string): Promise<ReferenceOgPayload | null> {
+export async function getReferenceForOg(referenceId: string, language: ContentLanguage = 'en'): Promise<ReferenceOgPayload | null> {
   const record = await db.select({
     id: schema.quoteReferences.id,
     name: schema.quoteReferences.name,
@@ -144,18 +153,20 @@ export async function getReferenceForOg(referenceId: string): Promise<ReferenceO
 
   if (!record) return null
 
+  const reference = (await localizeReferences([record], language))[0] ?? record
+
   return {
-    id: record.id,
-    name: record.name,
+    id: reference.id,
+    name: reference.name ?? record.name,
     primaryType: record.primaryType ?? 'other',
     badgeColor: getReferenceBadgeColor(record.primaryType),
     secondaryType: record.secondaryType ?? undefined,
-    description: record.description ?? undefined,
+    description: reference.description ?? undefined,
     updatedAt: toIsoString(record.updatedAt)
   }
 }
 
-export async function getTagForOg(tagId: string): Promise<TagOgPayload | null> {
+export async function getTagForOg(tagId: string, language: ContentLanguage = 'en'): Promise<TagOgPayload | null> {
   const id = Number(tagId)
   if (!Number.isSafeInteger(id) || id < 1) return null
 
@@ -188,6 +199,7 @@ export async function getTagForOg(tagId: string): Promise<TagOgPayload | null> {
     ? await db.select({
         text: schema.quotes.name,
         authorName: schema.authors.name,
+        referenceId: schema.quoteReferences.id,
         referenceName: schema.quoteReferences.name,
       })
         .from(schema.quoteTags)
@@ -207,6 +219,13 @@ export async function getTagForOg(tagId: string): Promise<TagOgPayload | null> {
         .get()
     : undefined
 
+  const localizedReference = featuredQuote?.referenceId
+    ? (await localizeReferences([{
+        id: featuredQuote.referenceId,
+        name: featuredQuote.referenceName,
+      }], language))[0]
+    : undefined
+
   return {
     id: tag.id,
     name: tag.name,
@@ -217,7 +236,7 @@ export async function getTagForOg(tagId: string): Promise<TagOgPayload | null> {
       ? {
           text: featuredQuote.text,
           authorName: featuredQuote.authorName ?? undefined,
-          referenceName: featuredQuote.referenceName ?? undefined,
+          referenceName: localizedReference?.name ?? featuredQuote.referenceName ?? undefined,
         }
       : undefined,
     updatedAt: toIsoString(tag.updatedAt),

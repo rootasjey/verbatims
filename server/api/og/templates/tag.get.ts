@@ -7,7 +7,8 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  const tag = await getTagForOg(id)
+  const locale = getOgLanguage(event)
+  const tag = await getTagForOg(id, locale)
   if (!tag) {
     throwServer(404, 'Tag not found')
     return
@@ -15,14 +16,16 @@ export default defineEventHandler(async (event) => {
 
   const accentColor = normalizeAccentColor(tag.color)
   const titleSize = getTitleSize(tag.name)
-  const quoteLabel = tag.quoteCount === 1 ? 'quote' : 'quotes'
-  const count = tag.quoteCount.toLocaleString('en-US')
+  const quoteLabel = locale === 'fr'
+    ? tag.quoteCount === 1 ? 'citation' : 'citations'
+    : tag.quoteCount === 1 ? 'quote' : 'quotes'
+  const count = tag.quoteCount.toLocaleString(locale === 'fr' ? 'fr-FR' : 'en-US')
   const quoteText = tag.featuredQuote ? getQuoteExcerpt(tag.featuredQuote.text) : undefined
   const attribution = [tag.featuredQuote?.authorName, tag.featuredQuote?.referenceName]
     .filter(Boolean)
     .join(' · ')
   const html = `<!doctype html>
-<html lang="en">
+<html lang="${locale}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -149,7 +152,7 @@ export default defineEventHandler(async (event) => {
     </style>
   </head>
   <body>
-    <div class="frame" role="img" aria-label="Tag ${escapeHtml(tag.name)} with ${count} ${quoteLabel} on Verbatims">
+    <div class="frame" role="img" aria-label="${locale === 'fr' ? `Thème ${escapeHtml(tag.name)} avec ${count} ${quoteLabel} sur Verbatims` : `Tag ${escapeHtml(tag.name)} with ${count} ${quoteLabel} on Verbatims`}">
       <div class="brand">verbatims</div>
       <main>
         <section class="tag-details">

@@ -2,17 +2,25 @@ export default defineEventHandler(async (event) => {
   const id = getQuery(event).id as string | undefined
   if (!id) { throwServer(400, 'id is required'); return }
 
-  const quote = await getApprovedQuoteForOg(id)
+  const locale = getOgLanguage(event)
+  const quote = await getApprovedQuoteForOg(id, locale)
   if (!quote) { throwServer(404, 'Quote not found'); return }
 
   // Inline, minimal HTML for deterministic screenshot (no client JS/CSS frameworks)
-  const title = 'Verbatims — Quote'
+  const title = locale === 'fr' ? 'Verbatims — Citation' : 'Verbatims — Quote'
   const metaAuthor = quote.authorName ? `— ${quote.authorName}` : ''
-  const metaRef = quote.referenceName ? ` (${quote.referenceName})` : ''
+  const metaRef = quote.referenceName
+    ? ` (${locale === 'fr' ? 'source : ' : 'from '}${quote.referenceName})`
+    : ''
+  const visibleReference = quote.referenceName
+    ? locale === 'fr'
+      ? `Source : ${quote.referenceName}`
+      : `from ${quote.referenceName}`
+    : ''
   const description = `${quote.text} ${metaAuthor}${metaRef}`.trim()
 
   const html = `<!doctype html>
-<html lang="en">
+<html lang="${locale}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -54,9 +62,9 @@ export default defineEventHandler(async (event) => {
     </style>
   </head>
   <body>
-    <div class="card" role="img" aria-label="Social share image for a quote on Verbatims">
-      <blockquote>“${escapeHtml(wrapQuoteText(quote.text))}”</blockquote>
-      <div class="meta">${escapeHtml([quote.authorName ? `— ${quote.authorName}` : '', quote.referenceName ? `from ${quote.referenceName}` : ''].filter(Boolean).join(' '))}</div>
+    <div class="card" role="img" aria-label="${locale === 'fr' ? 'Image de partage d’une citation sur Verbatims' : 'Social share image for a quote on Verbatims'}">
+      <blockquote>“${escapeHtml(wrapQuoteText(quote.text, locale))}”</blockquote>
+      <div class="meta">${escapeHtml([metaAuthor, visibleReference].filter(Boolean).join(' · '))}</div>
       <div class="brand">verbatims.cc</div>
     </div>
   </body>
@@ -67,9 +75,9 @@ export default defineEventHandler(async (event) => {
   return html
 })
 
-function wrapQuoteText(text: string): string {
+function wrapQuoteText(text: string, locale: 'en' | 'fr'): string {
   const sanitized = text.replace(/\s+/g, ' ').trim()
-  if (!sanitized) return 'No quote available'
+  if (!sanitized) return locale === 'fr' ? 'Aucune citation disponible' : 'No quote available'
   // Soft limit the length to keep within 2-3 lines visually; screenshot is fixed size
   const max = 220
   return sanitized.length > max ? sanitized.slice(0, max - 1).trimEnd() + '…' : sanitized

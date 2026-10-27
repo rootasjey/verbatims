@@ -283,7 +283,12 @@ const configuredSiteUrl = String(useRuntimeConfig().public.siteUrl || 'https://v
 const siteUrl = import.meta.dev && /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)
   ? requestOrigin
   : configuredSiteUrl.replace(/\/$/, '')
-const homeOgImage = `${siteUrl}/images/og-home.png`
+const homeOgImage = computed(() => themeData.value?.slug
+  ? `${siteUrl}/api/og/home/${encodeURIComponent(themeData.value.slug)}.png?locale=${locale.value || 'en'}`
+  : `${siteUrl}/images/og-home.png`)
+const homeOgImageAlt = computed(() => themeData.value?.name
+  ? `${themeData.value.name} — Verbatims`
+  : 'Verbatims — share memorable quotes with their sources')
 
 useHead({
   title: pageTitle,
@@ -292,12 +297,12 @@ useHead({
     { property: 'og:title', content: pageTitle },
     { property: 'og:description', content: pageDescription },
     { property: 'og:image', content: homeOgImage },
-    { property: 'og:image:alt', content: 'Verbatims — share memorable quotes with their sources' },
+    { property: 'og:image:alt', content: homeOgImageAlt },
     { property: 'og:url', content: 'https://verbatims.cc' },
     { name: 'twitter:title', content: pageTitle },
     { name: 'twitter:description', content: pageDescription },
     { name: 'twitter:image', content: homeOgImage },
-    { name: 'twitter:image:alt', content: 'Verbatims — share memorable quotes with their sources' },
+    { name: 'twitter:image:alt', content: homeOgImageAlt },
   ],
 })
 

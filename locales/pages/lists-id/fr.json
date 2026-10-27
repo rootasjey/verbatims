@@ -1,0 +1,14 @@
+{
+  "back_to_quotes": "Retour aux citations",
+  "list_by": "Sélection de {name}",
+  "unknown_curator": "un membre de Verbatims",
+  "quote_count_singular": "{count} citation",
+  "quote_count_plural": "{count} citations",
+  "public_description": "Une collection publique de citations mémorables et de leurs sources.",
+  "empty_list": "Cette liste attend sa première citation.",
+  "source_not_recorded": "Source indisponible",
+  "private_title": "Liste privée",
+  "private_description": "Cette liste est privée et ses citations ne sont pas accessibles publiquement.",
+  "not_found_title": "Liste introuvable",
+  "not_found_description": "Cette liste a peut-être été supprimée ou n’est plus disponible."
+}

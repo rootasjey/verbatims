@@ -283,6 +283,7 @@
 </template>
 
 <script setup lang="ts">
+import { useVerbatimsSeo } from '~/composables/useSeo'
 const { $t, $ts } = useI18n()
 
 const aboutContactEmail = 'support@verbatims.cc'
@@ -293,12 +294,11 @@ definePageMeta({
   layout: 'default'
 })
 
-useHead({
+useVerbatimsSeo({
   title: $ts('about_meta_title'),
-  meta: [
-    { name: 'robots', content: 'index,follow' },
-    { name: 'description', content: $ts('about_meta_desc') },
-  ],
+  description: $ts('about_meta_desc'),
+  imagePath: '/api/og/pages/about.png',
+  imageAlt: 'About Verbatims, a home for memorable quotes and their sources',
 })
 
 const showProfilePreview = ref(false)

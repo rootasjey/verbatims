@@ -7,7 +7,8 @@ export default defineEventHandler(async (event) => {
   // Accept optional .png suffix for nicer URLs in social meta
   if (quoteId.endsWith('.png')) quoteId = quoteId.slice(0, -4)
 
-  const quote = await getApprovedQuoteForOg(quoteId)
+  const locale = getOgLanguage(event)
+  const quote = await getApprovedQuoteForOg(quoteId, locale)
   if (!quote) { throwServer(404, 'Quote not found'); return }
 
   const config = useRuntimeConfig()
@@ -21,13 +22,14 @@ export default defineEventHandler(async (event) => {
     t: quote.text,
     a: quote.authorName || '',
     r: quote.referenceName || '',
+    locale,
     v: styleVersion || '1',
     u: quote.updatedAt ? Date.parse(quote.updatedAt) : 0
   })
   const hash = await sha1(basis)
 
-  const keyData = `og:quote:${quoteId}:latest`
-  const keyImage = (h: string) => `og:quote:${quoteId}:${h}.png`
+  const keyData = `og:quote:${quoteId}:${locale}:latest`
+  const keyImage = (h: string) => `og:quote:${quoteId}:${locale}:${h}.png`
 
   // If latest hash matches and image exists, serve from KV
   const latest = await kv.get<string>(keyData)
@@ -44,7 +46,7 @@ export default defineEventHandler(async (event) => {
   // Render using Puppeteer (works in both dev and production)
   const { page } = await hubBrowser(event)
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
-  const templateUrl = `${origin}/api/og/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion || '1')}`
+  const templateUrl = `${origin}/api/og/templates/quote?id=${encodeURIComponent(quoteId)}&locale=${locale}&v=${encodeURIComponent(styleVersion || '1')}`
   
   // Navigate and wait for fonts to load (dom + network idle enough for our minimal page)
   await page.goto(templateUrl, { waitUntil: 'networkidle0', timeout: 15000 })

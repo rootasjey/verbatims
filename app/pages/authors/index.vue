@@ -207,6 +207,7 @@
 <script lang="ts" setup>
 import { useDebounceFn } from '@vueuse/core'
 import { useJsonLd } from '~/composables/useSeo'
+import { useVerbatimsSeo } from '~/composables/useSeo'
 import { useAuthorsListStore } from '~/stores/authors'
 import type { AuthorsListSnapshot } from '~/stores/authors'
 
@@ -220,14 +221,11 @@ definePageMeta({
 
 const { $t, $ts } = useI18n()
 
-useHead({
+useVerbatimsSeo({
   title: $ts('authors_meta_title'),
-  meta: [
-    {
-      name: 'description',
-      content: $ts('authors_meta_desc'),
-    }
-  ]
+  description: $ts('authors_meta_desc'),
+  imagePath: '/api/og/pages/authors.png',
+  imageAlt: 'Authors whose words are collected on Verbatims',
 })
 
 useJsonLd({

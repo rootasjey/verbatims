@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
-import { useJsonLd } from '~/composables/useSeo'
+import { useJsonLd, useVerbatimsSeo } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
 
 const quotesFeedStore = useQuotesFeedStore()
@@ -61,14 +61,11 @@ definePageMeta({
 
 const { $t, $ts } = useI18n()
 
-useHead({
+useVerbatimsSeo({
   title: $ts('quotes_meta_title'),
-  meta: [
-    {
-      name: 'description',
-      content: $ts('quotes_meta_desc'),
-    }
-  ]
+  description: $ts('quotes_meta_desc'),
+  imagePath: '/api/og/pages/quotes.png',
+  imageAlt: 'Memorable quotes, gathered with their sources',
 })
 
 useJsonLd({

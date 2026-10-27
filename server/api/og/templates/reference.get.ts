@@ -2,17 +2,20 @@ export default defineEventHandler(async (event) => {
   const id = getQuery(event).id as string | undefined
   if (!id) { throwServer(400, 'id is required'); return }
 
-  const reference = await getReferenceForOg(id)
+  const locale = getOgLanguage(event)
+  const reference = await getReferenceForOg(id, locale)
   if (!reference) { throwServer(404, 'Reference not found'); return }
 
-  const prettyType = formatReferenceType(reference.primaryType)
+  const prettyType = formatReferenceType(reference.primaryType, locale)
   const subtitle = [prettyType, reference.secondaryType].filter(Boolean).join(' • ')
   const description = reference.description
     ? reference.description
-    : `Discover quotes from ${reference.name} on Verbatims.`
+    : locale === 'fr'
+      ? `Découvrez les citations de ${reference.name} sur Verbatims.`
+      : `Discover quotes from ${reference.name} on Verbatims.`
 
   const html = `<!doctype html>
-<html lang="en">
+<html lang="${locale}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -84,7 +87,7 @@ export default defineEventHandler(async (event) => {
     </style>
   </head>
   <body>
-    <div class="card" role="img" aria-label="Social share image for a reference on Verbatims">
+    <div class="card" role="img" aria-label="${locale === 'fr' ? 'Image de partage d’une référence sur Verbatims' : 'Social share image for a reference on Verbatims'}">
       <span class="chip">${escapeHtml(subtitle || 'Reference')}</span>
       <h1>${escapeHtml(wrapTitle(reference.name, 74))}</h1>
       <p>${escapeHtml(wrapBody(description, 150))}</p>
@@ -98,9 +101,22 @@ export default defineEventHandler(async (event) => {
   return html
 })
 
-function formatReferenceType(type: string): string {
-  if (!type) return 'Reference'
-  return type.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
+function formatReferenceType(type: string, locale: 'en' | 'fr'): string {
+  const labels: Record<string, Record<'en' | 'fr', string>> = {
+    book: { en: 'Book', fr: 'Livre' },
+    film: { en: 'Film', fr: 'Film' },
+    tv_series: { en: 'TV series', fr: 'Série TV' },
+    music: { en: 'Music', fr: 'Musique' },
+    speech: { en: 'Speech', fr: 'Discours' },
+    podcast: { en: 'Podcast', fr: 'Podcast' },
+    interview: { en: 'Interview', fr: 'Entretien' },
+    documentary: { en: 'Documentary', fr: 'Documentaire' },
+    media_stream: { en: 'Media stream', fr: 'Média en ligne' },
+    writings: { en: 'Writings', fr: 'Écrits' },
+    video_game: { en: 'Video game', fr: 'Jeu vidéo' },
+    other: { en: 'Reference', fr: 'Référence' },
+  }
+  return labels[type]?.[locale] || (locale === 'fr' ? 'Référence' : 'Reference')
 }
 
 function wrapTitle(text: string, max: number): string {

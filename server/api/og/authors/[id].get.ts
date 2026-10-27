@@ -6,7 +6,8 @@ export default defineEventHandler(async (event) => {
 
   if (authorId.endsWith('.png')) authorId = authorId.slice(0, -4)
 
-  const author = await getAuthorForOg(authorId)
+  const locale = getOgLanguage(event)
+  const author = await getAuthorForOg(authorId, locale)
   if (!author) { throwServer(404, 'Author not found'); return }
 
   const config = useRuntimeConfig()
@@ -19,13 +20,14 @@ export default defineEventHandler(async (event) => {
     j: author.job || '',
     d: author.description || '',
     f: author.isFictional,
+    locale,
     v: styleVersion || '1',
     u: author.updatedAt ? Date.parse(author.updatedAt) : 0
   })
 
   const hash = await sha1(basis)
-  const keyData = `og:author:${authorId}:latest`
-  const keyImage = (h: string) => `og:author:${authorId}:${h}.png`
+  const keyData = `og:author:${authorId}:${locale}:latest`
+  const keyImage = (h: string) => `og:author:${authorId}:${locale}:${h}.png`
 
   const latest = await kv.get<string>(keyData)
   const effectiveHash = latest && latest === hash ? latest : hash
@@ -40,7 +42,7 @@ export default defineEventHandler(async (event) => {
 
   const { page } = await hubBrowser(event)
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
-  const templateUrl = `${origin}/api/og/templates/author?id=${encodeURIComponent(authorId)}&v=${encodeURIComponent(styleVersion || '1')}`
+  const templateUrl = `${origin}/api/og/templates/author?id=${encodeURIComponent(authorId)}&locale=${locale}&v=${encodeURIComponent(styleVersion || '1')}`
 
   await page.goto(templateUrl, { waitUntil: 'networkidle0', timeout: 15000 })
   const png = await page.screenshot({ type: 'png' }) as Buffer

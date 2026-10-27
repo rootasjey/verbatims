@@ -259,6 +259,7 @@
 </template>
 
 <script setup lang="ts">
+import { useVerbatimsSeo } from '~/composables/useSeo'
 const { $t, $ts } = useI18n()
 const { locale } = useI18nLocale()
 const termsLastUpdatedIso = '2025-08-08'
@@ -279,11 +280,11 @@ definePageMeta({
   pageTransition: { name: 'legal-page', mode: 'out-in' }
 })
 
-useSeoMeta({
+useVerbatimsSeo({
   title: $ts('terms_meta_title'),
-  ogTitle: $ts('terms_meta_title'),
   description: $ts('terms_meta_desc'),
-  ogDescription: $ts('terms_meta_desc')
+  imagePath: '/api/og/pages/terms.png',
+  imageAlt: 'Verbatims terms of service',
 })
 
 import { useJsonLd } from '../composables/useSeo'

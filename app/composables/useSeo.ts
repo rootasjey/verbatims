@@ -12,6 +12,7 @@ export function useVerbatimsSeo(options: SeoOptions | (() => SeoOptions)) {
   const config = useRuntimeConfig()
 
   const configuredOrigin = (config.public as Record<string, unknown>).siteUrl
+  const { locale } = useI18nLocale()
   const requestOrigin = resolveOrigin()
   const configuredBaseOrigin = typeof configuredOrigin === 'string' && configuredOrigin.length > 0
     ? configuredOrigin
@@ -28,6 +29,11 @@ export function useVerbatimsSeo(options: SeoOptions | (() => SeoOptions)) {
     let currentImage = current.imagePath
       ? (current.imagePath.startsWith('http') ? current.imagePath : `${origin}${current.imagePath}`)
       : `${origin}/api/og/default.png`
+    const imagePath = current.imagePath
+    const usesOgEndpoint = imagePath?.startsWith('/api/og/') && !imagePath.startsWith('/api/og/default.')
+    if (usesOgEndpoint && imagePath && !/[?&]locale=/.test(imagePath)) {
+      currentImage += `${currentImage.includes('?') ? '&' : '?'}locale=${encodeURIComponent(locale.value || 'en')}`
+    }
 
     const meta = [
       { name: 'description', content: current.description },

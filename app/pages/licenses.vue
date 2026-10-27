@@ -54,7 +54,7 @@
     <section>
       <h2>Icon sets and graphics</h2>
       <p>
-        Some icons in development and UI previews are provided via Iconify JSON packages. Attribution for notable sets:
+        Some icons used in the interface and previews come from Iconify JSON packages. Attribution for notable sets:
       </p>
       <ul>
         <li>
@@ -125,14 +125,14 @@
 </template>
 
 <script setup lang="ts">
+import { useVerbatimsSeo } from '~/composables/useSeo'
 const { $t, $ts } = useI18n()
 
-useHead({
+useVerbatimsSeo({
   title: $ts('licenses_title'),
-  meta: [
-    { name: 'robots', content: 'index,follow' },
-    { name: 'description', content: $ts('licenses_meta_desc') },
-  ],
+  description: $ts('licenses_meta_desc'),
+  imagePath: '/api/og/pages/licenses.png',
+  imageAlt: 'Licenses and attributions for Verbatims',
 })
 
 definePageMeta({

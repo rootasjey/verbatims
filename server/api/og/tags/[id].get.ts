@@ -11,7 +11,8 @@ export default defineEventHandler(async (event) => {
 
   if (tagId.endsWith('.png')) tagId = tagId.slice(0, -4)
 
-  const tag = await getTagForOg(tagId)
+  const locale = getOgLanguage(event)
+  const tag = await getTagForOg(tagId, locale)
   if (!tag) {
     throwServer(404, 'Tag not found')
     return
@@ -27,11 +28,12 @@ export default defineEventHandler(async (event) => {
     quoteCount: tag.quoteCount,
     featuredQuote: tag.featuredQuote || null,
     updatedAt: tag.updatedAt ? Date.parse(tag.updatedAt) : 0,
+    locale,
     styleVersion: `${styleVersion}:tag-quote-v2`,
   }))
 
-  const latestKey = `og:tag:${tagId}:latest`
-  const imageKey = (imageHash: string) => `og:tag:${tagId}:${imageHash}.png`
+  const latestKey = `og:tag:${tagId}:${locale}:latest`
+  const imageKey = (imageHash: string) => `og:tag:${tagId}:${locale}:${imageHash}.png`
   const latestHash = await kv.get<string>(latestKey)
   const cachedImage = await kv.get<string>(imageKey(latestHash === hash ? latestHash : hash))
 
@@ -43,7 +45,7 @@ export default defineEventHandler(async (event) => {
   const { page } = await hubBrowser(event)
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   await page.goto(
-    `${origin}/api/og/templates/tag?id=${encodeURIComponent(tagId)}&v=${encodeURIComponent(styleVersion)}`,
+    `${origin}/api/og/templates/tag?id=${encodeURIComponent(tagId)}&locale=${locale}&v=${encodeURIComponent(styleVersion)}`,
     { waitUntil: 'networkidle0', timeout: 15000 }
   )
 
