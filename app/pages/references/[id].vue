@@ -46,7 +46,7 @@
         <!-- Poster column -->
         <div class="md:col-span-4 md:pr-8 lg:pr-12">
           <div class="px-4 pt-4 md:sticky md:top-24 md:px-4 md:pt-8">
-            <div v-if="reference.imageUrl" class="group relative mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-gray-100 shadow-xl dark:bg-[#0C0A09] active:scale-99 transition-[transform]">
+            <div v-if="reference.imageUrl" class="group relative mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-gray-100 shadow-xl transition-[transform] active:scale-99 dark:bg-[#0C0A09]" @contextmenu="openPosterImageContextMenu">
               <img
                 ref="posterImageRef"
                 :src="reference.imageUrl"
@@ -60,14 +60,6 @@
                 @keyup.enter.prevent="openPosterPreview"
                 @keyup.space.prevent="openPosterPreview"
               />
-              <button
-                v-if="canEditReference"
-                class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-all duration-200 hidden lg:flex"
-                @click.stop="openEditImageDialog"
-                :title="$ts('reference_detail_edit_poster')"
-              >
-                <NIcon name="i-ph-pencil-simple-line" class="w-4 h-4" />
-              </button>
             </div>
             <EntityImageAttribution
               v-if="reference.imageUrl"
@@ -79,7 +71,22 @@
               reportable
               :report-label="String($t('home.report_image'))"
               @report="showImageReportDialog = true"
-            />
+            >
+              <template #actions>
+                <NTooltip v-if="canEditReference" :content="$ts('reference_detail_edit_poster')">
+                  <NButton
+                    type="button"
+                    icon
+                    btn="ghost-gray"
+                    size="sm"
+                    class="h-10 w-10 shrink-0 rounded-xl bg-gray-100/80 text-gray-700 hover:bg-gray-200 dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                    label="i-ph-pencil-simple-line"
+                    :aria-label="$ts('reference_detail_edit_poster')"
+                    @click="openEditImageDialog"
+                  />
+                </NTooltip>
+              </template>
+            </EntityImageAttribution>
             <div
               v-else
               class="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded-2xl bg-gray-100 text-gray-400 dark:bg-gray-800/60 dark:text-gray-500"
@@ -226,28 +233,48 @@
           </div>
 
           <div v-else-if="referenceQuotes.length > 0" class="grid gap-y-8 md:grid-cols-2 md:gap-x-10 md:gap-y-10 lg:gap-x-16">
-            <div v-for="quote in referenceQuotes" :key="quote.id" class="md:pb-5">
-              <div v-if="(quote.author?.id && quote.author.name?.trim()) || quote.tags?.length" class="mb-2 flex flex-wrap items-center gap-x-2 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 md:mb-4">
-                <NuxtLink
-                  v-if="quote.author?.id && quote.author.name?.trim()"
-                  :to="`/authors/${quote.author.id}`"
-                  class="transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4 dark:hover:text-gray-300"
-                >
-                  {{ quote.author.name.trim() }}
-                </NuxtLink>
-                <QuoteTagDots :tags="quote.tags" />
+            <QuoteContextActions
+              v-for="quote in referenceQuotes"
+              :key="quote.id"
+              :quote="quote"
+              v-slot="{ menuItems }"
+              @edit="openRelatedQuoteEdit"
+              @delete="openRelatedQuoteDelete"
+              @report="openRelatedQuoteReport"
+            >
+              <div class="group md:pb-5">
+                <div v-if="quote.author?.id && quote.author.name?.trim() || quote.tags?.length" class="mb-2 flex items-start gap-2 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 md:mb-4">
+                  <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                    <NuxtLink
+                      v-if="quote.author?.id && quote.author.name?.trim()"
+                      :to="`/authors/${quote.author.id}`"
+                      class="transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4 dark:hover:text-gray-300"
+                    >
+                      {{ quote.author.name.trim() }}
+                    </NuxtLink>
+                    <QuoteTagDots :tags="quote.tags" />
+                  </div>
+                </div>
+                <div class="relative">
+                  <NLink :to="`/quotes/${quote.id}`" class="block group/quote">
+                    <blockquote class="font-serif text-lg leading-relaxed text-gray-900 transition-colors group-hover/quote:text-gray-600 dark:text-gray-100 dark:group-hover/quote:text-gray-300 line-clamp-4 pr-10 md:pr-9 md:text-xl">
+                      {{ quote.name }}
+                    </blockquote>
+                  </NLink>
+                  <NDropdownMenu :items="menuItems" :modal="false">
+                    <NButton
+                      icon
+                      btn="ghost-gray"
+                      size="xs"
+                      class="absolute bottom-0 right-0 z-1 h-10 w-10 rounded-full text-gray-500 opacity-100 transition-opacity motion-reduce:transition-none dark:text-gray-400 md:h-8 md:w-8 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+                      label="i-ph-dots-three-vertical"
+                      :aria-label="$t('components.quote_actions.quick_actions') as string"
+                      @click.stop
+                    />
+                  </NDropdownMenu>
+                </div>
               </div>
-              <NLink
-                :to="`/quotes/${quote.id}`"
-                class="block group"
-              >
-                <blockquote
-                  class="font-serif text-lg leading-relaxed text-gray-900 transition-colors group-hover:text-gray-600 dark:text-gray-100 dark:group-hover:text-gray-300 line-clamp-4 md:text-xl"
-                >
-                  {{ quote.name }}
-                </blockquote>
-              </NLink>
-            </div>
+            </QuoteContextActions>
           </div>
 
           <div v-else class="py-8 text-center">
@@ -324,19 +351,7 @@
         :transition-origin="posterImageRef"
         :closeOnScroll="true"
         :mask-closable="true"
-      >
-        <template #actions>
-          <NButton
-            v-if="canEditReference"
-            btn="ghost-gray"
-            icon
-            size="xs"
-            label="i-ph-pencil-simple-line"
-            square="2em"
-            @click.stop="openEditImageDialog"
-          />
-        </template>
-      </ImagePreview>
+      />
     </ClientOnly>
 
     <ClientOnly>
@@ -361,6 +376,24 @@
     </ClientOnly>
 
     <ClientOnly>
+      <AddQuoteDialog
+        v-model="showRelatedQuoteEditDialog"
+        :edit-quote="selectedRelatedQuote as QuoteWithRelations | null"
+        @quote-updated="refreshRelatedQuotes"
+      />
+      <DeleteQuoteDialog
+        v-model="showRelatedQuoteDeleteDialog"
+        :quote="selectedRelatedQuote as QuoteWithMetadata | null"
+        @quote-deleted="refreshRelatedQuotes"
+      />
+      <ReportDialog
+        v-model="showRelatedQuoteReportDialog"
+        targetType="quote"
+        :targetId="selectedRelatedQuote?.id"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
       <ReportDialog
         v-if="reference"
         v-model="showReportDialog"
@@ -381,6 +414,17 @@
         :entity-image-report="{ targetType: 'reference', targetId: reference.id }"
       />
     </ClientOnly>
+
+    <NDropdownMenu
+      v-if="canEditReference && posterImageContextMenuPosition"
+      :open="posterImageContextMenuOpen"
+      :items="posterImageContextMenuItems"
+      :modal="false"
+      :_dropdown-menu-content="{ side: 'bottom', align: 'start', sideOffset: 4 }"
+      @update:open="posterImageContextMenuOpen = $event"
+    >
+      <span aria-hidden="true" class="fixed z-50 h-px w-px" :style="posterImageContextMenuPosition" />
+    </NDropdownMenu>
   </div>
 
   <ClientOnly>
@@ -400,6 +444,7 @@ import { useReferencesListStore } from '~/stores/references'
 definePageMeta({ layout: 'default' })
 
 import type { QuoteWithRelations, QuoteReferenceWithMetadata } from '~/types'
+import type { QuoteWithMetadata } from '~~/shared/types/quote'
 import { ofetch } from 'ofetch'
 
 const { isMobile } = useMobileDetection()
@@ -519,10 +564,27 @@ const titleSizeClass = computed(() => {
 const posterPreviewOpen = ref(false)
 const posterRef = ref<any>(null)
 const posterImageRef = ref<HTMLImageElement | null>(null)
+const posterImageContextMenuOpen = ref(false)
+const posterImageContextMenuPosition = ref<{ left: string; top: string } | null>(null)
+const posterImageContextMenuItems = computed(() => [{
+  label: $ts('reference_detail_edit_poster'),
+  leading: 'i-ph-pencil-simple-line',
+  onclick: openPosterImageContextMenuEdit
+}])
 
 const openPosterPreview = () => {
   if (!reference.value?.imageUrl) return
   posterPreviewOpen.value = true
+}
+
+const openPosterImageContextMenu = (event: MouseEvent) => {
+  if (!canEditReference.value) return
+  event.preventDefault()
+  posterImageContextMenuPosition.value = {
+    left: `${event.clientX}px`,
+    top: `${event.clientY}px`
+  }
+  posterImageContextMenuOpen.value = true
 }
 
 const headerMenuItems = computed(() => {
@@ -573,6 +635,12 @@ const showEditLinksDialog = ref(false)
 const openEditImageDialog = () => {
   if (!reference.value) return
   isEditImageDialogOpen.value = true
+}
+
+const openPosterImageContextMenuEdit = () => {
+  posterImageContextMenuOpen.value = false
+  posterImageContextMenuPosition.value = null
+  void nextTick(() => openEditImageDialog())
 }
 
 const onImageUpdated = (imageUrl: string | null) => {
@@ -847,6 +915,31 @@ onBeforeRouteLeave((to) => {
 const showReportDialog = ref(false)
 const reportReference = () => { showReportDialog.value = true }
 const showImageReportDialog = ref(false)
+const selectedRelatedQuote = ref<QuoteWithRelations | QuoteWithMetadata | null>(null)
+const showRelatedQuoteEditDialog = ref(false)
+const showRelatedQuoteDeleteDialog = ref(false)
+const showRelatedQuoteReportDialog = ref(false)
+
+const openRelatedQuoteEdit = (quote: QuoteWithRelations | QuoteWithMetadata) => {
+  selectedRelatedQuote.value = quote
+  showRelatedQuoteEditDialog.value = true
+}
+
+const openRelatedQuoteDelete = (quote: QuoteWithRelations | QuoteWithMetadata) => {
+  selectedRelatedQuote.value = quote
+  showRelatedQuoteDeleteDialog.value = true
+}
+
+const openRelatedQuoteReport = (quote: QuoteWithRelations | QuoteWithMetadata) => {
+  selectedRelatedQuote.value = quote
+  showRelatedQuoteReportDialog.value = true
+}
+
+const refreshRelatedQuotes = async () => {
+  showRelatedQuoteEditDialog.value = false
+  showRelatedQuoteDeleteDialog.value = false
+  await loadQuotes()
+}
 
 // Global keyboard shortcuts for reference page (single letters)
 // Ignored when a modifier key is held so native browser shortcuts continue to work

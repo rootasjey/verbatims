@@ -126,6 +126,7 @@
                 class="group block w-full cursor-zoom-in text-left transition-transform duration-150 active:scale-99 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-900 dark:focus-visible:outline-gray-100"
                 :aria-label="$ts('components.dialogs.avatar_preview')"
                 @click="openAvatarPreview"
+                @contextmenu="openAvatarImageContextMenu"
               >
                 <img
                   :src="author.image_url"
@@ -143,7 +144,22 @@
                 reportable
                 :report-label="String($t('home.report_image'))"
                 @report="showImageReportDialog = true"
-              />
+              >
+                <template #actions>
+                  <NTooltip v-if="canEditAuthorLinks" :content="$ts('author_detail_edit_image')">
+                    <NButton
+                      type="button"
+                      icon
+                      btn="ghost-gray"
+                      size="sm"
+                      class="h-10 w-10 shrink-0 rounded-xl bg-gray-100/80 text-gray-700 hover:bg-gray-200 dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                      label="i-ph-pencil-simple-line"
+                      :aria-label="$ts('author_detail_edit_image')"
+                      @click="openEditAuthorImage"
+                    />
+                  </NTooltip>
+                </template>
+              </EntityImageAttribution>
             </div>
           </div>
         </div>
@@ -194,32 +210,46 @@
             </div>
 
             <div v-else-if="authorQuotes.length > 0" class="grid gap-y-8 md:grid-cols-2 md:gap-x-10 md:gap-y-10 lg:gap-x-16">
-              <div
+              <QuoteContextActions
                 v-for="quote in authorQuotes"
                 :key="quote.id"
-                class="pb-5"
+                :quote="quote"
+                v-slot="{ menuItems }"
+                @edit="openRelatedQuoteEdit"
+                @delete="openRelatedQuoteDelete"
+                @report="openRelatedQuoteReport"
               >
-                <div v-if="quote.reference || quote.tags?.length" class="mb-2 flex flex-wrap items-center gap-x-2 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 md:mb-4">
-                  <NuxtLink
-                    v-if="quote.reference"
-                    :to="`/references/${quote.reference.id}`"
-                    class="transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4 dark:hover:text-gray-300"
-                  >
-                    {{ quote.reference.name }}
-                  </NuxtLink>
-                  <QuoteTagDots :tags="quote.tags" />
+                <div class="group pb-5">
+                  <div v-if="quote.reference || quote.tags?.length" class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 md:mb-4">
+                      <NuxtLink
+                        v-if="quote.reference"
+                        :to="`/references/${quote.reference.id}`"
+                        class="transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4 dark:hover:text-gray-300"
+                      >
+                        {{ quote.reference.name }}
+                      </NuxtLink>
+                      <QuoteTagDots :tags="quote.tags" />
+                  </div>
+                  <div class="relative">
+                    <NLink :to="`/quotes/${quote.id}`" class="block group/quote">
+                      <blockquote class="font-serif text-lg leading-relaxed text-gray-900 transition-colors group-hover/quote:text-gray-600 dark:text-gray-100 dark:group-hover/quote:text-gray-300 line-clamp-4 pr-10 md:pr-9 md:text-xl">
+                        {{ quote.name }}
+                      </blockquote>
+                    </NLink>
+                    <NDropdownMenu :items="menuItems" :modal="false">
+                      <NButton
+                        icon
+                        btn="ghost-gray"
+                        size="xs"
+                        class="absolute bottom-0 right-0 z-1 h-10 w-10 rounded-full text-gray-500 opacity-100 transition-opacity motion-reduce:transition-none dark:text-gray-400 md:h-8 md:w-8 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+                        label="i-ph-dots-three-vertical"
+                        :aria-label="$t('components.quote_actions.quick_actions') as string"
+                        @click.stop
+                      />
+                    </NDropdownMenu>
+                  </div>
                 </div>
-                <NLink
-                  :to="`/quotes/${quote.id}`"
-                  class="block group"
-                >
-                  <blockquote
-                    class="font-serif text-lg leading-relaxed text-gray-900 transition-colors group-hover:text-gray-600 dark:text-gray-100 dark:group-hover:text-gray-300 line-clamp-4 md:text-xl"
-                  >
-                    {{ quote.name }}
-                  </blockquote>
-                </NLink>
-              </div>
+              </QuoteContextActions>
             </div>
 
             <div v-else class="py-8 text-center">
@@ -271,6 +301,7 @@
       <AddAuthorDialog
         v-model="showEditAuthorDialog"
         :editAuthor="authorAsEditAuthor"
+        :initial-tab="authorEditorInitialTab"
         @author-updated="onAuthorUpdated"
       />
     </ClientOnly>
@@ -292,6 +323,24 @@
         v-model="showDeleteAuthorDialog"
         :author="authorAsEditAuthor"
         @author-deleted="onAuthorDeleted"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <AddQuoteDialog
+        v-model="showRelatedQuoteEditDialog"
+        :edit-quote="selectedRelatedQuote as QuoteWithRelations | null"
+        @quote-updated="refreshRelatedQuotes"
+      />
+      <DeleteQuoteDialog
+        v-model="showRelatedQuoteDeleteDialog"
+        :quote="selectedRelatedQuote as QuoteWithMetadata | null"
+        @quote-deleted="refreshRelatedQuotes"
+      />
+      <ReportDialog
+        v-model="showRelatedQuoteReportDialog"
+        targetType="quote"
+        :targetId="selectedRelatedQuote?.id"
       />
     </ClientOnly>
 
@@ -327,6 +376,17 @@
         :mask-closable="true"
       />
     </ClientOnly>
+
+    <NDropdownMenu
+      v-if="canEditAuthorLinks && avatarImageContextMenuPosition"
+      :open="avatarImageContextMenuOpen"
+      :items="avatarImageContextMenuItems"
+      :modal="false"
+      :_dropdown-menu-content="{ side: 'bottom', align: 'start', sideOffset: 4 }"
+      @update:open="avatarImageContextMenuOpen = $event"
+    >
+      <span aria-hidden="true" class="fixed z-50 h-px w-px" :style="avatarImageContextMenuPosition" />
+    </NDropdownMenu>
   </div>
 
   <ClientOnly>
@@ -343,6 +403,7 @@
 <script lang="ts" setup>import { useJsonLd } from '../../composables/useSeo'
 import { authorLifeDateFromFields, formatAuthorLifeSpan } from '#shared/utils/author-life-date'
 import type { ComputedRef, Ref } from 'vue'
+import type { QuoteWithRelations } from '~/types'
 
 const { isMobile } = useMobileDetection()
 // Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
@@ -461,6 +522,7 @@ const likePending = ref(false)
 const sharePending = ref(false)
 const copyState = ref<'idle' | 'copying' | 'copied'>('idle')
 const showEditAuthorDialog = ref(false)
+const authorEditorInitialTab = ref<'profile' | 'image'>('profile')
 const showDeleteAuthorDialog = ref(false)
 const showEditLinksDialog = ref(false)
 const similarAuthors = ref<any[]>([])
@@ -468,6 +530,13 @@ const similarAuthors = ref<any[]>([])
 // Avatar preview state (opened when clicking the avatar)
 const avatarPreviewOpen = ref(false)
 const avatarRef = ref<any>(null)
+const avatarImageContextMenuOpen = ref(false)
+const avatarImageContextMenuPosition = ref<{ left: string; top: string } | null>(null)
+const avatarImageContextMenuItems = computed(() => [{
+  label: $ts('author_detail_edit_image'),
+  leading: 'i-ph-pencil-simple-line',
+  onclick: openAvatarImageContextMenuEdit
+}])
 let authorHeroObserver: IntersectionObserver | null = null
 
 const observeAuthorHero = (hero: HTMLElement | null) => {
@@ -524,7 +593,7 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
     case 'e':
       if (isAdminMod) {
         e.preventDefault()
-        showEditAuthorDialog.value = true
+        openAuthorEditor()
       }
       break
     case 'k':
@@ -573,7 +642,7 @@ const headerMenuItems = computed<HeaderMenuItem[]>(() => {
     items.push({
       label: $ts('author_detail_menu_edit'),
       leading: 'i-ph-pencil-simple',
-      onclick: () => { showEditAuthorDialog.value = true }
+      onclick: () => openAuthorEditor()
     })
     items.push({
       label: $ts('author_detail_menu_delete'),
@@ -698,6 +767,32 @@ const canEditAuthorLinks = computed(() => {
 
 const openEditLinks = () => {
   showEditLinksDialog.value = true
+}
+
+const openEditAuthorImage = () => {
+  if (!canEditAuthorLinks.value) return
+  openAuthorEditor('image')
+}
+
+const openAuthorEditor = (initialTab: 'profile' | 'image' = 'profile') => {
+  authorEditorInitialTab.value = initialTab
+  showEditAuthorDialog.value = true
+}
+
+const openAvatarImageContextMenuEdit = () => {
+  avatarImageContextMenuOpen.value = false
+  avatarImageContextMenuPosition.value = null
+  void nextTick(() => openEditAuthorImage())
+}
+
+const openAvatarImageContextMenu = (event: MouseEvent) => {
+  if (!canEditAuthorLinks.value) return
+  event.preventDefault()
+  avatarImageContextMenuPosition.value = {
+    left: `${event.clientX}px`,
+    top: `${event.clientY}px`
+  }
+  avatarImageContextMenuOpen.value = true
 }
 
 const onLinksSaved = async () => {
@@ -872,6 +967,31 @@ onBeforeRouteLeave((to) => {
 const showReportDialog = ref(false)
 const reportAuthor = () => { showReportDialog.value = true }
 const showImageReportDialog = ref(false)
+const selectedRelatedQuote = ref<QuoteWithMetadata | QuoteWithRelations | null>(null)
+const showRelatedQuoteEditDialog = ref(false)
+const showRelatedQuoteDeleteDialog = ref(false)
+const showRelatedQuoteReportDialog = ref(false)
+
+const openRelatedQuoteEdit = (quote: QuoteWithMetadata | QuoteWithRelations) => {
+  selectedRelatedQuote.value = quote
+  showRelatedQuoteEditDialog.value = true
+}
+
+const openRelatedQuoteDelete = (quote: QuoteWithMetadata | QuoteWithRelations) => {
+  selectedRelatedQuote.value = quote
+  showRelatedQuoteDeleteDialog.value = true
+}
+
+const openRelatedQuoteReport = (quote: QuoteWithMetadata | QuoteWithRelations) => {
+  selectedRelatedQuote.value = quote
+  showRelatedQuoteReportDialog.value = true
+}
+
+const refreshRelatedQuotes = async () => {
+  showRelatedQuoteEditDialog.value = false
+  showRelatedQuoteDeleteDialog.value = false
+  await loadQuotes()
+}
 
 const formatLifeDates = (author: Pick<Author, 'birth_date' | 'birth_year' | 'birth_era' | 'birth_month' | 'birth_day' | 'birth_is_approximate' | 'birth_calendar' | 'death_date' | 'death_year' | 'death_era' | 'death_month' | 'death_day' | 'death_is_approximate' | 'death_calendar'>): string => {
   const birth = authorLifeDateFromFields({ year: author.birth_year, era: author.birth_era, month: author.birth_month, day: author.birth_day, approximate: author.birth_is_approximate, calendar: author.birth_calendar, legacy: author.birth_date })
