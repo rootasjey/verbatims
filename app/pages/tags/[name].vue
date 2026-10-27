@@ -1,8 +1,7 @@
 <template>
   <div class="min-h-screen">
-    <div v-if="pending" role="status" class="mx-auto flex max-w-6xl items-center gap-3 px-6 py-16 text-gray-600 dark:text-gray-400 sm:px-8 lg:px-10">
-      <NIcon name="i-ph-spinner-gap" class="h-5 w-5 animate-spin" aria-hidden="true" />
-      <span>{{ $t('tag_detail_loading') }}</span>
+    <div v-if="pending" class="grid min-h-[calc(100svh-3.5rem)] place-items-center px-4 md:min-h-screen">
+      <LoadingWord :label="String($t('tag_detail_loading'))" />
     </div>
 
     <template v-else-if="tag">

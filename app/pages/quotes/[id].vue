@@ -70,21 +70,8 @@
       </NDrawer>
     </ClientOnly>
 
-    <div v-if="pending" class="px-4 md:px-8 py-16 md:py-24">
-      <div class="max-w-5xl mx-auto">
-        <div class="animate-pulse space-y-8">
-          <div class="text-center space-y-6">
-            <div class="h-16 bg-white/40 dark:bg-gray-800/40 rounded-3xl w-3/4 mx-auto backdrop-blur-sm"></div>
-            <div class="h-8 bg-white/40 dark:bg-gray-800/40 rounded-2xl w-1/2 mx-auto backdrop-blur-sm"></div>
-            <div class="h-6 bg-white/40 dark:bg-gray-800/40 rounded-2xl w-1/3 mx-auto backdrop-blur-sm"></div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="h-32 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm"></div>
-            <div class="h-32 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm"></div>
-            <div class="h-32 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm"></div>
-          </div>
-        </div>
-      </div>
+    <div v-if="pending" class="grid min-h-[calc(100svh-3.5rem)] place-items-center px-4 md:min-h-screen">
+      <LoadingWord :label="String($t('common.loading'))" />
     </div>
 
     <div v-else-if="quote" class="px-4 md:px-8 py-6 md:py-12">

@@ -1,13 +1,12 @@
 <template>
   <div class="min-h-screen">
     <!-- Initial-only loading: render identically on SSR and during hydration -->
-    <div v-if="!hydrated || !isLanguageReady || pending" class="flex items-center justify-center py-16">
-      <div class="flex items-center gap-3">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-        <span class="text-gray-600 dark:text-gray-400">
-          {{ !hydrated ? $t('common.loading') : (!isLanguageReady ? $t('common.initializing') : $t('author_detail_loading')) }}
-        </span>
-      </div>
+    <div v-if="!hydrated || !isLanguageReady || pending" class="grid min-h-[calc(100svh-3.5rem)] place-items-center px-4 md:min-h-screen">
+      <LoadingWord
+        :label="!hydrated
+          ? String($t('common.loading'))
+          : (!isLanguageReady ? String($t('common.initializing')) : String($t('author_detail_loading')))"
+      />
     </div>
 
     <div v-else-if="author">
