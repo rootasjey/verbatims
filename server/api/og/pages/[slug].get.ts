@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const locale = getQuery(event).locale === 'fr' ? 'fr' : 'en'
   const requestUrl = getRequestURL(event)
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
-  const styleVersion = `${String(config.public.ogStyleVersion || '1')}:page-og-v3:${locale}`
+  const styleVersion = `${String(config.public.ogStyleVersion || '1')}:page-og-v3:${locale}:brand-footer-v1`
   const hash = await sha1(`${slug}:${styleVersion}`)
   const latestKey = `og:page:${slug}:${locale}:latest`
   const imageKey = (imageHash: string) => `og:page:${slug}:${locale}:${imageHash}.png`

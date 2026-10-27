@@ -1,7 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, asc, desc, sql } from 'drizzle-orm'
 import type { H3Event } from 'h3'
-import { getReferenceBadgeColor } from '#shared/constants/reference'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 import { localizeAuthors, localizeReferences, type ContentLanguage } from './entity-translations'
 
@@ -30,6 +29,8 @@ export interface AuthorOgPayload {
   name: string
   job?: string
   description?: string
+  imageUrl?: string
+  imageAlt?: string
   isFictional: boolean
   updatedAt: string | null
 }
@@ -38,9 +39,10 @@ export interface ReferenceOgPayload {
   id: number
   name: string
   primaryType: string
-  badgeColor: string
   secondaryType?: string
   description?: string
+  imageUrl?: string
+  imageAlt?: string
   updatedAt: string | null
 }
 
@@ -115,6 +117,8 @@ export async function getAuthorForOg(authorId: string, language: ContentLanguage
     name: schema.authors.name,
     job: schema.authors.job,
     description: schema.authors.description,
+    imageUrl: schema.authors.imageUrl,
+    imageAlt: schema.authors.imageAlt,
     isFictional: schema.authors.isFictional,
     updatedAt: schema.authors.updatedAt,
   })
@@ -132,6 +136,8 @@ export async function getAuthorForOg(authorId: string, language: ContentLanguage
     name: author.name,
     job: author.job ?? undefined,
     description: author.description ?? undefined,
+    imageUrl: getRenderableOgImageUrl(record.imageUrl),
+    imageAlt: record.imageAlt ?? undefined,
     isFictional: Boolean(author.isFictional),
     updatedAt: toIsoString(record.updatedAt)
   }
@@ -144,6 +150,8 @@ export async function getReferenceForOg(referenceId: string, language: ContentLa
     primaryType: schema.quoteReferences.primaryType,
     secondaryType: schema.quoteReferences.secondaryType,
     description: schema.quoteReferences.description,
+    imageUrl: schema.quoteReferences.imageUrl,
+    imageAlt: schema.quoteReferences.imageAlt,
     updatedAt: schema.quoteReferences.updatedAt,
   })
   .from(schema.quoteReferences)
@@ -159,11 +167,50 @@ export async function getReferenceForOg(referenceId: string, language: ContentLa
     id: reference.id,
     name: reference.name ?? record.name,
     primaryType: record.primaryType ?? 'other',
-    badgeColor: getReferenceBadgeColor(record.primaryType),
     secondaryType: record.secondaryType ?? undefined,
     description: reference.description ?? undefined,
+    imageUrl: getRenderableOgImageUrl(record.imageUrl),
+    imageAlt: record.imageAlt ?? undefined,
     updatedAt: toIsoString(record.updatedAt)
   }
+}
+
+function getRenderableOgImageUrl(value: string | null | undefined): string | undefined {
+  if (!value) return undefined
+  if (value.startsWith('/blob/images/')) return value
+
+  try {
+    const url = new URL(value)
+    if (url.protocol !== 'https:' || url.username || url.password || isPrivateOgHost(url.hostname)) {
+      return undefined
+    }
+    return url.toString()
+  } catch {
+    return undefined
+  }
+}
+
+function isPrivateOgHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/\.$/, '')
+  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.startsWith('[')) {
+    return true
+  }
+
+  const octets = host.split('.').map(Number)
+  if (octets.length !== 4 || octets.some(value => !Number.isInteger(value) || value < 0 || value > 255)) {
+    return false
+  }
+
+  const [first = 0, second = 0] = octets
+  return first === 0
+    || first === 10
+    || first === 127
+    || first >= 224
+    || (first === 169 && second === 254)
+    || (first === 172 && second >= 16 && second <= 31)
+    || (first === 192 && second === 168)
+    || (first === 100 && second >= 64 && second <= 127)
+    || (first === 198 && (second === 18 || second === 19))
 }
 
 export async function getTagForOg(tagId: string, language: ContentLanguage = 'en'): Promise<TagOgPayload | null> {

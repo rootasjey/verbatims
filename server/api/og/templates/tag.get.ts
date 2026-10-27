@@ -145,15 +145,11 @@ export default defineEventHandler(async (event) => {
       footer {
         position: relative;
         z-index: 1;
-        color: #78716C;
-        font-size: 15px;
-        letter-spacing: 0.02em;
       }
     </style>
   </head>
   <body>
     <div class="frame" role="img" aria-label="${locale === 'fr' ? `Thème ${escapeHtml(tag.name)} avec ${count} ${quoteLabel} sur Verbatims` : `Tag ${escapeHtml(tag.name)} with ${count} ${quoteLabel} on Verbatims`}">
-      <div class="brand">verbatims</div>
       <main>
         <section class="tag-details">
           <h1>${escapeHtml(tag.name)}</h1>
@@ -165,7 +161,7 @@ export default defineEventHandler(async (event) => {
           ${attribution ? `<p class="attribution">— ${escapeHtml(attribution)}</p>` : ''}
         </section>` : ''}
       </main>
-      <footer>verbatims.cc</footer>
+      <footer class="brand">verbatims</footer>
     </div>
   </body>
 </html>`

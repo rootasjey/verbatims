@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   if (!preview) throwServer(404, 'List not found')
 
   const config = useRuntimeConfig()
-  const version = String(config.public.ogStyleVersion || '1')
+  const version = `${String(config.public.ogStyleVersion || '1')}:brand-footer-v1`
   const locale = getQuery(event).locale === 'fr' ? 'fr' : 'en'
   const hash = await sha1(JSON.stringify({ ...preview, locale, version }))
   const latestKey = `og:collection:${id}:${locale}:latest`

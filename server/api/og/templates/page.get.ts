@@ -235,16 +235,10 @@ export default defineEventHandler((event) => {
       .privacy-excerpt { width: 350px; margin: auto; padding: 34px 36px; border: 1px solid #D6D3D1; background: #F5F5F4; }
       .privacy-excerpt-label { margin: 0; color: #78716C; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; }
       .privacy-excerpt blockquote { margin: 30px 0 0; font-family: 'Fraunces', Georgia, serif; font-size: 24px; line-height: 1.2; }
-      footer {
-        color: #78716C;
-        font-size: 15px;
-        letter-spacing: 0.02em;
-      }
     </style>
   </head>
   <body>
     <div class="frame" role="img" aria-label="${escapeHtml(`${title}. ${description}`)}">
-      <div class="brand">verbatims</div>
       <main>
         <section class="copy">
           <h1>${escapeHtml(title)}</h1>
@@ -252,7 +246,7 @@ export default defineEventHandler((event) => {
         </section>
         <section class="visual" aria-hidden="true">${visual}</section>
       </main>
-      <footer>verbatims.cc</footer>
+      <footer class="brand">verbatims</footer>
     </div>
   </body>
 </html>`

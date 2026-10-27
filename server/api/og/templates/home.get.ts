@@ -30,15 +30,13 @@ export default defineEventHandler((event) => {
       h1 { display: -webkit-box; overflow: hidden; margin: 0; font-family: Fraunces, Georgia, serif; font-size: 68px; font-weight: 550; letter-spacing: -0.04em; line-height: 1.02; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
       .description { display: -webkit-box; overflow: hidden; max-width: 490px; margin: 24px 0 0; color: #57534E; font-size: 21px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
       .visual { min-width: 0; flex: 1; align-self: stretch; border-left: 1px solid #D6D3D1; padding: 8px 0 8px 48px; }
-      .theme-image { display: block; width: 100%; height: 100%; border-radius: 14px; object-fit: cover; background: #E8E5DC; }
+      .theme-image { display: block; width: 100%; height: 100%; border-radius: 14px; object-fit: cover; background: #E8E5DC; box-shadow: 0 18px 34px -15px rgba(28, 25, 23, 0.36); }
       .theme-placeholder { display: grid; place-items: center; color: #78716C; font-family: Fraunces, Georgia, serif; font-size: 160px; }
-      footer { color: #78716C; font-size: 15px; letter-spacing: 0.02em; }
     </style>
   </head>
   <body><div class="frame" role="img" aria-label="${title} — ${description}">
-    <div class="brand">verbatims</div>
     <main><section class="copy"><h1>${title}</h1><p class="description">${description}</p></section><section class="visual" aria-hidden="true">${imageMarkup}</section></main>
-    <footer>verbatims.cc</footer>
+    <footer class="brand">verbatims</footer>
   </div></body>
 </html>`
 })

@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const requestUrl = getRequestURL(event)
-  const styleVersion = `${(config.public as any).ogStyleVersion || '1'}:reference-chip-v1`
+  const styleVersion = `${String(config.public.ogStyleVersion || '1')}:detail-editorial-v2-images:brand-footer-v1`
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
 
   const basis = JSON.stringify({
@@ -20,6 +20,8 @@ export default defineEventHandler(async (event) => {
     t: reference.primaryType,
     s: reference.secondaryType || '',
     d: reference.description || '',
+    i: reference.imageUrl || '',
+    a: reference.imageAlt || '',
     locale,
     v: styleVersion || '1',
     u: reference.updatedAt ? Date.parse(reference.updatedAt) : 0

@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const requestUrl = getRequestURL(event)
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
-  const styleVersion = `${String(config.public.ogStyleVersion || '1')}:tag-count-v1`
+  const styleVersion = `${String(config.public.ogStyleVersion || '1')}:tag-count-v1:brand-footer-v1`
   const hash = await sha1(JSON.stringify({
     name: tag.name,
     color: tag.color || '',

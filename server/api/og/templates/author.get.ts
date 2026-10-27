@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const role = locale === 'fr'
     ? author.isFictional ? 'Personnage fictif' : 'Auteur'
     : author.isFictional ? 'Fictional Character' : 'Author'
-  const subtitle = [role, author.job].filter(Boolean).join(' • ')
+  const metadata = [role, author.job].filter(Boolean).join(' · ')
   const description = author.description
     ? author.description
     : locale === 'fr'
@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
     <title>${escapeHtml(`${author.name} — Verbatims`)}</title>
     <meta name="description" content="${escapeHtml(description)}">
     <link rel="preload" href="/fonts/fraunces-8bfd3893.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/archivo-97a2c112.woff2" as="font" type="font/woff2" crossorigin>
     <style>
       @font-face {
         font-family: 'Fraunces';
@@ -32,65 +33,86 @@ export default defineEventHandler(async (event) => {
         font-style: normal;
         font-display: swap;
       }
-      :root {
-        --bg-start: #0B1220;
-        --bg-end: #000000;
-        --fg: #f8fafc;
-        --fg-dim: rgba(248, 250, 252, 0.82);
-        --chip: rgba(248, 250, 252, 0.18);
+      @font-face {
+        font-family: 'Archivo';
+        src: url('/fonts/archivo-97a2c112.woff2') format('woff2');
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: swap;
       }
-      html, body { margin: 0; padding: 0; height: 100%; }
+      * { box-sizing: border-box; }
+      html, body { width: 1200px; height: 630px; margin: 0; }
       body {
+        background: #FAFAF9;
+        color: #0C0A09;
+        font-family: 'Archivo', Arial, sans-serif;
+      }
+      .frame {
+        display: flex;
         width: 1200px;
         height: 630px;
-        background: #000000;
-        color: var(--fg);
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .card { width: 960px; height: 500px; display: flex; flex-direction: column; justify-content: center; }
-      .chip {
-        display: inline-flex;
-        width: fit-content;
-        margin-bottom: 22px;
-        padding: 8px 14px;
-        border-radius: 9999px;
-        background: var(--chip);
-        font-size: 20px;
-        font-weight: 600;
-      }
-      h1 {
-        margin: 0;
-        font-size: 70px;
-        font-weight: 700;
-        letter-spacing: -1px;
-        line-height: 1.1;
-        font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-      }
-      p {
-        margin: 24px 0 0;
-        font-size: 28px;
-        line-height: 1.3;
-        color: var(--fg-dim);
+        flex-direction: column;
+        overflow: hidden;
+        padding: 50px 74px 42px;
       }
       .brand {
-        margin-top: 26px;
-        font-size: 18px;
-        font-weight: 700;
-        letter-spacing: 6px;
-        text-transform: uppercase;
-        color: rgba(248, 250, 252, 0.65);
+        font-family: 'Fraunces', Georgia, serif;
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+      main {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        gap: 42px;
+        justify-content: center;
+        padding: 24px 0;
+      }
+      .portrait {
+        width: 196px;
+        height: 196px;
+        flex: 0 0 196px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #E7E5E4;
+      }
+      .content { min-width: 0; }
+      h1 {
+        margin: 0;
+        font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+        font-size: ${getTitleFontSize(author.name)}px;
+        font-weight: 550;
+        letter-spacing: -0.03em;
+        line-height: 1.02;
+        overflow-wrap: anywhere;
+      }
+      .metadata {
+        margin: 18px 0 0;
+        color: #78716C;
+        font-size: 17px;
+        line-height: 1.4;
+      }
+      .description {
+        max-width: 860px;
+        margin: 24px 0 0;
+        color: #57534E;
+        font-size: 22px;
+        line-height: 1.4;
       }
     </style>
   </head>
   <body>
-    <div class="card" role="img" aria-label="${locale === 'fr' ? 'Image de partage d’un auteur sur Verbatims' : 'Social share image for an author on Verbatims'}">
-      <span class="chip">${escapeHtml(subtitle || role)}</span>
-      <h1>${escapeHtml(wrapTitle(author.name, 72))}</h1>
-      <p>${escapeHtml(wrapBody(description, 150))}</p>
-      <div class="brand">verbatims.cc</div>
+    <div class="frame" role="img" aria-label="${locale === 'fr' ? 'Image de partage d’un auteur sur Verbatims' : 'Social share image for an author on Verbatims'}">
+      <main>
+        ${author.imageUrl ? `<img class="portrait" src="${escapeHtml(author.imageUrl)}" alt="${escapeHtml(author.imageAlt || (locale === 'fr' ? `Portrait de ${author.name}` : `Portrait of ${author.name}`))}">` : ''}
+        <section class="content">
+          <h1>${escapeHtml(wrapTitle(author.name, 72, locale))}</h1>
+          <p class="metadata">${escapeHtml(metadata || role)}</p>
+          <p class="description">${escapeHtml(wrapBody(description, 150, locale))}</p>
+        </section>
+      </main>
+      <footer class="brand">verbatims</footer>
     </div>
   </body>
 </html>`
@@ -100,16 +122,22 @@ export default defineEventHandler(async (event) => {
   return html
 })
 
-function wrapTitle(text: string, max: number): string {
+function wrapTitle(text: string, max: number, locale: 'en' | 'fr'): string {
   const normalized = text.replace(/\s+/g, ' ').trim()
-  if (!normalized) return 'Unknown Author'
+  if (!normalized) return locale === 'fr' ? 'Auteur inconnu' : 'Unknown Author'
   return normalized.length > max ? normalized.slice(0, max - 1).trimEnd() + '…' : normalized
 }
 
-function wrapBody(text: string, max: number): string {
+function wrapBody(text: string, max: number, locale: 'en' | 'fr'): string {
   const normalized = text.replace(/\s+/g, ' ').trim()
-  if (!normalized) return 'Discover this author on Verbatims.'
+  if (!normalized) return locale === 'fr' ? 'Découvrez cet auteur sur Verbatims.' : 'Discover this author on Verbatims.'
   return normalized.length > max ? normalized.slice(0, max - 1).trimEnd() + '…' : normalized
+}
+
+function getTitleFontSize(title: string): number {
+  if (title.length > 42) return 60
+  if (title.length > 28) return 70
+  return 84
 }
 
 function escapeHtml(val: string): string {
