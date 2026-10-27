@@ -128,10 +128,7 @@
                     :href="`/?theme=${theme.slug}`"
                     target="_blank"
                     rel="noopener noreferrer"
-                    :style="{ color: hoveredSlug === theme.slug ? themePrimaryColor(theme) || undefined : undefined }"
-                    class="font-sans text-xs text-gray-400 dark:text-gray-500 no-underline transition-all"
-                    @mouseenter="hoveredSlug = theme.slug"
-                    @mouseleave="hoveredSlug = null"
+                    class="font-sans text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus-visible:underline focus-visible:underline-offset-2 no-underline transition-colors"
                   >{{ theme.slug }}</a>
                 </div>
               </td>
@@ -1084,7 +1081,6 @@ const deleteDisabled = computed(() => submitting.value || (!themeToDelete.value 
 
 const showAISettings = ref(false)
 const showTranslations = ref(false)
-const hoveredSlug = ref<string | null>(null)
 const savingAISettings = ref(false)
 const testingConnection = ref(false)
 
@@ -1808,13 +1804,6 @@ const duplicateTheme = async (theme: any) => {
   entitySuggestions.value = []
   activeTab.value = 'general'
   showEditDialog.value = true
-}
-
-const themePrimaryColor = (theme: any) => {
-  if (!theme.config) return null
-  let cfg: any
-  if (typeof theme.config === 'object') { cfg = theme.config } else { try { cfg = JSON.parse(theme.config) } catch { return null } }
-  return cfg.color_primary || null
 }
 
 const startEditPriority = (theme: any) => {
