@@ -4,6 +4,10 @@ export default defineEventHandler((event) => {
   const title = escapeHtml(String(query.title || 'Verbatims'))
   const description = escapeHtml(String(query.description || 'Share memorable quotes with their sources.'))
   const image = safeImageUrl(String(query.image || ''), getRequestURL(event).origin)
+  const imageCredit = String(query.imageCredit || '').trim()
+  const imageCreditLabel = image && imageCredit
+    ? `<p class="image-credit">${locale === 'fr' ? 'Illustration : ' : 'Illustration by '}${escapeHtml(imageCredit)}</p>`
+    : ''
   const imageMarkup = image
     ? `<img class="theme-image" src="${escapeHtml(image)}" alt="">`
     : '<div class="theme-image theme-placeholder" aria-hidden="true"><span>“</span></div>'
@@ -29,13 +33,14 @@ export default defineEventHandler((event) => {
       .copy { width: 47%; flex-shrink: 0; }
       h1 { display: -webkit-box; overflow: hidden; margin: 0; font-family: Fraunces, Georgia, serif; font-size: 68px; font-weight: 550; letter-spacing: -0.04em; line-height: 1.02; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
       .description { display: -webkit-box; overflow: hidden; max-width: 490px; margin: 24px 0 0; color: #57534E; font-size: 21px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-      .visual { min-width: 0; flex: 1; align-self: stretch; border-left: 1px solid #D6D3D1; padding: 8px 0 8px 48px; }
-      .theme-image { display: block; width: 100%; height: 100%; border-radius: 14px; object-fit: cover; background: #E8E5DC; box-shadow: 0 18px 34px -15px rgba(28, 25, 23, 0.36); }
+      .visual { display: flex; min-width: 0; flex: 1; flex-direction: column; align-self: stretch; gap: 12px; border-left: 1px solid #D6D3D1; padding: 8px 0 8px 48px; }
+      .theme-image { display: block; min-height: 0; width: 100%; flex: 1; border-radius: 14px; object-fit: cover; background: #E8E5DC; box-shadow: 0 18px 34px -15px rgba(28, 25, 23, 0.36); }
+      .image-credit { display: -webkit-box; overflow: hidden; flex-shrink: 0; margin: 0; color: #78716C; font-size: 14px; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
       .theme-placeholder { display: grid; place-items: center; color: #78716C; font-family: Fraunces, Georgia, serif; font-size: 160px; }
     </style>
   </head>
   <body><div class="frame" role="img" aria-label="${title} — ${description}">
-    <main><section class="copy"><h1>${title}</h1><p class="description">${description}</p></section><section class="visual" aria-hidden="true">${imageMarkup}</section></main>
+    <main><section class="copy"><h1>${title}</h1><p class="description">${description}</p></section><section class="visual" aria-hidden="true">${imageMarkup}${imageCreditLabel}</section></main>
     <footer class="brand">verbatims</footer>
   </div></body>
 </html>`

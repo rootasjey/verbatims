@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
     name: schema.themes.name,
     description: schema.themes.description,
     imageUrl: schema.themes.imageUrl,
+    imageCredit: schema.themes.imageCredit,
     updatedAt: schema.themes.updatedAt,
   })
     .from(schema.themes)
@@ -27,12 +28,13 @@ export default defineEventHandler(async (event) => {
   const translations = await getThemeTranslations(theme.id)
   const localized = resolveLocalizedField(translations, locale, theme.name, theme.description)
   const config = useRuntimeConfig()
-  const version = `${String(config.public.ogStyleVersion || '1')}:brand-footer-v1:cover-shadow-v1`
+  const version = `${String(config.public.ogStyleVersion || '1')}:brand-footer-v1:cover-shadow-v1:cover-credit-v1`
   const hash = await sha1(JSON.stringify({
     slug,
     name: localized.name,
     description: localized.description,
     imageUrl: theme.imageUrl,
+    imageCredit: theme.imageCredit,
     locale,
     updatedAt: theme.updatedAt?.getTime() ?? null,
     version,
@@ -51,6 +53,7 @@ export default defineEventHandler(async (event) => {
   templateUrl.searchParams.set('title', localized.name)
   templateUrl.searchParams.set('description', localized.description || '')
   templateUrl.searchParams.set('image', theme.imageUrl || '')
+  templateUrl.searchParams.set('imageCredit', theme.imageCredit || '')
   templateUrl.searchParams.set('locale', locale)
 
   const { page } = await hubBrowser(event)
