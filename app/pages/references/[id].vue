@@ -306,18 +306,13 @@
       <SimilarReferences :references="similarReferences" />
     </div>
 
-    <div v-else class="p-8">
-      <div class="text-center py-16">
-        <NIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h2 class="font-title text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $ts('reference_detail_not_found_title') }}</h2>
-        <p class="font-serif text-gray-600 dark:text-gray-400 mb-6">
-          {{ $ts('reference_detail_not_found_desc') }}
-        </p>
-        <NButton to="/references" size="sm" btn="solid-black" class="px-8 py-3 rounded-3">
-          {{ $ts('reference_detail_browse') }}
-        </NButton>
-      </div>
-    </div>
+    <EditorialNotFound
+      v-else
+      :title="$ts('reference_detail_not_found_title')"
+      :description="$ts('reference_detail_not_found_desc')"
+      :primary-label="$ts('reference_detail_browse')"
+      primary-to="/references"
+    />
 
     <ClientOnly>
       <AddReferenceDialog

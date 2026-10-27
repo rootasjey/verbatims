@@ -283,18 +283,13 @@
     </div>
 
     <!-- Error State -->
-    <div v-else class="p-8">
-      <div class="text-center py-16">
-        <NIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h2 class="font-title text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $ts('author_detail_not_found_title') }}</h2>
-        <p class="font-serif text-gray-600 dark:text-gray-400 mb-6">
-          {{ $ts('author_detail_not_found_desc') }}
-        </p>
-        <NButton to="/authors" size="sm" btn="solid-black" class="px-8 py-3 rounded-3">
-          {{ $ts('author_detail_browse') }}
-        </NButton>
-      </div>
-    </div>
+    <EditorialNotFound
+      v-else
+      :title="$ts('author_detail_not_found_title')"
+      :description="$ts('author_detail_not_found_desc')"
+      :primary-label="$ts('author_detail_browse')"
+      primary-to="/authors"
+    />
 
     <ClientOnly>
       <AddAuthorDialog

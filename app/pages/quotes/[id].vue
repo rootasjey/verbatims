@@ -199,27 +199,15 @@
     </div>
 
     <!-- Error State -->
-    <div v-else class="px-6 py-20 md:py-32 animate-fade-in animate-duration-500">
-      <div class="max-w-3xl mx-auto text-center">
-        <div class="flex items-center gap-3 mb-10">
-          <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-          <span class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">Erratum</span>
-          <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-        </div>
-        <p class="font-sans text-xs uppercase tracking-[0.24em] text-gray-400 dark:text-gray-500 mb-5">404 · Archives</p>
-        <h2 class="font-serif text-4xl md:text-6xl font-300 text-gray-900 dark:text-gray-100 leading-tight text-balance">
-          {{ $ts('quote_detail_not_found_title') }}
-        </h2>
-        <p class="max-w-xl mx-auto mt-5 font-sans text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed">
-          {{ $ts('quote_detail_not_found_desc') }}
-        </p>
-        <div class="flex flex-wrap justify-center items-center gap-x-5 gap-y-3 mt-10">
-          <HomeNavLink to="/" class="px-4 py-1">{{ $ts('quote_detail_browse') }}</HomeNavLink>
-          <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <HomeNavLink to="/quotes" class="px-4 py-1">{{ $ts('home.nav.quotes') }}</HomeNavLink>
-        </div>
-      </div>
-    </div>
+    <EditorialNotFound
+      v-else
+      :title="$ts('quote_detail_not_found_title')"
+      :description="$ts('quote_detail_not_found_desc')"
+      :primary-label="$ts('quote_detail_browse')"
+      primary-to="/quotes"
+      :secondary-label="String($t('error_page.home'))"
+      secondary-to="/"
+    />
   </div>
 
   <ClientOnly>
