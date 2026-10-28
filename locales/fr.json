@@ -843,6 +843,16 @@
       "author_sections": "Sections de l’auteur",
       "author_tab_profile": "Profil",
       "author_tab_image": "Portrait et crédits",
+      "image_attribution_status_title": "État du crédit et de la licence",
+      "image_credit_status": "Crédit de l’image",
+      "image_credit_creator_known": "Créateur identifié",
+      "image_credit_source_known": "Source identifiée",
+      "image_credit_unknown": "Créateur et source inconnus",
+      "image_license_status": "Statut de la licence",
+      "image_license_documented": "Licence documentée",
+      "image_license_undocumented": "Licence non documentée",
+      "image_license_territory_limited": "Droits limités selon le territoire",
+      "image_status_unspecified": "Non renseigné",
       "author_tab_translations": "Traductions",
       "reference_sections": "Sections de la référence",
       "reference_tab_details": "Détails",
@@ -1261,6 +1271,15 @@
     "toast_bulk_download_failed": "{count} échec",
     "toast_bulk_delete_failed_title": "Échec de la suppression groupée",
     "toast_bulk_delete_failed_fallback": "Veuillez réessayer."
+  },
+  "image_attribution": {
+    "credit_creator_known": "Crédit :",
+    "credit_source_known": "Source :",
+    "credit_unknown": "Crédit d’origine non documenté",
+    "source_link": "Consulter la source de l’image",
+    "license_documented": "Licence documentée",
+    "license_undocumented": "Licence non documentée",
+    "license_territory_limited": "Droits limités selon le territoire"
   },
   "edit_links": {
     "title_author": "Modifier les liens de l’auteur",

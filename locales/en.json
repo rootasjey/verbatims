@@ -824,6 +824,16 @@
       "author_sections": "Author sections",
       "author_tab_profile": "Profile",
       "author_tab_image": "Portrait & credits",
+      "image_attribution_status_title": "Credit and license status",
+      "image_credit_status": "Image credit",
+      "image_credit_creator_known": "Creator identified",
+      "image_credit_source_known": "Source identified",
+      "image_credit_unknown": "Creator and source unknown",
+      "image_license_status": "License status",
+      "image_license_documented": "License documented",
+      "image_license_undocumented": "License undocumented",
+      "image_license_territory_limited": "Rights vary by territory",
+      "image_status_unspecified": "Unspecified",
       "author_tab_translations": "Translations",
       "reference_sections": "Reference sections",
       "reference_tab_details": "Details",
@@ -1349,6 +1359,15 @@
     "category_general": "General",
     "category_theme": "Theme",
     "category_topic": "Topic"
+  },
+  "image_attribution": {
+    "credit_creator_known": "Image credit:",
+    "credit_source_known": "Source:",
+    "credit_unknown": "Original credit undocumented",
+    "source_link": "View image source",
+    "license_documented": "License documented",
+    "license_undocumented": "License undocumented",
+    "license_territory_limited": "Rights vary by territory"
   },
   "edit_links": {
     "title_author": "Edit author links",

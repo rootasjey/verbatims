@@ -136,8 +136,10 @@
               </button>
               <EntityImageAttribution
                 :credit="author.image_credit"
+                :credit-status="author.image_credit_status"
                 :source-url="author.image_source_url"
                 :license="author.image_license"
+                :license-status="author.image_license_status"
                 :date="author.image_date"
                 :location="author.image_location"
                 reportable

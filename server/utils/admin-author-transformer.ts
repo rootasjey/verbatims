@@ -25,8 +25,10 @@ type AdminAuthorRow = {
   imageUrl?: string | null
   imageAlt?: string | null
   imageCredit?: string | null
+  imageCreditStatus?: Author['image_credit_status']
   imageSourceUrl?: string | null
   imageLicense?: string | null
+  imageLicenseStatus?: Author['image_license_status']
   imageDate?: string | null
   imageLocation?: string | null
   socials?: string | null
@@ -65,8 +67,10 @@ export const normalizeAdminAuthor = (author: AdminAuthorRow): Author => ({
   image_url: author.imageUrl ?? undefined,
   image_alt: author.imageAlt ?? undefined,
   image_credit: author.imageCredit ?? undefined,
+  image_credit_status: author.imageCreditStatus ?? undefined,
   image_source_url: author.imageSourceUrl ?? undefined,
   image_license: author.imageLicense ?? undefined,
+  image_license_status: author.imageLicenseStatus ?? undefined,
   image_date: author.imageDate ?? undefined,
   image_location: author.imageLocation ?? undefined,
   socials: author.socials ?? '',

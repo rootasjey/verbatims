@@ -33,6 +33,11 @@ const imageAttributionFields = {
   image_location: z.string().max(200).trim().optional().nullable(),
 }
 
+const authorImageAttributionStatusFields = {
+  image_credit_status: z.enum(['creator_known', 'source_known', 'unknown']).optional().nullable(),
+  image_license_status: z.enum(['documented', 'undocumented', 'territory_limited']).optional().nullable(),
+}
+
 const provenanceStatus = z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed'])
 
 const quoteAttributionsPayloadSchema = z.array(z.object({
@@ -173,6 +178,7 @@ export const createAuthorSchema = z.object({
   death_location: z.string().max(200).trim().optional().nullable(),
   image_url: imageUrlField,
   ...imageAttributionFields,
+  ...authorImageAttributionStatusFields,
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 
@@ -233,6 +239,7 @@ export const updateAuthorSchema = z.object({
   death_location: z.string().max(200).trim().optional().nullable(),
   image_url: imageUrlField,
   ...imageAttributionFields,
+  ...authorImageAttributionStatusFields,
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 

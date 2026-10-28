@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync, readdirSync, renameSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { createInterface } from 'node:readline'
@@ -8,6 +8,7 @@ const root = process.cwd()
 const wrangler = resolve(root, 'node_modules/.bin/wrangler')
 const targetDb = resolve(root, '.data/db/sqlite.db')
 const tempSql = resolve(root, '.data/db/.prod-export.sql')
+const incomingDb = `${targetDb}.incoming`
 const ftsMigration = resolve(root, 'server/db/migrations/sqlite/0030_create_quotes_fts.sql')
 const activityLogsMigration = resolve(root, 'server/db/migrations/sqlite/0024_create_activity_logs.sql')
 const yes = process.argv.includes('--yes')
@@ -56,21 +57,29 @@ console.log('Exporting production database...')
 run(wrangler, ['d1', 'export', 'verbatims', '--remote', '--output', tempSql, ...tables.flatMap((t) => ['--table', t])])
 console.log(`Exported to ${tempSql}`)
 
-// 4. Back up current local DB, then import into a fresh file
+// 4. Back up current local DB, then import into a staging file. Wrangler's
+// export interleaves each CREATE TABLE with that table's INSERTs, but its
+// alphabetical table order can insert child rows before a referenced table
+// exists. Create all tables first, then apply the exported data.
 if (existsSync(targetDb)) {
   const backup = `${targetDb}.before-prod-sync-${fmtTimestamp()}.bak`
   copyFileSync(targetDb, backup)
   console.log(`Backed up local DB to ${backup}`)
 }
 mkdirSync(dirname(targetDb), { recursive: true })
-unlinkSync(targetDb)
+if (existsSync(incomingDb)) unlinkSync(incomingDb)
 
 const sql = readFileSync(tempSql, 'utf8')
-const db = new DatabaseSync(targetDb)
+const createTableStatements = []
+const dataSql = sql.replace(/(^|\n)(CREATE TABLE\b[\s\S]*?;\n)/g, (_match, prefix, statement) => {
+  createTableStatements.push(statement)
+  return prefix
+})
+const db = new DatabaseSync(incomingDb)
 try {
   console.log('Importing production data into local DB...')
   db.exec('BEGIN;')
-  db.exec(sql)
+  db.exec(`${createTableStatements.join('\n')}\n${dataSql}`)
   db.exec('COMMIT;')
 
   // Some production exports may predate activity_logs even though the
@@ -104,6 +113,7 @@ try {
 
 // 5. Cleanup and report
 unlinkSync(tempSql)
+renameSync(incomingDb, targetDb)
 const check = new DatabaseSync(targetDb, { readOnly: true })
 const count = (t) => check.prepare(`SELECT count(*) AS c FROM ${t}`).get().c
 console.log('---')

@@ -104,6 +104,27 @@
           </div>
         </div>
         <AdminImageAttributionFields v-model="form.image_attribution" :disabled="submitting" />
+        <fieldset class="grid gap-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700 sm:grid-cols-2">
+          <legend class="px-1 text-sm font-semibold text-gray-800 dark:text-gray-200">{{ $t('components.dialogs.image_attribution_status_title') }}</legend>
+          <label class="block min-w-0 space-y-1.5">
+            <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.image_credit_status') }}</span>
+            <select v-model="form.image_credit_status" :disabled="submitting" class="min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
+              <option value="">{{ $t('components.dialogs.image_status_unspecified') }}</option>
+              <option value="creator_known">{{ $t('components.dialogs.image_credit_creator_known') }}</option>
+              <option value="source_known">{{ $t('components.dialogs.image_credit_source_known') }}</option>
+              <option value="unknown">{{ $t('components.dialogs.image_credit_unknown') }}</option>
+            </select>
+          </label>
+          <label class="block min-w-0 space-y-1.5">
+            <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.image_license_status') }}</span>
+            <select v-model="form.image_license_status" :disabled="submitting" class="min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
+              <option value="">{{ $t('components.dialogs.image_status_unspecified') }}</option>
+              <option value="documented">{{ $t('components.dialogs.image_license_documented') }}</option>
+              <option value="undocumented">{{ $t('components.dialogs.image_license_undocumented') }}</option>
+              <option value="territory_limited">{{ $t('components.dialogs.image_license_territory_limited') }}</option>
+            </select>
+          </label>
+        </fieldset>
       </section>
 
       <section :ref="element => setPanelRef('translations', element)" v-show="activeTab === 'translations'" id="author-panel-translations" role="tabpanel" aria-labelledby="author-tab-translations" class="space-y-5 py-1">
@@ -241,6 +262,8 @@ const onLanguageTabKeydown = (event: KeyboardEvent, currentIndex: number) => {
 }
 
 const emptyImageAttribution = () => ({ image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '' })
+type AuthorImageCreditStatus = NonNullable<Author['image_credit_status']>
+type AuthorImageLicenseStatus = NonNullable<Author['image_license_status']>
 const translationLanguages: AuthorTranslationLanguage[] = ['en', 'fr']
 const emptyTranslations = () => ({ en: { job: '', description: '' }, fr: { job: '', description: '' } })
 const readTranslations = (rows?: Author['translations']) => {
@@ -259,6 +282,8 @@ const form = ref({
   birth_life_date: null as AuthorLifeDate | null,
   death_life_date: null as AuthorLifeDate | null,
   image_url: '',
+  image_credit_status: '' as AuthorImageCreditStatus | '',
+  image_license_status: '' as AuthorImageLicenseStatus | '',
   image_attribution: emptyImageAttribution(),
   is_fictional: false,
   description: '',
@@ -398,6 +423,8 @@ const selectExistingAuthor = (author: Author) => {
     birth_life_date: author.birth_year ? { year: author.birth_year, era: author.birth_era || 'ce', month: author.birth_month, day: author.birth_day, approximate: author.birth_is_approximate, calendar: author.birth_calendar } : parseAuthorLifeDate(author.birth_date),
     death_life_date: author.death_year ? { year: author.death_year, era: author.death_era || 'ce', month: author.death_month, day: author.death_day, approximate: author.death_is_approximate, calendar: author.death_calendar } : parseAuthorLifeDate(author.death_date),
     image_url: author.image_url || '',
+    image_credit_status: author.image_credit_status || '',
+    image_license_status: author.image_license_status || '',
     image_attribution: {
       image_alt: author.image_alt || '', image_credit: author.image_credit || '', image_source_url: author.image_source_url || '',
       image_license: author.image_license || '', image_date: author.image_date || '', image_location: author.image_location || ''
@@ -424,6 +451,8 @@ const resetForm = () => {
     birth_life_date: null,
     death_life_date: null,
     image_url: '',
+    image_credit_status: '',
+    image_license_status: '',
     image_attribution: emptyImageAttribution(),
     is_fictional: false,
     description: '',
@@ -445,6 +474,8 @@ const initializeFormForEdit = () => {
     birth_life_date: author.birth_year ? { year: author.birth_year, era: author.birth_era || 'ce', month: author.birth_month, day: author.birth_day, approximate: author.birth_is_approximate, calendar: author.birth_calendar } : parseAuthorLifeDate(author.birth_date),
     death_life_date: author.death_year ? { year: author.death_year, era: author.death_era || 'ce', month: author.death_month, day: author.death_day, approximate: author.death_is_approximate, calendar: author.death_calendar } : parseAuthorLifeDate(author.death_date),
     image_url: author.image_url || '',
+    image_credit_status: author.image_credit_status || '',
+    image_license_status: author.image_license_status || '',
     image_attribution: {
       image_alt: author.image_alt || '', image_credit: author.image_credit || '', image_source_url: author.image_source_url || '',
       image_license: author.image_license || '', image_date: author.image_date || '', image_location: author.image_location || ''
@@ -505,6 +536,8 @@ const submitAuthor = async () => {
       ...lifeDatePayload('birth', form.value.birth_life_date),
       ...lifeDatePayload('death', form.value.death_life_date),
       image_url: form.value.image_url.trim() || null,
+      image_credit_status: form.value.image_credit_status || null,
+      image_license_status: form.value.image_license_status || null,
       image_alt: form.value.image_attribution.image_alt.trim() || null,
       image_credit: form.value.image_attribution.image_credit.trim() || null,
       image_source_url: form.value.image_attribution.image_source_url.trim() || null,
