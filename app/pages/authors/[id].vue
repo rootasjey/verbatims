@@ -378,7 +378,7 @@
       :open="avatarImageContextMenuOpen"
       :items="avatarImageContextMenuItems"
       :modal="false"
-      :_dropdown-menu-content="{ side: 'bottom', align: 'start', sideOffset: 4 }"
+      :_dropdown-menu-content="{ class: 'author-avatar-image-context-menu', side: 'bottom', align: 'start', sideOffset: 4 }"
       @update:open="avatarImageContextMenuOpen = $event"
     >
       <span aria-hidden="true" class="fixed z-50 h-px w-px" :style="avatarImageContextMenuPosition" />
@@ -528,6 +528,26 @@ const avatarPreviewOpen = ref(false)
 const avatarRef = ref<any>(null)
 const avatarImageContextMenuOpen = ref(false)
 const avatarImageContextMenuPosition = ref<{ left: string; top: string } | null>(null)
+const closeAvatarImageContextMenuOnOutsidePointerDown = (event: PointerEvent) => {
+  if (!avatarImageContextMenuOpen.value || !(event.target instanceof Node)) return
+
+  const menuContent = document.querySelector('.author-avatar-image-context-menu')
+  if (avatarRef.value?.contains(event.target) || menuContent?.contains(event.target)) return
+
+  avatarImageContextMenuOpen.value = false
+  avatarImageContextMenuPosition.value = null
+}
+
+watch(avatarImageContextMenuOpen, (open) => {
+  if (typeof document === 'undefined') return
+
+  if (open) {
+    document.addEventListener('pointerdown', closeAvatarImageContextMenuOnOutsidePointerDown, true)
+  } else {
+    document.removeEventListener('pointerdown', closeAvatarImageContextMenuOnOutsidePointerDown, true)
+  }
+}, { flush: 'sync' })
+
 const avatarImageContextMenuItems = computed(() => [{
   label: $ts('author_detail_edit_image'),
   leading: 'i-ph-pencil-simple-line',
@@ -1124,6 +1144,9 @@ watch(pending, (now, prev) => {
 
 onUnmounted(() => {
   authorHeroObserver?.disconnect()
+  if (typeof document !== 'undefined') {
+    document.removeEventListener('pointerdown', closeAvatarImageContextMenuOnOutsidePointerDown, true)
+  }
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', handleGlobalKeydown)
   }
