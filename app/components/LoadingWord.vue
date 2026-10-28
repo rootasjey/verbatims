@@ -40,32 +40,22 @@ const letters = [...'LOADING...']
   font-weight: 600;
   letter-spacing: -0.055em;
   line-height: 0.8;
+  animation: word-appear 160ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
 }
 
 .loading-word__letter {
   display: inline-block;
-  animation: letter-rise 680ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
-  animation-delay: calc(var(--letter-index) * 280ms);
 }
 
 .loading-word__ellipsis {
   transform-origin: center bottom;
-  animation-name: letter-rise, dot-breathe;
-  animation-duration: 680ms, 1.5s;
-  animation-delay: calc(var(--letter-index) * 280ms), 3.2s;
-  animation-timing-function: cubic-bezier(0.2, 0.75, 0.25, 1), ease-in-out;
-  animation-iteration-count: 1, infinite;
-  animation-fill-mode: both, none;
+  animation: dot-breathe 1.5s ease-in-out infinite;
 }
 
-@keyframes letter-rise {
+@keyframes word-appear {
   0% {
     opacity: 0;
-    transform: translateY(0.45em);
-  }
-  55% {
-    opacity: 0.72;
-    transform: translateY(-0.04em);
+    transform: translateY(0.08em);
   }
   100% {
     opacity: 1;
@@ -91,15 +81,16 @@ const letters = [...'LOADING...']
 }
 
 .loading-word__ellipsis:nth-last-child(2) {
-  animation-delay: calc(var(--letter-index) * 280ms), 3.38s;
+  animation-delay: 180ms;
 }
 
 .loading-word__ellipsis:nth-last-child(1) {
-  animation-delay: calc(var(--letter-index) * 280ms), 3.56s;
+  animation-delay: 360ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading-word__letter {
+  .loading-word__visual,
+  .loading-word__ellipsis {
     animation: none;
     opacity: 1;
     transform: none;
