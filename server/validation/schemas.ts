@@ -33,7 +33,7 @@ const imageAttributionFields = {
   image_location: z.string().max(200).trim().optional().nullable(),
 }
 
-const authorImageAttributionStatusFields = {
+const imageAttributionStatusFields = {
   image_credit_status: z.enum(['creator_known', 'source_known', 'unknown']).optional().nullable(),
   image_license_status: z.enum(['documented', 'undocumented', 'territory_limited']).optional().nullable(),
 }
@@ -178,7 +178,7 @@ export const createAuthorSchema = z.object({
   death_location: z.string().max(200).trim().optional().nullable(),
   image_url: imageUrlField,
   ...imageAttributionFields,
-  ...authorImageAttributionStatusFields,
+  ...imageAttributionStatusFields,
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 
@@ -195,6 +195,7 @@ export const createReferenceSchema = z.object({
   original_language: z.enum(validLanguages).optional().nullable(),
   image_url: imageUrlField,
   ...imageAttributionFields,
+  ...imageAttributionStatusFields,
   urls: z.record(z.string(), z.unknown()).optional().nullable(),
 })
 
@@ -239,7 +240,7 @@ export const updateAuthorSchema = z.object({
   death_location: z.string().max(200).trim().optional().nullable(),
   image_url: imageUrlField,
   ...imageAttributionFields,
-  ...authorImageAttributionStatusFields,
+  ...imageAttributionStatusFields,
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 
@@ -256,6 +257,7 @@ export const updateReferenceSchema = z.object({
   original_language: z.enum(validLanguages).optional().nullable(),
   image_url: imageUrlField,
   ...imageAttributionFields,
+  ...imageAttributionStatusFields,
   urls: z.record(z.string(), z.unknown()).optional().nullable(),
 })
 

@@ -66,8 +66,10 @@ export interface QuoteReference {
   /** Alternative text, attribution, and source metadata for the cover or poster */
   image_alt?: string | null;
   image_credit?: string | null;
+  image_credit_status?: 'creator_known' | 'source_known' | 'unknown' | null;
   image_source_url?: string | null;
   image_license?: string | null;
+  image_license_status?: 'documented' | 'undocumented' | 'territory_limited' | null;
   image_date?: string | null;
   image_location?: string | null;
   
@@ -117,8 +119,10 @@ export interface CreateQuoteReferenceData {
   image_url?: string | null;
   image_alt?: string | null;
   image_credit?: string | null;
+  image_credit_status?: 'creator_known' | 'source_known' | 'unknown' | null;
   image_source_url?: string | null;
   image_license?: string | null;
+  image_license_status?: 'documented' | 'undocumented' | 'territory_limited' | null;
   image_date?: string | null;
   image_location?: string | null;
   urls?: QuoteReferenceUrls;

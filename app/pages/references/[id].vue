@@ -63,8 +63,10 @@
             <EntityImageAttribution
               v-if="reference.imageUrl"
               :credit="reference.image_credit"
+              :credit-status="reference.image_credit_status"
               :source-url="reference.image_source_url"
               :license="reference.image_license"
+              :license-status="reference.image_license_status"
               :date="reference.image_date"
               :location="reference.image_location"
               reportable

@@ -25,6 +25,8 @@ defineRouteMeta({
               release_date: { type: 'string', nullable: true },
               original_language: { type: 'string', nullable: true },
               image_url: { type: 'string', nullable: true },
+              image_credit_status: { type: 'string', enum: ['creator_known', 'source_known', 'unknown'], nullable: true },
+              image_license_status: { type: 'string', enum: ['documented', 'undocumented', 'territory_limited'], nullable: true },
               urls: { type: 'object', additionalProperties: true, nullable: true },
             },
           },
@@ -76,6 +78,14 @@ export default defineEventHandler(async (event) => {
   if (body.primary_type !== undefined) updateData.primaryType = body.primary_type
   if (body.secondary_type !== undefined) updateData.secondaryType = body.secondary_type
   if (body.urls !== undefined) updateData.urls = JSON.stringify(body.urls)
+  if (body.image_alt !== undefined) updateData.imageAlt = body.image_alt
+  if (body.image_credit !== undefined) updateData.imageCredit = body.image_credit
+  if (body.image_credit_status !== undefined) updateData.imageCreditStatus = body.image_credit_status
+  if (body.image_source_url !== undefined) updateData.imageSourceUrl = body.image_source_url
+  if (body.image_license !== undefined) updateData.imageLicense = body.image_license
+  if (body.image_license_status !== undefined) updateData.imageLicenseStatus = body.image_license_status
+  if (body.image_date !== undefined) updateData.imageDate = body.image_date
+  if (body.image_location !== undefined) updateData.imageLocation = body.image_location
 
   if (body.image_url !== undefined) {
     const oldUrl = existing.imageUrl
@@ -115,6 +125,12 @@ export default defineEventHandler(async (event) => {
       type: updated.primaryType,
       secondary_type: updated.secondaryType,
       image_url: updated.imageUrl,
+      image_alt: updated.imageAlt,
+      image_credit: updated.imageCredit,
+      image_credit_status: updated.imageCreditStatus,
+      image_source_url: updated.imageSourceUrl,
+      image_license: updated.imageLicense,
+      image_license_status: updated.imageLicenseStatus,
       release_date: updated.releaseDate,
       language: updated.originalLanguage,
       description: updated.description,

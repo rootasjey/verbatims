@@ -66,7 +66,7 @@
           </label>
         </section>
 
-        <section :ref="element => setPanelRef('image', element)" v-show="activeTab === 'image'" id="reference-panel-image" role="tabpanel" aria-labelledby="reference-tab-image" class="space-y-5 py-1">
+        <section :ref="element => setPanelRef('image', element)" v-show="activeTab === 'image'" id="reference-panel-image" role="tabpanel" aria-labelledby="reference-tab-image" class="space-y-4 py-1">
           <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
             <label class="block min-w-0 space-y-1.5">
               <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.image_url') }}</span>
@@ -83,6 +83,27 @@
             </div>
           </div>
           <AdminImageAttributionFields v-model="form.image_attribution" :disabled="submitting" />
+          <fieldset class="grid gap-3 rounded-xl border border-gray-200/80 p-3 dark:border-neutral-700/80 sm:grid-cols-2">
+            <legend class="col-span-full px-1 font-sans text-sm font-600 text-gray-800 dark:text-gray-200">{{ $t('components.dialogs.image_attribution_status_title') }}</legend>
+            <label class="block min-w-0 space-y-1.5">
+              <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.image_credit_status') }}</span>
+              <select v-model="form.image_credit_status" :disabled="submitting" class="min-h-9 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
+                <option value="">{{ $t('components.dialogs.image_status_unspecified') }}</option>
+                <option value="creator_known">{{ $t('components.dialogs.image_credit_creator_known') }}</option>
+                <option value="source_known">{{ $t('components.dialogs.image_credit_source_known') }}</option>
+                <option value="unknown">{{ $t('components.dialogs.image_credit_unknown') }}</option>
+              </select>
+            </label>
+            <label class="block min-w-0 space-y-1.5">
+              <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.image_license_status') }}</span>
+              <select v-model="form.image_license_status" :disabled="submitting" class="min-h-9 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100">
+                <option value="">{{ $t('components.dialogs.image_status_unspecified') }}</option>
+                <option value="documented">{{ $t('components.dialogs.image_license_documented') }}</option>
+                <option value="undocumented">{{ $t('components.dialogs.image_license_undocumented') }}</option>
+                <option value="territory_limited">{{ $t('components.dialogs.image_license_territory_limited') }}</option>
+              </select>
+            </label>
+          </fieldset>
         </section>
 
         <section :ref="element => setPanelRef('translations', element)" v-show="activeTab === 'translations'" id="reference-panel-translations" role="tabpanel" aria-labelledby="reference-tab-translations" class="space-y-5 py-1">
@@ -210,6 +231,8 @@ const onLanguageTabKeydown = (event: KeyboardEvent, currentIndex: number) => {
 }
 
 const emptyImageAttribution = () => ({ image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '' })
+type ReferenceImageCreditStatus = NonNullable<QuoteReference['image_credit_status']>
+type ReferenceImageLicenseStatus = NonNullable<QuoteReference['image_license_status']>
 const translationLanguages: ReferenceTranslationLanguage[] = ['en', 'fr']
 const emptyTranslations = () => ({ en: { name: '', description: '' }, fr: { name: '', description: '' } })
 const readTranslations = (rows?: QuoteReference['translations']) => {
@@ -229,6 +252,8 @@ const form = ref({
   release_date: '',
   original_language: { label: 'English', value: 'en' },
   image_url: '',
+  image_credit_status: '' as ReferenceImageCreditStatus | '',
+  image_license_status: '' as ReferenceImageLicenseStatus | '',
   image_attribution: emptyImageAttribution(),
   description: '',
   translations: emptyTranslations()
@@ -398,6 +423,8 @@ const selectExistingReference = (reference: QuoteReference) => {
     release_date: reference.release_date || '',
     original_language: languageOption || { label: 'English', value: 'en' },
     image_url: reference.image_url || '',
+    image_credit_status: reference.image_credit_status || '',
+    image_license_status: reference.image_license_status || '',
     image_attribution: {
       image_alt: reference.image_alt || '', image_credit: reference.image_credit || '', image_source_url: reference.image_source_url || '',
       image_license: reference.image_license || '', image_date: reference.image_date || '', image_location: reference.image_location || ''
@@ -424,6 +451,8 @@ const resetForm = () => {
     release_date: '',
     original_language: { label: 'English', value: 'en' },
     image_url: '',
+    image_credit_status: '' as ReferenceImageCreditStatus | '',
+    image_license_status: '' as ReferenceImageLicenseStatus | '',
     image_attribution: emptyImageAttribution(),
     description: '',
     translations: emptyTranslations()
@@ -448,6 +477,8 @@ const initializeFormForEdit = () => {
     release_date: reference.release_date || '',
     original_language: languageOption || { label: 'English', value: 'en' },
     image_url: reference.image_url || '',
+    image_credit_status: reference.image_credit_status || '',
+    image_license_status: reference.image_license_status || '',
     image_attribution: {
       image_alt: reference.image_alt || '', image_credit: reference.image_credit || '', image_source_url: reference.image_source_url || '',
       image_license: reference.image_license || '', image_date: reference.image_date || '', image_location: reference.image_location || ''
@@ -502,6 +533,8 @@ const submitReference = async () => {
       release_date: form.value.release_date || null,
       original_language: form.value.original_language.value,
       image_url: form.value.image_url.trim() || null,
+      image_credit_status: form.value.image_credit_status || null,
+      image_license_status: form.value.image_license_status || null,
       image_alt: form.value.image_attribution.image_alt.trim() || null,
       image_credit: form.value.image_attribution.image_credit.trim() || null,
       image_source_url: form.value.image_attribution.image_source_url.trim() || null,
