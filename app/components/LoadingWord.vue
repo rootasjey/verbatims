@@ -5,7 +5,10 @@
         v-for="(letter, index) in letters"
         :key="index"
         class="loading-word__letter"
-        :class="{ 'loading-word__ellipsis': index >= letters.length - 3 }"
+        :class="{
+          'loading-word__word-letter': index < letters.length - 3,
+          'loading-word__ellipsis': index >= letters.length - 3
+        }"
         :style="{ '--letter-index': index }"
       >{{ letter }}</span>
     </span>
@@ -40,44 +43,56 @@ const letters = [...'LOADING...']
   font-weight: 600;
   letter-spacing: -0.055em;
   line-height: 0.8;
-  animation: word-appear 160ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
 }
 
 .loading-word__letter {
   display: inline-block;
 }
 
-.loading-word__ellipsis {
-  transform-origin: center bottom;
-  animation: dot-breathe 1.5s ease-in-out infinite;
+.loading-word__word-letter {
+  animation: letter-sweep 140ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--letter-index) * 12ms);
 }
 
-@keyframes word-appear {
+.loading-word__ellipsis {
+  transform-origin: center;
+  animation: dot-push 1.5s ease-in-out infinite;
+}
+
+@keyframes letter-sweep {
   0% {
-    opacity: 0;
-    transform: translateY(0.08em);
+    opacity: 0.78;
+    transform: translateX(-0.07em);
+  }
+  72% {
+    opacity: 1;
+    transform: translateX(0.018em);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
-@keyframes dot-breathe {
+@keyframes dot-push {
   0%, 100% {
     opacity: 0.7;
-    transform: translateY(0) scaleY(1);
+    transform: translateX(0) scaleX(1);
   }
-  26% {
+  28% {
     opacity: 1;
-    transform: translateY(-0.11em);
+    transform: translateX(0.045em) scaleX(1.06);
   }
-  52% {
-    opacity: 0.85;
-    transform: translateY(0) scaleY(0.8);
+  38% {
+    opacity: 0.9;
+    transform: translateX(0.055em) scaleX(0.92);
   }
-  60% { transform: translateY(-0.025em) scaleY(1.08); }
-  72% { transform: translateY(0) scaleY(1); }
+  48% {
+    transform: translateX(-0.01em) scaleX(1.03);
+  }
+  58%, 100% {
+    transform: translateX(0) scaleX(1);
+  }
 }
 
 .loading-word__ellipsis:nth-last-child(2) {
@@ -90,6 +105,7 @@ const letters = [...'LOADING...']
 
 @media (prefers-reduced-motion: reduce) {
   .loading-word__visual,
+  .loading-word__word-letter,
   .loading-word__ellipsis {
     animation: none;
     opacity: 1;
