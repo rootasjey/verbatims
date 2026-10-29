@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=1600, initial-scale=1">
+    <title>When night speaks — Verbatims</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        color-scheme: light;
+        --stone: #d1d0c5;
+        --ink: #1d201b;
+        --muted-ink: #57594f;
+        --olive: #756b47;
+        --rule: rgb(29 32 27 / 24%);
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        width: 1600px;
+        height: 1200px;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        background: var(--stone);
+        color: var(--ink);
+        font-family: Archivo, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .board {
+        width: 1600px;
+        height: 1200px;
+        padding: 44px 80px 26px;
+      }
+
+      .masthead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 30px;
+      }
+
+      .wordmark {
+        font-family: Fraunces, Georgia, serif;
+        font-size: 25px;
+        font-style: italic;
+        font-weight: 600;
+        letter-spacing: -0.055em;
+      }
+
+      .edition {
+        color: var(--muted-ink);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.025em;
+      }
+
+      .intro { margin-top: 25px; }
+
+      h1 {
+        margin: 0;
+        font-family: Fraunces, Georgia, serif;
+        font-size: 58px;
+        font-weight: 500;
+        letter-spacing: -0.045em;
+        line-height: 1.04;
+      }
+
+      .description {
+        margin: 8px 0 0;
+        color: var(--muted-ink);
+        font-size: 17px;
+        line-height: 1.4;
+      }
+
+      figure {
+        height: 870px;
+        margin: 25px 0 0;
+        overflow: hidden;
+        border: 1px solid rgb(29 32 27 / 32%);
+        border-radius: 9px;
+        background: #0c0a09;
+      }
+
+      figure img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+      }
+
+      footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-top: 17px;
+        padding-top: 11px;
+        border-top: 1px solid var(--rule);
+        color: var(--muted-ink);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .credit-label {
+        color: var(--olive);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="board" aria-label="Verbatims Halloween desktop presentation">
+      <header class="masthead">
+        <span class="wordmark">verbatims</span>
+        <span class="edition">Halloween Night · October 2026</span>
+      </header>
+
+      <section class="intro" aria-labelledby="title">
+        <h1 id="title">When night speaks</h1>
+        <p class="description">Haunted tales, unsettled voices, and works where the shadows linger.</p>
+      </section>
+
+      <figure>
+        <img src="halloween-desktop-production.png" alt="Verbatims Halloween Night homepage, showing the featured Shakespeare quote over a moonlit cemetery painting.">
+      </figure>
+
+      <footer>
+        <span><span class="credit-label">Hero photograph:</span> Christian Devleeschauwer, Musée des Beaux-Arts de Reims</span>
+        <span>Artwork in the public domain · Photograph CC BY-SA 2.0 France</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "template": "homepage",
+  "output": {
+    "html": "desktop-board.html",
+    "png": "desktop-board.png"
+  },
+  "page": {
+    "title": "When night speaks — Verbatims",
+    "ariaLabel": "Verbatims Halloween desktop presentation",
+    "edition": "Halloween Night · October 2026",
+    "heading": "When night speaks",
+    "dek": "Haunted tales, unsettled voices, and works where the shadows linger."
+  },
+  "image": {
+    "src": "halloween-desktop-production.png",
+    "alt": "Verbatims Halloween Night homepage, showing the featured Shakespeare quote over a moonlit cemetery painting."
+  },
+  "credits": {
+    "label": "Hero photograph",
+    "credit": "Christian Devleeschauwer, Musée des Beaux-Arts de Reims",
+    "rights": "Artwork in the public domain · Photograph CC BY-SA 2.0 France"
+  }
+}

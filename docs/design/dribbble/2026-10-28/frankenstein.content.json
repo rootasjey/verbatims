@@ -1,5 +1,5 @@
 {
-  "template": "work",
+  "template": "reference",
   "output": {
     "html": "frankenstein.html",
     "png": "frankenstein.png"
@@ -17,7 +17,7 @@
     "alt": "Victor Frankenstein recoils from his creation, frontispiece to the 1831 edition",
     "caption": "Theodor von Holst · 1831 edition"
   },
-  "work": {
+  "reference": {
     "kicker": "A novel by Mary Shelley · 1818",
     "headlineLines": [
       "What does a maker owe",

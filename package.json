@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "1.49.1",
+  "version": "1.50.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,7 @@
     "dev": "NUXT_HUB_LOCAL_DB=1 NITRO_PRESET=node-server nuxt dev --port 3002",
     "predev": "node ./scripts/check-local-db.mjs",
     "dev:worker": "node ./scripts/dev-worker.mjs",
+    "dribbble:render": "node ./scripts/render-dribbble.mjs",
     "db:check": "node ./scripts/check-local-db.mjs",
     "db:migrate": "node ./scripts/migrate-local-db.mjs",
     "db:sync-prod": "node ./scripts/sync-prod-to-local.mjs",

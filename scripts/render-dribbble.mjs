@@ -6,16 +6,70 @@ import puppeteer from 'puppeteer'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const templatesDirectory = path.join(repoRoot, 'docs/design/dribbble/templates')
-const [dataArgument] = process.argv.slice(2)
+const supportedTemplates = ['author', 'reference', 'homepage']
+const argumentsList = process.argv.slice(2)
+
+function printUsage() {
+  console.log(`Usage:
+  bun run dribbble:render -- <content.json>
+  bun run dribbble:render -- --template <${supportedTemplates.join('|')}> <content.json>
+
+The template is inferred from content.json unless --template is provided.`)
+}
+
+let selectedTemplate
+let dataArgument
+
+for (let index = 0; index < argumentsList.length; index += 1) {
+  const argument = argumentsList[index]
+
+  if (argument === '--help' || argument === '-h') {
+    printUsage()
+    process.exit(0)
+  }
+
+  if (argument === '--template') {
+    selectedTemplate = argumentsList[index + 1]
+    index += 1
+    continue
+  }
+
+  if (argument.startsWith('--template=')) {
+    selectedTemplate = argument.slice('--template='.length)
+    continue
+  }
+
+  if (argument.startsWith('-')) {
+    throw new Error(`Unknown option "${argument}". Use --help to see available options.`)
+  }
+
+  if (dataArgument) {
+    throw new Error('Only one content JSON file can be rendered at a time.')
+  }
+
+  dataArgument = argument
+}
 
 if (!dataArgument) {
-  console.error('Usage: node scripts/render-dribbble.mjs <content.json>')
+  printUsage()
   process.exit(1)
+}
+
+if (selectedTemplate && !supportedTemplates.includes(selectedTemplate)) {
+  throw new Error(`Unknown template "${selectedTemplate}". Expected one of: ${supportedTemplates.join(', ')}.`)
 }
 
 const dataPath = path.resolve(process.cwd(), dataArgument)
 const data = JSON.parse(await readFile(dataPath, 'utf8'))
-const templatePath = path.join(templatesDirectory, `${data.template}.html`)
+const templateName = selectedTemplate ?? data.template
+if (!supportedTemplates.includes(templateName)) {
+  throw new Error(`Unknown template "${templateName}". Expected one of: ${supportedTemplates.join(', ')}.`)
+}
+if (selectedTemplate && data.template !== selectedTemplate) {
+  throw new Error(`Content declares template "${data.template}", but --template selects "${selectedTemplate}".`)
+}
+
+const templatePath = path.join(templatesDirectory, `${templateName}.html`)
 const template = await readFile(templatePath, 'utf8')
 const outputDirectory = path.dirname(dataPath)
 const htmlPath = path.join(outputDirectory, data.output.html)
@@ -117,10 +171,10 @@ function authorValues(content) {
   }
 }
 
-function workValues(content) {
+function referenceValues(content) {
   const quoteIcons = content.icons.quoteSequence
   if (!Array.isArray(quoteIcons) || quoteIcons.length === 0) {
-    throw new Error('work content.icons.quoteSequence must contain at least one icon name.')
+    throw new Error('reference content.icons.quoteSequence must contain at least one icon name.')
   }
 
   const voices = content.voices.items.map(voice => `
@@ -139,10 +193,10 @@ function workValues(content) {
     IMAGE_SRC: content.image.src,
     IMAGE_ALT: content.image.alt,
     IMAGE_CAPTION: content.image.caption,
-    WORK_KICKER: content.work.kicker,
-    HEADLINE_HTML: content.work.headlineLines.map(escapeHtml).join('<br>'),
-    WORK_ROLE_HTML: inlineMarkdown(content.work.role),
-    WORK_BIO_HTML: inlineMarkdown(content.work.bio),
+    REFERENCE_KICKER: content.reference.kicker,
+    HEADLINE_HTML: content.reference.headlineLines.map(escapeHtml).join('<br>'),
+    REFERENCE_ROLE_HTML: inlineMarkdown(content.reference.role),
+    REFERENCE_BIO_HTML: inlineMarkdown(content.reference.bio),
     QUOTE_ICON_LABEL: content.icons.quoteGroupLabel,
     QUOTE_ICONS_HTML: quoteIcons.map(name => renderIcon(name)).join('\n              '),
     QUOTE: content.quote.text,
@@ -156,14 +210,30 @@ function workValues(content) {
   }
 }
 
-const valueMaps = {
-  author: authorValues,
-  work: workValues
+function homepageValues(content) {
+  return {
+    PAGE_TITLE: content.page.title,
+    PAGE_ARIA_LABEL: content.page.ariaLabel,
+    EDITION: content.page.edition,
+    HEADING: content.page.heading,
+    DEK: content.page.dek,
+    HERO_IMAGE_SRC: content.image.src,
+    HERO_IMAGE_ALT: content.image.alt,
+    CREDIT_LABEL: content.credits.label,
+    CREDIT: content.credits.credit,
+    RIGHTS: content.credits.rights
+  }
 }
 
-const valueMap = valueMaps[data.template]?.(data)
+const valueMaps = {
+  author: authorValues,
+  reference: referenceValues,
+  homepage: homepageValues
+}
+
+const valueMap = valueMaps[templateName]?.(data)
 if (!valueMap) {
-  throw new Error(`Unknown template "${data.template}". Expected "author" or "work".`)
+  throw new Error(`No renderer is registered for template "${templateName}".`)
 }
 
 const html = template.replace(/\{\{\{([A-Z_]+)\}\}\}|\{\{([A-Z_]+)\}\}/g, (match, rawKey, escapedKey) => {
