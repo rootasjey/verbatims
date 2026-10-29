@@ -1,0 +1,14 @@
+{
+  "template": "author",
+  "output": {
+    "html": "mary-shelley.html",
+    "png": "mary-shelley.png"
+  },
+  "title": "Mary Shelley",
+  "image": {
+    "src": "https://verbatims.cc/blob/images/authors/798.png",
+    "alt": "Portrait of Mary Shelley by Richard Rothwell, circa 1840",
+    "position": "center 24%"
+  },
+  "phrase": "She gave the unknown a voice."
+}

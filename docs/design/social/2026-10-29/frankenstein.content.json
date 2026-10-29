@@ -1,0 +1,14 @@
+{
+  "template": "reference",
+  "output": {
+    "html": "frankenstein.html",
+    "png": "frankenstein.png"
+  },
+  "title": "Frankenstein",
+  "image": {
+    "src": "https://verbatims.cc/blob/images/references/407.jpg",
+    "alt": "Frontispiece to the 1831 edition of Frankenstein, showing Victor and the creature",
+    "position": "center center"
+  },
+  "phrase": "A life brought into the world."
+}

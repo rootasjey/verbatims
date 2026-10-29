@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "1.50.0",
+  "version": "1.51.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "predev": "node ./scripts/check-local-db.mjs",
     "dev:worker": "node ./scripts/dev-worker.mjs",
     "dribbble:render": "node ./scripts/render-dribbble.mjs",
+    "social:render": "node ./scripts/render-social.mjs",
     "db:check": "node ./scripts/check-local-db.mjs",
     "db:migrate": "node ./scripts/migrate-local-db.mjs",
     "db:sync-prod": "node ./scripts/sync-prod-to-local.mjs",

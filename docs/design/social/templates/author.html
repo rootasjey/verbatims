@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1200, initial-scale=1">
+<title>{{DOCUMENT_TITLE}} — Verbatims social card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../templates/minimal.css">
+</head>
+<body>
+<main class="card" aria-label="Verbatims author card: {{TITLE}}">
+  <figure>
+    <img src="{{IMAGE_SRC}}" alt="{{IMAGE_ALT}}" style="object-position:{{IMAGE_POSITION}}">
+    <span class="wordmark">verbatims</span>
+    <div class="copy"><h1>{{TITLE}}</h1><p class="date"{{DATE_HIDDEN}}>{{DATE}}</p>{{{PHRASE_HTML}}}</div>
+  </figure>
+</main>
+</body>
+</html>

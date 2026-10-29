@@ -7,27 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
-<style>
-:root { --stone:#d1d0c5; --paper:#f0eee6; --ink:#1d201b; }
-* { box-sizing:border-box; }
-html,body { width:1200px; height:1200px; margin:0; overflow:hidden; }
-body { background:var(--stone); color:var(--paper); font-family:Archivo,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
-.card { position:relative; width:1200px; height:1200px; padding:32px; }
-figure { position:relative; width:100%; height:100%; margin:0; overflow:hidden; border-radius:28px; background:#272822; }
-figure img { display:block; width:100%; height:100%; object-fit:cover; object-position:center 24%; filter:grayscale(1) brightness(.88); }
-figure:after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgb(18 19 16 / 28%) 0%, transparent 25%, transparent 53%, rgb(18 19 16 / 22%) 68%, rgb(18 19 16 / 82%) 100%); pointer-events:none; }
-.wordmark { position:absolute; z-index:1; top:56px; left:58px; font:italic 600 36px/1 Fraunces,Georgia,serif; letter-spacing:-.06em; color:#fffdf6; text-shadow:0 1px 12px rgb(0 0 0 / 24%); }
-.copy { position:absolute; z-index:1; left:62px; right:62px; bottom:62px; }
-h1 { margin:0; font:500 92px/.98 Fraunces,Georgia,serif; letter-spacing:-.055em; color:#fffdf6; text-shadow:0 2px 18px rgb(0 0 0 / 24%); }
-.phrase { margin:16px 0 0; font-size:26px; line-height:1.35; letter-spacing:.005em; color:rgb(255 253 246 / 88%); text-shadow:0 1px 10px rgb(0 0 0 / 35%); }
-</style>
+<link rel="stylesheet" href="../templates/minimal.css">
 </head>
 <body>
-<main class="card" aria-label="Verbatims social card: Mary Shelley">
+<main class="card" aria-label="Verbatims author card: Mary Shelley">
   <figure>
-    <img src="https://verbatims.cc/blob/images/authors/798.png" alt="Portrait of Mary Shelley by Richard Rothwell, circa 1840">
+    <img src="https://verbatims.cc/blob/images/authors/798.png" alt="Portrait of Mary Shelley by Richard Rothwell, circa 1840" style="object-position:center 24%">
     <span class="wordmark">verbatims</span>
-    <div class="copy"><h1>Mary Shelley</h1><p class="phrase">She gave the unknown a voice.</p></div>
+    <div class="copy"><h1>Mary Shelley</h1><p class="date" hidden></p><p class="phrase">She gave the unknown a voice.</p></div>
   </figure>
 </main>
 </body>
