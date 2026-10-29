@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=1600, initial-scale=1">
+    <title>{{PAGE_TITLE}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #d1d0c5;
+        --panel: #f0eee6;
+        --ink: #1d201b;
+        --muted: #57594f;
+        --olive: #756b47;
+        --rule: rgb(29 32 27 / 24%);
+      }
+      * { box-sizing: border-box; }
+      html, body { width: 1600px; height: 1200px; margin: 0; overflow: hidden; }
+      body { background: var(--paper); color: var(--ink); font-family: Archivo, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+      .board { width: 1600px; height: 1200px; padding: 40px 76px 30px; }
+      header, footer { display: flex; align-items: center; justify-content: space-between; }
+      header { min-height: 30px; }
+      .wordmark { font: italic 600 25px Fraunces, Georgia, serif; letter-spacing: -.055em; }
+      .edition, .kicker { color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+      .intro { margin-top: 20px; }
+      h1 { margin: 0; font: 500 51px/1.04 Fraunces, Georgia, serif; letter-spacing: -.045em; }
+      .dek { margin: 7px 0 0; color: var(--muted); font: 16px/1.4 Archivo, Arial, sans-serif; }
+      .feature { display: grid; grid-template-columns: 570px 1fr; height: 790px; margin-top: 24px; border: 1px solid rgb(29 32 27 / 30%); border-radius: 9px; overflow: hidden; background: var(--panel); }
+      figure { position: relative; margin: 0; overflow: hidden; background: #9d9a8d; }
+      figure img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+      .image-label { position: absolute; left: 20px; bottom: 18px; padding: 7px 10px; color: #f6f3eb; background: rgb(29 32 27 / 72%); font-size: 11px; letter-spacing: .04em; }
+      article { display: flex; flex-direction: column; padding: 40px 52px 32px; }
+      .identity { padding-bottom: 0; }
+      .kicker { color: var(--olive); }
+      h2 { margin: 13px 0 8px; font: 500 46px/1.04 Fraunces, Georgia, serif; letter-spacing: -.04em; }
+      .role { margin: 0; color: var(--muted); font-size: 15px; }
+      .bio { max-width: 670px; margin: 22px 0 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+      .quote-block { margin-top: 40px; padding-top: 0; }
+      blockquote { margin: 0; font: italic 400 30px/1.3 Fraunces, Georgia, serif; letter-spacing: -.025em; }
+      .quote-icon { display: block; width: 30px; height: 30px; margin-bottom: 10px; color: var(--olive); }
+      .attribution { margin-top: 19px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+      .attribution strong { color: var(--ink); font-weight: 600; }
+      .works { margin-top: auto; padding-top: 18px; }
+      .works h3 { margin: 0 0 12px; color: var(--olive); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+      .book-list { display: grid; grid-template-columns: repeat(3, 112px); gap: 24px; }
+      .book { min-width: 0; margin: 0; overflow: visible; background: transparent; }
+      .book img { display: block; width: 112px; height: 175px; padding: 0; object-fit: cover; background: #e7e3d8; box-shadow: 0 3px 8px rgb(29 32 27 / 14%); }
+      .book figcaption { margin-top: 7px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+      .book figcaption strong { display: block; color: var(--ink); font-size: 11px; font-weight: 500; }
+      footer { align-items: flex-start; gap: 30px; margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 11px; line-height: 1.4; }
+      footer span:first-child { max-width: none; }
+      .credit-label { color: var(--olive); font-weight: 600; }
+      footer a { color: inherit; text-decoration-color: rgb(87 89 79 / 45%); text-underline-offset: 2px; }
+    </style>
+  </head>
+  <body>
+    <main class="board" aria-label="{{PAGE_ARIA_LABEL}}">
+      <header>
+        <span class="wordmark">verbatims</span>
+        <span class="edition">{{EDITION}}</span>
+      </header>
+      <section class="intro">
+        <h1>{{HEADING}}</h1>
+        <p class="dek">{{DEK}}</p>
+      </section>
+      <section class="feature" aria-label="{{FEATURE_ARIA_LABEL}}">
+        <figure>
+          <img src="{{PORTRAIT_SRC}}" alt="{{PORTRAIT_ALT}}">
+          <figcaption class="image-label">{{PORTRAIT_CAPTION}}</figcaption>
+        </figure>
+        <article>
+          <div class="identity">
+            <span class="kicker">{{AUTHOR_KICKER}}</span>
+            <h2>{{AUTHOR_HEADLINE}}</h2>
+            <p class="role">{{{AUTHOR_ROLE_HTML}}}</p>
+            <p class="bio">{{{AUTHOR_BIO_HTML}}}</p>
+          </div>
+          <div class="quote-block">
+            {{{QUOTE_ICON_HTML}}}
+            <blockquote>{{QUOTE}}</blockquote>
+            <p class="attribution"><strong>{{ATTRIBUTION_NAME}}</strong><br>{{{ATTRIBUTION_DETAIL_HTML}}}</p>
+          </div>
+          <section class="works" aria-labelledby="selected-works">
+            <h3 id="selected-works">Selected novels</h3>
+            <div class="book-list">
+              {{{SELECTED_WORKS_HTML}}}
+            </div>
+          </section>
+        </article>
+      </section>
+      <footer>
+        <span><span class="credit-label">{{PORTRAIT_CREDIT_LABEL}}:</span> {{PORTRAIT_CREDIT}} <span class="credit-label">{{WORK_CREDITS_LABEL}}:</span> {{{WORK_CREDITS_HTML}}} · {{RIGHTS}}</span>
+        <span>{{FOOTER_TAGLINE}}</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+{
+  "template": "work",
+  "output": {
+    "html": "frankenstein.html",
+    "png": "frankenstein.png"
+  },
+  "page": {
+    "title": "Frankenstein — Verbatims, No. 02",
+    "ariaLabel": "Verbatims literary portrait of Frankenstein",
+    "edition": "A literary portrait · No. 02",
+    "heading": "Frankenstein",
+    "dek": "The first glimpse of a life brought into the world.",
+    "featureAriaLabel": "1831 Frankenstein frontispiece and a passage from the novel"
+  },
+  "image": {
+    "src": "https://verbatims.cc/blob/images/references/407.jpg",
+    "alt": "Victor Frankenstein recoils from his creation, frontispiece to the 1831 edition",
+    "caption": "Theodor von Holst · 1831 edition"
+  },
+  "work": {
+    "kicker": "A novel by Mary Shelley · 1818",
+    "headlineLines": [
+      "What does a maker owe",
+      "to what they make?"
+    ],
+    "role": "*Frankenstein; or, The Modern Prometheus*",
+    "bio": "First published anonymously in 1818, Shelley’s novel follows a young student who discovers how to give life to inanimate matter. Its Gothic dread turns scientific ambition into a question of moral responsibility."
+  },
+  "quote": {
+    "text": "I saw the dull yellow eye of the creature open; it breathed hard.",
+    "attributionName": "Victor Frankenstein, narrator",
+    "attributionDetail": "Chapter V · 1818"
+  },
+  "icons": {
+    "quoteSequence": [
+      "quill",
+      "flask",
+      "lightning"
+    ],
+    "quoteGroupLabel": "Letters, experiment, creation"
+  },
+  "voices": {
+    "heading": "The story’s nested voices",
+    "items": [
+      {
+        "name": "Walton",
+        "description": "Letters to Margaret"
+      },
+      {
+        "name": "Victor",
+        "description": "His account within the letters",
+        "current": true
+      },
+      {
+        "name": "The Creature",
+        "description": "His story within Victor’s account"
+      }
+    ]
+  },
+  "credits": {
+    "imageLabel": "Frontispiece",
+    "image": "Theodor von Holst · 1831 · Wikimedia Commons · Public domain (PDM)"
+  },
+  "footerTagline": "Verbatims · Writers after dark"
+}

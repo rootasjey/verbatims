@@ -1,0 +1,67 @@
+{
+  "template": "author",
+  "output": {
+    "html": "mary-shelley.html",
+    "png": "mary-shelley.png"
+  },
+  "page": {
+    "title": "Mary Shelley — Verbatims, No. 01",
+    "ariaLabel": "Verbatims literary portrait of Mary Shelley",
+    "edition": "A literary portrait · No. 01",
+    "heading": "Mary Shelley",
+    "dek": "The mind behind a creature that outlived its century.",
+    "featureAriaLabel": "Mary Shelley portrait and a passage from Frankenstein"
+  },
+  "portrait": {
+    "image": "https://verbatims.cc/blob/images/authors/798.png",
+    "alt": "Portrait of Mary Shelley by Richard Rothwell, circa 1840",
+    "caption": "Richard Rothwell · c. 1840"
+  },
+  "author": {
+    "kicker": "English novelist · 1797—1851",
+    "headline": "She gave the unknown a voice.",
+    "role": "Author of *Frankenstein; or, The Modern Prometheus*",
+    "bio": "Daughter of Mary Wollstonecraft and William Godwin, Shelley grew up among radical ideas. A ghost-story challenge at Lake Geneva in 1816 became *Frankenstein*, begun when she was eighteen and published anonymously two years later."
+  },
+  "quote": {
+    "text": "It was on a dreary night of November that I beheld the accomplishment of my toils.",
+    "attributionName": "Victor Frankenstein, narrator",
+    "attributionDetail": "*Frankenstein* · Chapter V · 1818"
+  },
+  "icons": {
+    "quote": "moon-stars"
+  },
+  "selectedWorks": [
+    {
+      "title": "Frankenstein",
+      "year": "1818",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Frankenstein_1818_edition_title_page.jpg/330px-Frankenstein_1818_edition_title_page.jpg",
+      "alt": "Title page of the 1818 first edition of Frankenstein",
+      "creditLabel": "Frankenstein, 1818",
+      "creditUrl": "https://commons.wikimedia.org/wiki/File:Frankenstein_1818_edition_title_page.jpg"
+    },
+    {
+      "title": "Valperga",
+      "year": "1823",
+      "image": "https://www.gutenberg.org/files/63337/63337-h/images/valperga01_cover.jpg",
+      "alt": "Title page of the first volume of Valperga, 1823",
+      "creditLabel": "Valperga, 1823 · Project Gutenberg",
+      "creditUrl": "https://www.gutenberg.org/files/63337/63337-h/63337-h.htm#cover"
+    },
+    {
+      "title": "The Last Man",
+      "year": "1826",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/The_Last_Man_1st_edition.jpg/330px-The_Last_Man_1st_edition.jpg",
+      "alt": "Title page of the first edition of The Last Man, 1826",
+      "creditLabel": "The Last Man, 1826",
+      "creditUrl": "https://commons.wikimedia.org/wiki/File:The_Last_Man_1st_edition.jpg"
+    }
+  ],
+  "credits": {
+    "portraitLabel": "Portrait",
+    "portrait": "Richard Rothwell, via Wikimedia Commons · CC BY-SA 4.0 · National Portrait Gallery, London.",
+    "worksLabel": "First-edition scans",
+    "rights": "Public domain / PDM."
+  },
+  "footerTagline": "Verbatims · Writers after dark"
+}
