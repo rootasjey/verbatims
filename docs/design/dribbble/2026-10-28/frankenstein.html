@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=1600, initial-scale=1">
+    <title>Frankenstein — Verbatims, No. 02</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #d1d0c5;
+        --panel: #f0eee6;
+        --ink: #1d201b;
+        --muted: #57594f;
+        --olive: #756b47;
+        --rule: rgb(29 32 27 / 24%);
+      }
+      * { box-sizing: border-box; }
+      html, body { width: 1600px; height: 1200px; margin: 0; overflow: hidden; }
+      body { background: var(--paper); color: var(--ink); font-family: Archivo, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+      .board { width: 1600px; height: 1200px; padding: 40px 76px 30px; }
+      header, footer { display: flex; align-items: center; justify-content: space-between; }
+      header { min-height: 30px; }
+      .wordmark { font: italic 600 25px Fraunces, Georgia, serif; letter-spacing: -.055em; }
+      .edition, .kicker { color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+      .intro { margin-top: 20px; }
+      h1 { margin: 0; font: 500 51px/1.04 Fraunces, Georgia, serif; letter-spacing: -.045em; }
+      .dek { margin: 7px 0 0; color: var(--muted); font: 16px/1.4 Archivo, Arial, sans-serif; }
+      .feature { display: grid; grid-template-columns: 570px 1fr; height: 790px; margin-top: 24px; border: 1px solid rgb(29 32 27 / 30%); border-radius: 9px; overflow: hidden; background: var(--panel); }
+      figure { position: relative; margin: 0; overflow: hidden; background: #272823; }
+      figure img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center center; }
+      .image-label { position: absolute; left: 20px; bottom: 18px; padding: 7px 10px; color: #f6f3eb; background: rgb(29 32 27 / 76%); font-size: 11px; letter-spacing: .04em; }
+      article { display: flex; flex-direction: column; padding: 40px 52px 32px; }
+      .identity { padding-bottom: 0; }
+      .kicker { color: var(--olive); }
+      h2 { margin: 13px 0 8px; font: 500 46px/1.04 Fraunces, Georgia, serif; letter-spacing: -.04em; }
+      .role { margin: 0; color: var(--muted); font-size: 15px; }
+      .bio { max-width: 670px; margin: 22px 0 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+      .quote-block { margin-top: 88px; padding-top: 0; }
+      blockquote { max-width: 690px; margin: 0; font: italic 400 30px/1.3 Fraunces, Georgia, serif; letter-spacing: -.025em; }
+      .quote-icons { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; color: var(--olive); }
+      .quote-icons svg { display: block; width: 22px; height: 22px; }
+      .attribution { margin-top: 19px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+      .attribution strong { color: var(--ink); font-weight: 600; }
+      .voices { margin-top: 64px; padding-top: 0; }
+      .voices h3 { margin: 0 0 13px; color: var(--olive); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+      .voice-chain { display: grid; grid-template-columns: 1fr 20px 1fr 20px 1fr; align-items: center; gap: 8px; }
+      .voice { min-width: 0; }
+      .voice strong { display: block; color: var(--ink); font: 500 18px/1.15 Fraunces, Georgia, serif; }
+      .voice span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; line-height: 1.35; }
+      .voice.current strong { color: var(--olive); }
+      .voice-arrow { color: var(--olive); font: 20px/1 Fraunces, Georgia, serif; text-align: center; }
+      footer { gap: 30px; margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 11px; line-height: 1.4; }
+      footer span:first-child { max-width: 970px; }
+      .credit-label { color: var(--olive); font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <main class="board" aria-label="Verbatims literary portrait of Frankenstein">
+      <header>
+        <span class="wordmark">verbatims</span>
+        <span class="edition">A literary portrait · No. 02</span>
+      </header>
+      <section class="intro">
+        <h1>Frankenstein</h1>
+        <p class="dek">The first glimpse of a life brought into the world.</p>
+      </section>
+      <section class="feature" aria-label="1831 Frankenstein frontispiece and a passage from the novel">
+        <figure>
+          <img src="https://verbatims.cc/blob/images/references/407.jpg" alt="Victor Frankenstein recoils from his creation, frontispiece to the 1831 edition">
+          <figcaption class="image-label">Theodor von Holst · 1831 edition</figcaption>
+        </figure>
+        <article>
+          <div class="identity">
+            <span class="kicker">A novel by Mary Shelley · 1818</span>
+            <h2>What does a maker owe<br>to what they make?</h2>
+            <p class="role"><em>Frankenstein; or, The Modern Prometheus</em></p>
+            <p class="bio">First published anonymously in 1818, Shelley’s novel follows a young student who discovers how to give life to inanimate matter. Its Gothic dread turns scientific ambition into a question of moral responsibility.</p>
+          </div>
+          <div class="quote-block">
+            <div class="quote-icons" aria-label="Letters, experiment, creation">
+              <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M248 92.68a15.86 15.86 0 0 0-4.69-11.31l-68.68-68.69a16 16 0 0 0-22.63 0l-28.43 28.43l-58 21.77a16.06 16.06 0 0 0-10.22 12.35L32.11 214.68A8 8 0 0 0 40 224a8.4 8.4 0 0 0 1.32-.11l139.44-23.24a16 16 0 0 0 12.35-10.17l21.77-58L243.31 104A15.87 15.87 0 0 0 248 92.68m-69.87 92.19L63.32 204l47.37-47.37a28 28 0 1 0-11.32-11.32L52 192.7L71.13 77.86L126 57.29L198.7 130ZM112 132a12 12 0 1 1 12 12a12 12 0 0 1-12-12m96-15.32L139.31 48l24-24L232 92.68Z" />
+              </svg>
+              <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M221.69 199.77L160 96.92V40h8a8 8 0 0 0 0-16H88a8 8 0 0 0 0 16h8v56.92L34.31 199.77A16 16 0 0 0 48 224h160a16 16 0 0 0 13.72-24.23Zm-110.83-96.52a7.93 7.93 0 0 0 1.14-4.11V40h32v59.14a7.93 7.93 0 0 0 1.14 4.11L183.36 167c-12 2.37-29.07 1.37-51.75-10.11c-15.91-8.05-31.05-12.32-45.22-12.81ZM48 208l28.54-47.58c14.25-1.74 30.31 1.85 47.82 10.72c19 9.61 35 12.88 48 12.88a69.9 69.9 0 0 0 19.55-2.7L208 208Z" />
+              </svg>
+              <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M215.79 118.17a8 8 0 0 0-5-5.66L153.18 90.9l14.66-73.33a8 8 0 0 0-13.69-7l-112 120a8 8 0 0 0 3 13l57.63 21.61l-14.62 73.25a8 8 0 0 0 13.69 7l112-120a8 8 0 0 0 1.94-7.26M109.37 214l10.47-52.38a8 8 0 0 0-5-9.06L62 132.71l84.62-90.66l-10.46 52.38a8 8 0 0 0 5 9.06l52.8 19.8Z" />
+              </svg>
+            </div>
+            <blockquote>I saw the dull yellow eye of the creature open; it breathed hard.</blockquote>
+            <p class="attribution"><strong>Victor Frankenstein, narrator</strong><br>Chapter V · 1818</p>
+          </div>
+          <section class="voices" aria-labelledby="voices-title">
+            <h3 id="voices-title">The story’s nested voices</h3>
+            <div class="voice-chain">
+              <div class="voice">
+                <strong>Walton</strong>
+                <span>Letters to Margaret</span>
+              </div>
+              <span class="voice-arrow" aria-hidden="true">→</span>
+              <div class="voice current">
+                <strong>Victor</strong>
+                <span>His account within the letters</span>
+              </div>
+              <span class="voice-arrow" aria-hidden="true">→</span>
+              <div class="voice">
+                <strong>The Creature</strong>
+                <span>His story within Victor’s account</span>
+              </div>
+            </div>
+          </section>
+        </article>
+      </section>
+      <footer>
+        <span><span class="credit-label">Frontispiece:</span> Theodor von Holst · 1831 · Wikimedia Commons · Public domain (PDM)</span>
+        <span>Verbatims · Writers after dark</span>
+      </footer>
+    </main>
+  </body>
+</html>
