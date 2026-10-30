@@ -44,7 +44,7 @@
       "8 14 * * *",
       "8 15 * * *",
       // Weekly spotlight queue refill before Monday's afternoon post
-      "0 15 * * 0",
+      "0 15 * * SUN",
       // Daily, enqueue authors and references that should be reverified.
       "18 4 * * *",
       // Every 4 hours, process queued enrichment jobs into preview proposals.

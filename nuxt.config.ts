@@ -173,7 +173,7 @@ export default defineNuxtConfig({
       '8 14 * * *': ['social:autopost-themes'],
       '8 15 * * *': ['social:autopost-themes'],
       // Prepare the next three Monday/Wednesday/Friday afternoon spotlights on Sunday.
-      '0 15 * * 0': ['social:replenish-spotlights'],
+      '0 15 * * SUN': ['social:replenish-spotlights'],
       // Daily, enqueue authors and references that should be reverified.
       '18 4 * * *': ['enrichment:schedule'],
       // Every 4 hours, process queued enrichment jobs into preview proposals.
