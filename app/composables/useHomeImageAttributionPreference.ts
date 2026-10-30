@@ -1,3 +1,5 @@
+import { fetchApi } from '~/utils/fetchApi'
+
 export type HomeImageAttributionMode = 'auto' | 'expanded' | 'collapsed'
 
 const STORAGE_KEY = 'verbatims-home-image-attribution-mode'
@@ -19,7 +21,7 @@ export const useHomeImageAttributionPreference = () => {
 
     if (user.value) {
       try {
-        const response = await $fetch<{ data?: { mode?: unknown } }>('/api/user/preferences/home-image-attribution')
+        const response = await fetchApi<{ data?: { mode?: unknown } }>('/api/user/preferences/home-image-attribution')
         if (isHomeImageAttributionMode(response.data?.mode)) mode.value = response.data.mode
       } catch (error) {
         console.error('Failed to load image attribution preference:', error)
@@ -36,7 +38,7 @@ export const useHomeImageAttributionPreference = () => {
     window.localStorage.setItem(STORAGE_KEY, nextMode)
     if (!user.value) return
 
-    await $fetch('/api/user/preferences/home-image-attribution', {
+    await fetchApi('/api/user/preferences/home-image-attribution', {
       method: 'PUT',
       body: { mode: nextMode }
     })

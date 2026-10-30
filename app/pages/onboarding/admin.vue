@@ -112,6 +112,8 @@
 </template>
 
 <script lang="ts" setup>
+import { fetchApi } from '~/utils/fetchApi'
+
 useHead({
   title: 'Create Admin User - Verbatims Onboarding',
   meta: [
@@ -156,7 +158,7 @@ const createAdminUser = async () => {
   success.value = ''
 
   try {
-    const response = await $fetch<ApiResponse<unknown>>('/api/onboarding/admin', {
+    const response = await fetchApi<ApiResponse<unknown>>('/api/onboarding/admin', {
       method: 'POST',
       body: {
         username: form.value.username.trim(),

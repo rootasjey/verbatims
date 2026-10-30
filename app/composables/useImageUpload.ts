@@ -1,3 +1,5 @@
+import { fetchApi } from '~/utils/fetchApi'
+
 export function useImageUpload() {
   const { showErrorToast } = useErrorToast()
   const uploading = ref(false)
@@ -17,7 +19,7 @@ export function useImageUpload() {
     try {
       const formData = new FormData()
       formData.append('image', file)
-      const response = await $fetch<{ success: boolean; data: { url: string } }>('/api/admin/upload/image', {
+      const response = await fetchApi<{ success: boolean; data: { url: string } }>('/api/admin/upload/image', {
         method: 'POST',
         body: formData,
       })

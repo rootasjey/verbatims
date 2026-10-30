@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import type { HarvestSourceType } from '#shared/constants/harvest'
 import { HARVEST_SOURCE_LABELS, HARVEST_SOURCE_LANGUAGES } from '#shared/constants/harvest'
+import { fetchApi } from '~/utils/fetchApi'
 
 export interface HarvestSourceOption {
   type: HarvestSourceType
@@ -81,7 +82,7 @@ export function useHarvest() {
   const loadSources = async () => {
     try {
       loading.value = true
-      const response = await $fetch<ApiResponse<HarvestSourceOption[]>>('/api/admin/harvest/sources')
+      const response = await fetchApi<ApiResponse<HarvestSourceOption[]>>('/api/admin/harvest/sources')
       sources.value = (response as any).data || []
     } catch (err: any) {
       error.value = err?.message || 'Failed to load sources'
@@ -94,7 +95,7 @@ export function useHarvest() {
     try {
       suggestionsLoading.value = true
       error.value = null
-      const response = await $fetch<ApiResponse<HarvestSearchResult[]>>('/api/admin/harvest/suggestions', {
+      const response = await fetchApi<ApiResponse<HarvestSearchResult[]>>('/api/admin/harvest/suggestions', {
         query: { sourceType: selectedSource.value },
       })
       suggestions.value = (response as any).data || []
@@ -115,7 +116,7 @@ export function useHarvest() {
       pageQuotes.value = []
       selectedQuotes.value = new Set()
 
-      const response = await $fetch<ApiResponse<HarvestSearchResult[]>>('/api/admin/harvest/search', {
+      const response = await fetchApi<ApiResponse<HarvestSearchResult[]>>('/api/admin/harvest/search', {
         query: {
           sourceType: selectedSource.value,
           query: searchQuery.value.trim(),
@@ -139,7 +140,7 @@ export function useHarvest() {
       pageQuotes.value = []
       selectedQuotes.value = new Set()
 
-      const response = await $fetch<ApiResponse<HarvestQuotePreviewItem[]>>('/api/admin/harvest/quotes', {
+      const response = await fetchApi<ApiResponse<HarvestQuotePreviewItem[]>>('/api/admin/harvest/quotes', {
         query: {
           sourceType: selectedSource.value,
           pageSlug: slug,
@@ -209,7 +210,7 @@ export function useHarvest() {
       importLoading.value = true
       error.value = null
 
-      const response = await $fetch<ApiResponse<any>>('/api/admin/harvest/import', {
+      const response = await fetchApi<ApiResponse<any>>('/api/admin/harvest/import', {
         method: 'POST',
         body: {
           sourceType: selectedSource.value,

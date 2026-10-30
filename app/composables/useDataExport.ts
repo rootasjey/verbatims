@@ -1,4 +1,6 @@
 import { useLocalStorage, useDebounceFn } from '@vueuse/core'
+import { fetchApi } from '~/utils/fetchApi'
+
 /**
  * Data Export Composable
  * Handles export logic and state management for the admin export interface
@@ -335,7 +337,7 @@ export const useDataExport = () => {
       const apiOptions = dataType === 'all' ? (buildAllApiOptions() as any) : convertToApiOptions()
       const apiEndpoint = `${getExportEndpoint(dataType)}/validate`
 
-      const response = await $fetch<{ success: boolean; data: any }>(apiEndpoint, {
+      const response = await fetchApi<{ success: boolean; data: any }>(apiEndpoint, {
         method: 'POST',
         body: apiOptions
       })
@@ -380,7 +382,7 @@ export const useDataExport = () => {
       if (dataType === 'all') {
         // Request a ZIP blob containing each dataset in the chosen internal format
         const allOptions = buildAllApiOptions()
-        const blob = await $fetch<Blob>(apiEndpoint, {
+        const blob = await fetchApi<Blob>(apiEndpoint, {
           method: 'POST',
           body: allOptions,
           responseType: 'blob'
@@ -399,7 +401,7 @@ export const useDataExport = () => {
       }
 
       const apiOptions = convertToApiOptions()
-      const response = await $fetch<ExportResult>(apiEndpoint, {
+      const response = await fetchApi<ExportResult>(apiEndpoint, {
         method: 'POST',
         body: apiOptions
       })
@@ -656,7 +658,7 @@ export const useDataExport = () => {
     try {
       state.isLoadingHistory = true
 
-      const response = await $fetch<ApiResponse<{ entries: any[]; pagination: any }>>('/api/admin/export/history-with-backups', {
+      const response = await fetchApi<ApiResponse<{ entries: any[]; pagination: any }>>('/api/admin/export/history-with-backups', {
         query: {
           page,
           limit: state.historyPagination.limit
@@ -691,7 +693,7 @@ export const useDataExport = () => {
 
   const deleteExportHistoryEntry = async (exportId: string) => {
     try {
-      const response = await $fetch<ApiResponse<unknown>>('/api/admin/export/history', {
+      const response = await fetchApi<ApiResponse<unknown>>('/api/admin/export/history', {
         method: 'DELETE',
         body: { exportId }
       })
@@ -717,7 +719,7 @@ export const useDataExport = () => {
 
   const clearAllExportHistory = async () => {
     try {
-      const response = await $fetch<ApiResponse<unknown>>('/api/admin/export/history/clear', {
+      const response = await fetchApi<ApiResponse<unknown>>('/api/admin/export/history/clear', {
         method: 'DELETE',
         body: { confirm: true }
       })

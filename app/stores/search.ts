@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { SearchResults, SearchApiResponse } from '~/types'
+import { fetchApi } from '~/utils/fetchApi'
 
 interface SearchOptions {
   limit?: number
@@ -109,7 +110,7 @@ export const useSearchStore = defineStore('search', () => {
       if (author) fetchQuery.author = author
       if (reference) fetchQuery.reference = reference
 
-      const data = await $fetch<SearchApiResponse>('/api/search', {
+      const data = await fetchApi<SearchApiResponse>('/api/search', {
         query: fetchQuery,
         signal: currentController?.signal
       })

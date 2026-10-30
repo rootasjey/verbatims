@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import { fetchApi } from '~/utils/fetchApi'
 
 interface UseReportFormOptions {
   targetType?: ReportTargetType | Ref<ReportTargetType>
@@ -101,7 +102,7 @@ export function useReportForm(options: UseReportFormOptions = {}) {
     pending.value = true
     try {
       const payload = buildPayload()
-      const res = await $fetch<{ success: boolean; data: { status: 'accepted' | 'ratelimited'; id?: number } }>('/api/reports', { method: 'POST', body: payload })
+      const res = await fetchApi<{ success: boolean; data: { status: 'accepted' | 'ratelimited'; id?: number } }>('/api/reports', { method: 'POST', body: payload })
       return res.data as { status: 'accepted' | 'ratelimited'; id?: number }
     } catch (err) {
       console.error('Report submit error:', err)

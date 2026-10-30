@@ -1,5 +1,6 @@
 import type { ProcessedQuoteResult } from '~~/server/types'
 import type { QuoteFeedSnapshot } from '~/stores/quotes'
+import { fetchApi } from '~/utils/fetchApi'
 
 export type HomeFeedItem =
   | { type: 'quote'; data: ProcessedQuoteResult }
@@ -84,7 +85,7 @@ export function useHomeFeed() {
       const query = languageStore.currentLanguageValue === 'all'
         ? { language: locale.value || 'en' }
         : languageStore.getLanguageQuery()
-      const res = await $fetch<ApiResponse<{ quotes: ProcessedQuoteResult[]; authors: Author[]; references: QuoteReference[] }>>(`/api/themes/${theme.slug}/feed`, { query })
+      const res = await fetchApi<ApiResponse<{ quotes: ProcessedQuoteResult[]; authors: Author[]; references: QuoteReference[] }>>(`/api/themes/${theme.slug}/feed`, { query })
       if (res.success && res.data) {
         themedQuotes.value = res.data.quotes || []
         authors.value = res.data.authors || []

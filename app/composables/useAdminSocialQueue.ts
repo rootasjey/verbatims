@@ -1,5 +1,6 @@
 import type { SocialPlatform, SocialQueueStatus } from '~~/shared/constants/social'
 import { SOCIAL_PLATFORMS } from '~~/shared/constants/social'
+import { fetchApi } from '~/utils/fetchApi'
 
 export interface SelectOption {
   label: string
@@ -55,11 +56,6 @@ interface SocialQueueResponse {
     hasMore: boolean
   }
 }
-
-const fetchSocialQueue = $fetch as unknown as (
-  url: string,
-  options: { query: Record<string, string | number | undefined> }
-) => Promise<SocialQueueResponse>
 
 interface PickerQuote {
   id: number
@@ -183,7 +179,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     if (!loadOptions.silent) loading.value = true
 
     try {
-      const response = await fetchSocialQueue('/api/admin/social-queue', {
+      const response = await fetchApi<SocialQueueResponse>('/api/admin/social-queue', {
         query: {
           page: currentPage.value,
           limit: pageSize.value,
@@ -210,7 +206,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     randomAdding.value = true
 
     try {
-      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue/bulk-random', {
+      await fetchApi<ApiResponse<unknown>>('/api/admin/social-queue/bulk-random', {
         method: 'POST',
         body: {
           count: Number((count ?? randomCount.value) || '5'),
@@ -234,7 +230,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     runNowLoading.value = true
 
     try {
-      const response = await $fetch<RunNowResponse>('/api/admin/social-queue/run-now', {
+      const response = await fetchApi<RunNowResponse>('/api/admin/social-queue/run-now', {
         method: 'POST',
         body: {
           platform: selectedPlatform.value,
@@ -287,7 +283,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     pickerLoading.value = true
 
     try {
-      const response = await $fetch<{ success: boolean, data: PickerQuote[] }>('/api/admin/quotes', {
+      const response = await fetchApi<{ success: boolean, data: PickerQuote[] }>('/api/admin/quotes', {
         query: {
           status: 'approved',
           limit: 10,
@@ -308,7 +304,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function addQuoteToQueue(quoteId: number) {
     try {
-      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue', {
+      await fetchApi<ApiResponse<unknown>>('/api/admin/social-queue', {
         method: 'POST',
         body: {
           quoteIds: [quoteId],
@@ -331,7 +327,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function moveQueueItem(id: number, direction: 'up' | 'down') {
     try {
-      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue/reorder', {
+      await fetchApi<ApiResponse<unknown>>('/api/admin/social-queue/reorder', {
         method: 'POST',
         body: { id, direction }
       })
@@ -345,7 +341,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function reorderQueueItem(id: number, beforeId: number | null) {
     try {
-      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue/reorder', {
+      await fetchApi<ApiResponse<unknown>>('/api/admin/social-queue/reorder', {
         method: 'POST',
         body: { id, beforeId }
       })
@@ -359,7 +355,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function removeQueueItem(id: number) {
     try {
-      await $fetch<ApiResponse<unknown>>(`/api/admin/social-queue/${id}`, { method: 'DELETE' })
+      await fetchApi<ApiResponse<unknown>>(`/api/admin/social-queue/${id}`, { method: 'DELETE' })
       await loadQueue()
     } catch (error) {
       console.error('Failed to remove queue item:', error)
@@ -370,7 +366,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   async function clearAllQueue() {
     clearingAll.value = true
     try {
-      const response = await $fetch<ClearQueueResponse>('/api/admin/social-queue/clear-all', {
+      const response = await fetchApi<ClearQueueResponse>('/api/admin/social-queue/clear-all', {
         method: 'POST',
         body: { platform: selectedPlatform.value, confirm: true }
       })
@@ -392,7 +388,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   async function clearFinishedQueue() {
     clearingFinished.value = true
     try {
-      const response = await $fetch<ClearQueueResponse>('/api/admin/social-queue/clear-finished', {
+      const response = await fetchApi<ClearQueueResponse>('/api/admin/social-queue/clear-finished', {
         method: 'POST',
         body: { platform: selectedPlatform.value, confirm: true }
       })
@@ -414,7 +410,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   async function requeueFailedPosts() {
     requeueFailedLoading.value = true
     try {
-      const response = await $fetch<RequeueFailedResponse>('/api/admin/social-queue/requeue-failed', {
+      const response = await fetchApi<RequeueFailedResponse>('/api/admin/social-queue/requeue-failed', {
         method: 'POST',
         body: { platform: selectedPlatform.value }
       })
@@ -443,7 +439,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function requeueSingleFailedItem(id: number) {
     try {
-      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue/requeue-single', {
+      await fetchApi<ApiResponse<unknown>>('/api/admin/social-queue/requeue-single', {
         method: 'POST',
         body: { id }
       })

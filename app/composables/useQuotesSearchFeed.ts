@@ -1,6 +1,7 @@
 import { useDebounceFn } from '@vueuse/core'
 import type { ProcessedQuoteResult, QuotesSearchPayload } from "~~/server/types"
 import type { QuoteFeedSnapshot } from '~/stores/quotes'
+import { fetchApi } from '~/utils/fetchApi'
 
 type SortMode = 'relevance' | 'recent' | 'popular'
 
@@ -232,7 +233,7 @@ export function useQuoteSearchFeed() {
         ...languageStore.getLanguageQuery()
       }
 
-      const response = await $fetch<ApiResponse<QuotesSearchPayload>>('/api/quotes/search', { query })
+      const response = await fetchApi<ApiResponse<QuotesSearchPayload>>('/api/quotes/search', { query })
 
       if (response.data?.quotes) {
         additionalQuotes.value = [...additionalQuotes.value, ...(response.data.quotes as ProcessedQuoteResult[] || [])]
