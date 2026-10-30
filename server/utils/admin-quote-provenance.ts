@@ -28,6 +28,15 @@ export async function requireQuoteSource(quoteId: number, sourceId: number) {
   return source
 }
 
+export async function requireQuoteOccurrence(quoteId: number, occurrenceId: number) {
+  const occurrence = await db.select()
+    .from(schema.quoteOccurrences)
+    .where(eq(schema.quoteOccurrences.id, occurrenceId))
+    .get()
+  if (!occurrence || occurrence.quoteId !== quoteId) throwServer(404, 'Occurrence not found')
+  return occurrence
+}
+
 export async function requireAuthor(authorId: number | null | undefined) {
   if (authorId == null) return
   const author = await db.select({ id: schema.authors.id }).from(schema.authors).where(eq(schema.authors.id, authorId)).get()
@@ -43,4 +52,10 @@ export async function requireReference(referenceId: number | null | undefined) {
 export async function requireAttributionForQuote(quoteId: number, attributionId: number | null | undefined) {
   if (attributionId == null) return
   await requireQuoteAttribution(quoteId, attributionId)
+}
+
+export async function requireOccurrenceForAttribution(quoteId: number, attributionId: number | null | undefined, occurrenceId: number | null | undefined) {
+  if (occurrenceId == null) return
+  const occurrence = await requireQuoteOccurrence(quoteId, occurrenceId)
+  if (occurrence.attributionId !== null && attributionId !== null && attributionId !== undefined && occurrence.attributionId !== attributionId) throwServer(400, 'Occurrence does not belong to this attribution')
 }

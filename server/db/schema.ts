@@ -328,10 +328,33 @@ export const quoteAttributions = sqliteTable('quote_attributions', {
   statusIdx: index('idx_quote_attributions_status').on(table.status),
 }))
 
+export const quoteOccurrences = sqliteTable('quote_occurrences', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  attributionId: integer('attribution_id').references(() => quoteAttributions.id, { onDelete: 'set null' }),
+  authorId: integer('author_id').references(() => authors.id, { onDelete: 'set null' }),
+  referenceId: integer('reference_id').references(() => quoteReferences.id, { onDelete: 'set null' }),
+  occurrenceType: text('occurrence_type', { enum: ['origin', 'quotation', 'adaptation', 'performance', 'other'] }).notNull().default('quotation'),
+  occurredAt: text('occurred_at'),
+  dateNotes: text('date_notes'),
+  context: text('context'),
+  excerpt: text('excerpt'),
+  notes: text('notes'),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  quoteIdx: index('idx_quote_occurrences_quote').on(table.quoteId),
+  attributionIdx: index('idx_quote_occurrences_attribution').on(table.attributionId),
+  authorIdx: index('idx_quote_occurrences_author').on(table.authorId),
+  referenceIdx: index('idx_quote_occurrences_reference').on(table.referenceId),
+}))
+
 export const quoteSources = sqliteTable('quote_sources', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
-  attributionId: integer('attribution_id').notNull().references(() => quoteAttributions.id, { onDelete: 'cascade' }),
+  attributionId: integer('attribution_id').references(() => quoteAttributions.id, { onDelete: 'set null' }),
+  occurrenceId: integer('occurrence_id').references(() => quoteOccurrences.id, { onDelete: 'set null' }),
   sourceType: text('source_type').notNull(),
   sourceUrl: text('source_url'),
   label: text('label'),
@@ -347,6 +370,7 @@ export const quoteSources = sqliteTable('quote_sources', {
 }, (table) => ({
   quoteIdx: index('idx_quote_sources_quote').on(table.quoteId),
   attributionIdx: index('idx_quote_sources_attribution').on(table.attributionId),
+  occurrenceIdx: index('idx_quote_sources_occurrence').on(table.occurrenceId),
   statusIdx: index('idx_quote_sources_status').on(table.verificationStatus),
 }))
 

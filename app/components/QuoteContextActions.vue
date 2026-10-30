@@ -70,7 +70,8 @@ const menuItems = computed<MenuItem[]>(() => {
 
 const toggleFavourite = async () => {
   try {
-    const result = await $fetch<{ data: { isLiked: boolean; likesCount: number } }>(`/api/quotes/${props.quote.id}/like`, { method: 'POST' })
+    const likePath = `/api/quotes/${props.quote.id}/like` as '/api/quotes/:id/like'
+    const result = await $fetch<{ data: { isLiked: boolean; likesCount: number } }, '/api/quotes/:id/like'>(likePath, { method: 'POST' })
     const wasLiked = Boolean(props.quote.is_liked)
     props.quote.is_liked = result.data.isLiked
     props.quote.likes_count = result.data.likesCount

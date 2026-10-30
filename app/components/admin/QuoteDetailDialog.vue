@@ -44,7 +44,15 @@
                 :quote-id="quote.id"
                 :attributions="provenance.attributions"
                 :sources="provenance.sources"
+                :occurrences="provenance.occurrences"
                 :panel="item.value"
+                @changed="loadProvenance"
+              />
+              <AdminQuoteOccurrenceManager
+                v-else-if="item.value === 'occurrences' && provenance"
+                :quote-id="quote.id"
+                :attributions="provenance.attributions"
+                :occurrences="provenance.occurrences"
                 @changed="loadProvenance"
               />
               <div v-else-if="item.value === 'metadata'" class="mt-5 border border-gray-200 dark:border-gray-700">
@@ -102,17 +110,18 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const provenance = ref<{ attributions: QuoteAttribution[]; sources: QuoteSource[] } | null>(null)
-const activeInfoTab = ref<'attributions' | 'sources' | 'metadata'>('attributions')
+const provenance = ref<{ attributions: QuoteAttribution[]; sources: QuoteSource[]; occurrences: QuoteOccurrence[] } | null>(null)
+const activeInfoTab = ref<'attributions' | 'sources' | 'occurrences' | 'metadata'>('attributions')
 const infoTabs = [
   { name: 'Attributions', value: 'attributions', _tabsTrigger: { leading: 'i-ph-git-branch' } },
   { name: 'Sources', value: 'sources', _tabsTrigger: { leading: 'i-ph-link' } },
+  { name: 'Occurrences', value: 'occurrences', _tabsTrigger: { leading: 'i-ph-quotes' } },
   { name: 'Metadata', value: 'metadata', _tabsTrigger: { leading: 'i-ph-info' } },
 ]
 const loadProvenance = async () => {
   if (!props.quote?.id) return
   try {
-    const [attributionsResponse, sourcesResponse] = await Promise.all([
+    const [attributionsResponse, sourcesResponse, occurrencesResponse] = await Promise.all([
       $fetch<ApiResponse<Array<{
         id: number
         quote_id: number
@@ -127,6 +136,7 @@ const loadProvenance = async () => {
         reference_name: string | null
       }>>>(`/api/admin/quotes/${props.quote.id}/attributions`),
       $fetch<ApiResponse<QuoteSource[]>>(`/api/admin/quotes/${props.quote.id}/sources`),
+      $fetch<ApiResponse<QuoteOccurrence[]>>(`/api/admin/quotes/${props.quote.id}/occurrences`),
     ])
 
     provenance.value = {
@@ -144,6 +154,7 @@ const loadProvenance = async () => {
         reference: attribution.reference_id ? { id: attribution.reference_id, name: attribution.reference_name || 'Unknown reference' } : undefined,
       })),
       sources: sourcesResponse.data || [],
+      occurrences: occurrencesResponse.data || [],
     }
   } catch (error) {
     console.error('Failed to load quote provenance:', error)

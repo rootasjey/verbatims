@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createQuoteSchema, createQuoteSourceSchema, createV1QuoteSchema, updateQuoteSchema, updateQuoteSourceSchema, updateV1QuoteSchema } from '../schemas'
+import { createQuoteOccurrenceSchema, createQuoteSchema, createQuoteSourceSchema, createV1QuoteSchema, updateQuoteSchema, updateQuoteSourceSchema, updateV1QuoteSchema } from '../schemas'
 
 describe('quote attribution validation', () => {
   it('accepts an attribution on user quote creation', () => {
@@ -92,7 +92,25 @@ describe('quote source validation', () => {
     expect(createQuoteSourceSchema.parse({ attribution_id: 1, source_type: 'book' }).translator_name).toBeUndefined()
   })
 
+  it('accepts quote-level evidence without an attribution', () => {
+    expect(createQuoteSourceSchema.parse({ source_type: 'interview' }).attribution_id).toBeNull()
+    expect(createQuoteSourceSchema.parse({ attribution_id: null, occurrence_id: 8, source_type: 'interview' }).attribution_id).toBeNull()
+  })
+
+  it('accepts an optional link to a quote occurrence', () => {
+    expect(createQuoteSourceSchema.parse({ attribution_id: 1, source_type: 'interview' }).occurrence_id).toBeNull()
+    expect(createQuoteSourceSchema.parse({ attribution_id: 1, occurrence_id: 8, source_type: 'interview' }).occurrence_id).toBe(8)
+  })
+
   it('accepts clearing a translator credit on source updates', () => {
     expect(updateQuoteSourceSchema.parse({ translator_name: null }).translator_name).toBeNull()
+  })
+
+  it('accepts a secondary author occurrence without a catalog work', () => {
+    expect(createQuoteOccurrenceSchema.parse({ attribution_id: 1, author_id: 9, occurrence_type: 'quotation', context: 'An interview' })).toMatchObject({ author_id: 9, reference_id: null, occurrence_type: 'quotation' })
+  })
+
+  it('allows an occurrence without a specific attribution', () => {
+    expect(createQuoteOccurrenceSchema.parse({ author_id: 9, reference_id: 3 })).toMatchObject({ attribution_id: null, author_id: 9, reference_id: 3 })
   })
 })

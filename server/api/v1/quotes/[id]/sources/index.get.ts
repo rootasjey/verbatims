@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
     id: schema.quoteSources.id,
     quote_id: schema.quoteSources.quoteId,
     attribution_id: schema.quoteSources.attributionId,
+    occurrence_id: schema.quoteSources.occurrenceId,
     source_type: schema.quoteSources.sourceType,
     source_url: schema.quoteSources.sourceUrl,
     label: schema.quoteSources.label,
@@ -23,6 +24,7 @@ export default defineEventHandler(async (event) => {
     verified_at: schema.quoteSources.verifiedAt,
     notes: schema.quoteSources.notes,
     is_primary: schema.quoteSources.isPrimary,
-  }).from(schema.quoteSources).where(eq(schema.quoteSources.quoteId, quoteId)).all()
+  }).from(schema.quoteSources)
+    .where(eq(schema.quoteSources.quoteId, quoteId)).all()
   return { success: true, data }
 })

@@ -116,7 +116,8 @@ export const createQuoteAttributionSchema = quoteAttributionFields.refine(
 export const updateQuoteAttributionSchema = quoteAttributionFields.partial()
 
 export const createQuoteSourceSchema = z.object({
-  attribution_id: positiveInt,
+  attribution_id: nullablePositiveInt.optional().default(null),
+  occurrence_id: nullablePositiveInt.optional().default(null),
   source_type: z.string().min(1).max(100).trim(),
   source_url: z.string().url().optional().nullable(),
   label: z.string().max(200).trim().optional().nullable(),
@@ -127,6 +128,22 @@ export const createQuoteSourceSchema = z.object({
 })
 
 export const updateQuoteSourceSchema = createQuoteSourceSchema.partial()
+
+const quoteOccurrenceFields = z.object({
+  attribution_id: nullablePositiveInt.optional().default(null),
+  author_id: nullablePositiveInt.optional().default(null),
+  reference_id: nullablePositiveInt.optional().default(null),
+  occurrence_type: z.enum(['origin', 'quotation', 'adaptation', 'performance', 'other']).optional().default('quotation'),
+  occurred_at: z.string().max(40).trim().optional().nullable(),
+  date_notes: z.string().max(500).trim().optional().nullable(),
+  context: z.string().max(5000).trim().optional().nullable(),
+  excerpt: z.string().max(10000).trim().optional().nullable(),
+  notes: z.string().max(5000).trim().optional().nullable(),
+})
+
+export const createQuoteOccurrenceSchema = quoteOccurrenceFields
+export const updateQuoteOccurrenceSchema = quoteOccurrenceFields.partial()
+export const updateQuoteOccurrenceRequestSchema = updateQuoteOccurrenceSchema.extend({ occurrence_id: positiveInt })
 
 export const moderateQuoteSchema = z.object({
   action: z.enum(['approve', 'reject']),

@@ -98,7 +98,8 @@ async function loadLanguages() {
   loading.value = true
   loadError.value = false
   try {
-    const response = await $fetch<ApiResponse<ThemeLanguageCount[]>>(`/api/themes/${props.themeSlug}/languages`)
+    const languagePath = `/api/themes/${props.themeSlug}/languages` as '/api/themes/:slug/languages'
+    const response = await $fetch<ApiResponse<ThemeLanguageCount[]>, '/api/themes/:slug/languages'>(languagePath)
     languageCounts.value = response.data ?? []
   } catch (error) {
     console.error('Failed to load theme languages:', error)

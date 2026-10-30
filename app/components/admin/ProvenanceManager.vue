@@ -61,6 +61,7 @@
             <div class="min-w-0 break-words text-sm">
               <a v-if="source.source_url" :href="source.source_url" target="_blank" rel="noopener noreferrer" class="break-words text-blue-600 hover:underline dark:text-blue-400">{{ source.label || source.source_type }}</a>
               <span v-else class="break-words text-gray-700 dark:text-gray-300">{{ source.label || source.source_type }}</span>
+              <p v-if="source.occurrence_id" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ occurrenceLabel(source.occurrence_id) }}</p>
               <p v-if="source.translator_name" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Translator: {{ source.translator_name }}</p>
             </div>
             <NTooltip :content="statusLabel(source.verification_status)"><NBadge :badge="statusBadge(source.verification_status)" size="xs"><NIcon :name="statusIcon(source.verification_status)" :aria-label="statusLabel(source.verification_status)" class="h-4 w-4" /></NBadge></NTooltip>
@@ -78,9 +79,12 @@
       <p v-else-if="editingSource === null" class="text-xs text-gray-500 dark:text-gray-400">No source recorded.</p>
     <div v-if="creatingSource" class="mt-3 border border-gray-200 p-3 dark:border-gray-700">
       <div class="grid gap-2 sm:grid-cols-2"><input v-model="sourceForm.source_type" placeholder="Source type" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><input v-model="sourceForm.label" placeholder="Label" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"></div>
+      <label class="mt-2 block text-xs text-gray-600 dark:text-gray-400">Supports occurrence (optional)
+        <select v-model="sourceForm.occurrence_id" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null">Attribution evidence</option><option v-for="item in attributionOccurrences" :key="item.id" :value="item.id">{{ occurrenceLabel(item.id) }}</option></select>
+      </label>
       <input v-model="sourceForm.translator_name" placeholder="Translator name" class="mt-2 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600">
       <input v-model="sourceForm.source_url" type="url" placeholder="https://..." class="mt-2 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600">
-      <div class="mt-2 flex items-center justify-between"><select v-model="sourceForm.attribution_id" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null" disabled>Select an attribution</option><option v-for="item in attributions" :key="item.id" :value="item.id">{{ item.author?.name || 'Unknown author' }}</option></select><select v-model="sourceForm.verification_status" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option v-for="status in statuses" :key="status" :value="status">{{ statusLabel(status) }}</option></select></div>
+      <div class="mt-2 flex items-center justify-between"><select v-model="sourceForm.attribution_id" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null">Quote-level evidence</option><option v-for="item in attributions" :key="item.id" :value="item.id">{{ item.author?.name || 'Unknown author' }}</option></select><select v-model="sourceForm.verification_status" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option v-for="status in statuses" :key="status" :value="status">{{ statusLabel(status) }}</option></select></div>
       <div class="mt-2 flex justify-end gap-2"><NButton btn="link-gray" size="xs" @click="cancelSource">Cancel</NButton><NButton btn="soft-blue" size="xs" :disabled="saving" @click="saveSource">Save</NButton></div>
     </div>
     </div>
@@ -115,6 +119,9 @@
           <input v-model="sourceForm.source_type" placeholder="Source type" class="border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
           <input v-model="sourceForm.label" placeholder="Label" class="border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
         </div>
+        <label class="block text-xs text-gray-600 dark:text-gray-400">Supports occurrence (optional)
+          <select v-model="sourceForm.occurrence_id" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600"><option :value="null">Attribution evidence</option><option v-for="item in attributionOccurrences" :key="item.id" :value="item.id">{{ occurrenceLabel(item.id) }}</option></select>
+        </label>
         <input v-model="sourceForm.translator_name" placeholder="Translator name" class="w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
         <input v-model="sourceForm.source_url" type="url" placeholder="https://..." class="w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
         <div class="flex items-center justify-between gap-3">
@@ -128,9 +135,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
-const props = withDefaults(defineProps<{ quoteId: number; attributions: QuoteAttribution[]; sources: QuoteSource[]; panel?: 'attributions' | 'sources' | 'all' }>(), { panel: 'all' })
+const props = withDefaults(defineProps<{ quoteId: number; attributions: QuoteAttribution[]; sources: QuoteSource[]; occurrences: QuoteOccurrence[]; panel?: 'attributions' | 'sources' | 'all' }>(), { panel: 'all' })
 const emit = defineEmits<{ changed: [] }>()
 const panel = computed(() => props.panel)
 const toast = useToast()
@@ -145,11 +152,22 @@ const confirmingAttribution = ref<number | null>(null)
 const confirmingSource = ref<number | null>(null)
 const saving = ref(false)
 const attributionForm = reactive<{ author: Author | null; reference: QuoteReference | null; status: QuoteProvenanceStatus; notes: string; is_primary: boolean }>({ author: null, reference: null, status: 'unverified', notes: '', is_primary: false })
-const sourceForm = reactive<{ attribution_id: number | null; source_type: string; source_url: string; label: string; translator_name: string; verification_status: QuoteProvenanceStatus; is_primary: boolean }>({ attribution_id: null, source_type: '', source_url: '', label: '', translator_name: '', verification_status: 'unverified', is_primary: false })
+const sourceForm = reactive<{ attribution_id: number | null; occurrence_id: number | null; source_type: string; source_url: string; label: string; translator_name: string; verification_status: QuoteProvenanceStatus; is_primary: boolean }>({ attribution_id: null, occurrence_id: null, source_type: '', source_url: '', label: '', translator_name: '', verification_status: 'unverified', is_primary: false })
+const attributionOccurrences = computed(() => props.occurrences.filter(item => item.attribution_id === null || sourceForm.attribution_id === null || item.attribution_id === sourceForm.attribution_id))
+watch(() => sourceForm.attribution_id, (attributionId) => {
+  if (sourceForm.occurrence_id && !props.occurrences.some(item => item.id === sourceForm.occurrence_id && (item.attribution_id === null || attributionId === null || item.attribution_id === attributionId))) {
+    sourceForm.occurrence_id = null
+  }
+})
 
 const statusLabel = (status: string) => ({ unverified: 'Unverified', manually_verified: 'Manually verified', externally_verified: 'Externally verified', disputed: 'Disputed' }[status] || status)
 const statusBadge = (status: string) => status === 'disputed' ? 'soft-error' : status === 'externally_verified' ? 'soft-success' : status === 'manually_verified' ? 'soft-blue' : 'soft-gray'
 const statusIcon = (status: string) => status === 'disputed' ? 'i-lucide-message-circle-warning' : status === 'unverified' ? 'i-lucide-badge-question-mark' : 'i-lucide-check'
+const occurrenceLabel = (occurrenceId: number) => {
+  const occurrence = props.occurrences.find(item => item.id === occurrenceId)
+  const description = [occurrence?.author?.name, occurrence?.reference?.name].filter(Boolean).join(' · ')
+  return description || `Occurrence #${occurrenceId}`
+}
 const fail = (error: unknown) => { console.error(error); toast.toast({ title: 'Could not save provenance', description: 'Please try again.', toast: 'soft-error' }) }
 const resetAttribution = () => { editingAttribution.value = null; creatingAttribution.value = false; confirmingAttribution.value = null }
 const startAttribution = () => { Object.assign(attributionForm, { author: null, reference: null, status: 'unverified', notes: '', is_primary: false }); creatingAttribution.value = true; editingAttribution.value = -1 }
@@ -159,10 +177,10 @@ const cancelAttributionEdit = () => { attributionEditOpen.value = false; resetAt
 const saveAttribution = async () => { saving.value = true; try { const body = { author_id: attributionForm.author?.id || null, reference_id: attributionForm.reference?.id || null, status: attributionForm.status, notes: attributionForm.notes || null, is_primary: attributionForm.is_primary }; if (creatingAttribution.value) await $fetch(`/api/admin/quotes/${props.quoteId}/attributions`, { method: 'POST', body }); else await $fetch(`/api/admin/quotes/${props.quoteId}/attributions/${editingAttribution.value}`, { method: 'PUT', body }); attributionEditOpen.value = false; resetAttribution(); emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 const removeAttribution = async (item: QuoteAttribution) => { saving.value = true; try { await $fetch(`/api/admin/quotes/${props.quoteId}/attributions/${item.id}`, { method: 'DELETE' }); confirmingAttribution.value = null; emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 const resetSource = () => { editingSource.value = null; creatingSource.value = false; confirmingSource.value = null }
-const startSource = () => { Object.assign(sourceForm, { attribution_id: props.attributions.find(item => item.is_primary)?.id || null, source_type: '', source_url: '', label: '', translator_name: '', verification_status: 'unverified', is_primary: false }); creatingSource.value = true; editingSource.value = null }
-const editSource = (item: QuoteSource) => { Object.assign(sourceForm, { attribution_id: item.attribution_id || null, source_type: item.source_type, source_url: item.source_url || '', label: item.label || '', translator_name: item.translator_name || '', verification_status: item.verification_status, is_primary: item.is_primary }); editingSource.value = item.id; creatingSource.value = false; sourceEditOpen.value = true }
+const startSource = () => { Object.assign(sourceForm, { attribution_id: props.attributions.find(item => item.is_primary)?.id || null, occurrence_id: null, source_type: '', source_url: '', label: '', translator_name: '', verification_status: 'unverified', is_primary: false }); creatingSource.value = true; editingSource.value = null }
+const editSource = (item: QuoteSource) => { Object.assign(sourceForm, { attribution_id: item.attribution_id || null, occurrence_id: item.occurrence_id ?? null, source_type: item.source_type, source_url: item.source_url || '', label: item.label || '', translator_name: item.translator_name || '', verification_status: item.verification_status, is_primary: item.is_primary }); editingSource.value = item.id; creatingSource.value = false; sourceEditOpen.value = true }
 const cancelSource = resetSource
 const cancelSourceEdit = () => { sourceEditOpen.value = false; resetSource() }
-const saveSource = async () => { if (!sourceForm.attribution_id) { fail(new Error('Select an attribution')); return }; saving.value = true; try { const body = { ...sourceForm, source_url: sourceForm.source_url || null, label: sourceForm.label || null, translator_name: sourceForm.translator_name.trim() || null }; if (creatingSource.value) await $fetch(`/api/admin/quotes/${props.quoteId}/sources`, { method: 'POST', body }); else await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${editingSource.value}`, { method: 'PUT', body }); sourceEditOpen.value = false; resetSource(); emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
+const saveSource = async () => { saving.value = true; try { const body = { attribution_id: sourceForm.attribution_id, occurrence_id: sourceForm.occurrence_id, source_type: sourceForm.source_type, source_url: sourceForm.source_url || null, label: sourceForm.label || null, translator_name: sourceForm.translator_name.trim() || null, verification_status: sourceForm.verification_status, is_primary: sourceForm.is_primary }; if (creatingSource.value) await $fetch(`/api/admin/quotes/${props.quoteId}/sources`, { method: 'POST', body }); else await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${editingSource.value}`, { method: 'PUT', body }); sourceEditOpen.value = false; resetSource(); emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 const removeSource = async (item: QuoteSource) => { saving.value = true; try { await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${item.id}`, { method: 'DELETE' }); confirmingSource.value = null; emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 </script>

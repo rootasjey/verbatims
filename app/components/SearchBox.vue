@@ -712,8 +712,8 @@ const loadBrowseSuggestions = async () => {
   browseSuggestionsLoading.value = true
   try {
     const [authorsResponse, referencesResponse] = await Promise.all([
-      $fetch<{ authors: BrowseAuthorSuggestion[] }>('/api/authors/random', { params: { count: 3 } }).catch(() => null),
-      $fetch<{ references: BrowseReferenceSuggestion[] }>('/api/references/random', { params: { count: 3 } }).catch(() => null)
+      $fetch<{ authors: BrowseAuthorSuggestion[] }, '/api/authors/random'>('/api/authors/random', { params: { count: 3 } }).catch(() => null),
+      $fetch<{ references: BrowseReferenceSuggestion[] }, '/api/references/random'>('/api/references/random', { params: { count: 3 } }).catch(() => null)
     ])
 
     if (authorsResponse) browseAuthors.value = authorsResponse.authors || []

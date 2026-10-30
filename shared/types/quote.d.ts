@@ -106,7 +106,8 @@ export interface QuoteAttribution {
 export interface QuoteSource {
   id: number
   quote_id: number
-  attribution_id: number
+  attribution_id: number | null
+  occurrence_id?: number | null
   source_type: string
   source_url?: string | null
   label?: string | null
@@ -116,6 +117,24 @@ export interface QuoteSource {
   verified_at?: string | null
   notes?: string | null
   is_primary: boolean
+}
+
+export type QuoteOccurrenceType = 'origin' | 'quotation' | 'adaptation' | 'performance' | 'other'
+
+export interface QuoteOccurrence {
+  id: number
+  quote_id: number
+  attribution_id: number | null
+  author_id?: number | null
+  reference_id?: number | null
+  occurrence_type: QuoteOccurrenceType
+  occurred_at?: string | null
+  date_notes?: string | null
+  context?: string | null
+  excerpt?: string | null
+  notes?: string | null
+  author?: Pick<Author, 'id' | 'name'> | null
+  reference?: Pick<QuoteReference, 'id' | 'name'> | null
 }
 
 /**

@@ -33,6 +33,7 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[], language?: C
       id: schema.quoteSources.id,
       quoteId: schema.quoteSources.quoteId,
       attributionId: schema.quoteSources.attributionId,
+      occurrenceId: schema.quoteSources.occurrenceId,
       sourceType: schema.quoteSources.sourceType,
       sourceUrl: schema.quoteSources.sourceUrl,
       label: schema.quoteSources.label,
@@ -46,7 +47,6 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[], language?: C
       .from(schema.quoteSources)
       .where(inArray(schema.quoteSources.quoteId, ids))
       .all()
-
   const attributions: Awaited<ReturnType<typeof fetchAttributions>> = []
   const sources: Awaited<ReturnType<typeof fetchSources>> = []
   for (const quoteIdBatch of chunkForD1Bindings(quoteIds)) {
@@ -96,6 +96,7 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[], language?: C
       id: source.id,
       quote_id: source.quoteId,
       attribution_id: source.attributionId,
+      occurrence_id: source.occurrenceId,
       source_type: source.sourceType,
       source_url: source.sourceUrl,
       label: source.label,
@@ -228,6 +229,7 @@ export async function getQuoteProvenance(quoteId: number) {
       id: schema.quoteSources.id,
       quoteId: schema.quoteSources.quoteId,
       attributionId: schema.quoteSources.attributionId,
+      occurrenceId: schema.quoteSources.occurrenceId,
       sourceType: schema.quoteSources.sourceType,
       sourceUrl: schema.quoteSources.sourceUrl,
       label: schema.quoteSources.label,
@@ -261,6 +263,7 @@ export async function getQuoteProvenance(quoteId: number) {
       id: source.id,
       quote_id: source.quoteId,
       attribution_id: source.attributionId,
+      occurrence_id: source.occurrenceId,
       source_type: source.sourceType,
       source_url: source.sourceUrl,
       label: source.label,
