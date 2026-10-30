@@ -9,7 +9,8 @@ export default defineEventHandler(async (event) => {
     limit: typeof query.limit === 'string' ? query.limit : undefined,
     search: typeof query.search === 'string' ? query.search : undefined,
     status: typeof query.status === 'string' ? query.status : undefined,
-    platform: typeof query.platform === 'string' ? query.platform : undefined
+    platform: typeof query.platform === 'string' ? query.platform : undefined,
+    contentType: query.content_type === 'quote' || query.content_type === 'spotlight' || query.content_type === 'theme' ? query.content_type : undefined
   })
 
   return {

@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { finishThemeImageCommit, prepareThemeImageCommit, rollbackThemeImageCommit } from '~~/server/utils/theme-image-storage'
+import { enqueueThemeLaunch } from '~~/server/utils/social-theme-launch'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -80,6 +81,7 @@ export default defineEventHandler(async (event) => {
     if (!theme) {
       throwServer(500, 'Failed to create theme')
     }
+    if (theme.isActive) await enqueueThemeLaunch(theme.id)
 
     if (translations.length > 0) {
       await db.insert(schema.themeTranslations).values(

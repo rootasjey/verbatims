@@ -1,0 +1,84 @@
+:root {
+  --paper: #f8f7f4;
+  --ink: #201d1a;
+  --muted: #706c68;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 1200px;
+  height: 1200px;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Archivo, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.card {
+  display: flex;
+  width: 1200px;
+  height: 1200px;
+  padding: 32px;
+  flex-direction: column;
+}
+
+.artwork {
+  display: block;
+  width: 100%;
+  height: 930px;
+  flex: 0 0 930px;
+  border-radius: 28px;
+  background: #ddd9d2;
+  object-fit: cover;
+}
+
+.copy {
+  display: flex;
+  min-height: 0;
+  padding: 18px 48px 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+h1 {
+  display: -webkit-box;
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  font: 500 58px/1.05 Fraunces, Georgia, serif;
+  letter-spacing: -.045em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.date {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: .08em;
+}
+
+.wordmark {
+  margin: 22px 0 0;
+  color: #625e5a;
+  font-size: 19px;
+  line-height: 1;
+  letter-spacing: .16em;
+}
+
+.date[hidden] {
+  display: none;
+}

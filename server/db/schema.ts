@@ -246,9 +246,11 @@ export const quotes = sqliteTable('quotes', {
 
 export const socialQueue = sqliteTable('social_queue', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  quoteId: integer('quote_id').references(() => quotes.id, { onDelete: 'cascade' }),
+  contentType: text('content_type', { enum: ['quote', 'spotlight', 'theme'] }).notNull().default('quote'),
   sourceType: text('source_type').notNull().default('quote'),
   sourceId: integer('source_id').notNull(),
+  mediaUrl: text('media_url'),
   platform: text('platform', { enum: SOCIAL_PLATFORMS }).notNull().default('x'),
   status: text('status', { enum: SOCIAL_QUEUE_STATUSES }).notNull().default('queued'),
   position: integer('position').notNull().default(0),
@@ -260,12 +262,16 @@ export const socialQueue = sqliteTable('social_queue', {
   platformStatusPosIdx: index('idx_social_queue_platform_status_position').on(table.platform, table.status, table.position),
   statusScheduledIdx: index('idx_social_queue_status_scheduled').on(table.status, table.scheduledFor),
   sourcePlatformStatusPosIdx: index('idx_social_queue_source_platform_status_position').on(table.sourceType, table.sourceId, table.platform, table.status, table.position),
+  contentTypeStatusIdx: index('idx_social_queue_content_type_status').on(table.contentType, table.status, table.scheduledFor),
+  themeOnceIdx: uniqueIndex('idx_social_queue_theme_once').on(table.sourceType, table.sourceId, table.platform).where(sql`${table.contentType} = 'theme'`),
+  spotlightOnceIdx: uniqueIndex('idx_social_queue_spotlight_once').on(table.sourceType, table.sourceId, table.platform).where(sql`${table.contentType} = 'spotlight'`),
   quoteIdx: index('idx_social_queue_quote').on(table.quoteId),
 }))
 
 export const socialPosts = sqliteTable('social_posts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  quoteId: integer('quote_id').references(() => quotes.id, { onDelete: 'cascade' }),
+  contentType: text('content_type', { enum: ['quote', 'spotlight', 'theme'] }).notNull().default('quote'),
   sourceType: text('source_type').notNull().default('quote'),
   sourceId: integer('source_id').notNull(),
   queueId: integer('queue_id').references(() => socialQueue.id, { onDelete: 'set null' }),

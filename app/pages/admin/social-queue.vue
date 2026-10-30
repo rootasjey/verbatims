@@ -69,15 +69,7 @@
     </div>
 
     <div class="flex flex-col min-h-0">
-      <!-- Skeleton (only when loading and no cache) -->
-      <div v-if="loading && queueItems.length === 0" class="space-y-5">
-        <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
-          <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
-        </div>
-      </div>
-
-      <!-- Table (always visible, even when empty) -->
-      <div v-else role="region" tabindex="0" :aria-label="$t('title') as string" class="overflow-x-auto overscroll-x-contain rounded-xl border border-gray-200 dark:border-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500">
+      <div role="region" tabindex="0" :aria-label="$t('title') as string" :aria-busy="loading" class="overflow-x-auto overscroll-x-contain rounded-xl border border-gray-200 dark:border-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500">
         <table class="w-full min-w-[900px]">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
@@ -85,7 +77,32 @@
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="flex items-center gap-4">
                   <span>{{ $t('col_content') }}</span>
-                  <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-72" />
+                  <NInput
+                    v-model="searchQuery"
+                    input="outline-gray"
+                    leading="i-ph-magnifying-glass"
+                    :placeholder="$t('search_placeholder') as string"
+                    :aria-label="$t('search_placeholder') as string"
+                    size="sm"
+                    class="w-72"
+                    :una="{ input: 'font-sans text-sm bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500', inputTrailingWrapper: 'pointer-events-auto' }"
+                  >
+                    <template #trailing>
+                      <NTooltip v-if="searchQuery" :content="$t('search_clear_label') as string">
+                        <button
+                          type="button"
+                          :aria-label="$t('search_clear_label') as string"
+                          class="flex h-7 w-7 items-center justify-center rounded text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200"
+                          @click.stop="searchQuery = ''"
+                        >
+                          <NIcon name="i-ph-x" class="h-4 w-4" aria-hidden="true" />
+                        </button>
+                      </NTooltip>
+                    </template>
+                  </NInput>
+                  <NCombobox v-model="selectedContentType" :items="contentTypeOptions" by="value" :_combobox-input="{ placeholder: $t('content_type_filter_placeholder'), class: 'text-xs' }" :_combobox-list="{ class: 'min-w-[160px]', align: 'start' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
+                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label || $t('content_type_all') }}</span></template>
+                  </NCombobox>
                 </div>
               </th>
               <th class="w-52 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -140,7 +157,20 @@
               </th>
             </tr>
           </thead>
-          <tbody v-if="queueItems.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tbody v-if="loading && queueItems.length === 0" aria-hidden="true">
+            <tr v-for="i in 5" :key="i" class="animate-pulse border-b border-gray-100 dark:border-gray-800">
+              <td class="w-24 px-3 py-6"><div class="h-4 w-10 rounded bg-gray-200 dark:bg-gray-800" /></td>
+              <td class="px-3 py-6">
+                <div class="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-800" />
+                <div class="mt-2 h-3 w-1/3 rounded bg-gray-100 dark:bg-gray-900" />
+              </td>
+              <td class="px-3 py-6"><div class="h-7 w-20 rounded-md bg-gray-100 dark:bg-gray-900" /></td>
+              <td class="w-32 px-3 py-6"><div class="h-4 w-8 rounded bg-gray-100 dark:bg-gray-900" /></td>
+              <td class="w-32 px-3 py-6"><div class="h-4 w-16 rounded bg-gray-100 dark:bg-gray-900" /></td>
+              <td class="w-28 px-3 py-6"><div class="ml-auto h-4 w-4 rounded bg-gray-100 dark:bg-gray-900" /></td>
+            </tr>
+          </tbody>
+          <tbody v-else-if="queueItems.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
             <ContextMenu
               v-for="(item, idx) in queueItems"
               :key="item.id"
@@ -150,7 +180,7 @@
               native-on-modifier="ctrl"
               :items="rowActionItems(item)"
             >
-            <tr :data-id="item.id" :class="['animate-fade-in-up transition-colors group', rowDropClass(item.id), { 'drag-over': isDragging }]" :style="{ animationDelay: `${idx * 0.03}s` }" :draggable="item.status === 'queued'" @dragstart="onDragStart" @dragend="onDragEnd" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
+            <tr :data-id="item.id" :class="['animate-fade-in-up transition-colors group', socialRowTypeClass(item), rowDropClass(item.id), { 'drag-over': isDragging }]" :style="{ animationDelay: `${idx * 0.03}s` }" :draggable="item.status === 'queued'" @dragstart="onDragStart" @dragend="onDragEnd" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
                 <td class="px-3 py-3">
                   <div class="flex items-center gap-1.5">
                     <NLink v-if="hasPublishedPostUrl(item)" :to="item.published_post_url!" target="_blank" class="inline-flex items-center gap-1 font-sans text-sm text-green-700 dark:text-green-400 hover:underline">
@@ -166,9 +196,35 @@
                 <td class="px-3 py-3 max-w-md">
                   <div class="flex items-start gap-2">
                     <p class="font-sans text-sm text-gray-900 dark:text-gray-100 leading-relaxed flex-1">{{ getQueueItemPrimaryText(item) }}</p>
-                    <NLink v-if="getQueueItemPath(item)" :to="getQueueItemPath(item)!" class="mt-0.5 inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" :title="getQueueItemLinkLabel(item)">
-                      <NIcon name="i-ph-arrow-up-right-duotone" class="w-4 h-4" />
-                    </NLink>
+                    <NTooltip v-if="item.content_type === 'theme'" :_tooltip-content="{ class: 'max-w-64 whitespace-normal' }">
+                      <template #default>
+                        <button
+                          type="button"
+                          :aria-label="$t(themeMediaStatusKey(item.media_status)) as string"
+                          class="mt-0.5 inline-flex shrink-0 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
+                          @click.stop="showThemeMediaInfoDialog = true"
+                        >
+                          <NIcon :name="themeMediaStatusIcon(item.media_status)" class="h-4 w-4" :class="themeMediaStatusClass(item.media_status)" />
+                        </button>
+                      </template>
+                      <template #content>
+                        <span>{{ $t(themeMediaStatusKey(item.media_status)) }}</span>
+                      </template>
+                    </NTooltip>
+                    <NTooltip v-if="getQueueItemPath(item)">
+                      <template #default>
+                        <NLink
+                          :to="getQueueItemPath(item)!"
+                          :aria-label="getQueueItemLinkLabel(item)"
+                          class="mt-0.5 inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                        >
+                          <NIcon name="i-ph-arrow-up-right-duotone" class="w-4 h-4" />
+                        </NLink>
+                      </template>
+                      <template #content>
+                        <span>{{ getQueueItemLinkLabel(item) }}</span>
+                      </template>
+                    </NTooltip>
                   </div>
                   <p v-if="getQueueItemSecondaryText(item)" class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ getQueueItemSecondaryText(item) }}</p>
                   <p v-else class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">{{ formatQueueSourceLabel(item) }}</p>
@@ -201,10 +257,35 @@
             </tbody>
             <tbody v-else>
               <tr>
-                <td colspan="6" class="py-16 text-center">
-                  <NIcon name="i-ph-list-dashes" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                  <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
-                  <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? $t('empty_desc') : $t('empty_desc_default') }}</p>
+                <td colspan="6" class="px-6 py-10 sm:px-10 sm:py-14">
+                  <div class="mx-auto grid min-h-52 max-w-6xl items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
+                    <div class="max-w-2xl">
+                      <NIcon v-if="!searchQuery" name="i-ph-paper-plane-tilt" class="mb-4 h-5 w-5 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+                      <h2 class="max-w-2xl font-serif text-3xl font-300 leading-tight tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</h2>
+                      <p class="mt-3 max-w-xl font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                        {{ getQueueEmptyDescription() }}
+                        <template v-if="searchQuery">
+                          {{ ' ' }}
+                          <button
+                            type="button"
+                            class="m-0 inline p-0 text-gray-800 underline decoration-gray-400 underline-offset-2 transition-colors hover:text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-200 dark:decoration-gray-600 dark:hover:text-gray-400"
+                            @click="searchQuery = ''"
+                          >{{ $t('empty_clear_search') }}</button>.
+                        </template>
+                      </p>
+                    </div>
+                    <div v-if="!searchQuery && selectedContentType.value === 'theme'" class="flex flex-wrap gap-2 md:justify-end">
+                      <NLink to="/admin/themes" class="inline-flex min-h-10 items-center rounded-lg border border-gray-300 px-4 font-sans text-sm font-medium text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-800">{{ $t('empty_manage_themes') }}</NLink>
+                    </div>
+                    <div v-else-if="!searchQuery && selectedContentType.value === 'spotlight'" class="flex flex-wrap gap-2 md:justify-end">
+                      <NLink to="/admin/authors" class="inline-flex min-h-10 items-center rounded-lg border border-gray-300 px-4 font-sans text-sm font-medium text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-800">{{ $t('empty_manage_authors') }}</NLink>
+                      <NLink to="/admin/references" class="inline-flex min-h-10 items-center rounded-lg border border-gray-300 px-4 font-sans text-sm font-medium text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-800">{{ $t('empty_manage_references') }}</NLink>
+                    </div>
+                    <div v-else-if="!searchQuery" class="flex flex-wrap gap-2 md:justify-end">
+                      <NButton btn="solid-black" size="sm" leading="i-ph-plus" class="min-h-10 rounded-lg px-4" @click="manualDialogOpen = true">{{ $t('empty_add_quotes') }}</NButton>
+                      <NButton btn="outline-gray" size="sm" leading="i-ph-shuffle" class="min-h-10 rounded-lg px-4" @click="openRandomAddDialog">{{ $t('empty_add_random') }}</NButton>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -251,6 +332,20 @@
           <div class="flex justify-end gap-2">
             <NButton btn="outline-gray" size="sm" class="rounded-lg" @click="showErrorDetailsDialog = false">{{ $t('common.close') }}</NButton>
             <NButton btn="solid-black" size="sm" leading="i-lucide-copy" class="rounded-lg" @click="copyErrorMessage">{{ $t('copy_error') }}</NButton>
+          </div>
+        </template>
+      </NDialog>
+      <NDialog v-model:open="showThemeMediaInfoDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-w-md' }">
+        <template #header>
+          <h2 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('theme_media_dialog_title') }}</h2>
+        </template>
+        <div class="space-y-3 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+          <p>{{ $t('theme_media_dialog_schedule') }}</p>
+          <p>{{ $t('theme_media_dialog_late') }}</p>
+        </div>
+        <template #footer>
+          <div class="flex justify-end">
+            <NButton btn="outline-gray" size="sm" class="rounded-lg" @click="showThemeMediaInfoDialog = false">{{ $t('common.close') }}</NButton>
           </div>
         </template>
       </NDialog>
@@ -580,6 +675,7 @@ const manualDialogOpen = ref(false)
 // additional dialogs for bulk queue actions
 const showClearAllDialog = ref(false)
 const showClearFinishedDialog = ref(false)
+const showThemeMediaInfoDialog = ref(false)
 
 // image design dialog
 const imageDesignDialogOpen = ref(false)
@@ -598,6 +694,7 @@ const route = useRoute()
 const socialQueuePage = Number(Array.isArray(route.query.page) ? route.query.page[0] : route.query.page)
 const socialQueuePlatform = String(Array.isArray(route.query.platform) ? route.query.platform[0] : route.query.platform || '')
 const socialQueueStatus = String(Array.isArray(route.query.status) ? route.query.status[0] : route.query.status || '')
+const socialQueueContentType = String(Array.isArray(route.query.content_type) ? route.query.content_type[0] : route.query.content_type || '')
 const socialQueueHasStatus = route.query.status !== undefined
 const validSocialQueueStatuses = ['queued', 'processing', 'posted', 'failed']
 const parseSocialQueueStatus = (value: string, isPresent: boolean) => {
@@ -624,6 +721,8 @@ const {
   selectedStatus,
   statusOptions,
   selectedPlatform,
+  selectedContentType,
+  contentTypeOptions,
   platformOptions,
   randomCount,
   pickerSearch,
@@ -647,17 +746,19 @@ const {
     page: Number.isSafeInteger(socialQueuePage) && socialQueuePage > 0 ? socialQueuePage : 1,
     search: readSyncedQueryValue(route.query.q),
     status: parseSocialQueueStatus(socialQueueStatus, socialQueueHasStatus),
-    platform: isSocialPlatform(socialQueuePlatform) ? socialQueuePlatform : 'x'
+    platform: isSocialPlatform(socialQueuePlatform) ? socialQueuePlatform : 'x',
+    contentType: ['quote', 'spotlight', 'theme'].includes(socialQueueContentType) ? socialQueueContentType as 'quote' | 'spotlight' | 'theme' : undefined
   }
 })
 useSyncedPageQuery(currentPage)
 useSyncedQueryFilters({
-  keys: ['q', 'status', 'platform'],
+  keys: ['q', 'status', 'platform', 'content_type'],
   read: query => {
     const platform = readSyncedQueryValue(query.platform)
     return {
       q: readSyncedQueryValue(query.q),
       status: parseSocialQueueStatus(readSyncedQueryValue(query.status), query.status !== undefined),
+      content_type: readSyncedQueryValue(query.content_type),
       platform: isSocialPlatform(platform) ? platform : 'x'
     }
   },
@@ -665,12 +766,14 @@ useSyncedQueryFilters({
     ...query,
     q: state.q.trim() || undefined,
     status: state.status === 'active' ? undefined : state.status || 'all',
+    content_type: state.content_type || undefined,
     platform: state.platform === 'x' ? undefined : state.platform
   }),
-  get: () => ({ q: searchQuery.value, status: selectedStatus.value.value, platform: selectedPlatform.value }),
+  get: () => ({ q: searchQuery.value, status: selectedStatus.value.value, content_type: selectedContentType.value.value, platform: selectedPlatform.value }),
   apply: (state) => {
     searchQuery.value = state.q
     selectedStatus.value = statusOptions.find(option => option.value === state.status) ?? statusOptions[0]!
+    selectedContentType.value = contentTypeOptions.value.find(option => option.value === state.content_type) ?? contentTypeOptions.value[0]!
     selectedPlatform.value = state.platform as SocialPlatform
   },
   onFilterChange: () => { currentPage.value = 1 }
@@ -1051,6 +1154,32 @@ function statusClass(status: SocialQueueStatus) {
   }
 }
 
+function themeMediaStatusKey(status: SocialQueueItem['media_status']) {
+  if (status === 'ready') return 'theme_media_ready'
+  if (status === 'late') return 'theme_media_late'
+  if (status === 'unavailable') return 'theme_media_unavailable'
+  return 'theme_media_pending'
+}
+
+function themeMediaStatusIcon(status: SocialQueueItem['media_status']) {
+  if (status === 'ready') return 'i-ph-image'
+  if (status === 'late' || status === 'unavailable') return 'i-ph-warning-circle'
+  return 'i-ph-clock'
+}
+
+function themeMediaStatusClass(status: SocialQueueItem['media_status']) {
+  if (status === 'ready') return 'text-green-600 dark:text-green-400'
+  if (status === 'late') return 'text-red-600 dark:text-red-400'
+  if (status === 'unavailable') return 'text-amber-600 dark:text-amber-400'
+  return 'text-gray-400 dark:text-gray-500'
+}
+
+function socialRowTypeClass(item: SocialQueueItem) {
+  if (item.content_type === 'spotlight') return 'bg-stone-100/70 hover:bg-stone-200/70 dark:bg-[#2C2C2C] dark:hover:bg-[#2C2C4C]'
+  if (item.content_type === 'theme') return 'bg-stone-200/60 hover:bg-stone-300/60 dark:bg-[#323337] dark:hover:bg-[#282624] shadow-[0_2px_6px_rgba(0,0,0,0.16)] dark:shadow-[0_3px_8px_rgba(4,1,4,0.3)]'
+  return 'bg-stone-50/50 hover:bg-stone-100/70 dark:bg-[#1C1D20] dark:hover:bg-[#252629]'
+}
+
 function statusColor(status: SocialQueueStatus) {
   if (status === 'queued') return 'blue'
   if (status === 'processing') return 'yellow'
@@ -1062,6 +1191,19 @@ function formatLastPosted(value: string | null) {
   if (!value) return $t('label_never') as string
   const formatted = formatDate(value)
   return formatted === 'N/A' ? $t('label_never') as string : formatted
+}
+
+function getQueueEmptyDescription() {
+  if (searchQuery.value) return $t('empty_desc') as string
+  if (selectedContentType.value.value === 'spotlight') return $t('empty_desc_spotlight') as string
+  if (selectedContentType.value.value === 'theme') return $t('empty_desc_theme') as string
+  if (!selectedContentType.value.value) return $t('empty_desc_all') as string
+  return $t('empty_desc_default') as string
+}
+
+function openRandomAddDialog() {
+  randomCount.value = '5'
+  randomDialogOpen.value = true
 }
 
 function getQueueItemPrimaryText(item: SocialQueueItem) {

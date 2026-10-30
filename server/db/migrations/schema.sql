@@ -125,9 +125,11 @@ CREATE TABLE IF NOT EXISTS quotes (
 -- Social queue for automated publishing
 CREATE TABLE IF NOT EXISTS social_queue (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  quote_id INTEGER NOT NULL,
+  quote_id INTEGER,
+  content_type TEXT NOT NULL DEFAULT 'quote' CHECK (content_type IN ('quote', 'spotlight', 'theme')),
   source_type TEXT NOT NULL DEFAULT 'quote',
   source_id INTEGER NOT NULL,
+  media_url TEXT,
   platform TEXT NOT NULL DEFAULT 'x' CHECK (platform IN ('x', 'bluesky', 'instagram', 'threads', 'facebook', 'pinterest')),
   status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'processing', 'posted', 'failed')),
   position INTEGER NOT NULL DEFAULT 0,
@@ -142,7 +144,8 @@ CREATE TABLE IF NOT EXISTS social_queue (
 -- Social posting history and audit trail
 CREATE TABLE IF NOT EXISTS social_posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  quote_id INTEGER NOT NULL,
+  quote_id INTEGER,
+  content_type TEXT NOT NULL DEFAULT 'quote' CHECK (content_type IN ('quote', 'spotlight', 'theme')),
   source_type TEXT NOT NULL DEFAULT 'quote',
   source_id INTEGER NOT NULL,
   queue_id INTEGER,
@@ -447,6 +450,9 @@ CREATE INDEX IF NOT EXISTS idx_social_queue_platform_status_position ON social_q
 CREATE INDEX IF NOT EXISTS idx_social_queue_status_scheduled ON social_queue(status, scheduled_for);
 CREATE INDEX IF NOT EXISTS idx_social_queue_quote ON social_queue(quote_id);
 CREATE INDEX IF NOT EXISTS idx_social_queue_source_platform_status_position ON social_queue(source_type, source_id, platform, status, position);
+CREATE INDEX IF NOT EXISTS idx_social_queue_content_type_status ON social_queue(content_type, status, scheduled_for);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_social_queue_theme_once ON social_queue(source_type, source_id, platform) WHERE content_type = 'theme';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_social_queue_spotlight_once ON social_queue(source_type, source_id, platform) WHERE content_type = 'spotlight';
 
 -- Social posts indexes
 CREATE INDEX IF NOT EXISTS idx_social_posts_quote_platform ON social_posts(quote_id, platform);

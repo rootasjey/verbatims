@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, asc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm'
 import type { SocialPlatform } from '#shared/constants/social'
 import { isUnimplementedSocialPlatform } from '#shared/constants/social'
 import {
@@ -7,8 +7,8 @@ import {
   runSocialAutopostQueue,
   type SocialAutopostBatchResult,
   type SocialAutopostExecutionResult,
-  type SocialAutopostQueueLoader,
   type SocialAutopostQueueProcessor,
+  type SocialContentPayload,
   getAutopostMaxDurationMs,
   normalizeHashtagString,
   type SocialAutopostRunOptions,
@@ -38,14 +38,16 @@ interface QueueCandidate {
   platform: SocialPlatform
   sourceType: string
   sourceId: number
-  quoteId: number
+  quoteId: number | null
+  contentType: 'quote' | 'spotlight' | 'theme'
+  mediaUrl: string | null
 }
 
 interface SocialAutopostSuccessResult {
   success: true
   queueId: number
   platform: SocialPlatform
-  quoteId: number
+  quoteId: number | null
   postId?: string
   postUrl?: string
 }
@@ -54,7 +56,7 @@ interface SocialAutopostFailureResult {
   success: false
   queueId: number
   platform: SocialPlatform
-  quoteId: number
+  quoteId: number | null
   reason: string
 }
 
@@ -76,7 +78,15 @@ type BlueskyFacet = {
 const utf8Encoder = new TextEncoder()
 
 export async function runSocialAutopost() {
-  return runSocialAutopostWithOptions({ force: false })
+  return runSocialAutopostWithOptions({ force: false, contentType: 'quote', targetTime: '08:08' })
+}
+
+export async function runSocialSpotlightAutopost() {
+  return runSocialAutopostWithOptions({ force: false, contentType: 'spotlight', targetTime: '16:08' })
+}
+
+export async function runSocialThemeAutopost() {
+  return runSocialAutopostWithOptions({ force: false, contentType: 'theme', targetTime: '16:08' })
 }
 
 const STALE_SOCIAL_QUEUE_AGE_SECONDS = 15 * 60
@@ -97,6 +107,7 @@ export async function reconcileStaleSocialQueue() {
     sourceType: schema.socialQueue.sourceType,
     sourceId: schema.socialQueue.sourceId,
     quoteId: schema.socialQueue.quoteId,
+    contentType: schema.socialQueue.contentType,
     processingAt: updatedAtEpoch
   })
     .from(schema.socialQueue)
@@ -145,7 +156,7 @@ export async function reconcileStaleSocialQueue() {
 
     if (resolvedContent) {
       expectedThreadsPosts.set(item.queueId, {
-        text: buildSocialPostText('threads', resolvedContent.content),
+        text: buildQueuePostText('threads', resolvedContent.content),
         processingAt: Number(item.processingAt || now - STALE_SOCIAL_QUEUE_AGE_SECONDS)
       })
     }
@@ -207,11 +218,12 @@ export async function reconcileStaleSocialQueue() {
         await persistPublishedQueueItem({
           queueId: item.queueId,
           quoteId: item.quoteId,
+          contentType: item.contentType,
           sourceType: resolvedContent.content.sourceType,
           sourceId: Number(resolvedContent.content.sourceId),
           platform: 'threads',
           postText: expected.text,
-          canonicalUrl: resolvedContent.content.canonicalUrl || `${String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')}/quotes/${item.quoteId}`,
+          canonicalUrl: resolvedContent.content.canonicalUrl || getVerbatimsFallbackCanonicalUrl({ sourceType: item.sourceType, sourceId: item.sourceId, quoteId: item.quoteId, baseSiteUrl: String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '') }),
           result: {
             ok: true,
             postId: publishedPost.id,
@@ -226,7 +238,7 @@ export async function reconcileStaleSocialQueue() {
         const expected = expectedThreadsPosts.get(item.queueId)
         if (!expected || matchedQueueIds.has(item.queueId) || expected.processingAt > now - 6 * 60 * 60) continue
 
-        const canonicalUrl = `${String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')}/quotes/${item.quoteId}`
+        const canonicalUrl = getVerbatimsFallbackCanonicalUrl({ sourceType: item.sourceType, sourceId: item.sourceId, quoteId: item.quoteId, baseSiteUrl: String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '') })
         await markQueueAsFailed(
           item.queueId,
           item.quoteId,
@@ -249,7 +261,7 @@ export async function reconcileStaleSocialQueue() {
     const processingAt = Number(item.processingAt || 0)
     if (!processingAt || processingAt > now - 6 * 60 * 60) continue
 
-    const canonicalUrl = `${String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')}/quotes/${item.quoteId}`
+    const canonicalUrl = getVerbatimsFallbackCanonicalUrl({ sourceType: item.sourceType, sourceId: item.sourceId, quoteId: item.quoteId, baseSiteUrl: String(process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '') })
     await markQueueAsFailed(
       item.queueId,
       item.quoteId,
@@ -269,34 +281,39 @@ function normalizeSocialPostText(value?: string | null) {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
 
-export async function runSocialAutopostWithOptions(options: SocialAutopostRunOptions = {}): Promise<SocialAutopostSingleResult | SocialAutopostBatchResult<SocialAutopostPlatformResult>> {
+export async function runSocialAutopostWithOptions(options: SocialAutopostRunOptions & { contentType?: QueueCandidate['contentType'] | 'all', targetTime?: string } = {}): Promise<SocialAutopostSingleResult | SocialAutopostBatchResult<SocialAutopostPlatformResult>> {
   const enabledPlatforms = await getEnabledPlatforms()
   const timezone = String(process.env.NUXT_SOCIAL_DAILY_TIMEZONE || 'Europe/Paris')
-  const targetTime = String(process.env.NUXT_SOCIAL_DAILY_TIME || '08:08')
+  const targetTime = options.targetTime || String(process.env.NUXT_SOCIAL_DAILY_TIME || '08:08')
   const baseSiteUrl = String(options.baseSiteUrl || process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')
   const maxDurationMs = getAutopostMaxDurationMs(process.env.NUXT_SOCIAL_AUTOPOST_MAX_DURATION_MS)
   return runSocialAutopostQueue({
     enabledPlatforms,
-    options,
+    options: { force: options.force, platform: options.platform, baseSiteUrl: options.baseSiteUrl },
     timezone,
     targetTime,
     baseSiteUrl,
     maxDurationMs,
-    getNextQueuedItem,
+    getNextQueuedItem: (platform, now) => getNextQueuedItem(platform, now, options.contentType || 'all'),
     processQueueCandidate
   })
 }
 
-const getNextQueuedItem: SocialAutopostQueueLoader<SocialPlatform, QueueCandidate> = async (platform, now) => {
+const getNextQueuedItem: (platform: SocialPlatform, now: Date, contentType: QueueCandidate['contentType'] | 'all') => Promise<QueueCandidate | undefined> = async (platform, now, contentType) => {
+  const conditions = buildQueueConditions([platform], now)
+  if (contentType !== 'all') conditions.push(eq(schema.socialQueue.contentType, contentType))
+  conditions.push(or(eq(schema.socialQueue.contentType, 'quote'), isNotNull(schema.socialQueue.mediaUrl))!)
   return db.select({
     queueId: schema.socialQueue.id,
     platform: schema.socialQueue.platform,
     sourceType: schema.socialQueue.sourceType,
     sourceId: schema.socialQueue.sourceId,
-    quoteId: schema.socialQueue.quoteId
+    quoteId: schema.socialQueue.quoteId,
+    contentType: schema.socialQueue.contentType,
+    mediaUrl: schema.socialQueue.mediaUrl
   })
   .from(schema.socialQueue)
-  .where(and(...buildQueueConditions([platform], now)))
+  .where(and(...conditions))
   .orderBy(asc(schema.socialQueue.position), asc(schema.socialQueue.id))
   .limit(1)
   .get()
@@ -334,8 +351,8 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
       quoteId: nextItem.quoteId,
       baseSiteUrl
     })
-    await markQueueAsFailed(nextItem.queueId, nextItem.quoteId, nextItem.sourceType, nextItem.sourceId, itemPlatform, 'Quote is missing or not approved', canonicalUrl)
-    return { success: false, queueId: nextItem.queueId, platform: itemPlatform, quoteId: nextItem.quoteId, reason: 'quote missing or not approved' }
+    await markQueueAsFailed(nextItem.queueId, nextItem.quoteId, nextItem.sourceType, nextItem.sourceId, itemPlatform, 'Social source is missing or not publishable', canonicalUrl)
+    return { success: false, queueId: nextItem.queueId, platform: itemPlatform, quoteId: nextItem.quoteId, reason: 'social source missing or not publishable' }
   }
 
   const resolvedBluesky = itemPlatform === 'bluesky'
@@ -348,16 +365,18 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
     ? buildInstagramHashtags(resolvedContent.content.hashtags)
     : undefined
 
-  const content = buildSocialPostText(itemPlatform, resolvedContent.content, {
+  const content = buildQueuePostText(itemPlatform, resolvedContent.content, {
     blueskyHashtags,
     instagramHashtags
   })
-  const canonicalUrl = resolvedContent.content.canonicalUrl || `${baseSiteUrl}/quotes/${nextItem.quoteId}`
+  const canonicalUrl = resolvedContent.content.canonicalUrl || getVerbatimsFallbackCanonicalUrl({ sourceType: nextItem.sourceType, sourceId: nextItem.sourceId, quoteId: nextItem.quoteId, baseSiteUrl })
 
   const publishResult = await publishByPlatform(itemPlatform, {
     text: content,
     canonicalUrl,
-    imageUrl: resolvedContent.media?.url || '',
+    imageUrl: nextItem.mediaUrl
+      ? (/^https?:\/\//i.test(nextItem.mediaUrl) ? nextItem.mediaUrl : `${baseSiteUrl}${nextItem.mediaUrl}`)
+      : resolvedContent.media?.url || '',
     blueskyHashtags
   })
 
@@ -385,6 +404,7 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
   await persistPublishedQueueItem({
     queueId: nextItem.queueId,
     quoteId: nextItem.quoteId,
+    contentType: nextItem.contentType,
     sourceType: resolvedContent.content.sourceType,
     sourceId: Number(resolvedContent.content.sourceId),
     platform: itemPlatform,
@@ -403,9 +423,35 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
   }
 }
 
+function buildQueuePostText(
+  platform: SocialPlatform,
+  content: SocialContentPayload,
+  options: { blueskyHashtags?: string, instagramHashtags?: string } = {}
+) {
+  if (content.sourceType === 'quote') {
+    return buildSocialPostText(platform, content, options)
+  }
+
+  const hashtagText = platform === 'instagram'
+    ? options.instagramHashtags || ''
+    : platform === 'bluesky'
+      ? options.blueskyHashtags || ''
+      : ''
+  const link = platform === 'instagram' ? '' : content.canonicalUrl || ''
+  const suffix = [content.attribution || '', link, hashtagText].filter(Boolean).join('\n')
+  const maxLength = platform === 'instagram' ? 2200 : platform === 'threads' || platform === 'facebook' ? 500 : platform === 'x' ? 280 : 300
+  const availableTextLength = Math.max(30, maxLength - suffix.length - (suffix ? 1 : 0))
+  const primaryText = content.primaryText.trim()
+  const truncatedText = primaryText.length > availableTextLength
+    ? `${primaryText.slice(0, availableTextLength - 1).trimEnd()}…`
+    : primaryText
+  return [truncatedText, suffix].filter(Boolean).join('\n')
+}
+
 async function persistPublishedQueueItem(input: {
   queueId: number
-  quoteId: number
+  quoteId: number | null
+  contentType: QueueCandidate['contentType']
   sourceType: string
   sourceId: number
   platform: SocialPlatform
@@ -418,6 +464,7 @@ async function persistPublishedQueueItem(input: {
   await db.batch([
     db.insert(schema.socialPosts).values({
       quoteId: input.quoteId,
+      contentType: input.contentType,
       sourceType: input.sourceType,
       sourceId: input.sourceId,
       queueId: input.queueId,
@@ -488,6 +535,10 @@ async function getEnabledPlatforms(): Promise<SocialPlatform[]> {
   if (pinterestEnabled) enabled.push('pinterest')
 
   return enabled
+}
+
+export async function getEnabledSocialPostingPlatforms() {
+  return getEnabledPlatforms()
 }
 
 async function publishByPlatform(platform: SocialPlatform, payload: { text: string, canonicalUrl: string, imageUrl: string, blueskyHashtags?: string }): Promise<PublishResult> {
@@ -1447,7 +1498,7 @@ function toArrayBuffer(data: unknown): ArrayBuffer {
 
 async function markQueueAsFailed(
   queueId: number,
-  quoteId: number,
+  quoteId: number | null,
   sourceType: string,
   sourceId: number,
   platform: SocialPlatform,
@@ -1457,6 +1508,7 @@ async function markQueueAsFailed(
 ) {
   await db.insert(schema.socialPosts).values({
     quoteId,
+    contentType: quoteId === null ? (sourceType === 'theme' ? 'theme' : 'spotlight') : 'quote',
     sourceType,
     sourceId,
     queueId,

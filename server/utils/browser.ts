@@ -18,6 +18,8 @@ interface HubBrowserOptions {
    * @default 60
    */
   keepAlive?: number
+  /** Skip request lifecycle cleanup when rendering from a scheduled task. */
+  autoCleanup?: boolean
 }
 
 interface HubBrowser {
@@ -44,7 +46,7 @@ export async function hubBrowser(eventOrOptions?: H3Event | HubBrowserOptions, m
   const options = (isH3Event(eventOrOptions) ? maybeOptions : (eventOrOptions || {})) as HubBrowserOptions
   const puppeteer = await getPuppeteer()
   const nitroApp = useNitroApp()
-  const requestEvent = event || useEvent()
+  const requestEvent = event || (options.autoCleanup === false ? undefined : useEvent())
   // If in production, use Cloudflare Puppeteer
     if (puppeteer instanceof PuppeteerWorkers) {
     const binding = getBrowserBinding()!
@@ -68,12 +70,14 @@ export async function hubBrowser(eventOrOptions?: H3Event | HubBrowserOptions, m
     }
     const page = await browser.newPage()
     // Disconnect browser after response
-    const unregister = nitroApp.hooks.hook('afterResponse', async (closingEvent: H3Event) => {
-      if (requestEvent !== closingEvent) return
-      unregister()
-      await page?.close().catch(() => {})
-      browser?.disconnect()
-    })
+    if (requestEvent) {
+      const unregister = nitroApp.hooks.hook('afterResponse', async (closingEvent: H3Event) => {
+        if (requestEvent !== closingEvent) return
+        unregister()
+        await page?.close().catch(() => {})
+        browser?.disconnect()
+      })
+    }
     return {
       browser,
       page
@@ -96,11 +100,13 @@ export async function hubBrowser(eventOrOptions?: H3Event | HubBrowserOptions, m
     _browser.disconnect = () => Promise.resolve()
   }
   const page = await _browser.newPage()
-  const unregister = nitroApp.hooks.hook('afterResponse', async (closingEvent: H3Event) => {
-    if (requestEvent !== closingEvent) return
-    unregister()
-    await page?.close().catch(() => {})
-  })
+  if (requestEvent) {
+    const unregister = nitroApp.hooks.hook('afterResponse', async (closingEvent: H3Event) => {
+      if (requestEvent !== closingEvent) return
+      unregister()
+      await page?.close().catch(() => {})
+    })
+  }
   return {
     browser: _browser,
     page

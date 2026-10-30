@@ -155,8 +155,10 @@ export default defineNuxtConfig({
       '0 */6 * * *': ['themes:cleanup-staged-images'],
       // Review unreferenced image uploads older than 90 days every Monday at 05:00 UTC.
       '0 5 * * MON': ['images:cleanup-uploads'],
-      // Repair abandoned processing items without retrying ambiguous publications.
+      // Repair abandoned posts every 30 minutes.
       '*/30 * * * *': ['social:reconcile'],
+      // Prepare queued social images every three hours; publication runs can also prepare on demand.
+      '0 */3 * * *': ['social:prepare-media'],
       // Refill active quote queues at 08:00 Europe/Paris, before the 08:08 post; the task filters the inactive UTC offset.
       '0 6 * * *': ['social:replenish'],
       '0 7 * * *': ['social:replenish', 'quote-audit:run'],
@@ -164,6 +166,14 @@ export default defineNuxtConfig({
       '8 6 * * *': ['social:autopost'],
       // 08:08 Europe/Paris during standard time (UTC+1)
       '8 7 * * *': ['social:autopost'],
+      // Publish the weekly portrait/work lane at 16:08 Europe/Paris (the opposite UTC candidate is filtered in code).
+      '8 14 * * 1,3,5': ['social:autopost-spotlights'],
+      '8 15 * * 1,3,5': ['social:autopost-spotlights'],
+      // Theme announcements are enqueued only on launch and published at the next afternoon slot.
+      '8 14 * * *': ['social:autopost-themes'],
+      '8 15 * * *': ['social:autopost-themes'],
+      // Prepare the next three Monday/Wednesday/Friday afternoon spotlights on Sunday.
+      '0 15 * * 0': ['social:replenish-spotlights'],
       // Daily, enqueue authors and references that should be reverified.
       '18 4 * * *': ['enrichment:schedule'],
       // Every 4 hours, process queued enrichment jobs into preview proposals.

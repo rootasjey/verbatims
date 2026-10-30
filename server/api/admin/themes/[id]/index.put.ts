@@ -3,6 +3,7 @@ import { eq, ne, sql } from 'drizzle-orm'
 import { enrichThemeFilters } from '~~/server/utils/theme-enrichment'
 import { scheduleBackground } from '~~/server/utils/schedule'
 import { deleteThemeImageIfUnused, finishThemeImageCommit, prepareThemeImageCommit, rollbackThemeImageCommit } from '~~/server/utils/theme-image-storage'
+import { enqueueThemeLaunch } from '~~/server/utils/social-theme-launch'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -131,6 +132,8 @@ export default defineEventHandler(async (event) => {
       .from(schema.themes)
       .where(eq(schema.themes.id, themeId))
       .limit(1)
+
+    if (!existingTheme.isActive && updated[0]?.isActive) await enqueueThemeLaunch(themeId)
 
     // Background enrichment (only if theme has filters)
     const existingFilters = await db.select({ id: schema.themeContentFilters.id })

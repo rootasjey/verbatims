@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const templatesDirectory = path.join(repoRoot, 'docs/design/social/templates')
-const supportedTemplates = ['author', 'reference']
+const supportedTemplates = ['author', 'reference', 'theme']
 const argumentsList = process.argv.slice(2)
 
 function printUsage() {
@@ -114,7 +114,8 @@ const values = {
   IMAGE_POSITION: imagePosition,
   DATE_HIDDEN: data.date ? '' : ' hidden',
   DATE: data.date ? escapeHtml(data.date) : '',
-  PHRASE_HTML: phraseHtml
+  PHRASE_HTML: phraseHtml,
+  HEADLINE: escapeHtml(data.headline ?? `Discover our ${title} theme`)
 }
 
 const html = template.replace(/\{\{\{([A-Z_]+)\}\}\}|\{\{([A-Z_]+)\}\}/g, (match, rawKey, escapedKey) => {

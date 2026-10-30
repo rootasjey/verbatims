@@ -8,7 +8,9 @@ export interface SelectOption {
 
 export interface SocialQueueItem {
   id: number
-  quote_id: number
+  quote_id: number | null
+  content_type: 'quote' | 'spotlight' | 'theme'
+  media_status: 'ready' | 'pending' | 'late' | 'unavailable' | null
   source_type: string
   source_id: number
   quote_text: string | null
@@ -53,6 +55,11 @@ interface SocialQueueResponse {
     hasMore: boolean
   }
 }
+
+const fetchSocialQueue = $fetch as unknown as (
+  url: string,
+  options: { query: Record<string, string | number | undefined> }
+) => Promise<SocialQueueResponse>
 
 interface PickerQuote {
   id: number
@@ -102,6 +109,7 @@ interface UseAdminSocialQueueOptions {
     search?: string
     status?: string
     platform?: SocialPlatform
+    contentType?: 'quote' | 'spotlight' | 'theme'
   }
 }
 
@@ -129,7 +137,8 @@ const statusOptions: SelectOption[] = [
 ]
 
 export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
-  const loading = ref(false)
+  const { t } = useI18n()
+  const loading = ref(true)
   const randomAdding = ref(false)
   const runNowLoading = ref(false)
   const pickerLoading = ref(false)
@@ -147,6 +156,13 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   const searchQuery = ref(options.initialFilters?.search ?? '')
   const selectedStatus = ref<SelectOption>(statusOptions.find(option => option.value === options.initialFilters?.status) ?? statusOptions[0]!)
   const selectedPlatform = ref<SocialPlatform>(options.initialFilters?.platform ?? 'x')
+  const contentTypeOptions = computed<SelectOption[]>(() => [
+    { label: String(t('content_type_all')), value: '' },
+    { label: String(t('content_type_quotes')), value: 'quote' },
+    { label: String(t('content_type_spotlights')), value: 'spotlight' },
+    { label: String(t('content_type_themes')), value: 'theme' }
+  ])
+  const selectedContentType = ref<SelectOption>(contentTypeOptions.value.find(option => option.value === options.initialFilters?.contentType) ?? contentTypeOptions.value[0]!)
   const platformOptions: PlatformOption[] = SOCIAL_PLATFORMS.map(platform => ({
     label: platformIcons[platform],
     value: platform as SocialPlatform
@@ -167,13 +183,14 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     if (!loadOptions.silent) loading.value = true
 
     try {
-      const response = await $fetch<SocialQueueResponse>('/api/admin/social-queue', {
+      const response = await fetchSocialQueue('/api/admin/social-queue', {
         query: {
           page: currentPage.value,
           limit: pageSize.value,
           search: searchQuery.value || undefined,
           status: selectedStatus.value.value || undefined,
-          platform: selectedPlatform.value
+          platform: selectedPlatform.value,
+          content_type: selectedContentType.value.value || undefined
         }
       })
 
@@ -220,7 +237,8 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
       const response = await $fetch<RunNowResponse>('/api/admin/social-queue/run-now', {
         method: 'POST',
         body: {
-          platform: selectedPlatform.value
+          platform: selectedPlatform.value,
+          content_type: selectedContentType.value.value || 'all'
         }
       })
 
@@ -229,7 +247,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
       if (result?.success) {
         useToast().toast({
           title: 'Posted',
-          description: result.postUrl ? `Published successfully: ${result.postUrl}` : 'Quote published successfully',
+          description: result.postUrl ? `Published successfully: ${result.postUrl}` : 'Social post published successfully',
           actions: result.postUrl
             ? [
                 {
@@ -436,7 +454,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     }
   }
 
-  watchDebounced([searchQuery, selectedStatus, selectedPlatform], () => {
+  watchDebounced([searchQuery, selectedStatus, selectedPlatform, selectedContentType], () => {
     const pageChanged = currentPage.value !== 1
     currentPage.value = 1
 
@@ -473,6 +491,8 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     selectedStatus,
     statusOptions,
     selectedPlatform,
+    selectedContentType,
+    contentTypeOptions,
     platformOptions,
     randomCount,
     pickerSearch,

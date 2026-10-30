@@ -41,6 +41,7 @@ interface PlatformReplenishmentResult extends SocialQueueAutofillPlatformRun {
 async function getQueueCounts() {
   const rows = await db.select({
     platform: schema.socialQueue.platform,
+    contentType: schema.socialQueue.contentType,
     status: schema.socialQueue.status,
     total: sql<number>`COUNT(*)`
   })
@@ -50,6 +51,7 @@ async function getQueueCounts() {
   const counts = new Map<SocialPlatform, number>()
   for (const row of rows) {
     if (!AUTO_QUEUE_PLATFORMS.includes(row.platform as SocialPlatform)) continue
+    if (row.contentType !== 'quote') continue
     if (row.status !== 'queued' && row.status !== 'processing') continue
     counts.set(row.platform as SocialPlatform, (counts.get(row.platform as SocialPlatform) || 0) + Number(row.total || 0))
   }
@@ -86,6 +88,7 @@ async function replenishPlatform(platform: SocialPlatform, target: number, lowWa
     .from(schema.socialQueue)
     .where(and(
       eq(schema.socialQueue.platform, platform),
+      eq(schema.socialQueue.contentType, 'quote'),
       inArray(schema.socialQueue.status, ['queued', 'processing'])
     ))
     .get()
@@ -109,6 +112,7 @@ async function replenishPlatform(platform: SocialPlatform, target: number, lowWa
       sql`NOT EXISTS (
         SELECT 1 FROM ${schema.socialQueue}
         WHERE ${schema.socialQueue.platform} = ${platform}
+          AND ${schema.socialQueue.contentType} = 'quote'
           AND ${schema.socialQueue.sourceType} = 'quote'
           AND ${schema.socialQueue.sourceId} = ${schema.quotes.id}
           AND ${schema.socialQueue.status} IN ('queued', 'processing', 'posted')
@@ -149,6 +153,7 @@ async function replenishPlatform(platform: SocialPlatform, target: number, lowWa
     const batch = candidates.slice(offset, offset + INSERT_BATCH_SIZE)
     const rows = batch.map((quote, index) => ({
       quoteId: quote.id,
+      contentType: 'quote' as const,
       sourceType: 'quote',
       sourceId: quote.id,
       platform,

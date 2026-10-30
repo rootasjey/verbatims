@@ -26,7 +26,7 @@ export interface VerbatimsQuoteQueueCandidate {
 export interface VerbatimsQueueSourceRef {
   sourceType: string
   sourceId: number
-  quoteId: number
+  quoteId: number | null
 }
 
 export interface VerbatimsResolvedQuoteContent {
@@ -74,10 +74,21 @@ export const verbatimsSocialSourceSearchResolver: SocialSourceSearchResolver = {
     ))
     .groupBy(schema.socialQueue.sourceType, schema.socialQueue.sourceId)
 
-  return matches.map(match => ({
+  const [authors, references, themes] = await Promise.all([
+    db.select({ sourceId: schema.authors.id }).from(schema.authors).where(like(schema.authors.name, `%${normalizedSearch}%`)).limit(50),
+    db.select({ sourceId: schema.quoteReferences.id }).from(schema.quoteReferences).where(like(schema.quoteReferences.name, `%${normalizedSearch}%`)).limit(50),
+    db.select({ sourceId: schema.themes.id }).from(schema.themes).where(like(schema.themes.name, `%${normalizedSearch}%`)).limit(50)
+  ])
+
+  return [
+    ...matches.map(match => ({
     sourceType: match.sourceType,
     sourceId: match.sourceId
-  }))
+    })),
+    ...authors.map(source => ({ sourceType: 'author', sourceId: source.sourceId })),
+    ...references.map(source => ({ sourceType: 'reference', sourceId: source.sourceId })),
+    ...themes.map(source => ({ sourceType: 'theme', sourceId: source.sourceId }))
+  ]
   }
 }
 
@@ -140,6 +151,38 @@ export const verbatimsSocialSourceDisplayResolver: SocialSourceDisplayResolver =
     }
   }
 
+  for (const source of uniqueSources.filter(item => item.sourceType === 'author' || item.sourceType === 'reference' || item.sourceType === 'theme')) {
+    const id = Number(source.sourceId)
+    if (!Number.isSafeInteger(id) || id < 1) continue
+    const entity = source.sourceType === 'author'
+      ? await db.select({ id: schema.authors.id, title: schema.authors.name, subtitle: schema.authors.job, imageUrl: schema.authors.imageUrl }).from(schema.authors).where(eq(schema.authors.id, id)).limit(1).get()
+      : source.sourceType === 'reference'
+        ? await db.select({ id: schema.quoteReferences.id, title: schema.quoteReferences.name, subtitle: schema.quoteReferences.primaryType, imageUrl: schema.quoteReferences.imageUrl }).from(schema.quoteReferences).where(eq(schema.quoteReferences.id, id)).limit(1).get()
+        : await db.select({ id: schema.themes.id, title: schema.themes.name, subtitle: schema.themes.description, imageUrl: schema.themes.imageUrl, slug: schema.themes.slug }).from(schema.themes).where(eq(schema.themes.id, id)).limit(1).get()
+    if (!entity) continue
+    const canonicalPath = source.sourceType === 'author'
+      ? `/authors/${id}`
+      : source.sourceType === 'reference'
+        ? `/references/${id}`
+        : `/?theme=${encodeURIComponent('slug' in entity ? String(entity.slug) : String(id))}`
+    resolved[getSocialSourceKey(source)] = {
+      sourceType: source.sourceType,
+      sourceId: id,
+      quoteId: null,
+      quoteText: null,
+      quoteLanguage: null,
+      authorName: source.sourceType === 'author' ? entity.title : null,
+      referenceName: source.sourceType === 'reference' ? entity.title : null,
+      canonicalPath,
+      title: entity.title,
+      subtitle: entity.subtitle || null,
+      primaryText: entity.title,
+      secondaryText: entity.subtitle || null,
+      language: null,
+      metadata: { imageUrl: entity.imageUrl || null }
+    }
+  }
+
   for (const source of uniqueSources) {
     const key = getSocialSourceKey(source)
     if (!resolved[key]) {
@@ -176,7 +219,49 @@ export const verbatimsSocialPublishableSourceResolver: SocialPublishableSourceRe
     platform: SocialAutopostPlatform
   }): Promise<SocialResolvedPublishableSource | null> {
   if (input.sourceType !== 'quote') {
-    return null
+    const id = Number(input.sourceId)
+    if (!Number.isSafeInteger(id) || id < 1) return null
+    const entity = input.sourceType === 'author'
+      ? await db.select({ id: schema.authors.id, name: schema.authors.name, description: schema.authors.description, imageUrl: schema.authors.imageUrl, imageAlt: schema.authors.imageAlt, imageCredit: schema.authors.imageCredit, imageCreditStatus: schema.authors.imageCreditStatus, imageLicenseStatus: schema.authors.imageLicenseStatus, job: schema.authors.job }).from(schema.authors).where(eq(schema.authors.id, id)).limit(1).get()
+      : input.sourceType === 'reference'
+        ? await db.select({ id: schema.quoteReferences.id, name: schema.quoteReferences.name, description: schema.quoteReferences.description, imageUrl: schema.quoteReferences.imageUrl, imageAlt: schema.quoteReferences.imageAlt, imageCredit: schema.quoteReferences.imageCredit, imageCreditStatus: schema.quoteReferences.imageCreditStatus, imageLicenseStatus: schema.quoteReferences.imageLicenseStatus, primaryType: schema.quoteReferences.primaryType }).from(schema.quoteReferences).where(eq(schema.quoteReferences.id, id)).limit(1).get()
+        : input.sourceType === 'theme'
+          ? await db.select({ id: schema.themes.id, slug: schema.themes.slug, name: schema.themes.name, description: schema.themes.description, language: schema.themes.language, imageUrl: schema.themes.imageUrl, imageAlt: schema.themes.imageAlt, imageCredit: schema.themes.imageCredit, imageLicense: schema.themes.imageLicense }).from(schema.themes).where(and(eq(schema.themes.id, id), eq(schema.themes.isActive, true))).limit(1).get()
+          : null
+    if (!entity) return null
+    const path = input.sourceType === 'author' ? `/authors/${id}` : input.sourceType === 'reference' ? `/references/${id}` : `/?theme=${encodeURIComponent('slug' in entity ? String(entity.slug) : String(id))}`
+    const imageHasDocumentedRights = 'imageLicenseStatus' in entity
+      ? entity.imageLicenseStatus === 'documented' && entity.imageCreditStatus !== 'unknown'
+      : 'imageLicense' in entity && Boolean(entity.imageLicense?.trim() && entity.imageCredit?.trim())
+    const imageUrl = imageHasDocumentedRights && 'imageUrl' in entity && entity.imageUrl
+      ? (/^https?:\/\//i.test(entity.imageUrl) ? entity.imageUrl : `${input.baseSiteUrl.replace(/\/$/, '')}/${entity.imageUrl.replace(/^\//, '')}`)
+      : null
+    const credit = 'imageCredit' in entity ? entity.imageCredit?.trim() : ''
+    const attribution = credit ? `Image: ${credit}` : undefined
+    const kind = input.sourceType === 'author' ? 'spotlight' : input.sourceType === 'reference' ? 'work' : 'theme'
+    const title = entity.name
+    const subtitle = 'job' in entity ? entity.job : 'primaryType' in entity ? entity.primaryType : null
+    const body = entity.description?.trim()
+    const primaryText = input.sourceType === 'author'
+      ? [`Portrait in focus: ${title}`, subtitle].filter(Boolean).join(' · ')
+      : input.sourceType === 'reference'
+        ? [`A work to explore: ${title}`, subtitle].filter(Boolean).join(' · ')
+        : 'language' in entity && entity.language === 'fr'
+          ? `Découvrez le thème ${title}`
+          : `Discover our ${title} theme`
+    return {
+      content: {
+        sourceType: input.sourceType,
+        sourceId: id,
+        primaryText,
+        canonicalUrl: `${input.baseSiteUrl.replace(/\/$/, '')}${path}`,
+        title,
+        description: body || primaryText,
+        attribution,
+        metadata: { kind, imageCreditStatus: 'imageCreditStatus' in entity ? entity.imageCreditStatus : null, imageLicenseStatus: 'imageLicenseStatus' in entity ? entity.imageLicenseStatus : null }
+      },
+      media: imageUrl ? { url: imageUrl, alt: 'imageAlt' in entity ? entity.imageAlt || title : title } : null
+    }
   }
 
   const candidate = await db.select({
@@ -220,6 +305,10 @@ export function getVerbatimsFallbackCanonicalUrl(input: VerbatimsQueueSourceRef 
   if (input.sourceType === 'quote') {
     return `${input.baseSiteUrl}/quotes/${input.sourceId}`
   }
+
+  if (input.sourceType === 'author') return `${input.baseSiteUrl}/authors/${input.sourceId}`
+  if (input.sourceType === 'reference') return `${input.baseSiteUrl}/references/${input.sourceId}`
+  if (input.sourceType === 'theme') return input.baseSiteUrl
 
   return input.baseSiteUrl
 }

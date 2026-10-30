@@ -18,12 +18,15 @@ import {
   resolveFacebookEnabledConfig
 } from './social-provider-config'
 import { runSocialAutopostWithOptions } from './social-autopost'
+import { themeMediaNeedsImmediatePreparation } from './social-publishing-schedule'
 
 interface SocialQueueRow {
   id: number
-  quote_id: number
+  quote_id: number | null
+  content_type: 'quote' | 'spotlight' | 'theme'
   source_type: string
   source_id: number
+  media_url: string | null
   platform: string
   status: string
   position: number
@@ -109,6 +112,7 @@ export interface ListSocialQueueInput {
   search?: string
   status?: string
   platform?: string
+  contentType?: 'quote' | 'spotlight' | 'theme'
 }
 
 export interface ListSocialPostsInput {
@@ -177,7 +181,7 @@ export async function addQuotesToQueue(input: AddQuotesToQueueInput) {
   const BATCH_SIZE = 10
   const inserted: Array<{
     id: number
-    quoteId: number
+    quoteId: number | null
     sourceType: string
     sourceId: number
     position: number
@@ -250,7 +254,7 @@ export async function addRandomQuotesToQueue(input: AddRandomQuotesToQueueInput)
   const BATCH_SIZE = 10
   const inserted: Array<{
     id: number
-    quoteId: number
+    quoteId: number | null
     sourceType: string
     sourceId: number
     position: number
@@ -593,7 +597,7 @@ export async function reorderSocialQueueItem(input: ReorderSocialQueueInput) {
   }
 }
 
-export async function runSocialAutopostNow(input: { platform?: SocialPlatform; baseSiteUrl: string }) {
+export async function runSocialAutopostNow(input: { platform?: SocialPlatform; contentType?: 'quote' | 'spotlight' | 'theme' | 'all'; baseSiteUrl: string }) {
   const selectedPlatform = input.platform
 
   if (selectedPlatform === 'instagram' || selectedPlatform === 'threads' || selectedPlatform === 'pinterest' || selectedPlatform === 'facebook') {
@@ -629,7 +633,7 @@ export async function runSocialAutopostNow(input: { platform?: SocialPlatform; b
   }
 
   try {
-    const result = await runSocialAutopostWithOptions({ force: true, platform: selectedPlatform, baseSiteUrl: input.baseSiteUrl })
+    const result = await runSocialAutopostWithOptions({ force: true, platform: selectedPlatform, contentType: input.contentType || 'all', baseSiteUrl: input.baseSiteUrl })
 
     if (result && typeof result === 'object' && 'skipped' in result && !('success' in result)) {
       return {
@@ -667,6 +671,7 @@ export async function listSocialQueue(input: ListSocialQueueInput) {
   }
 
   const conditions = [eq(schema.socialQueue.platform, platform as any)]
+  if (input.contentType) conditions.push(eq(schema.socialQueue.contentType, input.contentType))
 
   if (status) {
     if (status === 'active') {
@@ -691,8 +696,10 @@ export async function listSocialQueue(input: ListSocialQueueInput) {
   const rows = await db.select({
     id: schema.socialQueue.id,
     quote_id: schema.socialQueue.quoteId,
+    content_type: schema.socialQueue.contentType,
     source_type: schema.socialQueue.sourceType,
     source_id: schema.socialQueue.sourceId,
+    media_url: schema.socialQueue.mediaUrl,
     platform: schema.socialQueue.platform,
     status: schema.socialQueue.status,
     position: schema.socialQueue.position,
@@ -722,7 +729,9 @@ export async function listSocialQueue(input: ListSocialQueueInput) {
     failed: sql<number>`SUM(CASE WHEN ${schema.socialQueue.status} = 'failed' THEN 1 ELSE 0 END)`
   })
   .from(schema.socialQueue)
-  .where(eq(schema.socialQueue.platform, platform as any))
+  .where(input.contentType
+    ? and(eq(schema.socialQueue.platform, platform as any), eq(schema.socialQueue.contentType, input.contentType))
+    : eq(schema.socialQueue.platform, platform as any))
 
   const total = Number(totalRow[0]?.total || 0)
   const totalPages = Math.ceil(total / limit)
@@ -836,6 +845,11 @@ export async function listSocialQueue(input: ListSocialQueueInput) {
 
     return {
       ...row,
+      media_status: row.content_type === 'theme'
+        ? row.media_url === null
+          ? row.status === 'queued' && themeMediaNeedsImmediatePreparation(row.scheduled_for) ? 'late' : 'pending'
+          : row.media_url ? 'ready' : 'unavailable'
+        : null,
       published_post_url: latestQueuePost?.post_url || null,
       published_external_post_id: latestQueuePost?.external_post_id || null,
       published_posted_at: toResponseTimestamp(latestQueuePost?.posted_at || null),
@@ -876,6 +890,7 @@ export async function getSocialQueueItem(id: number) {
   const row = await db.select({
     id: schema.socialQueue.id,
     quote_id: schema.socialQueue.quoteId,
+    content_type: schema.socialQueue.contentType,
     source_type: schema.socialQueue.sourceType,
     source_id: schema.socialQueue.sourceId,
     platform: schema.socialQueue.platform,
@@ -1025,6 +1040,7 @@ export async function listSocialPosts(input: ListSocialPostsInput) {
   const rows = await db.select({
     id: schema.socialPosts.id,
     quote_id: schema.socialPosts.quoteId,
+    content_type: schema.socialPosts.contentType,
     source_type: schema.socialPosts.sourceType,
     source_id: schema.socialPosts.sourceId,
     queue_id: schema.socialPosts.queueId,
