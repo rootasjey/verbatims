@@ -1,6 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, like, inArray, desc, sql } from 'drizzle-orm'
-import { combineFilterMatchSets, getThemeContentLanguages } from './theme-selection'
+import { combineFilterMatchSets, getThemeContentLanguages, isThemeWithinSchedule } from './theme-selection'
 import { getPrimaryQuoteProvenance } from './quote-provenance'
 import { localizeAuthors, localizeReferences, type ContentLanguage } from './entity-translations'
 import type { ThemeHomeCopy } from '~~/shared/types/theme'
@@ -98,10 +98,10 @@ export async function resolveActiveTheme(language?: string): Promise<ThemeRow | 
     )
     if (scheduled) return scheduled as unknown as ThemeRow
 
-    const active = list.find(t => t.isActive && (!t.scheduledStart || now >= t.scheduledStart.getTime()))
+    const active = list.find(t => t.isActive && isThemeWithinSchedule(t, now))
     if (active) return active as unknown as ThemeRow
 
-    const defaults = list.filter(t => t.isDefault && (!t.scheduledStart || now >= t.scheduledStart.getTime()))
+    const defaults = list.filter(t => t.isDefault && isThemeWithinSchedule(t, now))
     if (defaults.length) {
       return defaults[Math.floor(Math.random() * defaults.length)] as unknown as ThemeRow
     }

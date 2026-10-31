@@ -3,6 +3,16 @@ export interface FilterMatchSet {
   matchMode: string
 }
 
+export function isThemeWithinSchedule(
+  schedule: { scheduledStart?: Date | null; scheduledEnd?: Date | null },
+  now: number,
+): boolean {
+  const startsAt = schedule.scheduledStart?.getTime()
+  const endsAt = schedule.scheduledEnd?.getTime()
+
+  return (startsAt === undefined || now >= startsAt) && (endsAt === undefined || now <= endsAt)
+}
+
 /** Combines filter results without allowing an `any` filter to bypass `all`. */
 export function combineFilterMatchSets(matchSets: FilterMatchSet[]): number[] {
   if (matchSets.length === 0) return []
