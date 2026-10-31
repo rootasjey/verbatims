@@ -1,0 +1,1770 @@
+[metadata]
+created_at = "2026-10-30"
+source_audit = "docs/editorial/quote-production-audit.toml"
+status = "14_occurrences_applied_114_candidate_pairs_pending_review"
+selection_rule = "Record a secondary appearance only after confirming the quote in the work itself and recording an exact locator. Treat secondary research sources as candidate signals, not confirmation."
+production_pre_apply_bookmark = "000061c5-00000000-00005114-7e45353e8b40c57afc87d32f9facd9cd"
+production_apply_bookmark = "000061c5-00000006-00005114-0761646d452050145942ba208283c0f9"
+production_postflight = "Fourteen occurrence rows verified; twelve linked sources, including two newly verified direct witnesses; quote and attribution counts unchanged; foreign_key_check empty."
+source_follow_up = "No quote_sources rows were present for these two quotes. Add a source and exact locator when the episode, programme, page, scene, or timestamp is identified."
+related_origin_corrections = "The proposed origin references for quotes 572 and 2031 remain pending separately in quote-production-correction-proposals.toml."
+candidate_review_rule = "A secondary witness that mentions a production reference is only a candidate signal; verify the quote is actually present in that work before writing it to quote_occurrences."
+pending_candidate_pairs = 114
+pending_candidate_evidence_urls = 117
+
+[production_snapshot]
+quotes = 2524
+attributions = 2524
+quote_sources = 107
+quote_sources_with_occurrence = 12
+quote_occurrences_before_mapping = 0
+quote_occurrences_after_mapping = 14
+editorial_audit_quote_records = 2522
+editorial_audit_source_references = 2269
+editorial_audit_sources_are_production_quote_sources = false
+exactly_one_primary_attribution_per_quote = true
+production_occurrence_batch2_pre_apply_bookmark = "000061c5-00000012-00005114-df21698ccb566db0ce5c0ca39b56b741"
+production_sources_batch2_pre_apply_bookmark = "000061c7-00000008-00005114-57a020e0ad51c80725c2313c9b1b0fad"
+production_occurrence_batch2_apply_bookmark = "000061c7-00000010-00005114-8dc28074613f1582ff6af0c0a5c25d80"
+
+[[occurrences]]
+quote_id = 572
+attribution_id = 572
+author_id = 376
+reference_id = 203
+reference_name = "Alias Grace"
+occurrence_type = "quotation"
+reported_by = "user"
+source_status = "pending_exact_locator"
+context = ""
+occurred_at = ""
+notes = "The user confirmed this quotation appears in Alias Grace. Exact episode, scene, page, or timestamp and a supporting source have not yet been identified."
+production_occurrence_id = 1
+
+[[occurrences]]
+quote_id = 2031
+attribution_id = 2026
+author_id = 532
+reference_id = 201
+reference_name = "Arte"
+occurrence_type = "quotation"
+reported_by = "user"
+source_status = "pending_exact_locator"
+context = ""
+occurred_at = ""
+notes = "The user confirmed this quotation appears on Arte. Exact programme, episode, page, or timestamp and a supporting source have not yet been identified."
+production_occurrence_id = 2
+
+[[occurrences]]
+quote_id = 67
+attribution_id = 67
+author_id = 342
+reference_id = 29
+reference_name = "The 4-Hour Workweek"
+occurrence_type = "quotation"
+reported_by = "direct_source_audit"
+source_status = "manually_verified"
+context = "Section “When More Is Less: Cutting the Clutter”, PDF p. 118; quote appears as a standalone epigraph attributed to Robert Henri."
+excerpt = "To be free, to be happy and fruitful, can only be attained through sacrifice of many common but overestimated things"
+notes = "Directly confirmed in the digital text of The 4-Hour Workweek; exact section and PDF page recorded."
+production_occurrence_id = 13
+production_source_id = 108
+source_type = "digital_book"
+source_label = "The 4-Hour Workweek — digital text"
+source_url = "https://booksinbrief.com/books_pdf/The_4_Hour_Workweek.pdf"
+source_verification_status = "manually_verified"
+
+[[occurrences]]
+quote_id = 334
+attribution_id = 334
+author_id = 439
+reference_id = 160
+reference_name = "Enemy"
+occurrence_type = "quotation"
+reported_by = "direct_source_audit"
+source_status = "manually_verified"
+context = "Classroom scene; film timestamp 00:18:03; clip transcript 00:00:10–00:00:22."
+excerpt = "All the greatest world events happen twice. The first time it was a tragedy, the second time it was a farce."
+notes = "The clip records Anthony attributing the repeated-events formulation to Hegel and the tragedy/farce wording to Karl Marx."
+production_occurrence_id = 14
+production_source_id = 109
+source_type = "film_clip_transcript"
+source_label = "Enemy — classroom scene clip and transcript"
+source_url = "https://clip.cafe/enemy-2013/are-all-right-s86/"
+source_verification_status = "manually_verified"
+
+[[occurrences]]
+quote_id = 120
+reference_id = 161
+reference_name = "BEEF"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Season 1, episode 2; transcript page 6"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 3
+production_source_id = 98
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://8flix.com/assets/transcripts/b/tt14403178/Beef-transcript-102-The-Rapture-of-Being-Alive.pdf"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 323
+reference_id = 12
+reference_name = "Mindhunter"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Season 2, episode 1; around 00:25:14"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 4
+production_source_id = 99
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://subtitlecat.com/subs/142/Mindhunter%20-%2002x01%20-%20Episode%201.MZABI-PALEALE-ION10.English.HI.C.orig.Addic7ed.com.html"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 380
+reference_id = 53
+reference_name = "Passengers"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Around 00:27:05"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 5
+production_source_id = 100
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://clip.cafe/passengers-2016/you-know-im-not-saying-the-universe-is-evil-but-it-sure-has-a-nasty-sense-of-humor/"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 1100
+reference_id = 186
+reference_name = "Chernobyl"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Episode monologue around 01:23:45 (locator reported by a secondary study)"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 6
+production_source_id = 101
+source_type = "secondary_research"
+source_label = "Secondary research witness"
+source_url = "https://journals.sagepub.com/doi/pdf/10.1177/17506980211037287"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 1180
+reference_id = 3
+reference_name = "The Fall of the House of Usher"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Season 1, episode 2; transcript locator 00:09 (incomplete timestamp)"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 7
+production_source_id = 102
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://clip.cafe/s/The%2BMoment%2BAfter"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 1335
+reference_id = 100
+reference_name = "True Story"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Around 00:36:01"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 8
+production_source_id = 103
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://clip.cafe/true-story-2015/it-happens-sometimes-s4/"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 1417
+reference_id = 53
+reference_name = "Passengers"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Around 01:08:27"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 9
+production_source_id = 104
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://clip.cafe/passengers-2016/they-say-time-heals-all-wounds-s1/"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 1575
+reference_id = 153
+reference_name = "Dark"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Season 2, episode 7; 00:30:20–00:30:42"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 10
+production_source_id = 105
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://8flix.com/assets/transcripts/d/tt5753856/Dark-FRENCH-episode-script-transcript-season-2-07-The-White-Devil.pdf"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 1724
+reference_id = 109
+reference_name = "Phantom Thread"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Around 00:24:00"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 11
+production_source_id = 106
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://clip.cafe/phantom-thread-2017/i-think-its-the-expectations-assumptions-of-others-s1/"
+source_verification_status = "unverified"
+
+[[occurrences]]
+quote_id = 2376
+reference_id = 341
+reference_name = "2001: A Space Odyssey"
+occurrence_type = "performance"
+reported_by = "audit_secondary_witness"
+source_status = "unverified"
+context = "Trailer subtitles at 00:01:54.974–00:01:59.040"
+notes = "Provisional occurrence mapped from a secondary audit witness; verify against the primary work before treating the evidence as confirmed."
+production_occurrence_id = 12
+production_source_id = 107
+source_type = "secondary_transcript"
+source_label = "Secondary transcript witness"
+source_url = "https://commons.wikimedia.org/wiki/TimedText:2001_A_Space_Odyssey_(1968)_-_Trailer.webm.en.srt"
+source_verification_status = "unverified"
+
+
+# These entries are review candidates only. They are not production occurrences yet.
+
+[[occurrence_candidates]]
+quote_id = 20
+current_attribution_id = 20
+author_id = 41
+reference_id = 96
+reference_name = "Meet Joe Black"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "possible_misattribution"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.scripts.com/script-pdf-body.php?id=716"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 21
+current_attribution_id = 21
+author_id = 270
+reference_id = 53
+reference_name = "Passengers"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.screenwritersnetwork.org/wp-content/uploads/2021/08/Passengers-2016.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 67
+current_attribution_id = 67
+author_id = 342
+reference_id = 29
+reference_name = "The 4-Hour Workweek"
+occurrence_type = "quotation"
+review_status = "verified_in_primary_work"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://idwithjames.com/wp-content/uploads/2012/11/4hourWorkWeek.pdf"]
+decision_note = "Directly confirmed in the digital text at section “When More Is Less: Cutting the Clutter”, PDF p. 118. A quote_occurrences row and linked manually verified source were recorded in production."
+verification_source_url = "https://booksinbrief.com/books_pdf/The_4_Hour_Workweek.pdf"
+verified_locator = "Section “When More Is Less: Cutting the Clutter”, PDF p. 118"
+production_occurrence_id = 13
+production_source_id = 108
+
+[[occurrence_candidates]]
+quote_id = 68
+current_attribution_id = 68
+author_id = 292
+reference_id = 201
+reference_name = "Arte"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "possible_misattribution"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://memoire.randomlab.io/2025/maxence-mardargent/maxence-mardargent-tu-prendrais-bien-un-cookie.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 80
+current_attribution_id = 80
+author_id = 288
+reference_id = 116
+reference_name = "Vanilla Sky"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.lespetitsmotsdecaro.ca/post/le-miel-n-est-pas-vraiment-le-miel-sans-le-vinaigre"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 114
+current_attribution_id = 114
+author_id = 270
+reference_id = 53
+reference_name = "Passengers"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "inconclusive"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.imdb.com/fr/title/tt0084628/quotes/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 122
+current_attribution_id = 122
+author_id = 21
+reference_id = 95
+reference_name = "The Outsider"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "inconclusive"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://fathersonholyGore.com/2020/01/14/the-outsider-episode-2-roanoke/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 139
+current_attribution_id = 139
+author_id = 439
+reference_id = 160
+reference_name = "Enemy"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "inconclusive"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://subdl.com/ru/s/info/zaik1JnI6X/enemy"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 210
+current_attribution_id = 210
+author_id = 252
+reference_id = 42
+reference_name = "The Misanthrope"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "inconclusive"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://libquotes.com/moli%C3%A8re/quote/lba2y2t"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 257
+current_attribution_id = 257
+author_id = 289
+reference_id = 156
+reference_name = "ALT 236"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://culture.service.univ-rennes2.fr/print/pdf/node/43"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 334
+current_attribution_id = 334
+author_id = 439
+reference_id = 160
+reference_name = "Enemy"
+occurrence_type = "quotation"
+review_status = "verified_in_primary_work"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/enemy-2013/are-all-right-s86/"]
+decision_note = "Directly confirmed in the film clip at 00:18:03; transcript timestamps locate the dialogue at 00:00:10–00:00:22. A quote_occurrences row and linked manually verified source were recorded in production."
+verification_source_url = "https://clip.cafe/enemy-2013/are-all-right-s86/"
+verified_locator = "Classroom scene; film 00:18:03; clip transcript 00:00:10–00:00:22"
+production_occurrence_id = 14
+production_source_id = 109
+
+[[occurrence_candidates]]
+quote_id = 385
+current_attribution_id = 385
+author_id = 289
+reference_id = 156
+reference_name = "ALT 236"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://culture.service.univ-rennes2.fr/article/alt-236-recherche-vertige-artistique"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 393
+current_attribution_id = 393
+author_id = 61
+reference_id = 172
+reference_name = "Away"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.standard.co.uk/culture/tvfilm/away-netflix-review-a4540411.html"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 396
+current_attribution_id = 396
+author_id = 455
+reference_id = 128
+reference_name = "Dirty John"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.tvinsider.com/936077/dirty-john-betty-broderick-story-review/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 400
+current_attribution_id = 400
+author_id = 164
+reference_id = 203
+reference_name = "Alias Grace"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.bustle.com/p/the-poems-in-alias-grace-give-meaning-to-the-shows-dark-themes-3211891"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 405
+current_attribution_id = 405
+author_id = 284
+reference_id = 160
+reference_name = "Enemy"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "disputed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/enemy-2013/are-all-right-s86/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 421
+current_attribution_id = 421
+author_id = 260
+reference_id = 19
+reference_name = "Ratched"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/ratched-2020/we-a-saying-in-the-corps/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 428
+current_attribution_id = 428
+author_id = 262
+reference_id = 203
+reference_name = "Alias Grace"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.magicalquote.com/seriesquotes/there-is-no-use-crying-over-spilt-milk/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 475
+current_attribution_id = 475
+author_id = 292
+reference_id = 201
+reference_name = "Arte"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "possible_misattribution"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://memoire.randomlab.io/2025/maxence-mardargent/maxence-mardargent-tu-prendrais-bien-un-cookie.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 476
+current_attribution_id = 476
+author_id = 260
+reference_id = 19
+reference_name = "Ratched"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "possible_misattribution"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/ratched-2020/we-a-saying-in-the-corps/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 481
+current_attribution_id = 481
+author_id = 162
+reference_id = 22
+reference_name = "Entretiens"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://media.electre-ng.com/extraits/extrait-id/ec832bd4d4081746c31cb5024dd3a8fb9ec9b6bfccb89f4070ab3f72168c0378.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 515
+current_attribution_id = 515
+author_id = 252
+reference_id = 87
+reference_name = "Tartuffe"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.saintquentinartethistoire.fr/download/files/original/243/BD-Moliere-%5B1000x1500mm%5D.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 528
+current_attribution_id = 528
+author_id = 232
+reference_id = 81
+reference_name = "Watchmen"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.magicalquote.com/seriesquotes/heaven-is-not-enough-because-heaven-doesnt-need-me/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 536
+current_attribution_id = 536
+author_id = 113
+reference_id = 97
+reference_name = "Extremely Wicked, Shockingly Evil and Vile"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.areelofonesown.com/home/2019/2/3/sundance-film-festival-2019-extremely-wicked-shockingly-evil-and-vile"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 572
+current_attribution_id = 572
+author_id = 376
+reference_id = 203
+reference_name = "Alias Grace"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.artangel.org.uk/project/the-influence-machine/ourself-behind-ourself-concealed/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 575
+current_attribution_id = 575
+author_id = 204
+reference_id = 109
+reference_name = "Phantom Thread"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.springfieldspringfield.co.uk/movie_script.php?movie=phantom-thread"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 612
+current_attribution_id = 612
+author_id = 30
+reference_id = 82
+reference_name = "Amanda Knox"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://newspapers.swco.ttu.edu/server/api/core/bitstreams/5e583b8a-8d17-4f14-866b-333e85f9fab1/content"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 636
+current_attribution_id = 636
+author_id = 368
+reference_id = 188
+reference_name = "The Changeling"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.flicks.co.uk/features/cryptic-luscious-dark-souled-series-the-changeling-toys-with-our-perception/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 657
+current_attribution_id = 657
+author_id = 135
+reference_id = 67
+reference_name = "Firefly Lane"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.epicquotes.com/62-memorable-quotes-from-firefly-lane-netflix/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 658
+current_attribution_id = 658
+author_id = 201
+reference_id = 73
+reference_name = "Kilomètre zéro"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://seriallectrice.blogspot.com/2018/03/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 744
+current_attribution_id = 744
+author_id = 343
+reference_id = 148
+reference_name = "Celeste"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://sidequest.zone/2020/03/17/climbing-mount-celeste/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 781
+current_attribution_id = 781
+author_id = 376
+reference_id = 203
+reference_name = "Alias Grace"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.tandfonline.com/doi/full/10.1080/14788810.2020.1806138"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 786
+current_attribution_id = 786
+author_id = 30
+reference_id = 82
+reference_name = "Amanda Knox"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.imdb.com/title/tt5952332/quotes/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 847
+current_attribution_id = 847
+author_id = 244
+reference_id = 100
+reference_name = "True Story"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/true-story-2015/it-happens-sometimes-s4/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 859
+current_attribution_id = 859
+author_id = 186
+reference_id = 203
+reference_name = "Alias Grace"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "primary_source_confirmed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://sbc.org.pl/Content/40267/PDF/romanica_silesiana_3.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 860
+current_attribution_id = 860
+reference_id = 146
+reference_name = "The Big Bang Theory"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.dictionary.com/culture/slang/bazinga"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 879
+current_attribution_id = 879
+author_id = 245
+reference_id = 81
+reference_name = "Watchmen"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://time.com/5701311/watchmen-easter-eggs-references/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 882
+current_attribution_id = 882
+author_id = 355
+reference_id = 73
+reference_name = "Kilomètre zéro"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "possible_misattribution"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.dicocitations.com/citations/citation-173276.php"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 931
+current_attribution_id = 931
+author_id = 245
+reference_id = 33
+reference_name = "Ondine"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.collectionscanada.gc.ca/obj/thesescanada/vol2/QMM/TC-QMM-112082.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 944
+current_attribution_id = 944
+author_id = 354
+reference_id = 186
+reference_name = "Chernobyl"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.kaakook.fr/film-2506"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 966
+current_attribution_id = 966
+author_id = 252
+reference_id = 194
+reference_name = "Le Misanthrope"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://quotepark.com/quotes/1892060-moliere-doubts-are-more-cruel-than-the-worst-of-truths/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 990
+current_attribution_id = 990
+author_id = 298
+reference_id = 154
+reference_name = "All the Bright Places"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "possible_misattribution"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://bpl.bibliocommons.com/v2/quotation/2030750155"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1007
+current_attribution_id = 1007
+author_id = 459
+reference_id = 103
+reference_name = "Simba"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.topparoles.fr/parole_simba_pnl_1100475"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1045
+current_attribution_id = 1045
+author_id = 3
+reference_id = 4
+reference_name = "Better Ideas"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://yego.me/articles/daPmenMTbU4"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1141
+current_attribution_id = 1141
+author_id = 289
+reference_id = 156
+reference_name = "ALT 236"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://culture.service.univ-rennes2.fr/article/alt-236-recherche-vertige-artistique"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1155
+current_attribution_id = 1155
+author_id = 424
+reference_id = 208
+reference_name = "Reddit"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://themindsjournal.com/don-t-let-getting-lonely-make-you-reconnect-with-toxic-people/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1182
+current_attribution_id = 1182
+author_id = 252
+reference_id = 87
+reference_name = "Tartuffe"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://wist.info/topic/slander/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1195
+current_attribution_id = 1195
+author_id = 245
+reference_id = 160
+reference_name = "Enemy"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://ecency.com/%40serialfiller/enemy-la-nascita-del-genio-villeneuve"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1197
+current_attribution_id = 1197
+author_id = 313
+reference_id = 32
+reference_name = "Warrior Nun"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/warrior-nun-2020/searching-oneself-is-a-journey-a-lifetime/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1206
+current_attribution_id = 1206
+author_id = 252
+reference_id = 194
+reference_name = "Le Misanthrope"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://exosomatic.net/ENTER/The%20Complete%20Idiot%27s%20Guide%20to%20Great%20Quotes%20for%20All%20Occasions%20-%20Elaine%20Bernstein%20Partnow%202008.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1268
+current_attribution_id = 1268
+author_id = 467
+reference_id = 197
+reference_name = "The woods"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.bookey.app/book/the-woods/quote"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1281
+current_attribution_id = 1281
+author_id = 171
+reference_id = 32
+reference_name = "Warrior Nun"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.springfieldspringfield.co.uk/view_episode_scripts.php?episode=s01e01&tv-show=warrior-nun-2020"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1297
+current_attribution_id = 1297
+author_id = 278
+reference_id = 29
+reference_name = "The 4-Hour Workweek"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://studylib.net/doc/27186095/the-4-hour-work-week-expanded-and-updated"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1310
+current_attribution_id = 1310
+author_id = 171
+reference_id = 32
+reference_name = "Warrior Nun"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.ranker.com/list/best-warrior-nun-quotes/movie-and-tv-quotes"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1322
+current_attribution_id = 1322
+author_id = 188
+reference_id = 29
+reference_name = "The 4-Hour Workweek"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://idwithjames.com/wp-content/uploads/2012/11/4hourWorkWeek.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1324
+current_attribution_id = 1324
+author_id = 263
+reference_id = 85
+reference_name = "Rémora"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.paroles.net/klo-pelgag/paroles-remora"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1328
+current_attribution_id = 1328
+author_id = 36
+reference_id = 29
+reference_name = "The 4-Hour Workweek"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://idwithjames.com/wp-content/uploads/2012/11/4hourWorkWeek.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1331
+current_attribution_id = 1331
+author_id = 284
+reference_id = 160
+reference_name = "Enemy"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/enemy-2013/are-all-right-s86/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1332
+current_attribution_id = 1332
+author_id = 322
+reference_id = 67
+reference_name = "Firefly Lane"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://storage.googleapis.com/supersummary-e2563.appspot.com/wxrnlr5kokyd88jptr137k29o7jh"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1359
+current_attribution_id = 1359
+author_id = 161
+reference_id = 29
+reference_name = "The 4-Hour Workweek"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://yourknowledgedigest.org/wp-content/uploads/2020/05/the-4-hour-workweek.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1377
+current_attribution_id = 1377
+author_id = 289
+reference_id = 156
+reference_name = "ALT 236"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://culture.service.univ-rennes2.fr/article/alt-236-recherche-vertige-artistique"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1403
+current_attribution_id = 1403
+author_id = 376
+reference_id = 203
+reference_name = "Alias Grace"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://ir.canterbury.ac.nz/bitstreams/28b5c52b-081b-42ac-88f0-e2bfddc88299/download"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1465
+current_attribution_id = 1465
+author_id = 281
+reference_id = 174
+reference_name = "Birdman"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/birdman-2014/popularity-the-slutty-little-cousin-of-prestige-friend/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1468
+current_attribution_id = 1468
+author_id = 186
+reference_id = 203
+reference_name = "Alias Grace"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "primary_source_confirmed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.avclub.com/in-its-penultimate-episode-alias-grace-thrives-on-unce-1820225878"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1500
+current_attribution_id = 1500
+author_id = 245
+reference_id = 81
+reference_name = "Watchmen"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://time.com/5701311/watchmen-easter-eggs-references/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1521
+current_attribution_id = 1521
+author_id = 252
+reference_id = 42
+reference_name = "The Misanthrope"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.goodreads.com/work/quotes/685838-le-misanthrope-ou-l-atrabilaire-amoureux"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1524
+current_attribution_id = 1524
+author_id = 383
+reference_id = 108
+reference_name = "Sincerely, Jane"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.vagalume.com.br/janelle-monae/sincerely-jane.html"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1531
+current_attribution_id = 1531
+author_id = 263
+reference_id = 85
+reference_name = "Rémora"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://lyricstranslate.com/fr/kl%C3%B4-pelgag-r%C3%A9mora-lyrics.html"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1539
+current_attribution_id = 1539
+author_id = 160
+reference_id = 157
+reference_name = "Maghla"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "disputed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.10h26.com/top-differents-sourires-passion-paint"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1546
+current_attribution_id = 1546
+author_id = 279
+reference_id = 192
+reference_name = "Hollywood"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://transcripts.foreverdreaming.org/viewtopic.php?t=231087"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1587
+current_attribution_id = 1587
+author_id = 65
+reference_id = 73
+reference_name = "Kilomètre zéro"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://fr.scribd.com/document/1012865587/143582297-Pema-Chodron-Conseils-d-Une-Amie-Pour-Des-Temps-Difficiles-PDF-Images-Avec-Recherche"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1645
+current_attribution_id = 1645
+reference_id = 104
+reference_name = "Friends"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://clip.cafe/friends-1994/hey-how-doing-s6/", "https://www.friends-tv.org/transcripts/923extended.htm"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1654
+current_attribution_id = 1654
+author_id = 245
+reference_id = 188
+reference_name = "The Changeling"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "disputed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://proverbary.com/fr/proverb/asiyefunzwa/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1690
+current_attribution_id = 1690
+author_id = 448
+reference_id = 185
+reference_name = "The Holiday"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "primary_source_confirmed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.scripts.com/script.php?id=the_holiday_10059"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1709
+current_attribution_id = 1709
+author_id = 252
+reference_id = 194
+reference_name = "Le Misanthrope"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["authoritative_secondary"]
+evidence_urls = ["https://www.cambridgescholars.com/resources/pdfs/978-1-4438-4797-1-sample.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1775
+current_attribution_id = 1775
+author_id = 245
+reference_id = 160
+reference_name = "Enemy"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://bfidatadigipres.github.io/pdf/2021-09-01-enemy.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1788
+current_attribution_id = 1788
+author_id = 34
+reference_id = 29
+reference_name = "The 4-Hour Workweek"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://idwithjames.com/wp-content/uploads/2012/11/4hourWorkWeek.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1805
+current_attribution_id = 1805
+author_id = 435
+reference_id = 209
+reference_name = "The Divine Image"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.poetryfoundation.org/poems/43656/the-divine-image"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1844
+current_attribution_id = 1844
+author_id = 286
+reference_id = 92
+reference_name = "Rebecca"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "disputed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://transcripts.foreverdreaming.org/viewtopic.php?t=267432"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1856
+current_attribution_id = 1856
+author_id = 6
+reference_id = 56
+reference_name = "La Révolution"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://transcripts.foreverdreaming.org/viewtopic.php?p=351309"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1872
+current_attribution_id = 1872
+author_id = 455
+reference_id = 128
+reference_name = "Dirty John"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.dailymotion.com/video/xawk8j6"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1910
+current_attribution_id = 1910
+author_id = 407
+reference_id = 196
+reference_name = "WeCrashed"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.commonsensemedia.org/tv-reviews/wecrashed"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1932
+current_attribution_id = 1932
+author_id = 487
+reference_id = 242
+reference_name = "Fight Club"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://quotations.pro/people/tyler-durden/quote/the-things-you-own-end-up-owning-you"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1954
+current_attribution_id = 1954
+author_id = 500
+reference_id = 226
+reference_name = "Wednesday"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.10h26.com/top-meilleures-repliques-mercredi"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1957
+current_attribution_id = 1957
+author_id = 502
+reference_id = 251
+reference_name = "Kung Fu Panda"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.allocine.fr/diaporamas/cinema/diaporama-18709448/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1982
+current_attribution_id = 1979
+author_id = 500
+reference_id = 226
+reference_name = "Wednesday"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.8flix.com/assets/transcripts/w/tt13443470/Wednesday-transcript-105-You-Reap-What-You-Woe.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 1989
+current_attribution_id = 1986
+author_id = 519
+reference_id = 249
+reference_name = "Arcane"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://en.wikiquote.org/wiki/Arcane"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2039
+current_attribution_id = 2034
+author_id = 419
+reference_id = 271
+reference_name = "Raelsan"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://lyrhub.com/en/track/Orelsan/Raelsan"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2043
+current_attribution_id = 2038
+author_id = 479
+reference_id = 229
+reference_name = "The Sinner"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.subtitlecat.com/subs/316/The.Sinner.S04E02.720p.WEB.h264-GOSSIP%5Beztv.re%5D.html"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2075
+current_attribution_id = 2069
+author_id = 522
+reference_id = 223
+reference_name = "Pantheon"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.luogu.com/article/citv9n9u"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2085
+current_attribution_id = 2079
+author_id = 534
+reference_id = 406
+reference_name = "On Listening to Lectures"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://wist.info/plutarch/3175/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2111
+current_attribution_id = 2105
+author_id = 479
+reference_id = 268
+reference_name = "Fireship"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "possible_misattribution"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://skeptics.stackexchange.com/questions/51731/did-camus-say-the-literal-meaning-of-life-is-whatever-youre-doing-that-prevents"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2112
+current_attribution_id = 2106
+author_id = 571
+reference_id = 73
+reference_name = "Kilomètre zéro"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.oltome.com/livres/kilometre-zero/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2131
+current_attribution_id = 2125
+author_id = 584
+reference_id = 292
+reference_name = "Ces années-là"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://archives.aml-cfwb.be/ressources/public/AMLB/00243/2018/005/AMLB%2000243-2018-005.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2185
+current_attribution_id = 2177
+author_id = 617
+reference_id = 321
+reference_name = "La Petite Marchande de prose"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.collectionscanada.gc.ca/obj/thesescanada/vol2/QQLA/TC-QQLA-26993.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2195
+current_attribution_id = 2187
+author_id = 622
+reference_id = 299
+reference_name = "Les filles du feu"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.dicocitations.com/citation/est_il_/1/14400.php"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2214
+current_attribution_id = 2206
+author_id = 591
+reference_id = 147
+reference_name = "La Zone Du Dehors"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://booknode.com/la_zone_du_dehors_013268/extraits?offset=5"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2215
+current_attribution_id = 2207
+author_id = 683
+reference_id = 323
+reference_name = "Hell"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.dicocitations.com/citations/citation-147171.php"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2218
+current_attribution_id = 2210
+author_id = 634
+reference_id = 305
+reference_name = "Mille et une pensées (2005)"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.mon-poeme.fr/citations-philippe-bouvard/"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2235
+current_attribution_id = 2227
+author_id = 645
+reference_id = 306
+reference_name = "No et Moi"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://jarts.journals.ekb.eg/article_324425_cf3ee49fc395ea26f5ccce8354d45c81.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2250
+current_attribution_id = 2242
+reference_id = 147
+reference_name = "La Zone Du Dehors"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://citations.webescence.com/citations/Alain-Damasio"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2252
+current_attribution_id = 2244
+author_id = 653
+reference_id = 307
+reference_name = "Procès VA-OM"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.lequipe.fr/Football/Actualites/Les-meilleures-punchlines-de-bernard-tapie/1289790"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2385
+current_attribution_id = 2369
+author_id = 727
+reference_id = 134
+reference_name = "Star Trek"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.startrek.com/news/space-the-final-frontier"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2397
+current_attribution_id = 2378
+author_id = 737
+reference_id = 357
+reference_name = "Fahrenheit 451"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "disputed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.arts.gov/sites/default/files/Reader-Resources-Fahrenheit-451.pdf"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2430
+current_attribution_id = 2411
+author_id = 316
+reference_id = 26
+reference_name = "Twilight of the Idols"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "disputed"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://quotations.pro/people/friedrich-nietzsche/quote/that-which-does-not-kill-us"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2448
+current_attribution_id = 2429
+author_id = 759
+reference_id = 386
+reference_name = "The Terminator"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://www.springfieldspringfield.co.uk/movie_script.php?movie=terminator-the"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2491
+current_attribution_id = 2472
+author_id = 782
+reference_id = 397
+reference_name = "La Horde du Contrevent"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://fr.wikiquote.org/wiki/La_Horde_du_Contrevent"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2492
+current_attribution_id = 2473
+author_id = 782
+reference_id = 397
+reference_name = "La Horde du Contrevent"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://fr.wikiquote.org/wiki/La_Horde_du_Contrevent"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2493
+current_attribution_id = 2474
+author_id = 784
+reference_id = 397
+reference_name = "La Horde du Contrevent"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://fr.wikiquote.org/wiki/La_Horde_du_Contrevent"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2494
+current_attribution_id = 2475
+author_id = 783
+reference_id = 397
+reference_name = "La Horde du Contrevent"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://fr.wikiquote.org/wiki/La_Horde_du_Contrevent"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2495
+current_attribution_id = 2476
+author_id = 783
+reference_id = 397
+reference_name = "La Horde du Contrevent"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://fr.wikiquote.org/wiki/La_Horde_du_Contrevent"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2496
+current_attribution_id = 2477
+author_id = 784
+reference_id = 397
+reference_name = "La Horde du Contrevent"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://fr.wikiquote.org/wiki/La_Horde_du_Contrevent"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2501
+current_attribution_id = 2481
+author_id = 788
+reference_id = 398
+reference_name = "Chess"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://libquotes.com/emanuel-lasker/quote/lbp4o7u"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2502
+current_attribution_id = 2482
+author_id = 789
+reference_id = 399
+reference_name = "The Seventh Seal"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://en.wikiquote.org/wiki/The_Seventh_Seal"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2503
+current_attribution_id = 2483
+author_id = 789
+reference_id = 399
+reference_name = "The Seventh Seal"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://en.wikiquote.org/wiki/The_Seventh_Seal"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."
+
+[[occurrence_candidates]]
+quote_id = 2504
+current_attribution_id = 2484
+author_id = 789
+reference_id = 399
+reference_name = "The Seventh Seal"
+occurrence_type = "pending_classification"
+review_status = "needs_human_review"
+audit_outcome = "source_candidate_found"
+audit_source_levels = ["secondary"]
+evidence_urls = ["https://en.wikiquote.org/wiki/The_Seventh_Seal"]
+decision_note = "A secondary audit witness mentions this current reference; verify that the quotation is actually present in the work and identify its exact locator before creating a production occurrence."

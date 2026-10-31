@@ -1,0 +1,631 @@
+# Reviewable, evidence-backed production correction proposals.
+# Approved and applied production correction lot. See metadata for read-back status.
+
+[metadata]
+created_at = "2026-10-30"
+audit_file = "docs/editorial/quote-production-audit.toml"
+selection_rule = "Include only a precise change supported by a directly linked primary witness. Production IDs are resolved at application time."
+candidate_count = 33
+status = "batch_1_applied_batch_2_prepared"
+local_snapshot_checked_at = "2026-10-30"
+local_snapshot_path = ".data/db/sqlite.db (file timestamp 2026-10-30 03:00 local time)"
+local_quote_rows_matched = 22
+proposed_author_entities_found_locally = 0
+proposed_reference_entities_found_locally = 0
+live_production_checked = true
+live_checked_at = "2026-10-30"
+live_quote_rows_matched = 22
+live_attribution_rows_matched = 23
+proposed_author_entities_found_live = 0
+proposed_reference_entities_found_live = 0
+new_author_entities_needed = 5
+new_reference_entities_needed = 17
+production_fields_applied = 27
+production_authors_created = 5
+production_references_created = 14
+production_sources_created = 22
+production_attributions_removed = 1
+production_attributions_manually_verified = 22
+production_sources_manually_verified = 22
+production_pre_apply_bookmark = "0000617c-00000000-00005114-b71425ad015d65b11dfa9e5f5f0a5f16"
+production_apply_bookmark = "0000617c-00000010-00005114-6027dcccb57933021c079fb615cfdb32"
+production_verified_at = "2026-10-30 08:02:17 UTC"
+production_batch_count = 2
+production_batch_1_status = "applied_and_read_back_verified"
+production_batch_2_status = "prepared_pending_live_check_and_user_review"
+production_batch_2_candidate_count = 6
+production_batch_2_new_reference_entities = 3
+production_batch_2_live_production_checked = false
+next_step = "Renew Wrangler authentication, confirm batch 2 current values, then apply after editorial approval."
+
+[[candidates]]
+quote_id = 3
+live_attribution_id = 3
+production_source_id = 76
+live_current_entity_id = 208
+field = "reference_title"
+current = "Reddit"
+proposed = "The Whole Armour of God"
+confidence = "high"
+source_url = "https://www.gutenberg.org/files/36692/36692-h/36692-h.htm"
+evidence = "The exact sentence appears in Jowett's book, p. 68."
+rationale = "The production reference does not identify the work containing the quote."
+[[candidates]]
+quote_id = 24
+live_attribution_id = 24
+production_source_id = 77
+live_current_entity_id = 29
+field = "reference_title"
+current = "The 4-Hour Workweek"
+proposed = "Cargo Cult Science"
+confidence = "high"
+source_url = "https://calteches.library.caltech.edu/51/02/CargoCult.htm"
+evidence = "Caltech's text of Feynman's 1974 address contains the exact sentence."
+rationale = "Replace the unrelated production reference with the source speech."
+[[candidates]]
+quote_id = 46
+live_attribution_id = 46
+production_source_id = 78
+live_current_entity_id = 1
+field = "author_name"
+current = "Confucius"
+proposed = "Oliver Goldsmith"
+confidence = "high"
+source_url = "https://upload.wikimedia.org/wikipedia/commons/b/b4/The_Works_of_Oliver_Goldsmith%2C_in_Four_Volumes%2C_Vol._II_%28IA_dli.granth.52424%29.pdf"
+evidence = "The primary scan of The Citizen of the World, Letter VII, pp. 106–107, contains the maxim in Goldsmith's text."
+rationale = "The later Confucius attribution is unsupported; the primary text identifies Goldsmith's work."
+[[candidates]]
+quote_id = 46
+live_attribution_id = 46
+production_source_id = 78
+live_current_entity_id = ""
+field = "reference_title"
+current = ""
+proposed = "The Citizen of the World, Letter VII"
+confidence = "high"
+source_url = "https://upload.wikimedia.org/wikipedia/commons/b/b4/The_Works_of_Oliver_Goldsmith%2C_in_Four_Volumes%2C_Vol._II_%28IA_dli.granth.52424%29.pdf"
+evidence = "The quoted wording is in Letter VII of the scanned volume."
+rationale = "Add the exact primary work and letter to replace the missing reference."
+[[candidates]]
+quote_id = 200
+live_attribution_id = 200
+production_source_id = 79
+live_current_entity_id = 29
+field = "reference_title"
+current = "The 4-Hour Workweek"
+proposed = "The Picture of Dorian Gray, Chapter I"
+confidence = "high"
+source_url = "https://www.gutenberg.org/files/174/174-h/174-h.htm"
+evidence = "The exact sentence appears in Chapter I, spoken by Lord Henry."
+rationale = "Replace the unrelated production reference with Wilde's novel and passage."
+[[candidates]]
+quote_id = 205
+live_attribution_id = 205
+production_source_id = 80
+live_current_entity_id = 245
+field = "author_name"
+current = "Anonyme"
+proposed = "Yseult"
+confidence = "high"
+source_url = "https://fr.wikisource.org/wiki/Page:Giraudoux_-_Ondine.djvu/169"
+evidence = "The scanned page of Ondine attributes this line to Yseult."
+rationale = "Use the identified speaker already represented by the production author field."
+[[candidates]]
+quote_id = 326
+live_attribution_id = 326
+production_source_id = 81
+live_current_entity_id = 416
+field = "author_name"
+current = "Jane Fonda"
+proposed = "Florence Scovel Shinn"
+confidence = "high"
+source_url = "https://sacred-texts.com/book/the-secret-door-to-success/shell/the-watchman-at-the-gate"
+evidence = "The exact wording appears in The Secret Door to Success, Chapter 8, by Florence Scovel Shinn."
+rationale = "Replace the false attribution with the author of the primary text."
+[[candidates]]
+quote_id = 326
+live_attribution_id = 326
+production_source_id = 81
+live_current_entity_id = ""
+field = "reference_title"
+current = ""
+proposed = "The Secret Door to Success, Chapter 8: The Watchman at the Gate"
+confidence = "high"
+source_url = "https://sacred-texts.com/book/the-secret-door-to-success/shell/the-watchman-at-the-gate"
+evidence = "The 1941 text of The Secret Door to Success contains the exact wording in 'The Watchman at the Gate'."
+rationale = "Add the correct source work and passage after replacing the broken link and correcting the previously misidentified title."
+[[candidates]]
+quote_id = 472
+live_attribution_id = 472
+production_source_id = 82
+field = "quote_text"
+current = "Take a break from worrying about what your can't control. Live a little."
+proposed = "Take a break from worrying about what you can't control. Live a little."
+confidence = "high"
+source_url = "https://www.screenwritersnetwork.org/wp-content/uploads/2021/08/Passengers-2016.pdf"
+evidence = "The Passengers screenplay has 'what you can't control'."
+rationale = "Correct the production typo 'your' to 'you'."
+[[candidates]]
+quote_id = 547
+live_attribution_id = 547
+production_source_id = 83
+live_current_entity_id = 29
+field = "reference_title"
+current = "The 4-Hour Workweek"
+proposed = "The Importance of Being Earnest, Act I"
+confidence = "high"
+source_url = "https://www.gutenberg.org/files/844/844-h/844-h.htm"
+evidence = "The exact sentence is spoken by Lady Bracknell in Act I."
+rationale = "Replace the unrelated production reference with Wilde's play and passage."
+[[candidates]]
+quote_id = 558
+live_attribution_id = 558
+production_source_id = 84
+live_current_entity_id = 200
+field = "reference_title"
+current = "The Crowded Room"
+proposed = "The Tempest, Act II, Scene I"
+confidence = "high"
+source_url = "https://shakespeare.mit.edu/tempest/full.html"
+evidence = "Antonio says 'What's past is prologue' in Act II, Scene I."
+rationale = "Replace the unrelated production reference with Shakespeare's play and scene."
+[[candidates]]
+quote_id = 570
+live_attribution_id = 570
+production_source_id = 85
+live_current_entity_id = 245
+field = "author_name"
+current = "Anonyme"
+proposed = "Alithea"
+confidence = "high"
+source_url = "https://assets.scriptslug.com/live/pdf/scripts/three-thousand-years-of-longing-2022.pdf?v=1729115049"
+evidence = "The screenplay gives the line to Alithea."
+rationale = "Replace the anonymous attribution with the identified speaker."
+[[candidates]]
+quote_id = 622
+live_attribution_id = 622
+production_source_id = 86
+live_current_entity_id = 9
+field = "reference_title"
+current = "Marianne"
+proposed = "Essays, Book III, Chapter 13 ('Of Experience')"
+confidence = "high"
+source_url = "https://www.gutenberg.org/files/60014/60014-h/60014-h.htm"
+evidence = "The English translation contains the exact sentence in Book III, Chapter 13."
+rationale = "Replace the unrelated production reference with the source passage."
+[[candidates]]
+quote_id = 647
+live_attribution_id = 647
+production_source_id = 87
+live_current_entity_id = 29
+field = "reference_title"
+current = "The 4-Hour Workweek"
+proposed = "Lady Windermere's Fan, Act III"
+confidence = "high"
+source_url = "https://www.gutenberg.org/files/790/790-h/790-h.htm"
+evidence = "Lord Darlington says the exact line in Act III."
+rationale = "Replace the unrelated production reference with Wilde's play and passage."
+[[candidates]]
+quote_id = 2079
+live_attribution_id = 2073
+production_source_id = 88
+live_current_entity_id = 497
+field = "author_name"
+current = "Bob Monkhouse"
+proposed = "Jack Handey"
+confidence = "high"
+source_url = "https://snegiri-studio.ru/pl/fileservice/user/file/download/h/e10430710500f0917cb107a91fadaa67.pdf"
+evidence = "The Don't Look Up screenplay explicitly credits this joke to Jack Handey."
+rationale = "Correct the author credit while retaining the film as the reference where it occurs."
+[[candidates]]
+quote_id = 2200
+live_attribution_id = 2192
+production_source_id = 89
+field = "quote_text"
+current = "On pleure parfois les illusions avec autant de tristesse que les morts."
+proposed = "On pleure parfois des illusions avec autant de tristesse que les morts."
+confidence = "high"
+source_url = "https://portail.stpaul4.ac-reunion.fr/calibre/get/PDF/Guy%20de%20Maupassant-Une%20Vie_11492.pdf"
+evidence = "The primary text of Une vie reads 'des illusions'."
+rationale = "Replace the production article 'les' with the source wording 'des'; the current reference Une vie is already correct."
+[[candidates]]
+quote_id = 2314
+live_attribution_id = 2301
+production_source_id = 90
+live_current_entity_id = 231
+field = "reference_title"
+current = "Les Revues du Monde"
+proposed = "The Life of Reason, Volume I: Reason in Common Sense"
+confidence = "high"
+source_url = "https://www.gutenberg.org/files/15000/15000-h/15000-h.htm"
+evidence = "Santayana's primary text contains the sentence in Volume I, Reason in Common Sense."
+rationale = "The author is already correct; replace the unrelated reference."
+[[candidates]]
+quote_id = 2320
+live_attribution_id = 2307
+production_source_id = 91
+field = "quote_text"
+current = "If I had my life to live over again, I would have made a rule to read some poetry and listen to some music at least once very week."
+proposed = "If I had to live my life again, I would have made a rule to read some poetry and listen to some music at least once every week."
+confidence = "high"
+source_url = "https://darwin-online.org.uk/content/contentblock?basepage=1&hitpage=45&itemID=F1461&viewtype=text"
+evidence = "Darwin's autobiography, page 51, gives the proposed wording."
+rationale = "Correct both wording differences and the typo 'very week'."
+[[candidates]]
+quote_id = 2341
+live_attribution_id = 2328
+production_source_id = 92
+field = "quote_text"
+current = "Tout homme est presume innocent jusqu a ce qu il ait ete declare coupable."
+proposed = "Tout homme étant présumé innocent jusqu’à ce qu’il ait été déclaré coupable."
+confidence = "high"
+source_url = "https://www.legifrance.gouv.fr/loda/article_lc/LEGIARTI000006527426/"
+evidence = "Article 9 of the 1789 Declaration gives the proposed exact wording."
+rationale = "Restore the omitted 'étant' and the source orthography."
+[[candidates]]
+quote_id = 2348
+live_attribution_id = 2335
+production_source_id = 93
+field = "quote_text"
+current = "La femme nait libre et demeure egale a l homme en droits."
+proposed = "La Femme naît libre et demeure égale à l’homme en droits."
+confidence = "high"
+source_url = "https://fr.wikisource.org/wiki/D%C3%A9claration_des_droits_de_la_femme_et_de_la_citoyenne"
+evidence = "Article I of Olympe de Gouges's 1791 declaration gives the proposed text."
+rationale = "Restore the source capitalization, accents, and apostrophe."
+[[candidates]]
+quote_id = 2348
+live_attribution_id = 2335
+production_source_id = 93
+live_current_entity_id = ""
+field = "reference_title"
+current = ""
+proposed = "Déclaration des droits de la femme et de la citoyenne, Article I"
+confidence = "high"
+source_url = "https://fr.wikisource.org/wiki/D%C3%A9claration_des_droits_de_la_femme_et_de_la_citoyenne"
+evidence = "The primary text identifies the declaration and article containing the quote."
+rationale = "Add the exact source reference."
+[[candidates]]
+quote_id = 2407
+live_attribution_id = 2388
+production_source_id = 94
+field = "quote_text"
+current = "All that glitters is not gold"
+proposed = "All that glisters is not gold"
+confidence = "high"
+source_url = "https://www.gutenberg.org/cache/epub/1515/pg1515.html"
+evidence = "The Merchant of Venice uses 'glisters' in the casket inscription."
+rationale = "Restore Shakespeare's exact word."
+[[candidates]]
+quote_id = 2461
+live_attribution_id = 2442
+production_source_id = 95
+field = "quote_text"
+current = "Le propre de l'homme est de rire"
+proposed = "Pource que rire est le propre de l’homme"
+confidence = "high"
+source_url = "https://renom.univ-tours.fr/fr/index/corpus/francois-rabelais/gargantua-1534/au-lecteurs"
+evidence = "The University of Tours transcription of the 1534 edition records the verse as 'Pource que rire est le propre de l’homme'."
+rationale = "Replace the modernized wording with Rabelais's text."
+[[candidates]]
+quote_id = 2461
+live_attribution_id = 2442
+production_source_id = 95
+live_current_entity_id = ""
+field = "reference_title"
+current = ""
+proposed = 'Gargantua, “Au Lecteurs” (1534)'
+confidence = "high"
+source_url = "https://renom.univ-tours.fr/fr/index/corpus/francois-rabelais/gargantua-1534/au-lecteurs"
+evidence = "The University of Tours transcription identifies this poem in the 1534 edition of Gargantua."
+rationale = "Add a directly accessible witness of the work and passage."
+[[candidates]]
+quote_id = 2472
+live_attribution_id = 2453
+production_source_id = 96
+live_current_entity_id = 392
+field = "reference_title"
+current = "The Invite"
+proposed = "A Woman of No Importance, Act III"
+confidence = "high"
+source_url = "https://www.gutenberg.org/cache/epub/854/pg854.html"
+evidence = "Wilde's primary text contains the sentence in Act III, spoken by Lord Illingworth."
+rationale = "Replace the unrelated reference."
+[[candidates]]
+quote_id = 2472
+live_attribution_id = 2487
+production_source_id = 96
+live_current_entity_id = 90
+field = "attribution"
+operation = "remove"
+current = "Albert Einstein"
+proposed = ""
+confidence = "high"
+source_url = "https://www.gutenberg.org/cache/epub/854/pg854.html"
+evidence = "The sentence is present in Wilde's play; the production's Einstein attribution is unrelated."
+rationale = "Remove the secondary Einstein attribution."
+[[candidates]]
+quote_id = 2498
+live_attribution_id = 2478
+production_source_id = 97
+live_current_entity_id = 398
+field = "reference_title"
+current = "Chess"
+proposed = "The Morals of Chess"
+confidence = "high"
+source_url = "https://founders.archives.gov/documents/Franklin/01-29-02-0608"
+evidence = "Founders Online identifies Franklin's source essay as The Morals of Chess and reproduces the quote."
+rationale = "The quote text is a faithful excerpt; make the reference title precise."
+
+# New records required because the proposed names were not found in live D1.
+# IDs will be assigned by the database if these records are approved and created.
+[[candidates]]
+batch = 2
+quote_id = 422
+baseline_attribution_id = 422
+baseline_reference_id = ""
+field = "reference_title"
+current = ""
+proposed = "The Road Not Taken"
+confidence = "high"
+source_url = "https://www.gutenberg.org/cache/epub/29345/pg29345-images.html"
+evidence = "Mountain Interval contains the poem under this title."
+rationale = "Add the work that contains the quoted lines."
+[[candidates]]
+batch = 2
+quote_id = 572
+baseline_attribution_id = 572
+baseline_reference_id = 203
+field = "quote_text"
+current = "Ourself behind ourself, concealed - Should startle most - Assassin his in our apartment Be Horror's least."
+proposed = "Ourself, behind ourself concealed, Should startle most; Assassin, hid in our apartment, Be horror's least."
+confidence = "high"
+source_url = "https://en.wikisource.org/wiki/Page:Emily_Dickinson_Poems_-_second_series_(1891).djvu/227"
+evidence = "The scan and transcription of Poems: Second Series give these four lines with the current production typo corrected from “his” to “hid”."
+rationale = "Restore the exact four-line stanza and punctuation from the published text."
+[[candidates]]
+batch = 2
+quote_id = 572
+baseline_attribution_id = 572
+baseline_reference_id = 203
+field = "reference_title"
+current = "Alias Grace"
+proposed = "Poems: Second Series"
+confidence = "high"
+source_url = "https://en.wikisource.org/wiki/Page:Emily_Dickinson_Poems_-_second_series_(1891).djvu/227"
+evidence = "The 1891 scan of Poems: Second Series prints this stanza on page 215; Alias Grace only quotes it as an epigraph."
+rationale = "Replace the derivative television reference with the collection that published the poem."
+[[candidates]]
+batch = 2
+quote_id = 2016
+baseline_attribution_id = 2011
+baseline_reference_id = 243
+field = "quote_text"
+current = "Une merveille absurde est pour moi dans appas."
+proposed = "Une merveille absurde est pour moi sans appas."
+confidence = "high"
+source_url = "https://www.e-rara.ch/download/pdf/8258912.pdf"
+evidence = "The digitized historical edition of L’Art poétique (page 5) reads “Une merveille absurde est pour moi sans appas”."
+rationale = "Correct the production typo “dans” to the source word “sans”."
+[[candidates]]
+batch = 2
+quote_id = 2031
+baseline_attribution_id = 2026
+baseline_reference_id = 201
+field = "quote_text"
+current = "On parle probablement plus de sexe que d'autres choses."
+proposed = "De lui, il se pourrait bien que nous parlions plus que de toute autre chose."
+confidence = "high"
+source_url = "https://ferbos-jeanfrancois.legtux.org/wp-content/uploads/2022/02/foucault-michel-histoire-de-la-sexualite-.pdf"
+evidence = "The primary French text contains this exact sentence in the passage on discourses about sex."
+rationale = "Replace the paraphrase with Foucault’s exact wording."
+[[candidates]]
+batch = 2
+quote_id = 2031
+baseline_attribution_id = 2026
+baseline_reference_id = 201
+field = "reference_title"
+current = "Arte"
+proposed = "Histoire de la sexualité, tome I : La Volonté de savoir, partie II (« L’hypothèse répressive »)"
+confidence = "high"
+source_url = "https://ferbos-jeanfrancois.legtux.org/wp-content/uploads/2022/02/foucault-michel-histoire-de-la-sexualite-.pdf"
+evidence = "The cited passage is in part II, “L’hypothèse répressive”, of La Volonté de savoir."
+rationale = "Replace the generic broadcaster reference with the book and section containing the exact sentence."
+
+
+[[new_entities]]
+entity_type = "author"
+name = "Oliver Goldsmith"
+production_id = 816
+is_fictional = false
+linked_quote_ids = [46]
+source_url = "https://upload.wikimedia.org/wikipedia/commons/b/b4/The_Works_of_Oliver_Goldsmith%2C_in_Four_Volumes%2C_Vol._II_%28IA_dli.granth.52424%29.pdf"
+evidence = "The primary scan of The Citizen of the World, Letter VII, contains the maxim in Goldsmith's text."
+[[new_entities]]
+entity_type = "author"
+name = "Yseult"
+production_id = 817
+is_fictional = true
+linked_quote_ids = [205]
+source_url = "https://fr.wikisource.org/wiki/Page:Giraudoux_-_Ondine.djvu/169"
+evidence = "The scanned page of Ondine attributes this line to Yseult."
+[[new_entities]]
+entity_type = "author"
+name = "Florence Scovel Shinn"
+production_id = 818
+is_fictional = false
+linked_quote_ids = [326]
+source_url = "https://sacred-texts.com/book/the-secret-door-to-success/shell/the-watchman-at-the-gate"
+evidence = "The quote appears in 'The Watchman at the Gate' in her 1941 book The Secret Door to Success."
+[[new_entities]]
+entity_type = "author"
+name = "Alithea"
+production_id = 819
+is_fictional = true
+linked_quote_ids = [570]
+source_url = "https://assets.scriptslug.com/live/pdf/scripts/three-thousand-years-of-longing-2022.pdf?v=1729115049"
+evidence = "The screenplay gives the line to Alithea."
+[[new_entities]]
+entity_type = "author"
+name = "Jack Handey"
+production_id = 820
+is_fictional = false
+linked_quote_ids = [2079]
+source_url = "https://snegiri-studio.ru/pl/fileservice/user/file/download/h/e10430710500f0917cb107a91fadaa67.pdf"
+evidence = "The Don't Look Up screenplay explicitly credits this joke to Jack Handey."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "The Whole Armour of God"
+production_id = 428
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [3]
+source_url = "https://www.gutenberg.org/files/36692/36692-h/36692-h.htm"
+evidence = "The exact sentence appears in Jowett's book, p. 68."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "Cargo Cult Science"
+production_id = 429
+primary_type = "speech"
+original_language = "en"
+linked_quote_ids = [24]
+source_url = "https://calteches.library.caltech.edu/51/02/CargoCult.htm"
+evidence = "Caltech's text of Feynman's 1974 address contains the exact sentence."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "The Citizen of the World, Letter VII"
+production_id = 430
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [46]
+source_url = "https://upload.wikimedia.org/wikipedia/commons/b/b4/The_Works_of_Oliver_Goldsmith%2C_in_Four_Volumes%2C_Vol._II_%28IA_dli.granth.52424%29.pdf"
+evidence = "The scanned volume identifies Letter VII and reproduces the maxim."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "The Picture of Dorian Gray, Chapter I"
+production_id = 431
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [200]
+source_url = "https://www.gutenberg.org/files/174/174-h/174-h.htm"
+evidence = "The exact sentence appears in Chapter I, spoken by Lord Henry."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "The Secret Door to Success, Chapter 8: The Watchman at the Gate"
+production_id = 432
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [326]
+source_url = "https://sacred-texts.com/book/the-secret-door-to-success/shell/the-watchman-at-the-gate"
+evidence = "The 1941 text contains the quote in 'The Watchman at the Gate'."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "The Importance of Being Earnest, Act I"
+production_id = 433
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [547]
+source_url = "https://www.gutenberg.org/files/844/844-h/844-h.htm"
+evidence = "The exact sentence is spoken by Lady Bracknell in Act I."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "The Tempest, Act II, Scene I"
+production_id = 434
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [558]
+source_url = "https://shakespeare.mit.edu/tempest/full.html"
+evidence = "Antonio says 'What's past is prologue' in Act II, Scene I."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "Essays, Book III, Chapter 13 ('Of Experience')"
+production_id = 435
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [622]
+source_url = "https://www.gutenberg.org/files/60014/60014-h/60014-h.htm"
+evidence = "The English translation contains the exact sentence in Book III, Chapter 13."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "Lady Windermere's Fan, Act III"
+production_id = 436
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [647]
+source_url = "https://www.gutenberg.org/files/790/790-h/790-h.htm"
+evidence = "Lord Darlington says the exact line in Act III."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "The Life of Reason, Volume I: Reason in Common Sense"
+production_id = 437
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [2314]
+source_url = "https://www.gutenberg.org/files/15000/15000-h/15000-h.htm"
+evidence = "Santayana's primary text contains the sentence in Volume I, Reason in Common Sense."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "Déclaration des droits de la femme et de la citoyenne, Article I"
+production_id = 438
+primary_type = "other"
+original_language = "fr"
+linked_quote_ids = [2348]
+source_url = "https://fr.wikisource.org/wiki/D%C3%A9claration_des_droits_de_la_femme_et_de_la_citoyenne"
+evidence = "The primary text identifies the declaration and article containing the quote."
+[[new_entities]]
+entity_type = "quote_reference"
+name = 'Gargantua, “Au Lecteurs” (1534)'
+production_id = 439
+primary_type = "book"
+original_language = "fr"
+linked_quote_ids = [2461]
+source_url = "https://renom.univ-tours.fr/fr/index/corpus/francois-rabelais/gargantua-1534/au-lecteurs"
+evidence = "The University of Tours transcription of the 1534 edition identifies this as the poem 'Au Lecteurs'."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "A Woman of No Importance, Act III"
+production_id = 440
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [2472]
+source_url = "https://www.gutenberg.org/cache/epub/854/pg854.html"
+evidence = "Wilde's primary text contains the sentence in Act III, spoken by Lord Illingworth."
+[[new_entities]]
+entity_type = "quote_reference"
+name = "The Morals of Chess"
+production_id = 441
+primary_type = "writings"
+original_language = "en"
+linked_quote_ids = [2498]
+source_url = "https://founders.archives.gov/documents/Franklin/01-29-02-0608"
+evidence = "Founders Online identifies Franklin's source essay and reproduces the excerpt."
+
+[[new_entities]]
+batch = 2
+entity_type = "quote_reference"
+name = "The Road Not Taken"
+primary_type = "writings"
+original_language = "en"
+linked_quote_ids = [422]
+source_url = "https://www.gutenberg.org/cache/epub/29345/pg29345-images.html"
+evidence = "Mountain Interval contains Robert Frost’s poem The Road Not Taken."
+
+[[new_entities]]
+batch = 2
+entity_type = "quote_reference"
+name = "Poems: Second Series"
+primary_type = "book"
+original_language = "en"
+linked_quote_ids = [572]
+source_url = "https://en.wikisource.org/wiki/Page:Emily_Dickinson_Poems_-_second_series_(1891).djvu/227"
+evidence = "The 1891 collection prints the quoted stanza on page 215."
+
+[[new_entities]]
+batch = 2
+entity_type = "quote_reference"
+name = "Histoire de la sexualité, tome I : La Volonté de savoir, partie II (« L’hypothèse répressive »)"
+primary_type = "book"
+original_language = "fr"
+linked_quote_ids = [2031]
+source_url = "https://ferbos-jeanfrancois.legtux.org/wp-content/uploads/2022/02/foucault-michel-histoire-de-la-sexualite-.pdf"
+evidence = "The exact sentence is in part II, “L’hypothèse répressive”, of the French text."
