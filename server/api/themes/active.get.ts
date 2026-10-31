@@ -1,6 +1,5 @@
-import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
 import { parseThemeHomeCopy } from '~~/server/utils/theme'
+import { getThemeForPublicAccess } from '~~/server/utils/theme-publication'
 import type { ThemeHomeCopy } from '~~/shared/types/theme'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<{
@@ -33,11 +32,12 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
 
     let theme
     if (themeSlug) {
-      const [found] = await db.select().from(schema.themes).where(eq(schema.themes.slug, themeSlug)).limit(1)
-      theme = found || null
+      const accessible = await getThemeForPublicAccess(event, themeSlug)
+      theme = accessible?.theme || null
     } else {
       theme = await resolveActiveTheme(language)
     }
+    setResponseHeader(event, 'Cache-Control', 'private, no-store')
     if (!theme) {
       return { success: true, data: null }
     }

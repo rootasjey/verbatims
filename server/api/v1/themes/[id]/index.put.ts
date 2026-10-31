@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { enrichThemeFilters } from '~~/server/utils/theme-enrichment'
 import { scheduleBackground } from '~~/server/utils/schedule'
+import { enqueueThemeLaunch } from '~~/server/utils/social-theme-launch'
 
 defineRouteMeta({
   openAPI: {
@@ -69,6 +70,15 @@ export default defineEventHandler(async (event) => {
   if (body.is_active !== undefined) {
     updates.isActive = body.is_active === true
   }
+  if (body.social_is_active !== undefined) {
+    updates.socialIsActive = body.social_is_active === true
+  }
+  if (body.publication_status !== undefined) {
+    if (body.publication_status !== 'draft' && body.publication_status !== 'published') {
+      throwServer(400, 'Invalid publication status')
+    }
+    updates.publicationStatus = body.publication_status
+  }
   if (body.is_default !== undefined) {
     updates.isDefault = body.is_default === true
   }
@@ -117,6 +127,12 @@ export default defineEventHandler(async (event) => {
     .from(schema.themes)
     .where(eq(schema.themes.id, themeId))
     .limit(1)
+
+  const updatedTheme = updated[0]
+  const socialLaunchBecameEligible = updatedTheme?.socialIsActive && updatedTheme.publicationStatus === 'published' && (
+    !existing[0]!.socialIsActive || existing[0]!.publicationStatus !== 'published'
+  )
+  if (socialLaunchBecameEligible) await enqueueThemeLaunch(themeId)
 
   const existingFilters = await db.select({ id: schema.themeContentFilters.id })
     .from(schema.themeContentFilters)

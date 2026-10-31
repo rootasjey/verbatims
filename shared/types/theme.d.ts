@@ -39,6 +39,8 @@ export interface Theme {
   mobile_image_location: string | null
   config: Record<string, any> | null
   is_active: boolean
+  social_is_active: boolean
+  publication_status: 'draft' | 'published'
   is_default: boolean
   scheduled_date: string | null
   scheduled_start: string | null
@@ -87,6 +89,8 @@ export interface CreateThemeData {
   mobile_image_location?: string | null
   config?: Record<string, any>
   is_active?: boolean
+  social_is_active?: boolean
+  publication_status?: 'draft' | 'published'
   is_default?: boolean
   scheduled_date?: string | null
   scheduled_start?: string | null

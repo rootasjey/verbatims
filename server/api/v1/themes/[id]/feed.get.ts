@@ -42,12 +42,12 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const language = (query.language as string) || undefined
 
-  const feed = await getThemeFeed(theme.slug, language)
+  const feed = await getThemeFeed(theme.slug, language, true)
   if (!feed) {
     throwServer(404, 'Theme feed not available')
   }
 
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=120')
+  setResponseHeader(event, 'Cache-Control', 'private, no-store')
 
   return { success: true, data: feed }
 })

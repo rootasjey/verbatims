@@ -57,6 +57,8 @@ export default defineEventHandler(async (event) => {
       mobileImageDate: schema.themes.mobileImageDate,
       mobileImageLocation: schema.themes.mobileImageLocation,
       isActive: schema.themes.isActive,
+      socialIsActive: schema.themes.socialIsActive,
+      publicationStatus: schema.themes.publicationStatus,
       isDefault: schema.themes.isDefault,
       scheduledStart: schema.themes.scheduledStart,
       scheduledEnd: schema.themes.scheduledEnd,

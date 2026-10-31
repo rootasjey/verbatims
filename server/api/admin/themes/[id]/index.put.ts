@@ -74,6 +74,15 @@ export default defineEventHandler(async (event) => {
     if (body.is_active !== undefined) {
       updates.isActive = body.is_active === true
     }
+    if (body.social_is_active !== undefined) {
+      updates.socialIsActive = body.social_is_active === true
+    }
+    if (body.publication_status !== undefined) {
+      if (body.publication_status !== 'draft' && body.publication_status !== 'published') {
+        throwServer(400, 'Invalid publication status')
+      }
+      updates.publicationStatus = body.publication_status
+    }
     if (body.is_default !== undefined) {
       updates.isDefault = body.is_default === true
     }
@@ -133,7 +142,11 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.themes.id, themeId))
       .limit(1)
 
-    if (!existingTheme.isActive && updated[0]?.isActive) await enqueueThemeLaunch(themeId)
+    const updatedTheme = updated[0]
+    const socialLaunchBecameEligible = updatedTheme?.socialIsActive && updatedTheme.publicationStatus === 'published' && (
+      !existingTheme.socialIsActive || existingTheme.publicationStatus !== 'published'
+    )
+    if (socialLaunchBecameEligible) await enqueueThemeLaunch(themeId)
 
     // Background enrichment (only if theme has filters)
     const existingFilters = await db.select({ id: schema.themeContentFilters.id })

@@ -134,6 +134,8 @@
               </td>
               <td class="px-3 py-3">
                 <div class="flex items-center gap-1.5">
+                  <span v-if="theme.publicationStatus === 'draft'" class="font-sans text-xs px-1.5 py-0.5 rounded text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20">{{ $t('publication_draft') }}</span>
+                  <span v-else-if="theme.publicationStatus === 'published'" class="font-sans text-xs px-1.5 py-0.5 rounded text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20">{{ $t('publication_published') }}</span>
                   <NDropdownMenu v-if="theme.isActive" :items="getStatusActions(theme, 'active')" :modal="false">
                     <span class="font-sans text-xs px-1.5 py-0.5 rounded text-[#2373F4] dark:text-[#75A7FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15 cursor-pointer">{{ $t('status_active') }}</span>
                   </NDropdownMenu>
@@ -366,6 +368,33 @@
                         :class="[{ 'bg-gray-100 dark:bg-gray-900': form.is_default }]"
                         class="active:scale-98 hover:bg-gray-100 dark:hover:bg-gray-800 transition-[colors,transform]"
                         v-model="form.is_default"
+                      />
+                    </NTooltip>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2">
+                    <NTooltip :content="$t(form.publication_status === 'published' ? 'publication_unpublish' : 'publication_publish') as string">
+                      <NToggle
+                        :leading="form.publication_status === 'published' ? 'i-ph-eye' : 'i-ph-eye-slash'"
+                        :icon="false"
+                        :square="false"
+                        :label="$t(form.publication_status === 'published' ? 'publication_published' : 'publication_draft') as string"
+                        :class="[{ 'bg-gray-100 dark:bg-gray-900': form.publication_status === 'published' }]"
+                        class="active:scale-98 hover:bg-gray-100 dark:hover:bg-gray-800 transition-[colors,transform]"
+                        :model-value="form.publication_status === 'published'"
+                        @update:model-value="form.publication_status = $event ? 'published' : 'draft'"
+                      />
+                    </NTooltip>
+
+                    <NTooltip :content="$t('dialog_social_activation_help') as string">
+                      <NToggle
+                        :leading="form.social_is_active ? 'i-ph-megaphone' : 'i-ph-megaphone-simple'"
+                        :icon="false"
+                        :square="false"
+                        :label="$t(form.social_is_active ? 'dialog_social_active' : 'dialog_social_inactive') as string"
+                        :class="[{ 'bg-gray-100 dark:bg-gray-900': form.social_is_active }]"
+                        class="active:scale-98 hover:bg-gray-100 dark:hover:bg-gray-800 transition-[colors,transform]"
+                        v-model="form.social_is_active"
                       />
                     </NTooltip>
                   </div>
@@ -1472,6 +1501,8 @@ const form = ref({
   mobile_image_location: '',
   language: '',
   is_active: false,
+  social_is_active: false,
+  publication_status: 'draft' as 'draft' | 'published',
   is_default: false,
   scheduled_start: '',
   scheduled_end: '',
@@ -1777,6 +1808,8 @@ const duplicateTheme = async (theme: any) => {
       mobile_image_location: data.mobileImageLocation || '',
       language: data.language || '',
       is_active: false,
+      social_is_active: false,
+      publication_status: 'draft',
       is_default: false,
       scheduled_start: '',
       scheduled_end: '',
@@ -1917,7 +1950,7 @@ const resetForm = () => {
   showDesktopAttribution.value = false
   showMobileAttribution.value = false
   showMobileImage.value = false
-  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
+  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', is_active: false, social_is_active: false, publication_status: 'draft', is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
@@ -1974,6 +2007,8 @@ const openEdit = async (theme: any) => {
       mobile_image_location: data.mobileImageLocation || '',
       language: data.language || '',
       is_active: data.isActive || false,
+      social_is_active: data.socialIsActive || false,
+      publication_status: data.publicationStatus || 'draft',
       is_default: data.isDefault || false,
       scheduled_start: data.scheduledStart ? formatDatetimeForInput(data.scheduledStart) : '',
       scheduled_end: data.scheduledEnd ? formatDatetimeForInput(data.scheduledEnd) : '',
@@ -2385,6 +2420,8 @@ const saveTheme = async () => {
         .filter(t => t.language && t.name.trim())
         .map(t => ({ language: t.language, name: t.name.trim(), description: t.description.trim() || null, home_copy: parseHomeCopy(t.home_copy_json) })),
       is_active: form.value.is_active,
+      social_is_active: form.value.social_is_active,
+      publication_status: form.value.publication_status,
       is_default: form.value.is_default,
       scheduled_start: form.value.scheduled_start || null,
       scheduled_end: form.value.scheduled_end || null,

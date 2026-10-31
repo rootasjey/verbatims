@@ -9,12 +9,13 @@ import { themeMediaNeedsImmediatePreparation } from './social-publishing-schedul
 export async function enqueueThemeLaunch(themeId: number) {
   const theme = await db.select({
     id: schema.themes.id,
-    isActive: schema.themes.isActive,
+    socialIsActive: schema.themes.socialIsActive,
+    publicationStatus: schema.themes.publicationStatus,
     scheduledStart: schema.themes.scheduledStart,
     scheduledEnd: schema.themes.scheduledEnd
   }).from(schema.themes).where(eq(schema.themes.id, themeId)).limit(1).get()
 
-  if (!theme?.isActive) return { queued: 0 }
+  if (!theme?.socialIsActive || theme.publicationStatus !== 'published') return { queued: 0 }
 
   const platforms = await getEnabledSocialPostingPlatforms()
   if (!platforms.length) return { queued: 0 }

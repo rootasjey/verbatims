@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, like, inArray, desc, sql } from 'drizzle-orm'
 import { combineFilterMatchSets, getThemeContentLanguages, isThemeWithinSchedule } from './theme-selection'
+import { isThemePublished } from './theme-publication-policy'
 import { getPrimaryQuoteProvenance } from './quote-provenance'
 import { localizeAuthors, localizeReferences, type ContentLanguage } from './entity-translations'
 import type { ThemeHomeCopy } from '~~/shared/types/theme'
@@ -82,6 +83,7 @@ export async function resolveActiveTheme(language?: string): Promise<ThemeRow | 
 
   const allThemes = await db.select()
     .from(schema.themes)
+    .where(eq(schema.themes.publicationStatus, 'published'))
     .orderBy(desc(schema.themes.priority))
     .all()
 
@@ -125,14 +127,14 @@ export async function getThemeFilters(themeId: number): Promise<FilterRow[]> {
     .all() as unknown as FilterRow[]
 }
 
-export async function getThemeFeed(themeSlug: string, language?: string): Promise<ThemeFeedResult | null> {
+export async function getThemeFeed(themeSlug: string, language?: string, includeUnpublished = false): Promise<ThemeFeedResult | null> {
   const themeRow = await db.select()
       .from(schema.themes)
       .where(eq(schema.themes.slug, themeSlug))
       .limit(1)
       .get()
 
-    if (!themeRow) return null
+    if (!themeRow || (!includeUnpublished && !isThemePublished(themeRow.publicationStatus))) return null
 
     let themeConfig: Record<string, any> = {}
     if (themeRow.config) {

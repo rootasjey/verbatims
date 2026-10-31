@@ -985,6 +985,8 @@ CREATE TABLE IF NOT EXISTS themes (
   language TEXT,
   config TEXT DEFAULT '{}',
   is_active INTEGER DEFAULT 0,
+  social_is_active INTEGER NOT NULL DEFAULT 0,
+  publication_status TEXT NOT NULL DEFAULT 'draft' CHECK (publication_status IN ('draft', 'published')),
   is_default INTEGER DEFAULT 0,
   scheduled_start INTEGER,
   scheduled_end INTEGER,
@@ -995,6 +997,7 @@ CREATE TABLE IF NOT EXISTS themes (
 CREATE INDEX IF NOT EXISTS idx_themes_slug ON themes(slug);
 CREATE INDEX IF NOT EXISTS idx_themes_active ON themes(is_active);
 CREATE INDEX IF NOT EXISTS idx_themes_default ON themes(is_default);
+CREATE INDEX IF NOT EXISTS idx_themes_publication_status ON themes(publication_status);
 CREATE INDEX IF NOT EXISTS idx_themes_language ON themes(language);
 
 CREATE TABLE IF NOT EXISTS theme_content_filters (

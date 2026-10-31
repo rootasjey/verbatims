@@ -30,6 +30,8 @@ export default defineEventHandler(async (event) => {
     }
     const translations = Array.isArray(body?.translations) ? body.translations : []
     const isActive = body?.is_active === true
+    const socialIsActive = body?.social_is_active === true
+    const publicationStatus = body?.publication_status === 'published' ? 'published' : 'draft'
     const isDefault = body?.is_default === true
     const scheduledStart = body?.scheduled_start || null
     const scheduledEnd = body?.scheduled_end || null
@@ -64,6 +66,8 @@ export default defineEventHandler(async (event) => {
         mobileImageUrl: imageCommit.mobileImageUrl,
         config,
         isActive,
+        socialIsActive,
+        publicationStatus,
         isDefault,
         scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
         scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
@@ -81,7 +85,7 @@ export default defineEventHandler(async (event) => {
     if (!theme) {
       throwServer(500, 'Failed to create theme')
     }
-    if (theme.isActive) await enqueueThemeLaunch(theme.id)
+    if (theme.socialIsActive) await enqueueThemeLaunch(theme.id)
 
     if (translations.length > 0) {
       await db.insert(schema.themeTranslations).values(

@@ -1,28 +1,15 @@
 import { kv } from 'hub:kv'
-import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import { resolveLocalizedField, getThemeTranslations } from '~~/server/utils/theme'
+import { getThemeForPublicAccess } from '~~/server/utils/theme-publication'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')?.replace(/\.png$/, '')
   if (!slug) throwServer(400, 'Theme slug is required')
 
-  const theme = await db.select({
-    id: schema.themes.id,
-    slug: schema.themes.slug,
-    name: schema.themes.name,
-    description: schema.themes.description,
-    imageUrl: schema.themes.imageUrl,
-    imageCredit: schema.themes.imageCredit,
-    updatedAt: schema.themes.updatedAt,
-  })
-    .from(schema.themes)
-    .where(eq(schema.themes.slug, slug))
-    .limit(1)
-    .get()
-
-  if (!theme) throwServer(404, 'Theme not found')
+  const accessible = await getThemeForPublicAccess(event, slug)
+  if (!accessible) throwServer(404, 'Theme not found')
+  const { theme, isDraftPreview } = accessible
 
   const locale = getQuery(event).locale === 'fr' ? 'fr' : 'en'
   const translations = await getThemeTranslations(theme.id)
@@ -36,15 +23,16 @@ export default defineEventHandler(async (event) => {
     imageUrl: theme.imageUrl,
     imageCredit: theme.imageCredit,
     locale,
+    publicationStatus: theme.publicationStatus,
     updatedAt: theme.updatedAt?.getTime() ?? null,
     version,
   }))
   const latestKey = `og:home:${slug}:${locale}:latest`
   const imageKey = `og:home:${slug}:${locale}:${hash}.png`
-  const latest = await kv.get<string>(latestKey)
-  const cached = await kv.get<string>(imageKey)
+  const latest = isDraftPreview ? null : await kv.get<string>(latestKey)
+  const cached = isDraftPreview ? null : await kv.get<string>(imageKey)
   if (cached) {
-    setImageHeaders(event, hash)
+    setImageHeaders(event, hash, false)
     return base64ToUint8(cached)
   }
 
@@ -60,17 +48,19 @@ export default defineEventHandler(async (event) => {
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   await page.goto(templateUrl.toString(), { waitUntil: 'networkidle0', timeout: 15000 })
   const png = await page.screenshot({ type: 'png' }) as Buffer
-  await kv.set(imageKey, uint8ToBase64(new Uint8Array(png)))
-  if (latest && latest !== hash) await kv.del(`og:home:${slug}:${locale}:${latest}.png`)
-  await kv.set(latestKey, hash)
-  setImageHeaders(event, hash)
+  if (!isDraftPreview) {
+    await kv.set(imageKey, uint8ToBase64(new Uint8Array(png)))
+    if (latest && latest !== hash) await kv.del(`og:home:${slug}:${locale}:${latest}.png`)
+    await kv.set(latestKey, hash)
+  }
+  setImageHeaders(event, hash, isDraftPreview)
   return png
 })
 
-function setImageHeaders(event: H3Event, hash: string): void {
+function setImageHeaders(event: H3Event, hash: string, isDraftPreview: boolean): void {
   setHeader(event, 'Content-Type', 'image/png')
   setHeader(event, 'ETag', `W/"${hash}"`)
-  setHeader(event, 'Cache-Control', 'public, max-age=300, s-maxage=600')
+  setHeader(event, 'Cache-Control', isDraftPreview ? 'private, no-store' : 'no-store')
 }
 
 async function sha1(input: string): Promise<string> {

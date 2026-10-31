@@ -1,4 +1,5 @@
 import { getThemeFeed } from '~~/server/utils/theme'
+import { getThemeForPublicAccess, setThemeResponseCache } from '~~/server/utils/theme-publication'
 
 const contentLanguages = ['en', 'fr', 'la'] as const
 
@@ -11,12 +12,14 @@ export default defineEventHandler(async (event): Promise<ApiResponse<Array<{
     throwServer(400, 'Theme slug is required')
   }
 
-  const feeds = await Promise.all(contentLanguages.map(language => getThemeFeed(slug, language)))
+  const accessible = await getThemeForPublicAccess(event, slug)
+  if (!accessible) throwServer(404, 'Theme not found')
+  const feeds = await Promise.all(contentLanguages.map(language => getThemeFeed(slug, language, accessible.isDraftPreview)))
   if (feeds.some(feed => !feed)) {
     throwServer(404, 'Theme not found')
   }
 
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=120')
+  setThemeResponseCache(event, accessible.isDraftPreview)
 
   return {
     success: true,
