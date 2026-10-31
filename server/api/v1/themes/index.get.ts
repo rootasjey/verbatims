@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
     name: schema.themes.name,
     description: schema.themes.description,
     language: schema.themes.language,
-    isActive: schema.themes.isActive,
+    homeIsActive: schema.themes.homeIsActive,
     isDefault: schema.themes.isDefault,
     scheduledStart: schema.themes.scheduledStart,
     scheduledEnd: schema.themes.scheduledEnd,
@@ -108,6 +108,7 @@ export default defineEventHandler(async (event) => {
 
   const data = rows.map(r => ({
     ...r,
+    isActive: r.homeIsActive,
     pending_suggestions_count: pendingCounts.get(r.id) || 0,
   }))
 

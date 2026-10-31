@@ -71,8 +71,10 @@ export default defineEventHandler(async (event) => {
     if (body.language !== undefined) {
       updates.language = body.language
     }
-    if (body.is_active !== undefined) {
-      updates.isActive = body.is_active === true
+    if (body.home_is_active !== undefined || body.is_active !== undefined) {
+      const homeIsActive = body.home_is_active === undefined ? body.is_active : body.home_is_active
+      updates.homeIsActive = homeIsActive === true
+      updates.isActive = homeIsActive === true
     }
     if (body.social_is_active !== undefined) {
       updates.socialIsActive = body.social_is_active === true
@@ -164,7 +166,7 @@ export default defineEventHandler(async (event) => {
       .filter((url): url is string => !!url && !newImageUrls.includes(url))
       .map(url => deleteThemeImageIfUnused(url)))
 
-    return { success: true, data: updated[0] }
+    return { success: true, data: updated[0] && { ...updated[0], isActive: updated[0].homeIsActive } }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     const msg = error?.message || String(error)

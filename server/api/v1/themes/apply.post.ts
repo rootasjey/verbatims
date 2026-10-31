@@ -121,6 +121,7 @@ export default defineEventHandler(async (event) => {
       created = await db.insert(schema.themes).values({
         slug: manifest.slug,
         ...metadata,
+        homeIsActive: false,
         isActive: false,
         isDefault: false,
       }).returning({ id: schema.themes.id }).get()

@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
       mobileImageLicense: schema.themes.mobileImageLicense,
       mobileImageDate: schema.themes.mobileImageDate,
       mobileImageLocation: schema.themes.mobileImageLocation,
-      isActive: schema.themes.isActive,
+      homeIsActive: schema.themes.homeIsActive,
       socialIsActive: schema.themes.socialIsActive,
       publicationStatus: schema.themes.publicationStatus,
       isDefault: schema.themes.isDefault,
@@ -106,6 +106,7 @@ export default defineEventHandler(async (event) => {
 
     const data = rows.map(r => ({
       ...r,
+      isActive: r.homeIsActive,
       pending_suggestions_count: pendingCounts.get(r.id) || 0,
     }))
 

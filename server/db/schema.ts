@@ -687,6 +687,8 @@ export const themes = sqliteTable('themes', {
   mobileImageLocation: text('mobile_image_location'),
   language: text('language', { enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la'] }),
   config: text('config').default('{}'),
+  homeIsActive: integer('home_is_active', { mode: 'boolean' }).notNull().default(false),
+  // Deprecated storage alias kept in sync until legacy Worker versions are retired.
   isActive: integer('is_active', { mode: 'boolean' }).default(false),
   socialIsActive: integer('social_is_active', { mode: 'boolean' }).notNull().default(false),
   publicationStatus: text('publication_status', { enum: ['draft', 'published'] }).notNull().default('draft'),
@@ -699,6 +701,7 @@ export const themes = sqliteTable('themes', {
 }, (table) => ({
   slugIdx: uniqueIndex('idx_themes_slug').on(table.slug),
   activeIdx: index('idx_themes_active').on(table.isActive),
+  homeActiveIdx: index('idx_themes_home_active').on(table.homeIsActive),
   defaultIdx: index('idx_themes_default').on(table.isDefault),
   publicationStatusIdx: index('idx_themes_publication_status').on(table.publicationStatus),
 

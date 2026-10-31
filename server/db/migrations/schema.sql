@@ -985,6 +985,7 @@ CREATE TABLE IF NOT EXISTS themes (
   language TEXT,
   config TEXT DEFAULT '{}',
   is_active INTEGER DEFAULT 0,
+  home_is_active INTEGER NOT NULL DEFAULT 0,
   social_is_active INTEGER NOT NULL DEFAULT 0,
   publication_status TEXT NOT NULL DEFAULT 'draft' CHECK (publication_status IN ('draft', 'published')),
   is_default INTEGER DEFAULT 0,
@@ -996,9 +997,33 @@ CREATE TABLE IF NOT EXISTS themes (
 );
 CREATE INDEX IF NOT EXISTS idx_themes_slug ON themes(slug);
 CREATE INDEX IF NOT EXISTS idx_themes_active ON themes(is_active);
+CREATE INDEX IF NOT EXISTS idx_themes_home_active ON themes(home_is_active);
 CREATE INDEX IF NOT EXISTS idx_themes_default ON themes(is_default);
 CREATE INDEX IF NOT EXISTS idx_themes_publication_status ON themes(publication_status);
 CREATE INDEX IF NOT EXISTS idx_themes_language ON themes(language);
+
+CREATE TRIGGER IF NOT EXISTS themes_sync_home_is_active_after_insert
+AFTER INSERT ON themes
+WHEN NEW.home_is_active != COALESCE(NEW.is_active, 0)
+BEGIN
+  UPDATE themes SET home_is_active = COALESCE(NEW.is_active, 0) WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS themes_sync_home_is_active_after_legacy_update
+AFTER UPDATE OF is_active ON themes
+WHEN COALESCE(NEW.is_active, 0) != COALESCE(OLD.is_active, 0)
+  AND NEW.home_is_active != COALESCE(NEW.is_active, 0)
+BEGIN
+  UPDATE themes SET home_is_active = COALESCE(NEW.is_active, 0) WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS themes_sync_legacy_is_active_after_home_update
+AFTER UPDATE OF home_is_active ON themes
+WHEN NEW.home_is_active != OLD.home_is_active
+  AND COALESCE(NEW.is_active, 0) != NEW.home_is_active
+BEGIN
+  UPDATE themes SET is_active = NEW.home_is_active WHERE id = NEW.id;
+END;
 
 CREATE TABLE IF NOT EXISTS theme_content_filters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

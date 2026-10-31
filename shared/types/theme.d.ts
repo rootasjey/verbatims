@@ -38,7 +38,9 @@ export interface Theme {
   mobile_image_date: string | null
   mobile_image_location: string | null
   config: Record<string, any> | null
-  is_active: boolean
+  home_is_active: boolean
+  /** @deprecated Use home_is_active. Kept for API compatibility. */
+  is_active?: boolean
   social_is_active: boolean
   publication_status: 'draft' | 'published'
   is_default: boolean
@@ -88,6 +90,8 @@ export interface CreateThemeData {
   mobile_image_date?: string | null
   mobile_image_location?: string | null
   config?: Record<string, any>
+  home_is_active?: boolean
+  /** @deprecated Use home_is_active. */
   is_active?: boolean
   social_is_active?: boolean
   publication_status?: 'draft' | 'published'

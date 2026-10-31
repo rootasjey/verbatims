@@ -3,8 +3,8 @@ import { eq } from 'drizzle-orm'
 
 defineRouteMeta({
   openAPI: {
-    summary: 'Toggle theme active status',
-    description: 'Activates or deactivates a theme.',
+    summary: 'Toggle homepage theme selection',
+    description: 'Selects or deselects a theme for homepage fallback. home_is_active is preferred; is_active remains supported for compatibility.',
     tags: ['Themes'],
     security: [{ apiKey: ['admin:themes'] }],
     parameters: [
@@ -27,11 +27,22 @@ export default defineEventHandler(async (event) => {
   }
   const themeId = parseInt(id)
   const body = await readBody(event)
-  const isActive = body?.is_active === true
+  const homeIsActive = body?.home_is_active === undefined
+    ? body?.is_active === true
+    : body.home_is_active === true
 
   await db.update(schema.themes)
-    .set({ isActive })
+    .set({ homeIsActive, isActive: homeIsActive })
     .where(eq(schema.themes.id, themeId))
 
-  return { success: true, data: { id: themeId, is_active: isActive } }
+  return {
+    success: true,
+    data: {
+      id: themeId,
+      homeIsActive,
+      home_is_active: homeIsActive,
+      isActive: homeIsActive,
+      is_active: homeIsActive,
+    },
+  }
 })

@@ -100,7 +100,7 @@ export async function resolveActiveTheme(language?: string): Promise<ThemeRow | 
     )
     if (scheduled) return scheduled as unknown as ThemeRow
 
-    const active = list.find(t => t.isActive && isThemeWithinSchedule(t, now))
+    const active = list.find(t => t.homeIsActive && isThemeWithinSchedule(t, now))
     if (active) return active as unknown as ThemeRow
 
     const defaults = list.filter(t => t.isDefault && isThemeWithinSchedule(t, now))

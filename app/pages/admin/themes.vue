@@ -136,8 +136,8 @@
                 <div class="flex items-center gap-1.5">
                   <span v-if="theme.publicationStatus === 'draft'" class="font-sans text-xs px-1.5 py-0.5 rounded text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20">{{ $t('publication_draft') }}</span>
                   <span v-else-if="theme.publicationStatus === 'published'" class="font-sans text-xs px-1.5 py-0.5 rounded text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20">{{ $t('publication_published') }}</span>
-                  <NDropdownMenu v-if="theme.isActive" :items="getStatusActions(theme, 'active')" :modal="false">
-                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-[#2373F4] dark:text-[#75A7FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15 cursor-pointer">{{ $t('status_active') }}</span>
+                  <NDropdownMenu v-if="theme.homeIsActive" :items="getStatusActions(theme, 'active')" :modal="false">
+                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-[#2373F4] dark:text-[#75A7FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15 cursor-pointer">{{ $t('status_home_active') }}</span>
                   </NDropdownMenu>
                   <NDropdownMenu v-else-if="theme.isDefault" :items="getStatusActions(theme, 'default')" :modal="false">
                     <span class="font-sans text-xs px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-pointer">{{ $t('status_default') }}</span>
@@ -345,15 +345,15 @@
                   <NSeparator orientation="vertical" class="mx-2 hidden h-7 sm:block" />
 
                   <div class="flex items-center gap-2">
-                    <NTooltip :content="(form.is_active ? $t('dialog_deactivate') : $t('dialog_activate')) as string">
+                    <NTooltip :content="$t('dialog_home_activation_help') as string">
                       <NToggle
-                        :leading="form.is_active ? 'i-tabler-circuit-switch-closed' : 'i-tabler-circuit-switch-open'"
+                        :leading="form.home_is_active ? 'i-tabler-circuit-switch-closed' : 'i-tabler-circuit-switch-open'"
                         :icon="false"
                         :square="false"
-                        :label="form.is_active ? $t('dialog_active')?.toLocaleString() : $t('dialog_inactive') as string"
-                        :class="[{ 'bg-gray-100 dark:bg-gray-900': form.is_active }]"
+                        :label="form.home_is_active ? $t('dialog_home_active')?.toLocaleString() : $t('dialog_home_inactive') as string"
+                        :class="[{ 'bg-gray-100 dark:bg-gray-900': form.home_is_active }]"
                         class="active:scale-98 hover:bg-gray-100 dark:hover:bg-gray-800 transition-[colors,transform]"
-                        v-model="form.is_active"
+                        v-model="form.home_is_active"
                       />
                     </NTooltip>
 
@@ -1500,7 +1500,7 @@ const form = ref({
   mobile_image_date: '',
   mobile_image_location: '',
   language: '',
-  is_active: false,
+  home_is_active: false,
   social_is_active: false,
   publication_status: 'draft' as 'draft' | 'published',
   is_default: false,
@@ -1807,7 +1807,7 @@ const duplicateTheme = async (theme: any) => {
       mobile_image_date: data.mobileImageDate || '',
       mobile_image_location: data.mobileImageLocation || '',
       language: data.language || '',
-      is_active: false,
+      home_is_active: false,
       social_is_active: false,
       publication_status: 'draft',
       is_default: false,
@@ -1861,14 +1861,14 @@ const savePriority = async (theme: any) => {
 const getStatusActions = (theme: any, status: string) => {
   const actions: any[] = []
   if (status === 'active' || status === 'scheduled') {
-    actions.push({ label: $t('row_deactivate'), leading: 'i-ph-toggle-left', onclick: () => toggleActive(theme, false) })
+    actions.push({ label: $t('row_deactivate'), leading: 'i-ph-toggle-left', onclick: () => toggleHomeFallback(theme, false) })
   }
   if (status === 'default') {
     actions.push({ label: $t('row_remove_default'), leading: 'i-ph-star-slash', onclick: () => toggleDefault(theme, false) })
   }
   if (status === 'inactive') {
     actions.push(
-      { label: $t('row_activate'), leading: 'i-ph-toggle-right', onclick: () => toggleActive(theme, true) },
+      { label: $t('row_activate'), leading: 'i-ph-toggle-right', onclick: () => toggleHomeFallback(theme, true) },
       { label: $t('row_set_default'), leading: 'i-ph-star', onclick: () => toggleDefault(theme, true) },
     )
   }
@@ -1880,9 +1880,9 @@ const getThemeActions = (theme: any) => {
     { label: $t('row_edit'), leading: 'i-ph-pencil', onclick: () => openEdit(theme) },
     { label: $t('row_duplicate'), leading: 'i-ph-copy', onclick: () => duplicateTheme(theme) },
     { label: $t('row_preview'), leading: 'i-ph-eye', onclick: () => window.open(`/?theme=${theme.slug}`, '_blank') },
-    theme.isActive
-      ? { label: $t('row_deactivate'), leading: 'i-ph-toggle-left', onclick: () => toggleActive(theme, false) }
-      : { label: $t('row_activate'), leading: 'i-ph-toggle-right', onclick: () => toggleActive(theme, true) },
+    theme.homeIsActive
+      ? { label: $t('row_deactivate'), leading: 'i-ph-toggle-left', onclick: () => toggleHomeFallback(theme, false) }
+      : { label: $t('row_activate'), leading: 'i-ph-toggle-right', onclick: () => toggleHomeFallback(theme, true) },
     theme.isDefault
       ? { label: $t('row_remove_default'), leading: 'i-ph-star-slash', onclick: () => toggleDefault(theme, false) }
       : { label: $t('row_set_default'), leading: 'i-ph-star', onclick: () => toggleDefault(theme, true) },
@@ -1950,7 +1950,7 @@ const resetForm = () => {
   showDesktopAttribution.value = false
   showMobileAttribution.value = false
   showMobileImage.value = false
-  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', is_active: false, social_is_active: false, publication_status: 'draft', is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
+  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', home_is_active: false, social_is_active: false, publication_status: 'draft', is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
@@ -2006,7 +2006,7 @@ const openEdit = async (theme: any) => {
       mobile_image_date: data.mobileImageDate || '',
       mobile_image_location: data.mobileImageLocation || '',
       language: data.language || '',
-      is_active: data.isActive || false,
+      home_is_active: data.homeIsActive ?? data.isActive ?? false,
       social_is_active: data.socialIsActive || false,
       publication_status: data.publicationStatus || 'draft',
       is_default: data.isDefault || false,
@@ -2419,7 +2419,7 @@ const saveTheme = async () => {
       translations: translations.value
         .filter(t => t.language && t.name.trim())
         .map(t => ({ language: t.language, name: t.name.trim(), description: t.description.trim() || null, home_copy: parseHomeCopy(t.home_copy_json) })),
-      is_active: form.value.is_active,
+      home_is_active: form.value.home_is_active,
       social_is_active: form.value.social_is_active,
       publication_status: form.value.publication_status,
       is_default: form.value.is_default,
@@ -2503,9 +2503,9 @@ const confirmDelete = async () => {
   }
 }
 
-const toggleActive = async (theme: any, isActive: boolean) => {
+const toggleHomeFallback = async (theme: any, homeIsActive: boolean) => {
   try {
-    await $fetch(`/api/admin/themes/${theme.id}/activate`, { method: 'PUT', body: { is_active: isActive } })
+    await $fetch(`/api/admin/themes/${theme.id}/activate`, { method: 'PUT', body: { home_is_active: homeIsActive } })
     await loadThemes()
   } catch {
     showErrorToast(null, { title: $t('toast_error') as string, fallback: $t('error_toggle') as string })

@@ -29,7 +29,9 @@ export default defineEventHandler(async (event) => {
       mobileImageLocation: String(body?.mobile_image_location || '').trim() || null,
     }
     const translations = Array.isArray(body?.translations) ? body.translations : []
-    const isActive = body?.is_active === true
+    const homeIsActive = body?.home_is_active === undefined
+      ? body?.is_active === true
+      : body.home_is_active === true
     const socialIsActive = body?.social_is_active === true
     const publicationStatus = body?.publication_status === 'published' ? 'published' : 'draft'
     const isDefault = body?.is_default === true
@@ -65,7 +67,8 @@ export default defineEventHandler(async (event) => {
         imageUrl: imageCommit.imageUrl,
         mobileImageUrl: imageCommit.mobileImageUrl,
         config,
-        isActive,
+        homeIsActive,
+        isActive: homeIsActive,
         socialIsActive,
         publicationStatus,
         isDefault,
@@ -101,7 +104,7 @@ export default defineEventHandler(async (event) => {
 
     await finishThemeImageCommit(imageCommit)
 
-    return { success: true, data: theme }
+    return { success: true, data: { ...theme, isActive: theme.homeIsActive } }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     const msg = error?.message || String(error)
