@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     if (!current) throwServer(404, 'Theme not found')
 
     await db.update(schema.themes)
-      .set({ homeIsActive, isActive: homeIsActive })
+      .set({ homeIsActive })
       .where(eq(schema.themes.id, themeId))
 
     return { success: true, data: { id: themeId, home_is_active: homeIsActive, is_active: homeIsActive } }

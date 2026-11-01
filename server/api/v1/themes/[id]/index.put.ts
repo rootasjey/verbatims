@@ -70,7 +70,6 @@ export default defineEventHandler(async (event) => {
   if (body.home_is_active !== undefined || body.is_active !== undefined) {
     const homeIsActive = body.home_is_active === undefined ? body.is_active : body.home_is_active
     updates.homeIsActive = homeIsActive === true
-    updates.isActive = homeIsActive === true
   }
   if (body.social_is_active !== undefined) {
     updates.socialIsActive = body.social_is_active === true

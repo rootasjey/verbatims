@@ -122,7 +122,6 @@ export default defineEventHandler(async (event) => {
         slug: manifest.slug,
         ...metadata,
         homeIsActive: false,
-        isActive: false,
         isDefault: false,
       }).returning({ id: schema.themes.id }).get()
     } catch (error) {

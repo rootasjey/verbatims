@@ -68,7 +68,6 @@ export default defineEventHandler(async (event) => {
         mobileImageUrl: imageCommit.mobileImageUrl,
         config,
         homeIsActive,
-        isActive: homeIsActive,
         socialIsActive,
         publicationStatus,
         isDefault,

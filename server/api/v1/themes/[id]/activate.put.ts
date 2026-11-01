@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     : body.home_is_active === true
 
   await db.update(schema.themes)
-    .set({ homeIsActive, isActive: homeIsActive })
+    .set({ homeIsActive })
     .where(eq(schema.themes.id, themeId))
 
   return {
