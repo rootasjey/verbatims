@@ -30,13 +30,13 @@ Les 12 citations anglaises de la sélection initiale ont été ajoutées à la p
 
 ## État observé en production — 2 novembre 2026
 
-Les filtres par œuvres incluent les citations publiées ajoutées après la sélection initiale. Le flux vérifié par langue retourne 21 citations anglaises et 22 françaises. Les IDs anglais sont 2420–2421, 2507–2518 et 2541–2547; les IDs français sont 2519–2540. Les 41 citations autres que 2420–2421 ont une attribution auteur/œuvre cohérente et une source primaire marquée comme vérifiée. Le texte et les voix des deux citations Macbeth (2420–2421) ont été contrôlés dans [Project Gutenberg](https://www.gutenberg.org/cache/epub/1533/pg1533-images.html), mais leur provenance n’est pas encore enregistrée comme vérifiée dans Verbatims : Lady Macbeth pour l’acte V, scène I; Macbeth pour l’acte II, scène I.
+Les filtres par œuvres incluent les citations publiées ajoutées après la sélection initiale. Le flux vérifié par langue retourne 21 citations anglaises et 22 françaises. Les IDs anglais sont 2420–2421, 2507–2518 et 2541–2547; les IDs français sont 2519–2540. Les 43 citations ont désormais une attribution auteur/œuvre cohérente et une source primaire marquée comme vérifiée. Les citations Macbeth 2420–2421 ont été contrôlées dans [Project Gutenberg](https://www.gutenberg.org/cache/epub/1533/pg1533-images.html), puis leurs attributions et sources primaires ont été enregistrées dans Verbatims le 2 novembre 2026 : Lady Macbeth pour l’acte V, scène I (source 110); Macbeth pour l’acte II, scène I (source 111).
 
-Le flux anglais comprend 16 auteurs et 18 œuvres; le flux français comprend 8 auteurs et 11 œuvres. En production, les références 411, 416 et 419 n’ont pas encore de titre français localisé. Les libellés proposés sont *La Chanson du vieux marin*, *L’Étrange Cas du Dr Jekyll et de Mr Hyde* et *L’Homme au sable*.
+Le flux anglais comprend 16 auteurs et 18 œuvres; le flux français comprend 8 auteurs et 11 œuvres. Les titres français des références 411, 416 et 419 ont été enregistrés dans Verbatims le 2 novembre 2026 : *La Chanson du vieux marin*, *L’Étrange Cas du Dr Jekyll et de Mr Hyde* et *L’Homme au sable*.
 
-La configuration de production ne définit actuellement qu’une citation vedette, ID 2507. La citation française correspondante est l’ID 2519; l’interface d’administration permet maintenant de définir une citation vedette distincte par langue. La référence vedette de production, ID 369, est *Macbeth*.
+La citation vedette est définie par langue : ID 2507 en anglais et ID 2519 en français. La référence vedette de production, ID 369, est *Macbeth*.
 
-Les textes de présentation français et anglais ont été préparés et contrôlés sur l’instance locale. Ils ne sont pas encore enregistrés en production. Appliquer ces corrections éditoriales via l’interface d’administration après validation, plutôt qu’au moyen d’une migration de schéma.
+Les textes de présentation français et anglais ont été enregistrés dans Verbatims le 2 novembre 2026. Les traductions et provenances éditoriales ont été appliquées via l’API d’administration, sans migration de données.
 
 ## Image du thème
 
