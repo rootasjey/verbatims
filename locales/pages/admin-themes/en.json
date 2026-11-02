@@ -184,6 +184,9 @@
   "dialog_featured_quote": "Featured Quote",
   "dialog_featured_reference": "Spotlight Reference",
   "dialog_featured_quote_placeholder": "Search for a quote...",
+  "dialog_featured_quote_en": "English featured quote ID",
+  "dialog_featured_quote_fr": "French featured quote ID",
+  "dialog_featured_quote_language_hint": "Optional language-specific IDs. Leave blank to use the featured quote above.",
   "dialog_featured_reference_placeholder": "Search for a reference...",
   "dialog_featured_selected": "Selected"
 }

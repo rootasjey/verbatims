@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { combineFilterMatchSets, getThemeContentLanguages, isThemeWithinSchedule } from '../theme-selection'
+import { combineFilterMatchSets, getThemeContentLanguages, isThemeWithinSchedule, resolveFeaturedQuoteId } from '../theme-selection'
 
 describe('theme selection', () => {
   it('includes both schedule boundaries and excludes themes after their end date', () => {
@@ -45,5 +45,20 @@ describe('theme selection', () => {
     expect(getThemeContentLanguages('fr', [])).toEqual(['fr'])
     expect(getThemeContentLanguages('fr', [{ type: 'language', value: 'en' }])).toEqual(['en'])
     expect(getThemeContentLanguages(null, [])).toBeNull()
+  })
+
+  it('uses a language-specific featured quote and falls back to the shared quote', () => {
+    const config = { featured_quote_id: 2507, featured_quote_ids: { en: 2507, fr: 2519 } }
+
+    expect(resolveFeaturedQuoteId(config, 'fr')).toBe(2519)
+    expect(resolveFeaturedQuoteId(config, 'en')).toBe(2507)
+    expect(resolveFeaturedQuoteId({ featured_quote_id: 2507 }, 'fr')).toBe(2507)
+    expect(resolveFeaturedQuoteId(config)).toBe(2507)
+  })
+
+  it('ignores invalid featured quote IDs', () => {
+    expect(resolveFeaturedQuoteId({ featured_quote_id: '2507' }, 'fr')).toBeUndefined()
+    expect(resolveFeaturedQuoteId({ featured_quote_ids: { fr: 0 } }, 'fr')).toBeUndefined()
+    expect(resolveFeaturedQuoteId({ featured_quote_id: 2507, featured_quote_ids: { fr: '2519' } }, 'fr')).toBe(2507)
   })
 })

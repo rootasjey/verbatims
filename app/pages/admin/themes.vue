@@ -693,6 +693,17 @@
                     <NTooltip v-if="featuredQuoteQuery" :content="featuredQuoteQuery"><span class="cursor-help font-mono text-xs text-gray-500">#{{ form.featured_quote_id }}</span></NTooltip><span v-else class="font-mono text-xs text-gray-500">#{{ form.featured_quote_id }}</span>
                     <NTooltip :content="$t('common.clear')?.toString()"><NButton btn="ghost-gray" size="xs" icon label="i-ph-x" :aria-label="$t('common.clear')?.toString()" class="ml-auto h-8 w-8" @click="clearFeaturedQuote" /></NTooltip>
                   </div>
+                  <div class="grid gap-3 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80 sm:grid-cols-2">
+                    <label class="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                      <span>{{ $t('dialog_featured_quote_en') }}</span>
+                      <NInput v-model.number="form.featured_quote_ids.en" type="number" min="1" size="sm" :disabled="submitting" />
+                    </label>
+                    <label class="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                      <span>{{ $t('dialog_featured_quote_fr') }}</span>
+                      <NInput v-model.number="form.featured_quote_ids.fr" type="number" min="1" size="sm" :disabled="submitting" />
+                    </label>
+                  </div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('dialog_featured_quote_language_hint') }}</p>
                 </div>
 
                 <div class="space-y-3 border-t border-gray-200/80 pt-6 dark:border-neutral-700/80">
@@ -1510,6 +1521,7 @@ const form = ref({
   color_primary: '#6366f1' as string,
   color_secondary: '#f59e0b' as string,
   featured_quote_id: null as number | null,
+  featured_quote_ids: { en: null as number | null, fr: null as number | null },
   featured_reference_id: null as number | null,
 })
 
@@ -1817,6 +1829,10 @@ const duplicateTheme = async (theme: any) => {
       color_primary: colorPrimary,
       color_secondary: colorSecondary,
       featured_quote_id: themeConfig.featured_quote_id ?? null,
+      featured_quote_ids: {
+        en: themeConfig.featured_quote_ids?.en ?? null,
+        fr: themeConfig.featured_quote_ids?.fr ?? null,
+      },
       featured_reference_id: themeConfig.featured_reference_id ?? null,
     }
     showMobileImage.value = hasMobileImageSettings.value
@@ -1950,7 +1966,7 @@ const resetForm = () => {
   showDesktopAttribution.value = false
   showMobileAttribution.value = false
   showMobileImage.value = false
-  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', home_is_active: false, social_is_active: false, publication_status: 'draft', is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
+  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', home_is_active: false, social_is_active: false, publication_status: 'draft', is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_quote_ids: { en: null, fr: null }, featured_reference_id: null }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
@@ -2016,6 +2032,10 @@ const openEdit = async (theme: any) => {
       color_primary: colorPrimary,
       color_secondary: colorSecondary,
       featured_quote_id: themeConfig.featured_quote_id ?? null,
+      featured_quote_ids: {
+        en: themeConfig.featured_quote_ids?.en ?? null,
+        fr: themeConfig.featured_quote_ids?.fr ?? null,
+      },
       featured_reference_id: themeConfig.featured_reference_id ?? null,
     }
     showMobileImage.value = hasMobileImageSettings.value
@@ -2426,7 +2446,16 @@ const saveTheme = async () => {
       scheduled_start: form.value.scheduled_start || null,
       scheduled_end: form.value.scheduled_end || null,
       priority: form.value.priority || 0,
-      config: { color_primary: form.value.color_primary, color_secondary: form.value.color_secondary, featured_quote_id: form.value.featured_quote_id || null, featured_reference_id: form.value.featured_reference_id || null },
+      config: {
+        color_primary: form.value.color_primary,
+        color_secondary: form.value.color_secondary,
+        featured_quote_id: form.value.featured_quote_id || null,
+        featured_quote_ids: {
+          en: form.value.featured_quote_ids.en || null,
+          fr: form.value.featured_quote_ids.fr || null,
+        },
+        featured_reference_id: form.value.featured_reference_id || null,
+      },
     }
 
     if (editMode.value && editingThemeId.value) {

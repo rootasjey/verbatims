@@ -3,6 +3,19 @@ export interface FilterMatchSet {
   matchMode: string
 }
 
+export function resolveFeaturedQuoteId(
+  config: { featured_quote_id?: unknown; featured_quote_ids?: Record<string, unknown> | null },
+  language?: string,
+): number | undefined {
+  const languageSpecificId = language ? config.featured_quote_ids?.[language] : undefined
+  if (typeof languageSpecificId === 'number' && Number.isInteger(languageSpecificId) && languageSpecificId > 0) {
+    return languageSpecificId
+  }
+
+  const defaultId = config.featured_quote_id
+  return typeof defaultId === 'number' && Number.isInteger(defaultId) && defaultId > 0 ? defaultId : undefined
+}
+
 export function isThemeWithinSchedule(
   schedule: { scheduledStart?: Date | null; scheduledEnd?: Date | null },
   now: number,

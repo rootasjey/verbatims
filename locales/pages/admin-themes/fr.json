@@ -184,6 +184,9 @@
   "dialog_featured_quote": "Citation à la une",
   "dialog_featured_reference": "Référence en vedette",
   "dialog_featured_quote_placeholder": "Rechercher une citation...",
+  "dialog_featured_quote_en": "ID de la citation vedette en anglais",
+  "dialog_featured_quote_fr": "ID de la citation vedette en français",
+  "dialog_featured_quote_language_hint": "IDs facultatifs par langue. Laisse vide pour utiliser la citation vedette ci-dessus.",
   "dialog_featured_reference_placeholder": "Rechercher une référence...",
   "dialog_featured_selected": "Sélectionné"
 }

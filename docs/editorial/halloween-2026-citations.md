@@ -11,7 +11,7 @@ Cette fiche est le registre de sélection et de publication du thème saisonnier
 
 ## Citations retenues et publiées
 
-Les 12 citations de cette sélection ont été ajoutées à la production le 16 octobre 2026, avec leur auteur, leur œuvre, leur locuteur ou narrateur, une source primaire marquée comme vérifiée manuellement et le repère correspondant. IDs Verbatims : 2507–2518. Elles sont toutes publiées et reliées au thème par l’œuvre.
+Les 12 citations anglaises de la sélection initiale ont été ajoutées à la production le 16 octobre 2026, avec leur auteur, leur œuvre, leur locuteur ou narrateur, une source primaire marquée comme vérifiée manuellement et le repère correspondant. IDs Verbatims : 2507–2518. Elles restent reliées au thème par l’œuvre.
 
 | Citation exacte | Auteur / voix | Œuvre et repère | Source primaire | Contrôle éditorial |
 | --- | --- | --- | --- | --- |
@@ -28,20 +28,29 @@ Les 12 citations de cette sélection ont été ajoutées à la production le 16 
 | “I thus drew steadily nearer to that truth, by whose partial discovery I have been doomed to such a dreadful shipwreck: that man is not truly one, but truly two.” | Robert Louis Stevenson / Henry Jekyll, narrateur de la confession | *Strange Case of Dr Jekyll and Mr Hyde*, confession finale | [Project Gutenberg](https://www.gutenberg.org/files/42/42-h/42-h.htm) | Extrait fidèle de la phrase qui commence plus tôt dans le paragraphe; conserver la minuscule après les deux-points. |
 | “I’ve got out at last,” said I, “in spite of you and Jane! And I’ve pulled off most of the paper, so you can’t put me back!” | Charlotte Perkins Gilman / narratrice | “The Yellow Wallpaper”, dernier passage | [Project Gutenberg](https://www.gutenberg.org/cache/epub/1952/pg1952-images.html) | Dialogue final retrouvé intégralement; citation d’horreur psychologique. |
 
+## État observé en production — 2 novembre 2026
+
+Les filtres par œuvres incluent les citations publiées ajoutées après la sélection initiale. Le flux vérifié par langue retourne 21 citations anglaises et 22 françaises. Les IDs anglais sont 2420–2421, 2507–2518 et 2541–2547; les IDs français sont 2519–2540. Les 41 citations autres que 2420–2421 ont une attribution auteur/œuvre cohérente et une source primaire marquée comme vérifiée. Le texte et les voix des deux citations Macbeth (2420–2421) ont été contrôlés dans [Project Gutenberg](https://www.gutenberg.org/cache/epub/1533/pg1533-images.html), mais leur provenance n’est pas encore enregistrée comme vérifiée dans Verbatims : Lady Macbeth pour l’acte V, scène I; Macbeth pour l’acte II, scène I.
+
+Le flux anglais comprend 16 auteurs et 18 œuvres; le flux français comprend 8 auteurs et 11 œuvres. En production, les références 411, 416 et 419 n’ont pas encore de titre français localisé. Les libellés proposés sont *La Chanson du vieux marin*, *L’Étrange Cas du Dr Jekyll et de Mr Hyde* et *L’Homme au sable*.
+
+La configuration de production ne définit actuellement qu’une citation vedette, ID 2507. La citation française correspondante est l’ID 2519; l’interface d’administration permet maintenant de définir une citation vedette distincte par langue. La référence vedette de production, ID 369, est *Macbeth*.
+
+Les textes de présentation français et anglais ont été préparés et contrôlés sur l’instance locale. Ils ne sont pas encore enregistrés en production. Appliquer ces corrections éditoriales via l’interface d’administration après validation, plutôt qu’au moyen d’une migration de schéma.
+
 ## Image du thème
 
-- **Œuvre** : H. B. Griggs, *Don’t Be scared on Hallow-E’en*, carte postale, vers 1910.
-- **Auteur / source matérielle** : H. B. Griggs; carte publiée par Lubrie & Elkins.
-- **Fichier** : [original Wikimedia Commons (636 × 972)](https://upload.wikimedia.org/wikipedia/commons/f/fc/H._B._Griggs%2C_Don%E2%80%99t_Be_scared_on_Hallow-E%E2%80%99en.jpg).
-- **Notice et licence** : [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:H._B._Griggs,_Don%E2%80%99t_Be_scared_on_Hallow-E%E2%80%99en.jpg) indique H. B. Griggs (vers 1870–1940), une carte publiée vers 1910 par Lubrie & Elkins, le domaine public (PD-old-70) et le Public Domain Mark.
-- **Crédit affiché** : `H. B. Griggs, carte publiée par Lubrie & Elkins, vers 1910`.
-- **Licence affichée** : `Domaine public (PD-old-70, PDM) — Wikimedia Commons`.
-- **Texte alternatif** : `Carte postale d’Halloween « Don’t Be scared on Hallow-E’en » illustrée par H. B. Griggs, vers 1910`.
-- **Affichage** : cadrage et crédit contrôlés en production sur desktop et mobile; l’image portrait (636 × 972) reste lisible dans les deux formats.
+- **Œuvre** : Mathias Withoos, *Paysage de cimetière la nuit*, huile sur toile, seconde moitié du XVIIe siècle.
+- **Fichier** : `/blob/images/themes/a6c931ce-ed23-4862-abb2-cc9dd76bfd8a.jpg`.
+- **Notice de l’œuvre** : [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:WITHOOS_Mathias_Paysage_de_cimeti%C3%A8re_la_nuit_Huile_sur_toile.jpg).
+- **Crédit affiché** : `Christian Devleeschauwer, Musée des Beaux-Arts de Reims`.
+- **Licence affichée** : `Artwork in the public domain; photograph CC BY-SA 2.0 France`.
+- **Texte alternatif** : `Nighttime cemetery scene with bats, owls, skulls, lanterns, and a black cat`.
+- **Lieu** : Musée des Beaux-Arts de Reims, France.
 
 ## Publication et programmation
 
 - **Slug** : `halloween-2026` (thème 49).
-- **Fenêtre** : du 24 octobre 2026 à 00:00 au 1er novembre 2026 à 23:59:59, heure de Paris; stockée en UTC comme 2026-10-23 22:00 à 2026-11-01 22:59:59.
-- **Sélection** : 12 citations, 12 œuvres, flux public vérifié; deux anciennes citations Macbeth sans source ni attribution vérifiée ont été exclues du filtre du thème.
+- **Fenêtre** : du 24 octobre 2026 à 00:00 au 2 novembre 2026 à 23:59, heure de Paris; stockée en UTC comme 2026-10-23 22:00 à 2026-11-02 22:59.
+- **Sélection initiale** : 12 citations anglaises liées à 12 œuvres; les filtres incluent aussi les citations publiées ultérieurement. Le flux français actuel compte 22 citations et 11 œuvres; le flux anglais compte 21 citations et 18 œuvres.
 - **Prévisualisation** : `https://verbatims.cc/?theme=halloween-2026`.

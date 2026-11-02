@@ -1,6 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, like, inArray, desc, sql } from 'drizzle-orm'
-import { combineFilterMatchSets, getThemeContentLanguages, isThemeWithinSchedule } from './theme-selection'
+import { combineFilterMatchSets, getThemeContentLanguages, isThemeWithinSchedule, resolveFeaturedQuoteId } from './theme-selection'
 import { isThemePublished } from './theme-publication-policy'
 import { getPrimaryQuoteProvenance } from './quote-provenance'
 import { localizeAuthors, localizeReferences, type ContentLanguage } from './entity-translations'
@@ -150,6 +150,7 @@ export async function getThemeFeed(themeSlug: string, language?: string, include
     const localizedLanguage: ContentLanguage | undefined = requestedLanguage === 'en' || requestedLanguage === 'fr'
       ? requestedLanguage
       : undefined
+    const featuredQuoteId = resolveFeaturedQuoteId(themeConfig, localizedLanguage)
     const contentLanguages = configuredLanguages === null
       ? requestedLanguage ? [requestedLanguage] : null
       : requestedLanguage
@@ -220,8 +221,8 @@ export async function getThemeFeed(themeSlug: string, language?: string, include
     }
 
     // Ensure the featured quote is always included, even if not matched by filters
-    if (themeConfig.featured_quote_id) {
-      matchedIds.push(themeConfig.featured_quote_id)
+    if (featuredQuoteId) {
+      matchedIds.push(featuredQuoteId)
     }
 
     const allIds = [...new Set(matchedIds)]
@@ -321,8 +322,8 @@ export async function getThemeFeed(themeSlug: string, language?: string, include
       primary_type: row.primaryType, image_url: row.imageUrl, likes_count: row.likesCount || 0,
     }))
 
-    if (themeConfig.featured_quote_id) {
-      const found = processedQuotes.find(q => q.id === themeConfig.featured_quote_id)
+    if (featuredQuoteId) {
+      const found = processedQuotes.find(q => q.id === featuredQuoteId)
       if (found) {
         const idx = processedQuotes.indexOf(found)
         if (idx > 0) {
