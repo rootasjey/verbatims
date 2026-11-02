@@ -601,6 +601,31 @@ input:-webkit-autofill {
   transform: translateX(-0.5rem);
 }
 
+.theme-tab-forward-enter-active,
+.theme-tab-backward-enter-active {
+  transition: opacity 160ms ease 40ms, transform 160ms ease 40ms;
+}
+
+.theme-tab-forward-leave-active,
+.theme-tab-backward-leave-active {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  transition: opacity 100ms ease, transform 100ms ease;
+}
+
+.theme-tab-forward-enter-from,
+.theme-tab-backward-leave-to {
+  opacity: 0;
+  transform: translateX(0.5rem);
+}
+
+.theme-tab-forward-leave-to,
+.theme-tab-backward-enter-from {
+  opacity: 0;
+  transform: translateX(-0.5rem);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .quote-draft-saved-feedback--pulse::before {
     animation-duration: 420ms;
@@ -621,7 +646,11 @@ input:-webkit-autofill {
   .quote-step-forward-enter-active,
   .quote-step-backward-enter-active,
   .quote-step-forward-leave-active,
-  .quote-step-backward-leave-active {
+  .quote-step-backward-leave-active,
+  .theme-tab-forward-enter-active,
+  .theme-tab-backward-enter-active,
+  .theme-tab-forward-leave-active,
+  .theme-tab-backward-leave-active {
     transition-duration: 0.01ms;
     transition-delay: 0s;
   }
@@ -629,7 +658,11 @@ input:-webkit-autofill {
   .quote-step-forward-enter-from,
   .quote-step-forward-leave-to,
   .quote-step-backward-enter-from,
-  .quote-step-backward-leave-to {
+  .quote-step-backward-leave-to,
+  .theme-tab-forward-enter-from,
+  .theme-tab-forward-leave-to,
+  .theme-tab-backward-enter-from,
+  .theme-tab-backward-leave-to {
     transform: none;
   }
 }

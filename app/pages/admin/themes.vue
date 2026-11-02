@@ -265,8 +265,10 @@
           role="tabpanel"
           :aria-label="activeTabName"
           tabindex="0"
-          class="mt-0 min-h-[24vh] px-2 pr-1 pt-1 focus-visible:outline-none"
+          class="relative mt-0 min-h-[24vh] px-2 pr-1 pt-1 focus-visible:outline-none"
         >
+          <Transition :name="themeTabTransitionName">
+            <div :key="activeTab" class="theme-tab-transition-content w-full">
               <!-- General -->
               <div v-if="activeTab === 'general'" class="space-y-5">
                 <div class="grid grid-cols-1 gap-4">
@@ -965,6 +967,8 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </Transition>
         </div>
       </div>
 
@@ -1135,10 +1139,16 @@ const savingAISettings = ref(false)
 const testingConnection = ref(false)
 
 const activeTab = ref('general')
+const themeTabDirection = ref<'forward' | 'backward'>('forward')
+const themeTabTransitionName = computed(() => `theme-tab-${themeTabDirection.value}`)
 const themePanelRef = ref<HTMLElement | null>(null)
 let themeDialogResizeAnimation: Animation | null = null
 
-watch(activeTab, async () => {
+watch(activeTab, async (nextTab, previousTab) => {
+  const previousIndex = tabs.value.findIndex(tab => tab.value === previousTab)
+  const nextIndex = tabs.value.findIndex(tab => tab.value === nextTab)
+  themeTabDirection.value = nextIndex >= previousIndex ? 'forward' : 'backward'
+
   const dialog = themePanelRef.value?.closest<HTMLElement>('[role="dialog"]')
   if (!dialog) return
   const startHeight = dialog.getBoundingClientRect().height
