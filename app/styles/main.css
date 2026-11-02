@@ -30,15 +30,26 @@ body {
 /* Keep browser and component focus rings in the same neutral editorial palette. */
 :root {
   --app-focus-ring-color: #78716c;
+  --app-focus-input-rgb: 87, 83, 78;
 }
 
 html.dark {
   --app-focus-ring-color: #a8a29e;
+  --app-focus-input-rgb: 168, 162, 158;
 }
 
 html body :is(a, button, input, select, textarea, summary, [role='button'], [role='tab'], [tabindex]):focus-visible:not(:disabled) {
   --un-ring-color: var(--app-focus-ring-color);
   outline-color: var(--app-focus-ring-color);
+}
+
+/* UnaUI inputs add both a ring and the preset's focus outline. Use one thicker border. */
+html body :is(input.input, select.input, textarea.input):focus-visible:not(:disabled) {
+  --un-ring-width: 0px;
+  --una-input: var(--app-focus-input-rgb);
+  border-width: 2px;
+  border-color: var(--app-focus-ring-color) !important;
+  outline: none;
 }
 
 /* Keep keyboard focus visible without competing with the editorial hierarchy. */

@@ -564,10 +564,11 @@ watch(() => adminNavGroups.value.flatMap(group => [group.label, ...group.items.m
   background-color: var(--admin-control-surface);
 }
 
-[data-admin-content] :is(input, select, textarea):focus-visible {
+[data-admin-content] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible {
+  --un-ring-width: 0px;
+  border-width: 2px;
   border-color: var(--admin-focus);
-  outline: 2px solid color-mix(in srgb, var(--admin-focus) 24%, transparent);
-  outline-offset: 1px;
+  outline: none;
 }
 
 [data-admin-content] div:has(> table),

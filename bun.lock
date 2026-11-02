@@ -30,6 +30,7 @@
         "zod": "^4.6.7",
       },
       "devDependencies": {
+        "@iconify-json/heroicons": "^1.2.3",
         "@iconify-json/lucide": "^1.2.147",
         "@iconify-json/openmoji": "^1.2.29",
         "@iconify-json/ph": "^1.2.2",
@@ -265,6 +266,8 @@
     "@i18n-micro/types": ["@i18n-micro/types@1.2.18", "", {}, "sha512-jSG+X5eYuATaBrpllFRZ6rxVJg8lycIRByes03RLs2u/1r8FQKOLyFAGp/yzjAGAlB4hfVQNCt2K6k3NTNiHpA=="],
 
     "@i18n-micro/utils": ["@i18n-micro/utils@1.0.27", "", { "dependencies": { "@i18n-micro/types": "^1.2.18", "globby": "^16.2.4" } }, "sha512-SCzQA46ojE23rnrgYbKRlu84UfIs8KLxnlvz0RHWkQk6hjNsHKrkvkH4XphUNvaBMEeeGQVfknLB2pDqigUAFw=="],
+
+    "@iconify-json/heroicons": ["@iconify-json/heroicons@1.2.3", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-n+vmCEgTesRsOpp5AB5ILB6srsgsYK+bieoQBNlafvoEhjVXLq8nIGN4B0v/s4DUfa0dOrjwE/cKJgIKdJXOEg=="],
 
     "@iconify-json/lucide": ["@iconify-json/lucide@1.2.147", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-7Qqa/joSBeUxihWsQJx5nKcqMWtV3YrH90Jldxcx4J9ciTLavRUlpexQwRTcx9dcb7CJpISfjZTj42zD/30sqA=="],
 

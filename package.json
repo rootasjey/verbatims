@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "1.55.2",
+  "version": "1.55.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -56,6 +56,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
     "@iconify-json/lucide": "^1.2.147",
     "@iconify-json/openmoji": "^1.2.29",
     "@iconify-json/ph": "^1.2.2",

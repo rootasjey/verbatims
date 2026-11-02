@@ -137,7 +137,17 @@
                   <span v-if="theme.publicationStatus === 'draft'" class="font-sans text-xs px-1.5 py-0.5 rounded text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20">{{ $t('publication_draft') }}</span>
                   <span v-else-if="theme.publicationStatus === 'published'" class="font-sans text-xs px-1.5 py-0.5 rounded text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20">{{ $t('publication_published') }}</span>
                   <NDropdownMenu v-if="theme.homeIsActive" :items="getStatusActions(theme, 'active')" :modal="false">
-                    <span class="font-sans text-xs px-1.5 py-0.5 rounded text-[#2373F4] dark:text-[#75A7FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15 cursor-pointer">{{ $t('status_home_active') }}</span>
+                    <button
+                      type="button"
+                      :aria-label="$t('status_home_active')?.toString()"
+                      class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#2373F4]/10 text-[#2373F4] transition-colors hover:bg-[#2373F4]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2373F4] dark:bg-[#2373F4]/15 dark:text-[#75A7FF] dark:hover:bg-[#2373F4]/25"
+                    >
+                      <NTooltip :content="$t('status_home_active')?.toString()">
+                        <span aria-hidden="true" class="grid h-5 w-5 place-items-center">
+                          <NIcon name="i-heroicons-building-storefront" class="h-4 w-4" />
+                        </span>
+                      </NTooltip>
+                    </button>
                   </NDropdownMenu>
                   <NDropdownMenu v-else-if="theme.isDefault" :items="getStatusActions(theme, 'default')" :modal="false">
                     <span class="font-sans text-xs px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-pointer">{{ $t('status_default') }}</span>
@@ -748,7 +758,7 @@
 
               <!-- Scheduling -->
               <div v-if="activeTab === 'scheduling'" class="space-y-6 overflow-y-auto max-h-full">
-                <div class="flex flex-col gap-4 max-w-xs">
+                <div class="mx-2 flex max-w-xs flex-col gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_start') }}</label>
                     <NInput v-model="form.scheduled_start" type="datetime-local" :disabled="submitting" />
