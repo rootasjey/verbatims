@@ -38,9 +38,24 @@ html.dark {
   --app-focus-input-rgb: 168, 162, 158;
 }
 
-html body :is(a, button, input, select, textarea, summary, [role='button'], [role='tab'], [tabindex]):focus-visible:not(:disabled) {
+html body :is(a, button, summary, [role='button'], [role='tab'], [tabindex]):focus-visible:not(:disabled) {
   --un-ring-color: var(--app-focus-ring-color);
   outline-color: var(--app-focus-ring-color);
+}
+
+/* Give form fields one focus treatment instead of stacking an outline, ring, and border. */
+html body :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select):focus-visible:not(:disabled) {
+  --un-ring-width: 0px;
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: var(--app-focus-ring-color) !important;
+}
+
+html body :has(> :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea):focus-visible:not(:disabled)) {
+  --un-ring-width: 0px;
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: var(--app-focus-ring-color) !important;
 }
 
 /* UnaUI inputs add both a ring and the preset's focus outline. Use one thicker border. */
@@ -50,6 +65,7 @@ html body :is(input.input, select.input, textarea.input):focus-visible:not(:disa
   border-width: 2px;
   border-color: var(--app-focus-ring-color) !important;
   outline: none;
+  box-shadow: none !important;
 }
 
 /* Keep keyboard focus visible without competing with the editorial hierarchy. */
