@@ -211,12 +211,7 @@
         </div>
         <div>
           <label class="mb-2 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_permissions') }}</label>
-          <div class="flex flex-wrap gap-x-5 gap-y-3 rounded-lg border border-gray-200 p-4 dark:border-neutral-700">
-            <label v-for="perm in availablePermissions" :key="perm.value" class="flex cursor-pointer items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
-              <input type="checkbox" :value="perm.value" v-model="form.permissions" class="accent-gray-700 dark:accent-gray-300" />
-              {{ perm.label }}
-            </label>
-          </div>
+          <ApiKeyPermissionPicker v-model="form.permissions" :sections="permissionSections" />
         </div>
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="flex-1">
@@ -356,6 +351,47 @@ const availablePermissions = [
   { label: String($t('perm_themes')), value: 'admin:themes' },
   { label: String($t('perm_delete_themes')), value: 'delete:themes' },
   { label: String($t('perm_all')), value: '*' },
+]
+
+const permissionSections = [
+  {
+    label: String($t('permissions_group_access')),
+    columns: [{ label: String($t('permissions_column_enabled')) }],
+    rows: [
+      { label: String($t('permissions_row_api')), scopes: ['read'] },
+      { label: String($t('permissions_row_all')), scopes: ['*'] },
+    ],
+  },
+  {
+    label: String($t('permissions_group_content')),
+    columns: [
+      { label: String($t('permissions_column_modify')) },
+      { label: String($t('permissions_column_delete')) },
+    ],
+    rows: [
+      { label: String($t('permissions_row_quotes')), scopes: ['write:quotes', 'delete:quotes'] },
+      { label: String($t('permissions_row_authors')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:authors', 'delete:authors'] },
+      { label: String($t('permissions_row_references')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:references', 'delete:references'] },
+      { label: String($t('permissions_row_collections')), scopes: ['write:collections', 'delete:collections'] },
+    ],
+  },
+  {
+    label: String($t('permissions_group_social')),
+    columns: [
+      { label: String($t('permissions_column_read')) },
+      { label: String($t('permissions_column_write')) },
+      { label: String($t('permissions_column_delete')) },
+    ],
+    rows: [{ label: String($t('permissions_row_social_queue')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['social:read', 'social:write', 'social:delete'] }],
+  },
+  {
+    label: String($t('permissions_group_themes')),
+    columns: [
+      { label: String($t('permissions_column_manage')) },
+      { label: String($t('permissions_column_delete')) },
+    ],
+    rows: [{ label: String($t('permissions_row_themes')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['admin:themes', 'delete:themes'] }],
+  },
 ]
 
 const permissionIcons: Record<string, string> = {

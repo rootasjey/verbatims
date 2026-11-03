@@ -165,7 +165,7 @@
     </div>
 
     <!-- Create Key Dialog -->
-    <NDialog v-model:open="showCreateDialog">
+    <NDialog v-model:open="showCreateDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] max-w-lg gap-5 overflow-y-auto rounded-xl p-5 sm:p-6' }">
       <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_create_title') }}</h3></template>
       <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4">
         {{ $t('dialog_create_desc') }}
@@ -179,12 +179,7 @@
       />
       <div class="mt-4">
         <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('permissions_label') }}</label>
-        <div class="flex gap-3 flex-wrap">
-          <label v-for="perm in availablePermissions" :key="perm.value" class="flex items-center gap-2 font-sans text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
-            <input type="checkbox" :value="perm.value" v-model="newKeyPermissions" class="accent-gray-700 dark:accent-gray-300" />
-            {{ perm.label }}
-          </label>
-        </div>
+        <ApiKeyPermissionPicker v-model="newKeyPermissions" :sections="permissionSections" />
       </div>
       <template #footer>
         <div class="flex justify-end gap-3">
@@ -195,7 +190,7 @@
     </NDialog>
 
     <!-- Edit Key Dialog -->
-    <NDialog v-model:open="showEditDialog">
+    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] max-w-lg gap-5 overflow-y-auto rounded-xl p-5 sm:p-6' }">
       <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_edit_title') }}</h3></template>
       <div class="space-y-4">
         <div>
@@ -255,12 +250,7 @@
         </div>
         <div>
           <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('permissions_label') }}</label>
-          <div class="flex gap-3 flex-wrap">
-            <label v-for="perm in availablePermissions" :key="perm.value" class="flex items-center gap-2 font-sans text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
-              <input type="checkbox" :value="perm.value" v-model="editPermissions" class="accent-gray-700 dark:accent-gray-300" />
-              {{ perm.label }}
-            </label>
-          </div>
+          <ApiKeyPermissionPicker v-model="editPermissions" :sections="permissionSections" />
         </div>
       </div>
       <div v-if="editError" class="font-sans text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-sm -mb-2">
@@ -336,22 +326,45 @@ const creating = ref(false)
 const createdKey = ref('')
 const copied = ref(false)
 
-const availablePermissions = [
-  { label: 'Read', value: 'read' },
-  { label: 'Write: Quotes', value: 'write:quotes' },
-  { label: 'Delete: Quotes', value: 'delete:quotes' },
-  { label: 'Write: Authors', value: 'write:authors' },
-  { label: 'Delete: Authors', value: 'delete:authors' },
-  { label: 'Write: References', value: 'write:references' },
-  { label: 'Delete: References', value: 'delete:references' },
-  { label: 'Write: Collections', value: 'write:collections' },
-  { label: 'Delete: Collections', value: 'delete:collections' },
-  { label: 'Social: Read (moderator+)', value: 'social:read' },
-  { label: 'Social: Write (moderator+)', value: 'social:write' },
-  { label: 'Social: Delete (moderator+)', value: 'social:delete' },
-  { label: 'Admin: Themes (moderator+)', value: 'admin:themes' },
-  { label: 'Delete: Themes (moderator+)', value: 'delete:themes' },
-  { label: 'All (*)', value: '*' },
+const permissionSections = [
+  {
+    label: String($t('permissions_group_access')),
+    columns: [{ label: String($t('permissions_column_enabled')) }],
+    rows: [
+      { label: String($t('permissions_row_api')), scopes: ['read'] },
+      { label: String($t('permissions_row_all')), scopes: ['*'] },
+    ],
+  },
+  {
+    label: String($t('permissions_group_content')),
+    columns: [
+      { label: String($t('permissions_column_modify')) },
+      { label: String($t('permissions_column_delete')) },
+    ],
+    rows: [
+      { label: String($t('permissions_row_quotes')), scopes: ['write:quotes', 'delete:quotes'] },
+      { label: String($t('permissions_row_authors')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:authors', 'delete:authors'] },
+      { label: String($t('permissions_row_references')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:references', 'delete:references'] },
+      { label: String($t('permissions_row_collections')), scopes: ['write:collections', 'delete:collections'] },
+    ],
+  },
+  {
+    label: String($t('permissions_group_social')),
+    columns: [
+      { label: String($t('permissions_column_read')) },
+      { label: String($t('permissions_column_write')) },
+      { label: String($t('permissions_column_delete')) },
+    ],
+    rows: [{ label: String($t('permissions_row_social_queue')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['social:read', 'social:write', 'social:delete'] }],
+  },
+  {
+    label: String($t('permissions_group_themes')),
+    columns: [
+      { label: String($t('permissions_column_manage')) },
+      { label: String($t('permissions_column_delete')) },
+    ],
+    rows: [{ label: String($t('permissions_row_themes')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['admin:themes', 'delete:themes'] }],
+  },
 ]
 
 const copyKey = async () => {
