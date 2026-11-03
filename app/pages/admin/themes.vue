@@ -1184,6 +1184,8 @@ const tabs = computed(() => {
 const activeTabName = computed(() => tabs.value.find(tab => tab.value === activeTab.value)?.name as string || '')
 
 const onThemeTabKeydown = (event: KeyboardEvent, index: number) => {
+  if (event.altKey || event.ctrlKey || event.metaKey) return
+
   const lastIndex = tabs.value.length - 1
   const nextIndex = event.key === 'ArrowRight'
     ? (index + 1) % tabs.value.length
@@ -1200,6 +1202,11 @@ const onThemeTabKeydown = (event: KeyboardEvent, index: number) => {
   activeTab.value = tabs.value[nextIndex]!.value
   const tablist = (event.currentTarget as HTMLElement).parentElement
   nextTick(() => tablist?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus())
+}
+
+const isTextEntryTarget = (target: EventTarget | null) => {
+  if (!(target instanceof HTMLElement)) return false
+  return Boolean(target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'))
 }
 
 const languageOptions = [
@@ -2345,6 +2352,25 @@ watch(showEditDialog, (open) => {
   themeEditorOpen.value = open
   if (open) {
     globalKeyHandler = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes('MAC')
+      const hasTabModifier = isMac
+        ? e.metaKey && e.altKey && !e.ctrlKey && !e.shiftKey
+        : e.ctrlKey && e.altKey && !e.metaKey && !e.shiftKey
+
+      if (hasTabModifier && !isTextEntryTarget(e.target) && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+        const currentIndex = tabs.value.findIndex(tab => tab.value === activeTab.value)
+        const nextIndex = e.key === 'ArrowRight'
+          ? (currentIndex + 1) % tabs.value.length
+          : (currentIndex - 1 + tabs.value.length) % tabs.value.length
+        const nextTab = tabs.value[nextIndex]
+        if (nextTab) {
+          e.preventDefault()
+          activeTab.value = nextTab.value
+          nextTick(() => document.getElementById(`theme-tab-${nextTab.value}`)?.focus())
+        }
+        return
+      }
+
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault()
         saveTheme()
