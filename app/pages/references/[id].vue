@@ -436,6 +436,7 @@
 
 <script lang="ts" setup>import { useJsonLd } from '../../composables/useSeo'
 import { useReferencesListStore } from '~/stores/references'
+import { formatReferenceReleaseDate } from '~/utils/reference-release-date'
 // Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
 definePageMeta({ layout: 'default' })
 
@@ -992,9 +993,7 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
 }
 
 const formatReleaseDate = (dateString: string) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.getFullYear().toString()
+  return formatReferenceReleaseDate(dateString)
 }
 
 const formatReferenceType = (type: string): string => {

@@ -99,6 +99,8 @@
 </template>
 
 <script setup>
+import { formatReferenceReleaseDate } from '~/utils/reference-release-date'
+
 const props = defineProps({
   reference: {
     type: Object,
@@ -111,10 +113,7 @@ const isHovered = ref(false)
 
 // Utility functions
 const formatReleaseDate = (releaseDate) => {
-  if (!releaseDate) return ''
-  
-  const date = new Date(releaseDate)
-  return date.getFullYear()
+  return formatReferenceReleaseDate(releaseDate)
 }
 
 const formatNumber = (num) => {
