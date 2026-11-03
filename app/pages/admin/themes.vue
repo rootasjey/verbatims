@@ -1162,7 +1162,7 @@ const searchQuery = ref('')
 const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
-const selectedSort = ref({ label: 'Priority (High-Low)', value: 'priority_desc' })
+const selectedSort = ref({ label: $t('sort_active_upcoming') as string, value: 'active_upcoming' })
 const editingPriority = ref<number | null>(null)
 const priorityEditValue = ref(0)
 
@@ -1886,6 +1886,7 @@ const sortOptions = [
   { label: $t('sort_name_za') as string, value: 'name_desc' },
   { label: $t('sort_most_filters') as string, value: 'filters_desc' },
   { label: $t('sort_fewest_filters') as string, value: 'filters_asc' },
+  { label: $t('sort_active_upcoming') as string, value: 'active_upcoming' },
   { label: $t('sort_slug_az') as string, value: 'slug_asc' },
   { label: $t('sort_scheduled') as string, value: 'scheduled_date_desc' },
 ]
@@ -1897,10 +1898,10 @@ useSyncedQueryFilters({
     const sort = readSyncedQueryValue(query.sort)
     return {
       q: readSyncedQueryValue(query.q),
-      sort: sortOptions.some(option => option.value === sort) ? sort : 'priority_desc'
+      sort: sortOptions.some(option => option.value === sort) ? sort : 'active_upcoming'
     }
   },
-  write: (query, state) => ({ ...query, q: state.q.trim() || undefined, sort: state.sort === 'priority_desc' ? undefined : state.sort }),
+  write: (query, state) => ({ ...query, q: state.q.trim() || undefined, sort: state.sort === 'active_upcoming' ? undefined : state.sort }),
   get: () => ({ q: searchQuery.value, sort: selectedSort.value.value }),
   apply: (state) => {
     searchQuery.value = state.q
@@ -1910,11 +1911,7 @@ useSyncedQueryFilters({
 })
 
 const togglePrioritySort = () => {
-  selectedSort.value = selectedSort.value.value === 'priority_asc'
-    ? sortOptions[0]!
-    : selectedSort.value.value === 'priority_desc'
-      ? sortOptions[1]!
-      : sortOptions[0]!
+  selectedSort.value = sortOptions.find(option => option.value === (selectedSort.value.value === 'priority_desc' ? 'priority_asc' : 'priority_desc'))!
 }
 
 const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
@@ -2085,8 +2082,8 @@ const loadThemes = async () => {
     loading.value = true
     const sortValue = selectedSort.value.value
     const lastUnderscoreIndex = sortValue.lastIndexOf('_')
-    const sortBy = sortValue.substring(0, lastUnderscoreIndex)
-    const sortOrder = sortValue.substring(lastUnderscoreIndex + 1).toUpperCase()
+    const sortBy = sortValue === 'active_upcoming' ? sortValue : sortValue.substring(0, lastUnderscoreIndex)
+    const sortOrder = sortValue === 'active_upcoming' ? undefined : sortValue.substring(lastUnderscoreIndex + 1).toUpperCase()
 
     const res = await $fetch('/api/admin/themes', {
       query: {

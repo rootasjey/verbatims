@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
-import { eq, or, and, like, count, desc, asc, inArray } from 'drizzle-orm'
+import { eq, or, and, like, count, desc, asc, inArray, sql } from 'drizzle-orm'
+import { resolveActiveTheme } from '~~/server/utils/theme'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -9,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const page = Math.max(parseInt(String(query.page || '1')), 1)
     const limit = Math.min(parseInt(String(query.limit || '50')), 100)
     const search = (query.search as string) || ''
-    const sortByRaw = (query.sort_by as string) || 'priority'
+    const sortByRaw = (query.sort_by as string) || 'active_upcoming'
     const sortOrderRaw = ((query.sort_order as string) || 'DESC').toUpperCase()
     const sortOrder = sortOrderRaw === 'ASC' ? asc : desc
     const offset = (page - 1) * limit
@@ -35,6 +36,26 @@ export default defineEventHandler(async (event) => {
       sortColumn = count(schema.themeContentFilters.id)
     } else {
       sortColumn = schema.themes.priority
+    }
+
+    let orderByExpressions
+    if (sortByRaw === 'active_upcoming') {
+      const now = Date.now()
+      const activeTheme = await resolveActiveTheme()
+      orderByExpressions = [
+        sql`CASE
+          WHEN ${schema.themes.id} = ${activeTheme?.id ?? -1} THEN 0
+          WHEN ${schema.themes.scheduledStart} > ${now}
+            AND (${schema.themes.scheduledEnd} IS NULL OR ${schema.themes.scheduledEnd} >= ${now}) THEN 1
+          WHEN ${schema.themes.scheduledStart} IS NULL AND ${schema.themes.scheduledEnd} IS NULL THEN 2
+          ELSE 3
+        END`,
+        sql`CASE WHEN ${schema.themes.scheduledStart} > ${now} THEN ${schema.themes.scheduledStart} END`,
+        desc(schema.themes.priority),
+        asc(schema.themes.id),
+      ]
+    } else {
+      orderByExpressions = [sortOrder(sortColumn)]
     }
 
     const rows = await db.select({
@@ -72,7 +93,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.themeContentFilters, eq(schema.themes.id, schema.themeContentFilters.themeId))
       .where(whereCondition)
       .groupBy(schema.themes.id)
-      .orderBy(sortOrder(sortColumn))
+      .orderBy(...orderByExpressions)
       .limit(limit)
       .offset(offset)
       .all()
