@@ -1204,11 +1204,6 @@ const onThemeTabKeydown = (event: KeyboardEvent, index: number) => {
   nextTick(() => tablist?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus())
 }
 
-const isTextEntryTarget = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) return false
-  return Boolean(target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'))
-}
-
 const languageOptions = [
   { value: 'en', label: 'English', flag: '/images/languages/usa.png' },
   { value: 'fr', label: 'Français', flag: '/images/languages/france.png' },
@@ -2357,7 +2352,7 @@ watch(showEditDialog, (open) => {
         ? e.metaKey && e.altKey && !e.ctrlKey && !e.shiftKey
         : e.ctrlKey && e.altKey && !e.metaKey && !e.shiftKey
 
-      if (hasTabModifier && !isTextEntryTarget(e.target) && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+      if (hasTabModifier && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
         const currentIndex = tabs.value.findIndex(tab => tab.value === activeTab.value)
         const nextIndex = e.key === 'ArrowRight'
           ? (currentIndex + 1) % tabs.value.length
