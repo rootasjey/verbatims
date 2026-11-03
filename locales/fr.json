@@ -389,6 +389,7 @@
       "database_maintenance": "Maintenance BDD",
       "import_data": "Importer",
       "export_data": "Exporter",
+      "data_tools": "Outils de données",
       "back_to_dashboard": "Retour au tableau de bord"
     },
     "headers": {
@@ -415,6 +416,8 @@
       "import_desc": "Importer des citations, auteurs et références",
       "export": "Exporter",
       "export_desc": "Exporter les données du système",
+      "data_tools": "Outils de données",
+      "data_tools_desc": "Importer, exporter et administrer les données",
       "social_queue": "File d'attente sociale",
       "social_queue_desc": "Gérer la file d'attente de publication sur les réseaux sociaux",
       "tags": "Tags",

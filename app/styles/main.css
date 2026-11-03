@@ -58,6 +58,15 @@ html body :has(> :is(input:not([type='checkbox']):not([type='radio']):not([type=
   border-color: var(--app-focus-ring-color) !important;
 }
 
+/* Browser-default rings on file, checkbox, and radio controls use a bright accent. */
+html body :is(input[type='file'], input[type='checkbox'], input[type='radio']):focus-visible:not(:disabled) {
+  --un-ring-color: var(--app-focus-ring-color);
+  --un-ring-width: 0px;
+  outline: 2px solid var(--app-focus-ring-color);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
 /* UnaUI inputs add both a ring and the preset's focus outline. Use one thicker border. */
 html body :is(input.input, select.input, textarea.input):focus-visible:not(:disabled) {
   --un-ring-width: 0px;

@@ -1,17 +1,14 @@
 <template>
-  <div class="harvest-page flex flex-col h-full">
-    <!-- Editorial Header -->
-    <div class="flex-shrink-0 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="font-serif text-2xl md:text-3xl font-200 text-gray-900 dark:text-gray-100">{{ $t('title') }}</h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $t('subtitle') }}</p>
+  <div class="harvest-page">
+    <div class="mb-5 flex items-end justify-between gap-4 border-b border-gray-200 pb-5 dark:border-gray-800 sm:mb-6 sm:pb-6">
+      <div class="min-w-0">
+          <h1 class="font-serif text-3xl font-200 text-gray-900 dark:text-gray-100 md:text-4xl">{{ $t('title') }}</h1>
+          <p class="mt-2 max-w-2xl font-sans text-sm leading-6 text-gray-600 dark:text-gray-400">{{ $t('subtitle') }}</p>
         </div>
-        <NBadge v-if="harvestedCount > 0" badge="soft-gray" size="sm">{{ $t('badge_harvested', { n: harvestedCount }) }}</NBadge>
-      </div>
+      <NBadge v-if="harvestedCount > 0" badge="soft-gray" size="sm" class="shrink-0">{{ $t('badge_harvested', { n: harvestedCount }) }}</NBadge>
     </div>
 
-    <nav class="harvest-steps" :aria-label="$t('mobile_steps') as string">
+    <nav class="harvest-steps md:hidden" :aria-label="$t('mobile_steps') as string">
       <button
         type="button"
         :aria-pressed="mobileView === 'browse'"
@@ -29,9 +26,9 @@
       >{{ $t('preview_step') }}<span v-if="pageQuotes.length" class="ml-1.5 text-xs opacity-70">{{ pageQuotes.length }}</span></button>
     </nav>
 
-    <div class="harvest-workspace flex-1 overflow-hidden flex">
+    <div class="harvest-workspace grid h-[min(72dvh,760px)] min-h-[34rem] grid-cols-1 overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-[#171615] md:grid-cols-[minmax(18rem,0.82fr)_minmax(0,1.6fr)]">
       <!-- Left Panel: Source & Search -->
-      <div class="harvest-browser-pane w-full border-r border-gray-200 dark:border-gray-800 flex flex-col" :class="{ 'is-step-hidden': mobileView !== 'browse' }">
+      <div class="harvest-browser-pane flex min-h-0 w-full flex-col border-r border-gray-200 dark:border-gray-800" :class="{ 'is-step-hidden': mobileView !== 'browse' }">
         <div class="p-4 border-b border-gray-200 dark:border-gray-800 space-y-3">
           <div class="flex items-center gap-2">
             <label for="harvest-source" class="font-sans text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ $t('label_source') }}</label>
@@ -97,7 +94,7 @@
       </div>
 
       <!-- Right Panel: Quotes Preview -->
-      <div class="harvest-preview-pane w-full flex-1 flex flex-col min-w-0" :class="{ 'is-step-hidden': mobileView !== 'preview' }">
+      <div class="harvest-preview-pane flex min-h-0 w-full min-w-0 flex-col" :class="{ 'is-step-hidden': mobileView !== 'preview' }">
           <div v-if="quotesLoading" class="flex-1 flex items-center justify-center">
             <div class="text-center text-gray-500 dark:text-gray-400">
               <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -238,16 +235,12 @@ watch(selectedSource, () => { mobileView.value = 'browse'; suggestions.value = [
 
 @media (max-width: 767px) {
   .harvest-page { min-height: 0; }
+  .harvest-steps { display: grid; }
   .harvest-workspace {
-    flex: none;
-    height: min(68dvh, 680px);
-    min-height: 480px;
-    margin: 0 1rem 1rem;
-    border: 1px solid rgb(120 113 108 / 0.2);
-    border-radius: 1rem;
-    background: white;
+    height: min(70dvh, 720px);
+    min-height: 26rem;
+    margin-bottom: 1rem;
   }
-  :global(.dark) .harvest-workspace { border-color: rgb(120 113 108 / 0.3); background: #171717; }
   .harvest-browser-pane,
   .harvest-preview-pane { border-right: 0; }
 }

@@ -11,13 +11,19 @@
         </div>
         <div class="hidden md:flex items-center gap-3">
           <AdminSearchToggle v-model="searchQuery" :placeholder="$t('search_placeholder') as string" :close-label="$t('common.close') as string" />
-          <OutlinedButton class="rounded-lg" @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
+          <button class="inline-flex min-h-11 items-center gap-2 rounded-md bg-gray-950 px-5 text-sm font-600 text-white transition-colors hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white" @click="openCreateDialog">
+            {{ $t('create_button') }}
+            <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
+          </button>
         </div>
       </div>
       <div class="md:hidden mt-4 space-y-3">
         <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500" />
         <div class="flex justify-end">
-          <OutlinedButton class="rounded-lg" @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
+          <button class="inline-flex min-h-11 items-center gap-2 rounded-md bg-gray-950 px-5 text-sm font-600 text-white transition-colors hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white" @click="openCreateDialog">
+            {{ $t('create_button') }}
+            <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
+          </button>
         </div>
       </div>
     </div>
@@ -33,7 +39,10 @@
     <div v-else-if="keys.length === 0 && !loading" class="py-12 md:py-16 px-6 text-center border border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-gray-900/30">
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
       <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mb-4">{{ $t('empty_desc') }}</p>
-      <OutlinedButton @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
+      <button class="inline-flex min-h-11 items-center gap-2 rounded-md bg-gray-950 px-5 text-sm font-600 text-white transition-colors hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white" @click="openCreateDialog">
+        {{ $t('create_button') }}
+        <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
+      </button>
     </div>
 
     <!-- Table -->
@@ -42,10 +51,8 @@
         <table class="w-full">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0C0A09]">
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_name') }}</th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_key') }}</th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_tier') }}</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_identity') }}</th>
+              <th class="w-36 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_access') }}</th>
               <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_rate_limit') }}</th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_permissions') }}</th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_owner') }}</th>
@@ -65,18 +72,16 @@
             >
             <tr class="transition-colors group hover:bg-[#E7E5DE] dark:hover:bg-[#292725]">
               <td class="px-3 py-3">
-                <p class="font-sans text-sm text-gray-900 dark:text-gray-100 cursor-pointer" @click="editKey(key)">{{ key.name }}</p>
+                <button class="block max-w-full truncate text-left font-sans text-sm text-gray-900 hover:underline dark:text-gray-100" @click="editKey(key)">{{ key.name }}</button>
+                <code class="mt-1 inline-block font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{{ key.keyPrefix }}...</code>
               </td>
               <td class="px-3 py-3">
-                <code class="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{{ key.keyPrefix }}...</code>
-              </td>
-              <td class="px-3 py-3">
-                <span class="font-sans text-xs px-1.5 py-0.5 rounded" :class="tierClass(key.tier)">{{ key.tier }}</span>
-              </td>
-              <td class="px-3 py-3">
-                <span class="inline-flex rounded-md px-1.5 py-0.5 font-sans text-xs font-medium" :class="key.isActive ? 'text-[#2373F4] dark:text-[#8AB5FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15' : 'text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/[0.08]'">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="font-sans text-xs px-1.5 py-0.5 rounded" :class="tierClass(key.tier)">{{ key.tier }}</span>
+                  <span class="inline-flex rounded-md px-1.5 py-0.5 font-sans text-xs font-medium" :class="key.isActive ? 'text-[#2373F4] dark:text-[#8AB5FF] bg-[#2373F4]/10 dark:bg-[#2373F4]/15' : 'text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/[0.08]'">
                   {{ key.isActive ? $t('common.status_active') : $t('common.status_inactive') }}
-                </span>
+                  </span>
+                </div>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">
                 {{ key.readRateLimit }}/{{ formatWindow(key.readWindowSec) }}
@@ -192,13 +197,43 @@
     </div>
 
     <!-- Create/Edit Dialog -->
-    <NDialog v-model:open="showDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] max-w-xl gap-6 overflow-y-auto rounded-xl p-5 sm:p-7' }">
+    <ClientOnly>
+    <NDialog v-model:open="showDialog" :una="{ dialogContent: 'w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] max-w-4xl gap-6 overflow-y-auto rounded-xl border border-gray-200 bg-white text-gray-900 shadow-xl dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 p-5 sm:p-7' }">
       <template #header>
         <div>
           <h2 class="font-serif text-2xl font-400 tracking-tight text-gray-900 dark:text-gray-100">{{ editingKey ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h2>
         </div>
       </template>
-      <div class="space-y-5">
+      <div v-if="createdKey && !editingKey" class="space-y-5">
+        <div class="rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-gray-900">
+          <div class="mb-4 flex items-start gap-3">
+            <NIcon name="i-ph-check-circle" class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
+            <div>
+              <h3 class="font-sans text-base font-600 text-gray-900 dark:text-gray-100">{{ $t('created_title') }}</h3>
+              <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ $t('warning_save') }}</p>
+            </div>
+          </div>
+          <p class="mb-2 font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ form.name }}</p>
+          <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-neutral-950">
+            <code class="min-w-0 flex-1 break-all px-2 font-mono text-sm text-gray-900 dark:text-gray-100">{{ createdKey }}</code>
+            <NButton btn="outline-gray" class="min-h-10 shrink-0 px-3" @click="copyKey">{{ copied ? $t('common.copied') : $t('common.copy') }}</NButton>
+          </div>
+        </div>
+      </div>
+      <div v-else class="space-y-6">
+        <nav v-if="!editingKey" :aria-label="$t('steps_label') as string" class="grid grid-cols-3 gap-2 border-b border-gray-200 pb-4 dark:border-gray-700">
+          <button type="button" :aria-current="creationStep === 1 ? 'step' : undefined" class="flex min-h-11 items-center gap-2 rounded-lg px-2 text-left text-xs transition-colors sm:px-3 sm:text-sm" :class="creationStep === 1 ? 'bg-gray-100 font-600 text-gray-950 dark:bg-gray-800 dark:text-gray-50' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/60'" @click="creationStep = 1">
+            <span class="font-mono text-[10px] opacity-70 sm:text-xs">01.</span><span class="truncate">{{ $t('step_onboarding') }}</span>
+          </button>
+          <button type="button" :aria-current="creationStep === 2 ? 'step' : undefined" class="flex min-h-11 items-center gap-2 rounded-lg px-2 text-left text-xs transition-colors sm:px-3 sm:text-sm" :class="creationStep === 2 ? 'bg-gray-100 font-600 text-gray-950 dark:bg-gray-800 dark:text-gray-50' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/60'" @click="creationStep = 2">
+            <span class="font-mono text-[10px] opacity-70 sm:text-xs">02.</span><span class="truncate">{{ $t('step_access') }}</span>
+          </button>
+          <button type="button" :aria-current="creationStep === 3 ? 'step' : undefined" class="flex min-h-11 items-center gap-2 rounded-lg px-2 text-left text-xs transition-colors sm:px-3 sm:text-sm" :class="creationStep === 3 ? 'bg-gray-100 font-600 text-gray-950 dark:bg-gray-800 dark:text-gray-50' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/60'" @click="creationStep = 3">
+            <span class="font-mono text-[10px] opacity-70 sm:text-xs">03.</span><span class="truncate">{{ $t('step_limits') }}</span>
+          </button>
+        </nav>
+
+        <div v-if="editingKey || creationStep === 1" class="space-y-5">
         <div>
           <label class="mb-1.5 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_name') }}</label>
           <input v-model="form.name" type="text" :placeholder="$t('placeholder_name') as string" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 placeholder-gray-400 outline-none transition focus-visible:ring-2 focus-visible:ring-stone-500/70 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100 dark:placeholder-gray-500" />
@@ -209,10 +244,16 @@
             <template #trigger="{ modelValue }"><span class="truncate">{{ modelValue?.label }}</span></template>
           </NCombobox>
         </div>
+        </div>
+
+        <div v-if="editingKey || creationStep === 2">
         <div>
           <label class="mb-2 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_permissions') }}</label>
           <ApiKeyPermissionPicker v-model="form.permissions" :sections="permissionSections" />
         </div>
+        </div>
+
+        <div v-if="editingKey || creationStep === 3" class="space-y-4">
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="flex-1">
               <label class="mb-1.5 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_rate_limit') }}</label>
@@ -233,23 +274,24 @@
               <input v-model.number="form.writeWindowSec" type="number" min="1" class="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 font-sans text-sm text-gray-900 outline-none transition focus-visible:ring-2 focus-visible:ring-stone-500/70 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100" />
             </div>
           </div>
-
-        <!-- Show plain key after creation -->
-        <div v-if="createdKey" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-3 rounded-sm">
-          <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-2">{{ $t('warning_save') }}</p>
-          <div class="flex items-stretch gap-2">
-            <code class="font-mono text-sm text-yellow-900 dark:text-yellow-200 break-all select-all flex-1">{{ createdKey }}</code>
-            <button class="font-sans text-xs font-500 px-3 py-1.5 rounded-sm transition-colors shrink-0" :class="copied ? 'text-green-800 dark:text-green-300 bg-green-200 dark:bg-green-700/40' : 'text-yellow-800 dark:text-yellow-300 bg-yellow-200 dark:bg-yellow-700/40 hover:bg-yellow-300 dark:hover:bg-yellow-700/60'" @click="copyKey">{{ copied ? $t('common.copied') : $t('common.copy') }}</button>
-          </div>
         </div>
       </div>
       <template #footer>
         <div class="-mx-5 -mb-5 flex w-[calc(100%+2.5rem)] justify-end gap-3 border-t border-gray-200 px-5 pt-4 pb-5 dark:border-neutral-700 sm:-mx-7 sm:-mb-7 sm:w-[calc(100%+3.5rem)] sm:px-7 sm:pb-7">
-          <NButton btn="ghost-gray" class="min-h-10 px-4" @click="closeDialog">{{ $t('common.cancel') }}</NButton>
-          <NButton btn="solid-black" class="min-h-10 rounded-lg px-4" :loading="saving" @click="save">{{ editingKey ? $t('common.save') : $t('dialog_create_title') }}</NButton>
+          <NButton v-if="createdKey && !editingKey" btn="solid-black" class="min-h-10 rounded-lg px-4" @click="closeDialog">{{ $t('common.done') }}</NButton>
+          <template v-else-if="!editingKey && creationStep < 3">
+            <NButton btn="ghost-gray" class="min-h-10 px-4" @click="closeDialog">{{ $t('common.cancel') }}</NButton>
+            <NButton v-if="creationStep > 1" btn="ghost-gray" class="min-h-10 px-4" @click="creationStep -= 1">{{ $t('step_previous') }}</NButton>
+            <NButton btn="solid-black" class="min-h-10 rounded-lg px-4" :disabled="creationStep === 1 && !form.name.trim()" @click="continueCreation">{{ $t('step_next') }}</NButton>
+          </template>
+          <template v-else>
+            <NButton btn="ghost-gray" class="min-h-10 px-4" @click="closeDialog">{{ $t('common.cancel') }}</NButton>
+            <NButton btn="solid-black" class="min-h-10 rounded-lg px-4" :loading="saving" :disabled="saving || !form.name.trim()" @click="save">{{ editingKey ? $t('common.save') : $t('dialog_create_title') }}</NButton>
+          </template>
         </div>
       </template>
     </NDialog>
+    </ClientOnly>
 
     <!-- Delete Dialog -->
     <AppDialog
@@ -313,6 +355,7 @@ const editingKey = ref<any | null>(null)
 const saving = ref(false)
 const createdKey = ref('')
 const copied = ref(false)
+const creationStep = ref(1)
 
 const copyKey = async () => {
   try {
@@ -473,7 +516,14 @@ const resetForm = () => {
   form.writeRateLimit = 1000
   form.writeWindowSec = 3600
   createdKey.value = ''
+  copied.value = false
+  creationStep.value = 1
   editingKey.value = null
+}
+
+const continueCreation = () => {
+  if (creationStep.value === 1 && !form.name.trim()) return
+  creationStep.value = Math.min(3, creationStep.value + 1)
 }
 
 const openCreateDialog = () => {
@@ -555,8 +605,6 @@ const save = async () => {
         },
       })
       createdKey.value = (res as any).data?.plainKey || ''
-      // Don't close dialog — show the key
-      saveAndContinue()
     }
     loadKeys()
   } catch (e) {
@@ -564,12 +612,6 @@ const save = async () => {
   } finally {
     saving.value = false
   }
-}
-
-const saveAndContinue = async () => {
-  // Wait for user to copy the key, then close
-  // The dialog stays open with the key displayed
-  // User clicks Cancel to close
 }
 
 const confirmDelete = async () => {

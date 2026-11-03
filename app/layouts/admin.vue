@@ -386,21 +386,17 @@ const adminNavGroups = computed<AdminNavGroup[]>(() => [
     id: 'data',
     label: String($t('admin.sections.data')),
     icon: 'i-ph-database',
-    to: '/admin/import',
-    items: [
-      { to: '/admin/import', label: String($t('admin.nav.import_data')) },
-      { to: '/admin/export', label: String($t('admin.nav.export_data')) },
-      { to: '/admin/maintenance', label: String($t('admin.nav.database_maintenance')) },
-    ],
+    to: '/admin/tools',
+    items: [],
   },
 ])
 
-const pathMatches = (to: string) => to === '/admin'
-  ? route.path === to
-  : route.path === to || route.path.startsWith(`${to}/`)
+const pathMatches = (to: string) => to.split('?')[0] === '/admin'
+  ? route.path === '/admin'
+  : route.path === to.split('?')[0] || route.path.startsWith(`${to.split('?')[0]}/`)
 
 const activeGroupId = computed(() =>
-  adminNavGroups.value.find(group => group.items.some(item => pathMatches(item.to)))?.id ?? 'overview'
+  adminNavGroups.value.find(group => pathMatches(group.to) || group.items.some(item => pathMatches(item.to)))?.id ?? 'overview'
 )
 
 const activeGroupItems = computed(() =>

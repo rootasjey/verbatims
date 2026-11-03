@@ -90,6 +90,7 @@ export const usePageHeaderStore = defineStore('pageHeader', () => {
       '/admin/maintenance': { titleKey: 'admin.headers.maintenance', subtitleKey: 'admin.headers.maintenance_desc' },
       '/admin/import': { titleKey: 'admin.headers.import', subtitleKey: 'admin.headers.import_desc' },
       '/admin/export': { titleKey: 'admin.headers.export', subtitleKey: 'admin.headers.export_desc' },
+      '/admin/tools': { titleKey: 'admin.headers.data_tools', subtitleKey: 'admin.headers.data_tools_desc' },
       '/admin/api-keys': { titleKey: 'admin.headers.api_keys' },
       '/admin/messages': { titleKey: 'admin.headers.messages' },
 

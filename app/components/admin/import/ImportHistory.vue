@@ -1,17 +1,18 @@
 <template>
-  <div class="pt-6">
+  <div class="space-y-6 pt-2">
     <div class="space-y-6">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-end sm:justify-between dark:border-gray-800">
         <div>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ $ts('import_history.title') }}</h2>
-          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <h2 class="font-serif text-2xl font-normal tracking-tight text-gray-900 dark:text-gray-100">{{ $ts('import_history.title') }}</h2>
+          <p class="mt-1 font-sans text-sm leading-6 text-gray-600 dark:text-gray-400">
             {{ $ts('import_history.description') }}
           </p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2">
           <NButton
-            btn="light:soft dark:link-gray"
+            btn="outline-gray"
             size="sm"
+            class="min-h-9 rounded-lg px-3"
             @click="refresh"
             :loading="loading"
           >
@@ -20,8 +21,9 @@
           </NButton>
           <NButton
             v-if="deletableCount > 0"
-            btn="light:soft-pink dark:link-pink"
+            btn="outline-gray"
             size="sm"
+            class="min-h-9 rounded-lg px-3 text-red-700 dark:text-red-300"
             @click="openClearHistoryDialog"
           >
             <NIcon name="i-ph-trash" />
@@ -55,14 +57,23 @@
             :data="imports"
             :loading="loading"
             manual-pagination
+            :una="{
+              tableRoot: 'overflow-visible rounded-xl border border-gray-200 dark:border-gray-800',
+              table: 'bg-transparent',
+              tableHead: 'h-12 bg-gray-50/70 px-4 font-sans text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:bg-gray-950/40 dark:text-gray-400',
+              tableRow: 'border-t border-gray-200 transition-colors hover:bg-gray-50/70 dark:border-gray-800 dark:hover:bg-gray-800/30',
+              tableCell: 'px-4 py-4 align-middle text-sm text-gray-700 dark:text-gray-300',
+            }"
             :empty-text="$ts('import_history.empty_text')"
             empty-icon="i-ph-clock-countdown"
           >
             <template #status-cell="{ cell }">
-              <NBadge :color="getStatusColor(cell.row.original.status)" :label="cell.row.original.status.toUpperCase()" />
+              <span :class="statusClasses(cell.row.original.status)">{{ cell.row.original.status.toUpperCase() }}</span>
             </template>
             <template #dataType-cell="{ cell }">
-              <NBadge color="gray" :label="(cell.row.original.dataType || 'unknown').toUpperCase()" />
+              <span class="inline-flex rounded-full border border-gray-200 bg-gray-100/70 px-2.5 py-1 text-[0.7rem] font-medium tracking-wide text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300">
+                {{ (cell.row.original.dataType || 'unknown').toUpperCase() }}
+              </span>
             </template>
             <template #totalRecords-cell="{ cell }">
               <span class="text-gray-600 dark:text-gray-400">{{ cell.row.original.totalRecords }}</span>
@@ -75,12 +86,12 @@
             </template>
             <template #actions-cell="{ cell }">
               <NDropdown :items="getActionItems(cell.row.original)">
-                <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+                <NButton icon btn="ghost-gray" size="sm" class="rounded-lg" label="i-ph-dots-three-vertical" />
               </NDropdown>
             </template>
           </NTable>
 
-          <div class="flex-shrink-0 flex items-center justify-between mt-4 p-4 rounded-2 border">
+          <div class="mt-3 flex flex-shrink-0 flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50/60 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4 dark:border-gray-800 dark:bg-gray-950/30">
             <div class="text-sm text-gray-600 dark:text-gray-400">
               {{ $ts('import_history.page_info', { page: currentPage, totalPages: totalPages, total: pagination?.total || 0 }) }}
             </div>
@@ -91,6 +102,10 @@
               :sibling-count="2"
               show-edges
               size="sm"
+              rounded="rounded-lg"
+              pagination-selected="bg-gray-200 text-gray-950 hover:bg-gray-300 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
+              pagination-unselected="bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-950 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+              class="gap-1"
               @update:page="loadImports"
             />
           </div>
@@ -153,7 +168,7 @@
             <ul v-else class="space-y-2">
               <li v-for="file in importBackups" :key="file.id" class="flex items-center justify-between text-sm">
                 <div class="flex items-center gap-2">
-                  <NBadge color="gray" :label="(file.metadata?.data_type || 'unknown').toUpperCase()" />
+                  <span class="rounded-full border border-gray-200 px-2 py-0.5 text-[0.7rem] font-medium text-gray-600 dark:border-gray-700 dark:text-gray-300">{{ (file.metadata?.data_type || 'unknown').toUpperCase() }}</span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">
                     {{ file.metadata?.kind === 'import-report' ? $ts('import_history.report_file') : $ts('import_history.source_file') }}
                   </span>
@@ -161,7 +176,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs text-gray-500">{{ formatDateTime(file.created_at) }}</span>
-                  <NButton size="xs" btn="ghost" :to="file.downloadUrl" target="_blank">
+                  <NButton size="xs" btn="ghost-gray" class="rounded-lg" :to="file.downloadUrl" target="_blank">
                     <NIcon name="i-ph-download" />
                     {{ $ts('import_history.download') }}
                   </NButton>
@@ -404,13 +419,13 @@ const confirmDeleteImport = async (): Promise<void> => {
   }
 }
 
-const getStatusColor = (status: string): string => {
+const statusClasses = (status: string): string => {
   switch (status) {
-    case 'pending': return 'blue'
-    case 'processing': return 'yellow'
-    case 'completed': return 'green'
-    case 'failed': return 'red'
-    default: return 'gray'
+    case 'pending': return 'inline-flex rounded-full border border-amber-300/70 bg-amber-50 px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
+    case 'processing': return 'inline-flex rounded-full border border-stone-300 bg-stone-100 px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide text-stone-700 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200'
+    case 'completed': return 'inline-flex rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200'
+    case 'failed': return 'inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300'
+    default: return 'inline-flex rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300'
   }
 }
 

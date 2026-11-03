@@ -1,0 +1,58 @@
+@layer components {
+  .overflowing-tab-label {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .overflowing-tab-label__number {
+    flex: none;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+  }
+
+  .overflowing-tab-label__viewport {
+    display: block;
+    min-width: 0;
+    flex: 1 1 0%;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .overflowing-tab-label__track {
+    display: inline-flex;
+    width: max-content;
+    gap: 2rem;
+    white-space: nowrap;
+  }
+
+  .overflowing-tab-label__text {
+    flex: none;
+  }
+
+  .overflowing-tab-trigger:hover .overflowing-tab-label__viewport.is-overflowing .overflowing-tab-label__track,
+  .overflowing-tab-trigger:focus-visible .overflowing-tab-label__viewport.is-overflowing .overflowing-tab-label__track {
+    animation: overflowing-tab-label-marquee 7s linear infinite;
+  }
+
+  @keyframes overflowing-tab-label-marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(calc(-50% - 1rem));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .overflowing-tab-trigger:hover .overflowing-tab-label__viewport.is-overflowing .overflowing-tab-label__track,
+    .overflowing-tab-trigger:focus-visible .overflowing-tab-label__viewport.is-overflowing .overflowing-tab-label__track {
+      animation: none;
+    }
+  }
+}

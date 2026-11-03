@@ -1,0 +1,14 @@
+{
+  "meta_title": "Data Tools - Admin - Verbatims",
+  "transfer_heading": "Data transfer",
+  "transfer_description": "Choose a file to import or prepare a catalogue export.",
+  "import_title": "Import data",
+  "import_description": "Validate a file, import data, or relink existing records.",
+  "export_title": "Export data",
+  "export_description": "Create a catalogue export and review generated files.",
+  "maintenance_heading": "Maintenance",
+  "maintenance_description": "Sensitive operations on user and catalogue data.",
+  "maintenance_title": "Reset users and content",
+  "maintenance_action_description": "Opens a detailed confirmation before resetting anything.",
+  "dialog_hint": "Close this window to return to data tools."
+}

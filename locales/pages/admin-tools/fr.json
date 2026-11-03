@@ -1,0 +1,14 @@
+{
+  "meta_title": "Outils de données - Admin - Verbatims",
+  "transfer_heading": "Transfert de données",
+  "transfer_description": "Choisissez un fichier à importer ou préparez un export du catalogue.",
+  "import_title": "Importer des données",
+  "import_description": "Valider un fichier, importer des données ou relier des enregistrements existants.",
+  "export_title": "Exporter des données",
+  "export_description": "Créer un export du catalogue et consulter l'historique des fichiers générés.",
+  "maintenance_heading": "Maintenance",
+  "maintenance_description": "Opérations sensibles sur les données et le catalogue.",
+  "maintenance_title": "Réinitialiser les comptes et le contenu",
+  "maintenance_action_description": "Ouvre une confirmation détaillée avant toute réinitialisation.",
+  "dialog_hint": "Fermez cette fenêtre pour revenir aux outils de données."
+}

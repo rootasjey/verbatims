@@ -389,6 +389,7 @@
       "database_maintenance": "Database Maintenance",
       "import_data": "Import Data",
       "export_data": "Export Data",
+      "data_tools": "Data Tools",
       "back_to_dashboard": "Back to Dashboard"
     },
     "headers": {
@@ -415,6 +416,8 @@
       "import_desc": "Import quotes, authors, and references from external sources",
       "export": "Export Data",
       "export_desc": "Export system data in various formats",
+      "data_tools": "Data Tools",
+      "data_tools_desc": "Import, export, and maintain system data",
       "social_queue": "Social Queue",
       "social_queue_desc": "Manage social media posting queue",
       "tags": "Tags",
