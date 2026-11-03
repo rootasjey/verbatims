@@ -15,7 +15,7 @@ export default defineConfig({
   test: {
     globals: true,
     include: [
-      'app/utils/__tests__/**/*.test.ts',
+      'app/utils/__tests__/reference-release-date.test.ts',
       'server/utils/__tests__/**/*.test.ts',
       'server/services/__tests__/**/*.test.ts',
       'server/validation/__tests__/**/*.test.ts',
