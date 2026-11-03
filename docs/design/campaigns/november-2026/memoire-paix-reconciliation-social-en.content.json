@@ -1,0 +1,15 @@
+{
+  "template": "theme",
+  "output": {
+    "html": "memoire-paix-reconciliation-social-en.html",
+    "png": "memoire-paix-reconciliation-social-en.png"
+  },
+  "title": "Memory, Peace & Reconciliation",
+  "headline": "“Observe good faith and justice towards all nations; cultivate peace and harmony with all.”",
+  "date": "George Washington · 11 November 2026",
+  "image": {
+    "src": "peace-art.png",
+    "alt": "Campaign illustration reused from the French V1",
+    "position": "center center"
+  }
+}

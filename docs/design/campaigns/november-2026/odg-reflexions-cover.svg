@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="680" viewBox="0 0 440 680">
+  <rect width="440" height="680" fill="#ece3dc"/>
+  <rect x="24" y="24" width="392" height="632" fill="none" stroke="#95664d" stroke-width="2"/>
+  <text x="48" y="116" fill="#95664d" font-family="Georgia,serif" font-size="20" letter-spacing="3">OLYMPE DE GOUGES</text>
+  <path d="M48 145h344" stroke="#95664d"/>
+  <text x="48" y="270" fill="#201d1a" font-family="Georgia,serif" font-size="38">Réflexions</text>
+  <text x="48" y="322" fill="#201d1a" font-family="Georgia,serif" font-size="38">sur les hommes</text>
+  <text x="48" y="374" fill="#201d1a" font-family="Georgia,serif" font-size="38">nègres</text>
+  <text x="48" y="452" fill="#706c68" font-family="Arial,sans-serif" font-size="18" letter-spacing="2">1788 · REPÈRE TYPOGRAPHIQUE</text>
+  <path d="M48 494h344" stroke="#95664d"/>
+</svg>

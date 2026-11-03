@@ -1,0 +1,15 @@
+{
+  "template": "theme",
+  "output": {
+    "html": "brumes-de-la-nuit-social.html",
+    "png": "brumes-de-la-nuit-social.png"
+  },
+  "title": "Brumes de la nuit",
+  "headline": "« La lune blanche / Luit dans les bois »",
+  "date": "Paul Verlaine · 3–16 novembre 2026",
+  "image": {
+    "src": "brumes-art.png",
+    "alt": "Jardin nocturne sous la brume, lune pâle et branches sombres",
+    "position": "center center"
+  }
+}

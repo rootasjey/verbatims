@@ -1,0 +1,24 @@
+{
+  "template": "homepage",
+  "output": {
+    "html": "brumes-de-la-nuit.html",
+    "png": "brumes-de-la-nuit.png"
+  },
+  "page": {
+    "title": "Brumes de la nuit — Verbatims",
+    "ariaLabel": "Aperçu éditorial Brumes de la nuit",
+    "edition": "Thème du 3 au 16 novembre 2026 · priorité 1",
+    "heading": "La lune blanche",
+    "dek": "« Luit dans les bois » · Paul Verlaine · La Bonne Chanson, VI · éd. Vanier, 1891, p. 13–14"
+  },
+  "image": {
+    "src": "brumes-art.png",
+    "alt": "Jardin nocturne sous la brume, lune pâle et branches sombres",
+    "position": "center center"
+  },
+  "credits": {
+    "label": "Source du texte",
+    "credit": "Édition Vanier, 1891 · Wikisource",
+    "rights": "Illustration générée pour ce brouillon; texte de Verlaine dans le domaine public en France."
+  }
+}

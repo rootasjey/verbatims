@@ -1,0 +1,64 @@
+{
+  "template": "author",
+  "output": {
+    "html": "tolerance-voix-plurielles.html",
+    "png": "tolerance-voix-plurielles.png"
+  },
+  "page": {
+    "title": "Tolérance, voix plurielles — Verbatims",
+    "ariaLabel": "Aperçu éditorial pour le 16 novembre",
+    "edition": "16 novembre 2026 · priorité 2 · un jour",
+    "heading": "Une voix libre\nouvre l’espace commun.",
+    "dek": "Un aperçu autour des droits, du dialogue et de la pluralité."
+  },
+  "portrait": {
+    "image": "voices-art.png",
+    "alt": "Feuilles et papiers translucides superposés, sans personnage représenté",
+    "caption": "Illustration de campagne · pas un portrait historique"
+  },
+  "author": {
+    "kicker": "Autrice · 1748–1793",
+    "headline": "Olympe de Gouges",
+    "role": "Autrice de la *Déclaration des droits de la femme et de la citoyenne*",
+    "bio": "Publiée en 1791 en réponse à la Déclaration de 1789, son adresse revendique explicitement les droits des femmes et des citoyennes. L’article premier inscrit l’égalité dans un texte de combat politique."
+  },
+  "quote": {
+    "text": "La Femme naît libre et demeure égale à l’homme en droits.",
+    "attributionName": "Olympe de Gouges",
+    "attributionDetail": "*Déclaration des droits de la femme et de la citoyenne* · article I · 1791"
+  },
+  "icons": { "quote": "quill" },
+  "selectedWorks": [
+    {
+      "title": "Déclaration des droits de la femme",
+      "year": "1791",
+      "image": "odg-declaration-cover.svg",
+      "alt": "Couverture typographique de repère, non fac-similé de l’édition historique",
+      "creditLabel": "Œuvre · Wikisource",
+      "creditUrl": "https://fr.wikisource.org/wiki/D%C3%A9claration_des_droits_de_la_femme_et_de_la_citoyenne"
+    },
+    {
+      "title": "Zamore et Mirza",
+      "year": "1785",
+      "image": "odg-zamore-cover.svg",
+      "alt": "Couverture typographique de repère, non fac-similé de l’édition historique",
+      "creditLabel": "Pièce · Gallica",
+      "creditUrl": "https://gallica.bnf.fr/"
+    },
+    {
+      "title": "Réflexions sur les hommes nègres",
+      "year": "1788",
+      "image": "odg-reflexions-cover.svg",
+      "alt": "Couverture typographique de repère, non fac-similé de l’édition historique",
+      "creditLabel": "Texte · Gallica",
+      "creditUrl": "https://gallica.bnf.fr/"
+    }
+  ],
+  "credits": {
+    "portraitLabel": "Illustration",
+    "portrait": "Visuel généré pour ce brouillon; il ne représente pas Olympe de Gouges.",
+    "worksLabel": "Source de la citation",
+    "rights": "Texte de 1791 dans le domaine public en France."
+  },
+  "footerTagline": "Brouillon éditorial · source primaire liée dans la fiche"
+}

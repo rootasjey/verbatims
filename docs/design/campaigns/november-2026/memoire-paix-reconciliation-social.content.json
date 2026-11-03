@@ -1,0 +1,15 @@
+{
+  "template": "theme",
+  "output": {
+    "html": "memoire-paix-reconciliation-social.html",
+    "png": "memoire-paix-reconciliation-social.png"
+  },
+  "title": "Mémoire, paix et réconciliation",
+  "headline": "« Il aimait le vaincu sans haïr le vainqueur. »",
+  "date": "Victor Hugo · 11 novembre 2026",
+  "image": {
+    "src": "peace-art.png",
+    "alt": "Jardin de pierre à l’aube, une fleur blanche et des feuilles d’automne",
+    "position": "center center"
+  }
+}

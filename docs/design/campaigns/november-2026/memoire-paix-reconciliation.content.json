@@ -1,0 +1,47 @@
+{
+  "template": "reference",
+  "output": {
+    "html": "memoire-paix-reconciliation.html",
+    "png": "memoire-paix-reconciliation.png"
+  },
+  "page": {
+    "title": "Mémoire, paix et réconciliation — Verbatims",
+    "ariaLabel": "Aperçu éditorial pour le 11 novembre",
+    "edition": "11 novembre 2026 · priorité 2 · un jour",
+    "heading": "La paix commence\npar le regard",
+    "dek": "Une mémoire qui n’efface ni les blessures ni les personnes."
+  },
+  "image": {
+    "src": "peace-art.png",
+    "alt": "Jardin de pierre à l’aube, une fleur blanche et des feuilles d’automne",
+    "caption": "Illustration de campagne générée · aucune photographie historique"
+  },
+  "reference": {
+    "kicker": "Victor Hugo · 1872",
+    "headlineLines": ["Reconnaître l’autre", "sans nier l’histoire"],
+    "role": "*L’Année terrible* · « Pendant que la mer gronde et que les vagues roulent »",
+    "bio": "Dans ce poème écrit après la guerre franco-prussienne et la Commune, Hugo appelle à la concorde et à la dignité de celles et ceux qui ont subi la défaite."
+  },
+  "quote": {
+    "text": "Il aimait le vaincu sans haïr le vainqueur.",
+    "attributionName": "Victor Hugo",
+    "attributionDetail": "*L’Année terrible* · VIII · 1872 · p. 185–187"
+  },
+  "icons": {
+    "quoteSequence": ["quill", "moon-stars", "lightning"],
+    "quoteGroupLabel": "Mémoire, concorde et avenir"
+  },
+  "voices": {
+    "heading": "Trois gestes de réconciliation",
+    "items": [
+      { "name": "Se souvenir", "description": "Accueillir les histoires vécues" },
+      { "name": "Reconnaître", "description": "Distinguer personnes et conflits", "current": true },
+      { "name": "Faire place", "description": "Choisir le dialogue et la concorde" }
+    ]
+  },
+  "credits": {
+    "imageLabel": "Visuel",
+    "image": "Illustration générée pour ce brouillon · citation vérifiée dans l’édition Michel Lévy, 1872 · Wikisource"
+  },
+  "footerTagline": "Brouillon éditorial · aucune programmation enregistrée"
+}

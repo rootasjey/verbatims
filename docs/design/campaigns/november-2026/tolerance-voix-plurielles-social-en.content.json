@@ -1,0 +1,15 @@
+{
+  "template": "theme",
+  "output": {
+    "html": "tolerance-voix-plurielles-social-en.html",
+    "png": "tolerance-voix-plurielles-social-en.png"
+  },
+  "title": "Tolerance, Many Voices",
+  "headline": "“It would, methinks, become all men to maintain peace, and the common offices of humanity and friendship, in the diversity of opinions”",
+  "date": "John Locke · 16 November 2026",
+  "image": {
+    "src": "voices-art.png",
+    "alt": "Campaign illustration reused from the French V1",
+    "position": "center center"
+  }
+}

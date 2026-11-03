@@ -1,0 +1,15 @@
+{
+  "template": "theme",
+  "output": {
+    "html": "tolerance-voix-plurielles-social.html",
+    "png": "tolerance-voix-plurielles-social.png"
+  },
+  "title": "Tolérance, voix plurielles",
+  "headline": "« La Femme naît libre et demeure égale à l’homme en droits. »",
+  "image": {
+    "src": "voices-art.png",
+    "alt": "Feuilles et papiers translucides superposés, sans personnage représenté",
+    "position": "center center"
+  },
+  "date": "Olympe de Gouges · 16 novembre 2026"
+}

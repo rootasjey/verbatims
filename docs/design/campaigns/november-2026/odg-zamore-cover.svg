@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="680" viewBox="0 0 440 680">
+  <rect width="440" height="680" fill="#e5e6dc"/>
+  <rect x="24" y="24" width="392" height="632" fill="none" stroke="#59644e" stroke-width="2"/>
+  <text x="48" y="116" fill="#59644e" font-family="Georgia,serif" font-size="20" letter-spacing="3">OLYMPE DE GOUGES</text>
+  <path d="M48 145h344" stroke="#59644e"/>
+  <text x="48" y="292" fill="#201d1a" font-family="Georgia,serif" font-size="54">Zamore</text>
+  <text x="48" y="356" fill="#201d1a" font-family="Georgia,serif" font-size="54">et Mirza</text>
+  <text x="48" y="452" fill="#706c68" font-family="Arial,sans-serif" font-size="18" letter-spacing="2">1785 · REPÈRE TYPOGRAPHIQUE</text>
+  <path d="M48 494h344" stroke="#59644e"/>
+</svg>

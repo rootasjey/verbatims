@@ -1,0 +1,15 @@
+{
+  "template": "theme",
+  "output": {
+    "html": "brumes-de-la-nuit-social-en.html",
+    "png": "brumes-de-la-nuit-social-en.png"
+  },
+  "title": "Mists of the Night",
+  "headline": "“It is a beauteous Evening, calm and free;”",
+  "date": "William Wordsworth · 3–16 November 2026",
+  "image": {
+    "src": "brumes-art.png",
+    "alt": "Campaign illustration reused from the French V1",
+    "position": "center center"
+  }
+}
