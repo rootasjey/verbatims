@@ -1886,13 +1886,13 @@ useAdminKeyboardShortcuts({
 })
 
 const sortOptions = [
+  { label: $t('sort_active_upcoming') as string, value: 'active_upcoming' },
   { label: $t('sort_priority_high') as string, value: 'priority_desc' },
   { label: $t('sort_priority_low') as string, value: 'priority_asc' },
   { label: $t('sort_name_az') as string, value: 'name_asc' },
   { label: $t('sort_name_za') as string, value: 'name_desc' },
   { label: $t('sort_most_filters') as string, value: 'filters_desc' },
   { label: $t('sort_fewest_filters') as string, value: 'filters_asc' },
-  { label: $t('sort_active_upcoming') as string, value: 'active_upcoming' },
   { label: $t('sort_slug_az') as string, value: 'slug_asc' },
   { label: $t('sort_scheduled') as string, value: 'scheduled_date_desc' },
 ]

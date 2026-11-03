@@ -571,12 +571,12 @@ const navItems = computed<SearchNavItem[]>(() => {
     { label: String($t('admin.nav.harvest_quotes')), icon: 'i-ph-download-simple', description: String($t('admin.headers.harvest')), to: '/admin/harvest', access: 'staff' },
     { label: String($t('admin.nav.enrichment_queue')), icon: 'i-ph-sparkle', description: String($t('admin.headers.enrichment_desc')), to: '/admin/enrichment', access: 'staff' },
     { label: String($t('admin.nav.enrichment_audit')), icon: 'i-ph-magnifying-glass', description: String($t('admin.headers.enrichment_desc')), to: '/admin/enrichment-audit', access: 'staff' },
-    { label: String($t('admin.nav.export_data')), icon: 'i-ph-export', description: String($t('admin.headers.export_desc')), to: '/admin/export', access: 'staff' },
+    { label: String($t('admin.nav.export_data')), icon: 'i-ph-export', description: String($t('admin.headers.export_desc')), to: '/admin/tools?open=export', access: 'staff' },
     { label: String($t('admin.nav.users')), icon: 'i-ph-users', description: String($t('admin.headers.users_desc')), to: '/admin/users', access: 'admin' },
     { label: String($t('admin.nav.messages')), icon: 'i-ph-chat-circle', description: String($t('admin.headers.messages')), to: '/admin/messages', access: 'admin' },
     { label: String($t('admin.nav.api_keys')), icon: 'i-ph-key', description: String($t('admin.headers.api_keys')), to: '/admin/api-keys', access: 'admin' },
-    { label: String($t('admin.nav.import_data')), icon: 'i-ph-upload-simple', description: String($t('admin.headers.import_desc')), to: '/admin/import', access: 'admin' },
-    { label: String($t('admin.nav.database_maintenance')), icon: 'i-ph-wrench', description: String($t('admin.headers.maintenance_desc')), to: '/admin/maintenance', access: 'admin' },
+    { label: String($t('admin.nav.import_data')), icon: 'i-ph-upload-simple', description: String($t('admin.headers.import_desc')), to: '/admin/tools?open=import', access: 'admin' },
+    { label: String($t('admin.nav.database_maintenance')), icon: 'i-ph-wrench', description: String($t('admin.headers.maintenance_desc')), to: '/admin/tools?open=maintenance', access: 'admin' },
   ]
 
   return items.filter((item) => {

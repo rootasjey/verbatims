@@ -141,6 +141,7 @@ const routeLabelKeys: Record<string, string> = {
   '/admin/harvest': 'admin.nav.harvest_quotes',
   '/admin/import': 'admin.nav.import_data',
   '/admin/maintenance': 'admin.nav.database_maintenance',
+  '/admin/tools': 'admin.nav.data_tools',
   '/admin/messages': 'admin.nav.messages',
   '/admin/quotes/drafts': 'admin.nav.drafts',
   '/admin/quotes/pending': 'admin.nav.pending',
