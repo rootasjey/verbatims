@@ -30,6 +30,31 @@ Pour chaque citation candidate, consigner dans le dossier de campagne :
 
 Vérifier les citations ajoutées et leurs attributions dans le texte primaire, pas seulement sur un site de citations. Comparer l’extrait au témoin retenu et garder la graphie historique lorsqu’elle est pertinente. La traduction, son attribution et son statut sont vérifiés séparément. Ne pas modifier l’instantané TOML de production pour y enregistrer une campagne candidate : ce registre reste réservé aux citations présentes en production.
 
+### Prérequis de fiabilisation avant toute saisie en production
+
+La recherche documentaire et la qualification des données font partie de la préparation du thème; ce sont des prérequis à l’ajout des citations, auteurs et références dans l’application. Le dossier de campagne doit permettre de distinguer ce qui a été vérifié, ce qui reste incertain et ce qui ne s’applique pas. Une information manquante ne doit jamais être complétée par déduction présentée comme un fait.
+
+Pour chaque citation retenue, préparer et contrôler :
+
+- le texte exact dans la langue publiée, les coupes et la ponctuation;
+- l’auteur ou le locuteur, en distinguant l’auteur d’une œuvre, le personnage, le narrateur, l’intervenant et l’organisme lorsque nécessaire;
+- l’œuvre ou le document, son titre exact, son type, sa langue d’origine et sa date de publication ou de prononciation lorsqu’elle est établie;
+- une source primaire ou un témoin institutionnel fiable, un lien consultable et un repère précis dans le document (page, chapitre, vers, article, paragraphe, scène ou horodatage);
+- une vérification distincte du texte, de l’attribution et de la traduction. La présence d’un lien de source ne suffit pas à confirmer automatiquement l’attribution;
+- un contexte lecteur bref et localisé, rattaché à l’occurrence concernée.
+
+Pour chaque auteur individuel et chaque référence, rechercher les données pertinentes et les consigner avec leurs sources :
+
+- auteur : dates de naissance et de décès, lieux associés, fonction ou activité, biographie courte en français et en anglais, et liens fiables (site officiel, institution, notice d’autorité ou encyclopédie de référence);
+- référence : titre, type, langue d’origine, date de publication ou de création, description utile au lecteur et liens bibliographiques ou institutionnels;
+- image : visuel adapté et effectivement consultable, texte alternatif descriptif, crédit, URL de provenance, licence et éventuelles limites de territoire ou de réutilisation.
+
+Ne pas remplir artificiellement les champs inapplicables : une entité collective n’a pas de portrait ni de dates de vie; une référence peut ne pas avoir de date certaine ou de description utile. Dans ces cas, laisser le champ vide et noter « non applicable » ou la raison de l’absence dans l’inventaire de campagne. Pour une donnée recherchée mais non confirmée, inscrire explicitement la réserve dans les métadonnées et conserver le statut de vérification approprié.
+
+Les statuts de provenance de l’application doivent être employés avec précision et séparément pour l’attribution et la source : `externally_verified`, `manually_verified`, `unverified` ou `disputed`. Ne pas marquer une attribution comme vérifiée parce que le texte seul a été retrouvé; ne pas marquer une source comme vérifiée parce que son URL est renseignée. Une attribution non vérifiée ou contestée peut rester une candidate éditoriale si elle est clairement signalée, accompagnée des éléments disponibles et validée explicitement avant publication. Ne jamais reformuler une réserve dans une note tout en laissant un statut contradictoire.
+
+Avant l’enregistrement en production, faire une revue de complétude par citation, auteur et référence. Tous les champs applicables doivent être renseignés ou accompagnés d’une raison documentée; chaque exception doit être visible dans la fiche de campagne et dans les métadonnées de l’entité concernée. Le dossier final conserve les liens, localisateurs, crédits et réserves afin qu’un autre éditeur puisse refaire les vérifications.
+
 ### Contexte destiné au lecteur
 
 Le contexte lecteur explique brièvement qui parle, à qui, quand et dans quelle situation, ainsi que le sens que l’extrait prend dans l’œuvre ou le document. Il est rédigé dans la langue de la page et rattaché à l’occurrence de citation concernée. Pour une voix poétique, décrire la voix et la scène du poème sans attribuer automatiquement ces paroles à la biographie de l’auteur.
@@ -67,10 +92,10 @@ Référence : [Code de la propriété intellectuelle, article L. 122-5](https://
 1. Proposer deux ou trois thèmes pertinents et documenter leurs dates possibles.
 2. Faire choisir le thème et confirmer le calendrier, les priorités et le thème de repli.
 3. Inventorier le contenu existant et les citations déjà utilisées afin de limiter les reprises.
-4. Rechercher, vérifier et contextualiser les citations FR et EN; compléter les réserves jusqu’à la cible définie.
+4. Rechercher, vérifier et contextualiser les citations FR et EN; compléter les réserves jusqu’à la cible définie et appliquer la revue de complétude des citations, auteurs, références et images décrite en section 3.
 5. Présenter les sélections, références, contextes et rotations quotidiennes pour validation éditoriale.
 6. Créer les visuels localisés avec les templates retenus, puis inspecter les PNG.
-7. Présenter un dossier de campagne final : sources, calendrier, contenu retenu, réserves, visuels et limites connues.
+7. Présenter un dossier de campagne final : sources primaires et localisateurs, statuts séparés du texte/de l’attribution/de la source, biographies et dates recherchées, références, crédits/licences des images, calendrier, réserves, visuels et limites connues.
 8. N’enregistrer en production qu’après validation explicite du contenu et du calendrier. Traiter les éventuelles migrations de schéma comme une tâche technique distincte avec son propre contrôle.
 
 ## 8. Livrables d’une campagne

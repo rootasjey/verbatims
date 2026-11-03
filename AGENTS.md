@@ -34,6 +34,18 @@ users (role: user|moderator|admin)
 
 Key relationship: `quotes` belong to `users`, and may link to `authors` and `quote_references`.
 
+## Editorial data quality
+
+Before creating or changing editorial themes or adding campaign quotes, authors, references, or images, read and follow [`docs/editorial/theme-campaign-spec.md`](docs/editorial/theme-campaign-spec.md). Its sourcing and completeness checks are required before production entry, not optional suggestions.
+
+- Verify quote wording, attribution, translation, and source independently; record a primary or reliable institutional witness with an exact locator.
+- Research applicable author and reference dates, biographies, types, reliable links, and suitable illustrations. Record image credit, source, license, and reuse limits.
+- Use provenance statuses accurately and separately for source and attribution. Keep `unverified` or `disputed` visible in metadata when certainty is not established; never imply that a URL alone verifies an attribution.
+- Do not guess missing facts or force fields that do not apply. Record why an applicable field could not be established, or mark it not applicable, in the campaign dossier.
+- Before writing campaign data to production, complete a per-entity review and obtain the editorial validation required by the campaign spec.
+
+For the database relationships and write invariants behind quote authors, references, and sources, also consult [`docs/QUOTE_PROVENANCE_MODEL.md`](docs/QUOTE_PROVENANCE_MODEL.md). The production audit TOML is a snapshot of production citations; do not use it as a campaign-candidate register.
+
 ## Essential commands
 
 - **Development server**: `bun run dev` (or `npm run dev`)
