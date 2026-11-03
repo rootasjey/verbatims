@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
 
     let orderByExpressions
     if (sortByRaw === 'active_upcoming') {
-      const now = Date.now()
+      const now = Math.floor(Date.now() / 1000)
       const activeTheme = await resolveActiveTheme()
       orderByExpressions = [
         sql`CASE
