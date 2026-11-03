@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, like, inArray, desc, sql } from 'drizzle-orm'
+import { eq, and, like, inArray, desc, asc, sql } from 'drizzle-orm'
 import { combineFilterMatchSets, getThemeContentLanguages, isThemeWithinSchedule, resolveFeaturedQuoteId } from './theme-selection'
 import { isThemePublished } from './theme-publication-policy'
 import { getPrimaryQuoteProvenance } from './quote-provenance'
@@ -84,7 +84,7 @@ export async function resolveActiveTheme(language?: string): Promise<ThemeRow | 
   const allThemes = await db.select()
     .from(schema.themes)
     .where(eq(schema.themes.publicationStatus, 'published'))
-    .orderBy(desc(schema.themes.priority))
+    .orderBy(desc(schema.themes.priority), asc(schema.themes.id))
     .all()
 
   if (!allThemes.length) return null
@@ -105,7 +105,7 @@ export async function resolveActiveTheme(language?: string): Promise<ThemeRow | 
 
     const defaults = list.filter(t => t.isDefault && isThemeWithinSchedule(t, now))
     if (defaults.length) {
-      return defaults[Math.floor(Math.random() * defaults.length)] as unknown as ThemeRow
+      return defaults[0] as unknown as ThemeRow
     }
     return null
   }
