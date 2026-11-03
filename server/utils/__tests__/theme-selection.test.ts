@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { combineFilterMatchSets, getThemeContentLanguages, isThemeWithinSchedule, resolveFeaturedQuoteId } from '../theme-selection'
+import { combineFilterMatchSets, getParisDateKey, getThemeContentLanguages, isThemeWithinSchedule, resolveFeaturedQuoteId } from '../theme-selection'
 
 describe('theme selection', () => {
   it('includes both schedule boundaries and excludes themes after their end date', () => {
@@ -60,5 +60,42 @@ describe('theme selection', () => {
     expect(resolveFeaturedQuoteId({ featured_quote_id: '2507' }, 'fr')).toBeUndefined()
     expect(resolveFeaturedQuoteId({ featured_quote_ids: { fr: 0 } }, 'fr')).toBeUndefined()
     expect(resolveFeaturedQuoteId({ featured_quote_id: 2507, featured_quote_ids: { fr: '2519' } }, 'fr')).toBe(2507)
+  })
+
+  it('selects a daily featured quote by Paris date and language', () => {
+    const config = {
+      featured_quote_id: 2507,
+      featured_quote_ids: { en: 2507, fr: 2519 },
+      featured_quote_calendar: {
+        '2026-11-02': { en: 2520, fr: 2521 },
+        '2026-11-03': { en: 2522, fr: 2523 },
+      },
+    }
+
+    expect(resolveFeaturedQuoteId(config, 'fr', new Date('2026-11-02T22:59:59.999Z'))).toBe(2521)
+    expect(resolveFeaturedQuoteId(config, 'en', new Date('2026-11-02T23:00:00.000Z'))).toBe(2522)
+    expect(resolveFeaturedQuoteId(config, 'fr', new Date('2026-11-02T23:00:00.000Z'))).toBe(2523)
+  })
+
+  it('falls back to existing IDs when the calendar has no valid entry for the date and language', () => {
+    const config = {
+      featured_quote_id: 2507,
+      featured_quote_ids: { en: 2510, fr: 2519 },
+      featured_quote_calendar: {
+        '2026-11-02': { en: 2520 },
+        '2026-11-03': { en: 'invalid', fr: 0 },
+      },
+    }
+
+    expect(resolveFeaturedQuoteId(config, 'fr', new Date('2026-11-02T23:00:00.000Z'))).toBe(2519)
+    expect(resolveFeaturedQuoteId(config, 'en', new Date('2026-11-03T23:00:00.000Z'))).toBe(2510)
+    expect(resolveFeaturedQuoteId({ featured_quote_calendar: { '2026-11-03': { fr: 2523 } } }, 'en', new Date('2026-11-03T12:00:00.000Z'))).toBeUndefined()
+  })
+
+  it('keeps the Paris date stable around midnight in winter and summer', () => {
+    expect(getParisDateKey(new Date('2026-11-02T22:59:59.999Z'))).toBe('2026-11-02')
+    expect(getParisDateKey(new Date('2026-11-02T23:00:00.000Z'))).toBe('2026-11-03')
+    expect(getParisDateKey(new Date('2026-07-02T21:59:59.999Z'))).toBe('2026-07-02')
+    expect(getParisDateKey(new Date('2026-07-02T22:00:00.000Z'))).toBe('2026-07-03')
   })
 })

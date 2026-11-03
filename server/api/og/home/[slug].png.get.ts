@@ -4,7 +4,8 @@ import { resolveLocalizedField, getThemeTranslations } from '~~/server/utils/the
 import { getThemeForPublicAccess } from '~~/server/utils/theme-publication'
 
 export default defineEventHandler(async (event) => {
-  const slug = getRouterParam(event, 'slug')?.replace(/\.png$/, '')
+  const pathSegment = getRequestURL(event).pathname.split('/').pop() || ''
+  const slug = decodeURIComponent(pathSegment).replace(/\.png$/, '')
   if (!slug) throwServer(400, 'Theme slug is required')
 
   const accessible = await getThemeForPublicAccess(event, slug)

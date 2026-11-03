@@ -87,12 +87,18 @@ export default defineEventHandler(async (event) => {
         break
       }
       case 'featured_quote': {
+        const quoteLanguage = query.language === 'en' || query.language === 'fr'
+          ? query.language
+          : null
+        const conditions = [
+          eq(schema.quotes.status, 'approved'),
+          like(schema.quotes.name, `%${q}%`),
+        ]
+        if (quoteLanguage) conditions.push(eq(schema.quotes.language, quoteLanguage))
+
         const rows = await db.select({ id: schema.quotes.id, name: schema.quotes.name })
           .from(schema.quotes)
-          .where(and(
-            eq(schema.quotes.status, 'approved'),
-            like(schema.quotes.name, `%${q}%`)
-          ))
+          .where(and(...conditions))
           .orderBy(desc(schema.quotes.likesCount))
           .limit(10)
           .all()

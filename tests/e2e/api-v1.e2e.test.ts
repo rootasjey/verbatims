@@ -1,5 +1,7 @@
-import { describe, test, expect, beforeAll } from 'vitest'
+import { describe, test, expect } from 'vitest'
 import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
+import { createClient } from '@libsql/client'
+import { getParisDateKey } from '../../server/utils/theme-selection'
 
 const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
 const testDb = await seedTestDb()
@@ -90,6 +92,116 @@ describe('POST /api/auth/login', () => {
       body: JSON.stringify({ email: 'test@verbatims.cc', password: 'wrongpass' }),
     })
     expect(res.status).toBe(401)
+  })
+})
+
+describe('Public theme routes', () => {
+  async function loginCookie(email: string): Promise<string> {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: 'admin123!' }),
+    })
+    expect(response.status).toBe(200)
+    return response.headers.get('set-cookie')!
+  }
+
+  async function createThemeFixtures() {
+    const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const publicSlug = `integration-published-${suffix}`
+    const draftSlug = `integration-draft-${suffix}`
+    const today = getParisDateKey(new Date())
+    const dbClient = createClient({ url: `file:${testDb.dbPath}` })
+    await dbClient.execute('DELETE FROM theme_content_filters')
+    await dbClient.execute('DELETE FROM theme_translations')
+    await dbClient.execute('DELETE FROM themes')
+    const published = await dbClient.execute({
+      sql: 'INSERT INTO themes (slug, name, description, language, config, home_is_active, publication_status, priority) VALUES (?, ?, ?, NULL, ?, 1, ?, 10)',
+      args: [publicSlug, 'Published integration theme', 'Public theme fixture', JSON.stringify({ featured_quote_id: 2, featured_quote_calendar: { [today]: { en: 1, fr: 4 } } }), 'published'],
+    })
+    await dbClient.execute({
+      sql: 'INSERT INTO themes (slug, name, description, language, config, home_is_active, publication_status, priority) VALUES (?, ?, ?, NULL, ?, 1, ?, 20)',
+      args: [draftSlug, 'Draft integration theme', 'Private theme fixture', '{}', 'draft'],
+    })
+    const adminThemeId = Number(published.lastInsertRowid)
+    await dbClient.execute({
+      sql: 'INSERT INTO theme_translations (theme_id, language, name, description) VALUES (?, ?, ?, ?), (?, ?, ?, ?)',
+      args: [adminThemeId, 'fr', 'Thème publié', 'Description publique', adminThemeId, 'en', 'Published theme', 'Public description'],
+    })
+    dbClient.close()
+    return { publicSlug, draftSlug, adminThemeId }
+  }
+
+  test('serves published theme resolution, localized feeds, language counts, and Open Graph images without shared caching', async () => {
+    const { publicSlug } = await createThemeFixtures()
+    const activeFr = await $fetch<{ data: { name: string } }>(`/api/themes/active?theme=${publicSlug}&language=fr`)
+    expect(activeFr.data.name).toBe('Thème publié')
+
+    const feedEn = await $fetch<{ data: { quotes: Array<{ id: number }> } }>(`/api/themes/${publicSlug}/feed?language=en`)
+    const feedFr = await $fetch<{ data: { quotes: Array<{ id: number }> } }>(`/api/themes/${publicSlug}/feed?language=fr`)
+    expect(feedEn.data.quotes[0]?.id).toBe(1)
+    expect(feedFr.data.quotes[0]?.id).toBe(4)
+
+    const languages = await fetch(`/api/themes/${publicSlug}/languages`)
+    expect(languages.status).toBe(200)
+    expect((await languages.json()).data.map((item: { language: string }) => item.language)).toEqual(['en', 'fr', 'la'])
+    expect(languages.headers.get('cache-control')).toBe('no-store')
+
+    const og = await fetch(`/api/og/home/${publicSlug}.png?locale=fr`)
+    expect(og.status).not.toBe(404)
+    if (og.status === 200) {
+      expect(og.headers.get('content-type')).toContain('image/png')
+      expect(og.headers.get('cache-control')).toBe('no-store')
+    } else {
+      expect(og.status).toBe(500)
+      expect(await og.text()).toContain('Failed to launch the browser process')
+    }
+  })
+
+  test('refuses anonymous draft access across public theme and Open Graph routes', async () => {
+    const { draftSlug } = await createThemeFixtures()
+    const active = await $fetch<{ data: unknown }>(`/api/themes/active?theme=${draftSlug}`)
+    expect(active.data).toBeNull()
+
+    const feed = await fetch(`/api/themes/${draftSlug}/feed`)
+    const languages = await fetch(`/api/themes/${draftSlug}/languages`)
+    const og = await fetch(`/api/og/home/${draftSlug}.png`)
+    expect(feed.status).toBe(404)
+    expect(languages.status).toBe(404)
+    expect(og.status, await og.clone().text()).toBe(404)
+  })
+
+  test('allows moderator and admin draft previews and keeps their responses private', async () => {
+    const { draftSlug } = await createThemeFixtures()
+    const moderatorCookie = await loginCookie('moderator@verbatims.cc')
+    const adminSessionCookie = await loginCookie('test@verbatims.cc')
+    const moderatorActive = await fetch(`/api/themes/active?theme=${draftSlug}`, { headers: { cookie: moderatorCookie } })
+    expect(moderatorActive.status).toBe(200)
+    expect(moderatorActive.headers.get('cache-control')).toBe('private, no-store')
+
+    const moderatorFeed = await fetch(`/api/themes/${draftSlug}/feed`, { headers: { cookie: moderatorCookie } })
+    expect(moderatorFeed.status).toBe(200)
+    expect(moderatorFeed.headers.get('cache-control')).toBe('private, no-store')
+
+    const adminActive = await $fetch<{ data: { slug: string } }>(`/api/themes/active?theme=${draftSlug}`, { headers: { cookie: adminSessionCookie } })
+    expect(adminActive.data.slug).toBe(draftSlug)
+  })
+
+  test('checks unpublished status before Open Graph cache access', async () => {
+    const { publicSlug, adminThemeId } = await createThemeFixtures()
+    const dbClient = createClient({ url: `file:${testDb.dbPath}` })
+    await dbClient.execute({ sql: 'UPDATE themes SET publication_status = ? WHERE id = ?', args: ['draft', adminThemeId] })
+    dbClient.close()
+
+    const anonymousOg = await fetch(`/api/og/home/${publicSlug}.png`)
+    expect(anonymousOg.status).toBe(404)
+    expect(anonymousOg.headers.get('cache-control')).not.toContain('public')
+
+    const cleanupClient = createClient({ url: `file:${testDb.dbPath}` })
+    await cleanupClient.execute('DELETE FROM theme_content_filters')
+    await cleanupClient.execute('DELETE FROM theme_translations')
+    await cleanupClient.execute('DELETE FROM themes')
+    cleanupClient.close()
   })
 })
 

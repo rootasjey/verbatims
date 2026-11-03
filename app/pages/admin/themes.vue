@@ -164,7 +164,9 @@
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">
                 <div class="flex items-center justify-center gap-1">
                   <span>{{ theme.filters_count || 0 }}</span>
-                  <span v-if="theme.pending_suggestions_count > 0" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-2xs font-600" :title="`${theme.pending_suggestions_count} pending suggestion(s)`">{{ theme.pending_suggestions_count }}</span>
+                  <NTooltip v-if="theme.pending_suggestions_count > 0" :content="`${theme.pending_suggestions_count} pending suggestion(s)`">
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-2xs font-600">{{ theme.pending_suggestions_count }}</span>
+                  </NTooltip>
                 </div>
               </td>
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">
@@ -670,7 +672,7 @@
               <div v-if="activeTab === 'curation'" class="space-y-8">
                 <div class="space-y-3">
                   <h4 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('dialog_featured_quote') }}</h4>
-                  <div class="relative">
+                  <div ref="featuredQuoteInputContainer" class="relative">
                     <NInput
                       v-model="featuredQuoteQuery"
                       :placeholder="$t('dialog_featured_quote_placeholder') as string"
@@ -682,8 +684,11 @@
                     />
                     <div
                       v-if="featuredQuoteActive && featuredQuoteResults.length"
+                      ref="featuredQuoteSuggestionListbox"
                       role="listbox"
-                      class="absolute bottom-full left-0 right-0 z-50 mb-1 max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
+                      class="absolute left-0 right-0 z-50 overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
+                      :class="featuredQuoteSuggestionPlacement === 'above' ? 'bottom-full mb-1' : 'top-full mt-1'"
+                      :style="{ maxHeight: `${featuredQuoteSuggestionMaxHeight}px` }"
                     >
                       <div
                         v-for="(s, si) in featuredQuoteResults"
@@ -706,16 +711,72 @@
                     <NTooltip :content="$t('common.clear')?.toString()"><NButton btn="ghost-gray" size="xs" icon label="i-ph-x" :aria-label="$t('common.clear')?.toString()" class="ml-auto h-8 w-8" @click="clearFeaturedQuote" /></NTooltip>
                   </div>
                   <div class="grid gap-3 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80 sm:grid-cols-2">
-                    <label class="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                      <span>{{ $t('dialog_featured_quote_en') }}</span>
-                      <NInput v-model.number="form.featured_quote_ids.en" type="number" min="1" size="sm" :disabled="submitting" />
-                    </label>
-                    <label class="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                      <span>{{ $t('dialog_featured_quote_fr') }}</span>
-                      <NInput v-model.number="form.featured_quote_ids.fr" type="number" min="1" size="sm" :disabled="submitting" />
-                    </label>
+                    <AdminThemeQuoteIdInput
+                      v-model="form.featured_quote_ids.en"
+                      language="en"
+                      :label="$t('dialog_featured_quote_en').toString()"
+                      :placeholder="$t('dialog_quote_id_placeholder').toString()"
+                      :disabled="submitting"
+                    />
+                    <AdminThemeQuoteIdInput
+                      v-model="form.featured_quote_ids.fr"
+                      language="fr"
+                      :label="$t('dialog_featured_quote_fr').toString()"
+                      :placeholder="$t('dialog_quote_id_placeholder').toString()"
+                      :disabled="submitting"
+                    />
                   </div>
                   <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('dialog_featured_quote_language_hint') }}</p>
+                </div>
+
+                <div class="space-y-3 border-t border-gray-200/80 pt-6 dark:border-neutral-700/80">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <h4 class="font-serif text-xl text-gray-900 dark:text-gray-100">{{ $t('dialog_featured_quote_calendar') }}</h4>
+                      <p class="max-w-xl text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ $t('dialog_featured_quote_calendar_hint') }}</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                      <NButton btn="outline-gray" class="min-h-9 shrink-0 gap-2 px-3" :disabled="submitting" @click="addFeaturedQuoteCalendarRow">
+                        <NIcon name="i-ph-plus" class="h-4 w-4" />{{ $t('dialog_featured_quote_calendar_add') }}
+                      </NButton>
+                      <p v-if="!featuredQuoteCalendarRows.length" class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ $t('dialog_featured_quote_calendar_empty') }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div v-if="featuredQuoteCalendarRows.length" class="space-y-2">
+                    <div
+                      v-for="(row, index) in featuredQuoteCalendarRows"
+                      :key="index"
+                      class="grid min-w-0 gap-3 rounded-xl border border-gray-200/80 bg-gray-50/60 p-3 dark:border-neutral-700/80 dark:bg-neutral-900/40 sm:grid-cols-[1.1fr_1fr_1fr_auto] sm:items-end"
+                    >
+                      <label class="min-w-0 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                        <span>{{ $t('dialog_featured_quote_calendar_date') }}</span>
+                        <NInput v-model="row.date" type="date" size="sm" :disabled="submitting" />
+                      </label>
+                      <AdminThemeQuoteIdInput
+                        v-model="row.fr"
+                        language="fr"
+                        :label="$t('dialog_featured_quote_calendar_fr').toString()"
+                        :placeholder="$t('dialog_quote_id_placeholder').toString()"
+                        :disabled="submitting"
+                      />
+                      <AdminThemeQuoteIdInput
+                        v-model="row.en"
+                        language="en"
+                        :label="$t('dialog_featured_quote_calendar_en').toString()"
+                        :placeholder="$t('dialog_quote_id_placeholder').toString()"
+                        :disabled="submitting"
+                      />
+                      <NTooltip :content="$t('dialog_featured_quote_calendar_remove', { index: index + 1 })?.toString()">
+                        <NButton btn="ghost-gray" size="xs" icon label="i-ph-trash" :aria-label="$t('dialog_featured_quote_calendar_remove', { index: index + 1 })?.toString()" class="h-9 w-9" :disabled="submitting" @click="removeFeaturedQuoteCalendarRow(index)" />
+                      </NTooltip>
+                    </div>
+                  </div>
+                  <p v-if="featuredQuoteCalendarError" role="alert" class="text-sm text-red-700 dark:text-red-300">
+                    {{ featuredQuoteCalendarError }}
+                  </p>
                 </div>
 
                 <div class="space-y-3 border-t border-gray-200/80 pt-6 dark:border-neutral-700/80">
@@ -1079,6 +1140,7 @@
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
+import { useAdaptiveSuggestionPlacement } from '~/composables/useAdaptiveSuggestionPlacement'
 import { BlossomColorPicker } from '@dayflow/blossom-color-picker-vue'
 import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
 import { ensureHexColor, hexToBlossomValue } from '~/utils/color'
@@ -1544,8 +1606,92 @@ const form = ref({
   color_secondary: '#f59e0b' as string,
   featured_quote_id: null as number | null,
   featured_quote_ids: { en: null as number | null, fr: null as number | null },
+  featured_quote_calendar: null as Record<string, Record<string, unknown>> | null,
   featured_reference_id: null as number | null,
 })
+
+type CalendarQuoteIdInput = number | string | null
+type FeaturedQuoteCalendarRow = { date: string; fr: CalendarQuoteIdInput; en: CalendarQuoteIdInput }
+
+const featuredQuoteCalendarRows = ref<FeaturedQuoteCalendarRow[]>([])
+const featuredQuoteCalendarError = ref('')
+
+function calendarQuoteIdForInput(value: unknown): CalendarQuoteIdInput {
+  return typeof value === 'number' || typeof value === 'string' ? value : null
+}
+
+function featuredQuoteCalendarRowsFromConfig(value: unknown): FeaturedQuoteCalendarRow[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return []
+
+  return Object.entries(value as Record<string, unknown>)
+    .map(([date, selection]) => {
+      const languages = selection && typeof selection === 'object' && !Array.isArray(selection)
+        ? selection as Record<string, unknown>
+        : {}
+
+      return {
+        date,
+        fr: calendarQuoteIdForInput(languages.fr),
+        en: calendarQuoteIdForInput(languages.en),
+      }
+    })
+    .sort((left, right) => left.date.localeCompare(right.date))
+}
+
+function addFeaturedQuoteCalendarRow(): void {
+  featuredQuoteCalendarRows.value.push({ date: '', fr: null, en: null })
+}
+
+function removeFeaturedQuoteCalendarRow(index: number): void {
+  featuredQuoteCalendarRows.value.splice(index, 1)
+}
+
+function buildFeaturedQuoteCalendar(): Record<string, { fr?: number; en?: number }> | null | undefined {
+  featuredQuoteCalendarError.value = ''
+  if (!featuredQuoteCalendarRows.value.length) return null
+
+  const result: Record<string, { fr?: number; en?: number }> = {}
+
+  for (const row of featuredQuoteCalendarRows.value) {
+    const date = row.date.trim()
+    const parsedDate = /^\d{4}-\d{2}-\d{2}$/u.test(date) ? new Date(`${date}T00:00:00.000Z`) : null
+    if (!parsedDate || Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) {
+      featuredQuoteCalendarError.value = String($t('dialog_featured_quote_calendar_invalid_date'))
+      return undefined
+    }
+
+    if (result[date]) {
+      featuredQuoteCalendarError.value = String($t('dialog_featured_quote_calendar_duplicate_date'))
+      return undefined
+    }
+
+    const languageQuotes: { fr?: number; en?: number } = {}
+    for (const language of ['fr', 'en'] as const) {
+      const rawId: unknown = row[language]
+      if (rawId === null || rawId === '') continue
+
+      const quoteId = typeof rawId === 'number' ? rawId : Number(rawId)
+      if (!Number.isSafeInteger(quoteId) || quoteId < 1) {
+        featuredQuoteCalendarError.value = String($t('dialog_featured_quote_calendar_invalid_quote'))
+        return undefined
+      }
+      languageQuotes[language] = quoteId
+    }
+
+    if (!languageQuotes.fr && !languageQuotes.en) {
+      featuredQuoteCalendarError.value = String($t('dialog_featured_quote_calendar_missing_quote'))
+      return undefined
+    }
+
+    result[date] = languageQuotes
+  }
+
+  return result
+}
+
+watch(featuredQuoteCalendarRows, () => {
+  featuredQuoteCalendarError.value = ''
+}, { deep: true })
 
 watch(() => form.value.image_url, () => { desktopImagePreviewFailed.value = false })
 watch(() => form.value.mobile_image_url, () => { mobileImagePreviewFailed.value = false })
@@ -1855,8 +2001,12 @@ const duplicateTheme = async (theme: any) => {
         en: themeConfig.featured_quote_ids?.en ?? null,
         fr: themeConfig.featured_quote_ids?.fr ?? null,
       },
+      featured_quote_calendar: themeConfig.featured_quote_calendar && typeof themeConfig.featured_quote_calendar === 'object'
+        ? themeConfig.featured_quote_calendar
+        : null,
       featured_reference_id: themeConfig.featured_reference_id ?? null,
     }
+    featuredQuoteCalendarRows.value = featuredQuoteCalendarRowsFromConfig(form.value.featured_quote_calendar)
     showMobileImage.value = hasMobileImageSettings.value
     translations.value = (data.translations || []).map((t: any) => ({
       _key: translationKeyCounter++,
@@ -1988,7 +2138,9 @@ const resetForm = () => {
   showDesktopAttribution.value = false
   showMobileAttribution.value = false
   showMobileImage.value = false
-  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', home_is_active: false, social_is_active: false, publication_status: 'draft', is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_quote_ids: { en: null, fr: null }, featured_reference_id: null }
+  featuredQuoteCalendarRows.value = []
+  featuredQuoteCalendarError.value = ''
+  form.value = { slug: '', name: '', description: '', image_url: '', image_alt: '', image_credit: '', image_source_url: '', image_license: '', image_date: '', image_location: '', mobile_image_url: '', mobile_image_alt: '', mobile_image_credit: '', mobile_image_source_url: '', mobile_image_license: '', mobile_image_date: '', mobile_image_location: '', language: '', home_is_active: false, social_is_active: false, publication_status: 'draft', is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_quote_ids: { en: null, fr: null }, featured_quote_calendar: null, featured_reference_id: null }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
@@ -2058,8 +2210,13 @@ const openEdit = async (theme: any) => {
         en: themeConfig.featured_quote_ids?.en ?? null,
         fr: themeConfig.featured_quote_ids?.fr ?? null,
       },
+      featured_quote_calendar: themeConfig.featured_quote_calendar && typeof themeConfig.featured_quote_calendar === 'object'
+        ? themeConfig.featured_quote_calendar
+        : null,
       featured_reference_id: themeConfig.featured_reference_id ?? null,
     }
+    featuredQuoteCalendarRows.value = featuredQuoteCalendarRowsFromConfig(form.value.featured_quote_calendar)
+    featuredQuoteCalendarError.value = ''
     showMobileImage.value = hasMobileImageSettings.value
     if (themeConfig.featured_quote_id) {
       resolveFeaturedName('quote', themeConfig.featured_quote_id, featuredQuoteQuery)
@@ -2092,6 +2249,13 @@ const featuredQuoteActive = ref(false)
 const featuredQuoteHighlighted = ref(-1)
 const featuredQuoteLoading = ref(false)
 let featuredQuoteTimeout: ReturnType<typeof setTimeout> | undefined
+const featuredQuoteInputContainer = ref<HTMLElement | null>(null)
+const featuredQuoteSuggestionListbox = ref<HTMLElement | null>(null)
+const {
+  placement: featuredQuoteSuggestionPlacement,
+  maxHeight: featuredQuoteSuggestionMaxHeight,
+  updatePlacement: updateFeaturedQuoteSuggestionPlacement,
+} = useAdaptiveSuggestionPlacement(featuredQuoteInputContainer, featuredQuoteSuggestionListbox, featuredQuoteActive)
 
 const featuredRefQuery = ref('')
 const featuredRefResults = ref<{ label: string; value: string }[]>([])
@@ -2126,7 +2290,12 @@ const searchFeatured = async (type: string, query: string, results: Ref<{ label:
 const onFeaturedQuoteSearch = () => {
   if (featuredQuoteTimeout) clearTimeout(featuredQuoteTimeout)
   featuredQuoteHighlighted.value = -1
-  featuredQuoteTimeout = setTimeout(() => searchFeatured('featured_quote', featuredQuoteQuery.value, featuredQuoteResults, featuredQuoteActive, featuredQuoteLoading, featuredQuoteHighlighted), 200)
+  featuredQuoteTimeout = setTimeout(() => {
+    void searchFeatured('featured_quote', featuredQuoteQuery.value, featuredQuoteResults, featuredQuoteActive, featuredQuoteLoading, featuredQuoteHighlighted)
+      .then(() => {
+        if (featuredQuoteActive.value) nextTick(updateFeaturedQuoteSuggestionPlacement)
+      })
+  }, 200)
 }
 
 const onFeaturedQuoteKeydown = (e: KeyboardEvent) => {
@@ -2456,6 +2625,8 @@ const removeFilter = async (idx: number) => {
 const saveTheme = async () => {
   if (submitting.value) return
   if (!form.value.name.trim() || !form.value.slug.trim()) return
+  const featuredQuoteCalendar = buildFeaturedQuoteCalendar()
+  if (featuredQuoteCalendar === undefined) return
   submitting.value = true
   try {
     const payload: any = {
@@ -2495,6 +2666,7 @@ const saveTheme = async () => {
           en: form.value.featured_quote_ids.en || null,
           fr: form.value.featured_quote_ids.fr || null,
         },
+        featured_quote_calendar: featuredQuoteCalendar,
         featured_reference_id: form.value.featured_reference_id || null,
       },
     }
