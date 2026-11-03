@@ -1,7 +1,7 @@
 import { kv } from 'hub:kv'
 import type { H3Event } from 'h3'
 
-const allowedPages = new Set(['search', 'presskit', 'quotes', 'authors', 'references', 'tags', 'about', 'privacy', 'terms', 'licenses'])
+const allowedPages = new Set(['search', 'presskit', 'quotes', 'authors', 'references', 'tags', 'themes', 'about', 'privacy', 'terms', 'licenses'])
 
 export default defineEventHandler(async (event) => {
   let slug = getRouterParam(event, 'slug')

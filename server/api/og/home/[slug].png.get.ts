@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const translations = await getThemeTranslations(theme.id)
   const localized = resolveLocalizedField(translations, locale, theme.name, theme.description)
   const config = useRuntimeConfig()
-  const version = `${String(config.public.ogStyleVersion || '1')}:brand-footer-v1:cover-shadow-v1:cover-credit-v1`
+  const version = `${String(config.public.ogStyleVersion || '1')}:brand-footer-v1:cover-shadow-v1:cover-credit-v1:title-line-height-v2`
   const hash = await sha1(JSON.stringify({
     slug,
     name: localized.name,

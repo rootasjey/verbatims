@@ -1,4 +1,4 @@
-type OgPageSlug = 'search' | 'presskit' | 'quotes' | 'authors' | 'references' | 'tags' | 'about' | 'privacy' | 'terms' | 'licenses'
+type OgPageSlug = 'search' | 'presskit' | 'quotes' | 'authors' | 'references' | 'tags' | 'themes' | 'about' | 'privacy' | 'terms' | 'licenses'
 
 const pages: Record<OgPageSlug, { title: string; description: string; frTitle: string; frDescription: string; visual: string }> = {
   search: {
@@ -42,6 +42,13 @@ const pages: Record<OgPageSlug, { title: string; description: string; frTitle: s
     frTitle: 'Thèmes',
     frDescription: 'Explorez des idées et des thèmes à travers les citations.',
     visual: 'tags',
+  },
+  themes: {
+    title: 'Themes',
+    description: 'Curated paths into ideas, carried by memorable quotes.',
+    frTitle: 'Thèmes',
+    frDescription: 'Des parcours choisis pour explorer les idées à travers les citations.',
+    visual: 'themes',
   },
   about: {
     title: 'About Verbatims',
@@ -225,6 +232,7 @@ export default defineEventHandler((event) => {
       .sample-row span { color: #78716C; font-size: 14px; }
       .sample-tags { display: flex; flex-wrap: wrap; gap: 12px; align-content: center; min-height: 210px; padding-left: 8px; }
       .sample-tags span { padding: 10px 15px; border: 1px solid #D6D3D1; border-radius: 999px; color: #44403C; font-family: 'Fraunces', Georgia, serif; font-size: 23px; }
+      .sample-themes { padding: 24px 0 24px 8px; }
       .about-mark { display: flex; min-height: 240px; align-items: center; padding-left: 8px; }
       .about-mark span { font-family: 'Fraunces', Georgia, serif; font-size: 46px; line-height: 1.08; }
       .document-mark { display: flex; width: 250px; height: 310px; flex-direction: column; justify-content: center; gap: 16px; margin: auto; padding: 36px; border: 1px solid #D6D3D1; background: #F5F5F4; }
@@ -286,6 +294,7 @@ function getVisual(kind: string, locale: 'en' | 'fr'): string {
     authors: `<div class="sample-list"><p class="sample-label">${isFrench ? 'VOIX DE LA COLLECTION' : 'VOICES IN THE COLLECTION'}</p><div class="sample-row"><strong>Virginia Woolf</strong><span>${isFrench ? 'auteure' : 'author'}</span></div><div class="sample-row"><strong>James Baldwin</strong><span>${isFrench ? 'écrivain' : 'writer'}</span></div><div class="sample-row"><strong>Ursula K. Le Guin</strong><span>${isFrench ? 'auteure' : 'author'}</span></div></div>`,
     references: `<div class="sample-list"><p class="sample-label">${isFrench ? 'SOURCES DES CITATIONS' : 'SOURCES THAT GIVE WORDS CONTEXT'}</p><div class="sample-row"><strong>${isFrench ? 'Livres' : 'Books'}</strong><span>01</span></div><div class="sample-row"><strong>${isFrench ? 'Films' : 'Films'}</strong><span>02</span></div><div class="sample-row"><strong>${isFrench ? 'Discours' : 'Speeches'}</strong><span>03</span></div></div>`,
     tags: `<div class="sample-tags"><span>${isFrench ? 'amour' : 'love'}</span><span>${isFrench ? 'courage' : 'courage'}</span><span>${isFrench ? 'temps' : 'time'}</span><span>${isFrench ? 'espoir' : 'hope'}</span></div>`,
+    themes: `<div class="sample-themes"><p class="sample-label">${isFrench ? 'THÈMES ÉDITORIAUX' : 'EDITORIAL THEMES'}</p><div class="sample-row"><strong>${isFrench ? 'Conscience' : 'Conscience'}</strong><span>${isFrench ? 'penser et choisir' : 'thought and choice'}</span></div><div class="sample-row"><strong>${isFrench ? 'Liberté' : 'Freedom'}</strong><span>${isFrench ? 'droits et responsabilité' : 'rights and responsibility'}</span></div><div class="sample-row"><strong>${isFrench ? 'Tolérance' : 'Tolerance'}</strong><span>${isFrench ? 'vivre nos différences' : 'living with difference'}</span></div></div>`,
     about: `<div class="about-mark"><span>${isFrench ? 'Des mots,<br>leurs<br>origines.' : 'Words<br>with their<br>origins.'}</span></div>`,
     document: `<div class="document-mark"><div></div><div></div><div></div><div></div><span>VERBATIMS</span></div>`,
     terms: `<div class="privacy-excerpt"><p class="privacy-excerpt-label">${isFrench ? 'EXTRAIT DES CONDITIONS' : 'FROM THE TERMS'}</p><blockquote>“Include author name and source reference when available.”</blockquote></div>`,

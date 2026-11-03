@@ -31,7 +31,7 @@ export default defineEventHandler((event) => {
       .brand { font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; letter-spacing: -1px; }
       main { display: flex; flex: 1; align-items: center; gap: 56px; padding: 30px 0; }
       .copy { width: 47%; flex-shrink: 0; }
-      h1 { display: -webkit-box; overflow: hidden; margin: 0; font-family: Fraunces, Georgia, serif; font-size: 68px; font-weight: 550; letter-spacing: -0.04em; line-height: 1.02; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+      h1 { display: -webkit-box; overflow: hidden; margin: 0; font-family: Fraunces, Georgia, serif; font-size: 68px; font-weight: 550; letter-spacing: -0.04em; line-height: 1.12; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
       .description { display: -webkit-box; overflow: hidden; max-width: 490px; margin: 24px 0 0; color: #57534E; font-size: 21px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
       .visual { display: flex; min-width: 0; flex: 1; flex-direction: column; align-self: stretch; gap: 12px; border-left: 1px solid #D6D3D1; padding: 8px 0 8px 48px; }
       .theme-image { display: block; min-height: 0; width: 100%; flex: 1; border-radius: 14px; object-fit: cover; background: #E8E5DC; box-shadow: 0 18px 34px -15px rgba(28, 25, 23, 0.36); }

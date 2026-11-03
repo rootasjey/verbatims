@@ -3,7 +3,8 @@ import type { H3Event } from 'h3'
 import { getCollectionOgPreview } from '~~/server/utils/og-collection'
 
 export default defineEventHandler(async (event) => {
-  const rawId = getRouterParam(event, 'id')?.replace(/\.png$/, '')
+  const pathSegment = getRequestURL(event).pathname.split('/').pop() || ''
+  const rawId = decodeURIComponent(pathSegment).replace(/\.png$/, '')
   const id = Number(rawId)
   if (!Number.isSafeInteger(id) || id < 1) throwServer(400, 'Invalid list ID')
 

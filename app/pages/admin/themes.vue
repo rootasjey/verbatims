@@ -1144,12 +1144,18 @@ import { useAdaptiveSuggestionPlacement } from '~/composables/useAdaptiveSuggest
 import { BlossomColorPicker } from '@dayflow/blossom-color-picker-vue'
 import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
 import { ensureHexColor, hexToBlossomValue } from '~/utils/color'
+import { useVerbatimsSeo } from '~/composables/useSeo'
 
 const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-useHead({ title: $t('meta_title') as string })
+useVerbatimsSeo(() => ({
+  title: $t('meta_title') as string,
+  description: $t('seo_description') as string,
+  imagePath: '/api/og/pages/themes.png',
+  imageAlt: $t('title') as string,
+}))
 
 const loading = ref(true)
 const themes = ref<any[]>([])

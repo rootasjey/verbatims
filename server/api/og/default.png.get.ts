@@ -3,7 +3,7 @@ import { kv } from 'hub:kv'
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const requestUrl = getRequestURL(event)
-  const styleVersion = (config.public as any).ogStyleVersion as string
+  const styleVersion = `${String(config.public.ogStyleVersion || '1')}:fraunces-tagline-v7`
   // Use actual request origin so it works in dev, staging, and production
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
 
