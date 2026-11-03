@@ -9,11 +9,9 @@ export interface NormalizedSearch {
   toMatchQuery(): string
 }
 
-// The SQL folding chain is limited by SQLite's parser stack (~28 nested calls
-// including LOWER). This map is sized to fit that limit while covering the
-// most common accents in the supported languages (French, Spanish, Italian,
-// Portuguese, German). Both the JS term folding and the SQL column folding
-// MUST use the same map.
+// Keep this map aligned with foldAccents. SQL replacements are emitted in
+// small subquery groups below so SQLite's parser does not overflow on nested
+// search predicates.
 const ACCENT_MAP: ReadonlyArray<readonly [string, string]> = [
   ['é', 'e'], ['É', 'e'], ['è', 'e'], ['È', 'e'], ['ê', 'e'], ['Ê', 'e'],
   ['à', 'a'], ['À', 'a'], ['â', 'a'], ['Â', 'a'],
@@ -34,9 +32,16 @@ export function foldAccents(input: string): string {
 
 export function foldAccentsSQL(column: SQL | Column): SQL {
   let expr: SQL = sql`${column}`
-  for (const [from, to] of ACCENT_MAP) {
-    expr = sql`REPLACE(${expr}, ${from}, ${to})`
+  const replacementsPerGroup = 7
+
+  for (let offset = 0; offset < ACCENT_MAP.length; offset += replacementsPerGroup) {
+    let value: SQL = sql`value`
+    for (const [from, to] of ACCENT_MAP.slice(offset, offset + replacementsPerGroup)) {
+      value = sql`REPLACE(${value}, ${from}, ${to})`
+    }
+    expr = sql`(SELECT ${value} FROM (SELECT ${expr} AS value))`
   }
+
   return expr
 }
 

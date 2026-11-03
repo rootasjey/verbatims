@@ -5,7 +5,7 @@ import { themeManifestSchema } from '../../../utils/theme-manifest'
 defineRouteMeta({
   openAPI: {
     summary: 'Apply a declarative theme manifest',
-    description: 'Creates or updates a theme by slug and reconciles its translations and content filters. Activation and default status are intentionally managed separately.',
+    description: 'Creates or updates a theme by slug and reconciles its translations and content filters. Removing existing filters or translations also requires delete:themes. Activation and default status are intentionally managed separately.',
     tags: ['Themes'],
     security: [{ apiKey: ['admin:themes'] }],
     requestBody: {
@@ -79,12 +79,20 @@ export default defineEventHandler(async (event) => {
     const removedFilterIds = existingFilters
       .filter(item => !desiredFilterKeys.has(`${item.type}:${item.value.toLowerCase()}`))
       .map(item => item.id)
+    const desiredLanguages = new Set<string>(manifest.translations?.map(item => item.language) ?? [])
+    const removedTranslations = manifest.translations === undefined
+      ? []
+      : existingTranslations.filter(item => !desiredLanguages.has(item.language))
+
+    if (removedFilterIds.length > 0 || removedTranslations.length > 0) {
+      requireApiPermission(api, 'delete:themes')
+    }
+
     for (const id of removedFilterIds) {
       statements.push(db.delete(schema.themeContentFilters).where(eq(schema.themeContentFilters.id, id)))
     }
 
     if (manifest.translations !== undefined) {
-      const desiredLanguages = new Set<string>(manifest.translations.map(item => item.language))
       for (const translation of manifest.translations) {
         const current = existingTranslations.find(item => item.language === translation.language)
         if (current) {
@@ -106,10 +114,8 @@ export default defineEventHandler(async (event) => {
         }
       }
 
-      for (const translation of existingTranslations) {
-        if (!desiredLanguages.has(translation.language)) {
-          statements.push(db.delete(schema.themeTranslations).where(eq(schema.themeTranslations.id, translation.id)))
-        }
+      for (const translation of removedTranslations) {
+        statements.push(db.delete(schema.themeTranslations).where(eq(schema.themeTranslations.id, translation.id)))
       }
     }
 

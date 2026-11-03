@@ -1,7 +1,5 @@
 import { db, schema } from 'hub:db'
-import { generateApiKey } from '~~/server/utils/api-key'
-
-const validPermissions = ['read', 'write:quotes', 'write:authors', 'write:references', 'write:collections', 'social:read', 'social:write', 'admin:themes', '*']
+import { generateApiKey, validateApiKeyPermissions } from '~~/server/utils/api-key'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuth(event)
@@ -12,14 +10,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const name = body.name.trim()
-  let permissions = body.permissions
-  if (!Array.isArray(permissions) || permissions.length === 0) {
-    permissions = ['read']
-  }
-  const invalid = permissions.filter(p => !validPermissions.includes(p))
-  if (invalid.length > 0) {
-    throwServer(400, `Invalid permissions: ${invalid.join(', ')}`)
-  }
+  const permissions = body.permissions === undefined
+    ? ['read']
+    : validateApiKeyPermissions(body.permissions)
 
   const { plainKey, keyHash, keyPrefix } = generateApiKey()
 

@@ -161,4 +161,36 @@ describe('requireApiPermission', () => {
     }
     expect(() => requireApiPermission(apiKey, 'admin')).toThrow()
   })
+
+  it('keeps write and delete permissions independent', async () => {
+    const { requireApiPermission } = await import('../api-key')
+    const writeOnlyKey = {
+      id: 1, userId: 1, name: '', keyPrefix: '',
+      permissions: ['write:quotes'],
+      readRateLimit: 1000, readWindowSec: 3600, writeRateLimit: 1000, writeWindowSec: 3600,
+      isActive: true, userRole: 'user',
+    }
+    const deleteOnlyKey = { ...writeOnlyKey, permissions: ['delete:quotes'] }
+
+    expect(() => requireApiPermission(writeOnlyKey, 'write:quotes')).not.toThrow()
+    expect(() => requireApiPermission(writeOnlyKey, 'delete:quotes')).toThrow()
+    expect(() => requireApiPermission(deleteOnlyKey, 'delete:quotes')).not.toThrow()
+    expect(() => requireApiPermission(deleteOnlyKey, 'write:quotes')).toThrow()
+  })
+})
+
+describe('validateApiKeyPermissions', () => {
+  it('accepts the new delete scopes', async () => {
+    const { validateApiKeyPermissions } = await import('../api-key')
+    expect(validateApiKeyPermissions(['write:quotes', 'delete:quotes', 'social:delete'])).toEqual([
+      'write:quotes',
+      'delete:quotes',
+      'social:delete',
+    ])
+  })
+
+  it('rejects unknown permissions', async () => {
+    const { validateApiKeyPermissions } = await import('../api-key')
+    expect(() => validateApiKeyPermissions(['delete:everything'])).toThrow()
+  })
 })

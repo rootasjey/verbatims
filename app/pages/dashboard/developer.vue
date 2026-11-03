@@ -339,11 +339,18 @@ const copied = ref(false)
 const availablePermissions = [
   { label: 'Read', value: 'read' },
   { label: 'Write: Quotes', value: 'write:quotes' },
+  { label: 'Delete: Quotes', value: 'delete:quotes' },
   { label: 'Write: Authors', value: 'write:authors' },
+  { label: 'Delete: Authors', value: 'delete:authors' },
   { label: 'Write: References', value: 'write:references' },
+  { label: 'Delete: References', value: 'delete:references' },
   { label: 'Write: Collections', value: 'write:collections' },
+  { label: 'Delete: Collections', value: 'delete:collections' },
   { label: 'Social: Read (moderator+)', value: 'social:read' },
   { label: 'Social: Write (moderator+)', value: 'social:write' },
+  { label: 'Social: Delete (moderator+)', value: 'social:delete' },
+  { label: 'Admin: Themes (moderator+)', value: 'admin:themes' },
+  { label: 'Delete: Themes (moderator+)', value: 'delete:themes' },
   { label: 'All (*)', value: '*' },
 ]
 

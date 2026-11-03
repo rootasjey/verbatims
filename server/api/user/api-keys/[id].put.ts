@@ -1,7 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
-
-const validPermissions = ['read', 'write:quotes', 'write:authors', 'write:references', 'write:collections', 'social:read', 'social:write', 'admin:themes', '*']
+import { validateApiKeyPermissions } from '~~/server/utils/api-key'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuth(event)
@@ -34,12 +33,8 @@ export default defineEventHandler(async (event) => {
   if (body && typeof body.isActive === 'boolean') {
     updates.isActive = body.isActive
   }
-  if (body && Array.isArray(body.permissions) && body.permissions.length > 0) {
-    const invalid = body.permissions.filter((p: string) => !validPermissions.includes(p))
-    if (invalid.length > 0) {
-      throwServer(400, `Invalid permissions: ${invalid.join(', ')}`)
-    }
-    updates.permissions = JSON.stringify(body.permissions)
+  if (body && Object.hasOwn(body, 'permissions')) {
+    updates.permissions = JSON.stringify(validateApiKeyPermissions(body.permissions))
   }
   if (body && typeof body.readRateLimit === 'number' && body.readRateLimit > 0) {
     updates.readRateLimit = body.readRateLimit

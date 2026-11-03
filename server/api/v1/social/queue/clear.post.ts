@@ -6,7 +6,7 @@ defineRouteMeta({
     summary: 'Clear social queue',
     description: 'Deletes queue items for a platform. Requires confirm: true. Use scope "all" to empty the queue or "finished" to remove only posted and failed items.',
     tags: ['Social'],
-    security: [{ apiKey: ['social:write'] }],
+    security: [{ apiKey: ['social:delete'] }],
     requestBody: {
       required: true,
       content: {
@@ -33,7 +33,7 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiKeyRole(api, 'moderator', 'admin')
-  requireApiPermission(api, 'social:write')
+  requireApiPermission(api, 'social:delete')
 
   const body = await readBody(event)
   const data = await clearSocialQueue({

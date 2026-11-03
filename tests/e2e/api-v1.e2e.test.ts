@@ -673,7 +673,11 @@ describe('GET /api/admin/social-queue', () => {
 // ── V1 Write Endpoints ──
 
 describe('POST /api/v1/quotes', () => {
-  const quoteBody = { name: 'Test quote from E2E test.', language: 'en' }
+  const quoteBody = {
+    name: 'Test quote from E2E test.',
+    language: 'en',
+    attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+  }
 
   test('creates a quote as draft', async () => {
     const res = await $fetch('/api/v1/quotes', {
@@ -713,7 +717,7 @@ describe('POST /api/v1/quotes', () => {
       ...writeHeaders(),
       method: 'POST',
       headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Test quote from E2E test.', language: 'en' }),
+      body: JSON.stringify(quoteBody),
     })
     expect(res.status).toBe(409)
   })
@@ -741,44 +745,47 @@ describe('POST /api/v1/quotes', () => {
     const res = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
       method: 'POST',
-      body: { name: 'Quote with author ref.', language: 'en', provenance: { author_id: 1, reference_id: 1 } },
+      body: {
+        name: 'Quote with author ref.',
+        language: 'en',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
     })
     expect(res.success).toBe(true)
     expect(res.data.attributions[0].author_id).toBe(1)
     expect(res.data.attributions[0].reference_id).toBe(1)
   })
 
-  test('creates quote with modern primary provenance as a regular user', async () => {
+  test('creates quote with an attribution as a regular user', async () => {
     const res = await $fetch('/api/v1/quotes', {
       ...userWriteHeaders(),
       method: 'POST',
       body: {
         name: 'Quote with modern provenance.',
         language: 'en',
-        provenance: {
+        attributions: [{
           author_id: 1,
           reference_id: 1,
+          is_primary: true,
           status: 'externally_verified',
-          source: {
-            source_type: 'book',
-            source_url: 'https://example.com/modern-source',
-            verification_status: 'externally_verified',
-          },
-        },
+        }],
       },
     })
     expect(res.success).toBe(true)
     expect(res.data.attributions[0].author_id).toBe(1)
     expect(res.data.attributions[0].status).toBe('unverified')
-    expect(res.data.sources[0].source_type).toBe('book')
-    expect(res.data.sources[0].verification_status).toBe('unverified')
   })
 
   test('creates quote with inline new_author', async () => {
     const res = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
       method: 'POST',
-      body: { name: 'Quote with new author.', language: 'en', new_author: { name: 'Epictetus' } },
+      body: {
+        name: 'Quote with new author.',
+        language: 'en',
+        attributions: [{ author_id: null, reference_id: null, is_primary: true }],
+        new_author: { name: 'Epictetus' },
+      },
     })
     expect(res.success).toBe(true)
     expect(res.data.attributions[0].author?.name).toBe('Epictetus')
@@ -790,7 +797,11 @@ describe('PUT /api/v1/quotes/[id]', () => {
     const created = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
       method: 'POST',
-      body: { name: 'Quote to update.', language: 'en' },
+      body: {
+        name: 'Quote to update.',
+        language: 'en',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
     })
     const res = await $fetch(`/api/v1/quotes/${created.data.id}`, {
       ...writeHeaders(),
@@ -810,6 +821,64 @@ describe('PUT /api/v1/quotes/[id]', () => {
     })
     expect(res.status).toBe(404)
   })
+
+  test('requires delete:quotes when replacing an attribution removes an existing one', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...userWriteHeaders(),
+      method: 'POST',
+      body: {
+        name: 'Quote whose attribution cannot be removed by a write-only key.',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
+    })
+
+    const response = await fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...userWriteHeaders(),
+      method: 'PUT',
+      headers: { ...userWriteHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        attributions: [{ author_id: 2, reference_id: 2, is_primary: true }],
+      }),
+    })
+
+    expect(response.status).toBe(403)
+  })
+
+  test('preserves attribution links when updating an existing attribution', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...userWriteHeaders(),
+      method: 'POST',
+      body: {
+        name: 'Quote whose attribution identity remains unchanged.',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
+    })
+    const attributionId = created.data.attributions[0].id
+
+    await $fetch(`/api/v1/quotes/${created.data.id}/sources`, {
+      ...moderatorHeaders(),
+      method: 'POST',
+      body: {
+        attribution_id: attributionId,
+        source_type: 'book',
+        source_url: 'https://example.com/attribution-link',
+        verification_status: 'unverified',
+        is_primary: true,
+      },
+    })
+
+    const updated = await $fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...userWriteHeaders(),
+      method: 'PUT',
+      body: {
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true, notes: 'Updated attribution notes.' }],
+      },
+    })
+    const sources = await $fetch(`/api/v1/quotes/${created.data.id}/sources`, moderatorHeaders())
+
+    expect(updated.data.attributions[0].id).toBe(attributionId)
+    expect(sources.data[0].attribution_id).toBe(attributionId)
+  })
 })
 
 describe('DELETE /api/v1/quotes/[id]', () => {
@@ -817,7 +886,11 @@ describe('DELETE /api/v1/quotes/[id]', () => {
     const created = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
       method: 'POST',
-      body: { name: 'Quote to delete.', language: 'en' },
+      body: {
+        name: 'Quote to delete.',
+        language: 'en',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
     })
     const res = await $fetch(`/api/v1/quotes/${created.data.id}`, {
       ...writeHeaders(),
@@ -831,7 +904,11 @@ describe('DELETE /api/v1/quotes/[id]', () => {
     const created = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
       method: 'POST',
-      body: { name: 'Another to delete.', language: 'en' },
+      body: {
+        name: 'Another to delete.',
+        language: 'en',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
     })
     await $fetch(`/api/v1/quotes/${created.data.id}`, {
       ...writeHeaders(),
@@ -842,6 +919,24 @@ describe('DELETE /api/v1/quotes/[id]', () => {
       method: 'DELETE',
     })
     expect(res.status).toBe(404)
+  })
+
+  test('rejects deletion for a write-only key', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...userWriteHeaders(),
+      method: 'POST',
+      body: {
+        name: 'Quote that a write-only key cannot delete.',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
+    })
+
+    const response = await fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...userWriteHeaders(),
+      method: 'DELETE',
+    })
+
+    expect(response.status).toBe(403)
   })
 })
 
@@ -1440,7 +1535,10 @@ describe('POST /api/v1/quotes/[id]/tags', () => {
     const created = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
       method: 'POST',
-      body: { name: 'Draft for tag test' },
+      body: {
+        name: 'Draft for tag test',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
     })
     draftId = created.data.id
     const res = await $fetch(`/api/v1/quotes/${draftId}/tags`, {
@@ -1483,7 +1581,10 @@ describe('DELETE /api/v1/quotes/[id]/tags/[tagId]', () => {
     const created = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
       method: 'POST',
-      body: { name: 'Draft for delete tag test' },
+      body: {
+        name: 'Draft for delete tag test',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
     })
     draftId = created.data.id
     await $fetch(`/api/v1/quotes/${draftId}/tags`, {

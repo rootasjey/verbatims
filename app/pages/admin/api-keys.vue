@@ -343,22 +343,36 @@ const deleting = ref(false)
 const availablePermissions = [
   { label: String($t('perm_read')), value: 'read' },
   { label: String($t('perm_quotes')), value: 'write:quotes' },
+  { label: String($t('perm_delete_quotes')), value: 'delete:quotes' },
   { label: String($t('perm_authors')), value: 'write:authors' },
+  { label: String($t('perm_delete_authors')), value: 'delete:authors' },
   { label: String($t('perm_references')), value: 'write:references' },
+  { label: String($t('perm_delete_references')), value: 'delete:references' },
   { label: String($t('perm_collections')), value: 'write:collections' },
+  { label: String($t('perm_delete_collections')), value: 'delete:collections' },
   { label: String($t('perm_social_read')), value: 'social:read' },
   { label: String($t('perm_social_write')), value: 'social:write' },
+  { label: String($t('perm_social_delete')), value: 'social:delete' },
+  { label: String($t('perm_themes')), value: 'admin:themes' },
+  { label: String($t('perm_delete_themes')), value: 'delete:themes' },
   { label: String($t('perm_all')), value: '*' },
 ]
 
 const permissionIcons: Record<string, string> = {
   read: 'i-lucide-eye',
   'write:quotes': 'i-lucide-quote',
+  'delete:quotes': 'i-lucide-trash-2',
   'write:authors': 'i-lucide-user-round-pen',
+  'delete:authors': 'i-lucide-trash-2',
   'write:references': 'i-lucide-book-open-check',
+  'delete:references': 'i-lucide-trash-2',
   'write:collections': 'i-lucide-library',
+  'delete:collections': 'i-lucide-trash-2',
   'social:read': 'i-lucide-message-circle-more',
   'social:write': 'i-lucide-send',
+  'social:delete': 'i-lucide-trash-2',
+  'admin:themes': 'i-lucide-panels-top-left',
+  'delete:themes': 'i-lucide-trash-2',
   '*': 'i-lucide-shield-check',
 }
 

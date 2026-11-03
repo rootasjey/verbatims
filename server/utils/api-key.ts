@@ -4,6 +4,37 @@ import { sha256 } from '@noble/hashes/sha2.js'
 
 const API_KEY_PREFIX = 'vbt_'
 
+export const API_KEY_PERMISSIONS = [
+  'read',
+  'write:quotes',
+  'delete:quotes',
+  'write:authors',
+  'delete:authors',
+  'write:references',
+  'delete:references',
+  'write:collections',
+  'delete:collections',
+  'social:read',
+  'social:write',
+  'social:delete',
+  'admin:themes',
+  'delete:themes',
+  '*',
+] as const
+
+export function validateApiKeyPermissions(permissions: unknown): string[] {
+  if (!Array.isArray(permissions)) {
+    throwServer(400, 'Permissions must be an array')
+  }
+
+  const invalid = permissions.filter(permission => typeof permission !== 'string' || !API_KEY_PERMISSIONS.includes(permission as typeof API_KEY_PERMISSIONS[number]))
+  if (invalid.length > 0) {
+    throwServer(400, `Invalid permissions: ${invalid.join(', ')}`)
+  }
+
+  return permissions as string[]
+}
+
 export function generateApiKey(): { plainKey: string; keyHash: string; keyPrefix: string } {
   const bytes = new Uint8Array(32)
   crypto.getRandomValues(bytes)

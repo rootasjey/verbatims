@@ -7,7 +7,7 @@ defineRouteMeta({
     summary: 'Delete a reference',
     description: 'Deletes a reference. Requires moderator or admin role. If the reference has related quotes, a strategy must be provided: "delete" to remove all related quotes, or "anonymize" to set their reference_id to null.',
     tags: ['References'],
-    security: [{ apiKey: ['write:references'] }],
+    security: [{ apiKey: ['delete:references'] }],
     parameters: [
       { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
     ],
@@ -34,7 +34,7 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
-  requireApiPermission(api, 'write:references')
+  requireApiPermission(api, 'delete:references')
   requireApiKeyRole(api, 'admin', 'moderator')
 
   const refId = parseInt(getRouterParam(event, 'id') || '')

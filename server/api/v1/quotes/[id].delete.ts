@@ -7,7 +7,7 @@ defineRouteMeta({
     summary: 'Delete a quote',
     description: 'Deletes a quote. Users can only delete their own quotes; moderators and admins can delete any quote.',
     tags: ['Quotes'],
-    security: [{ apiKey: ['write:quotes'] }],
+    security: [{ apiKey: ['delete:quotes'] }],
     parameters: [
       { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
     ],
@@ -21,7 +21,7 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
-  requireApiPermission(api, 'write:quotes')
+  requireApiPermission(api, 'delete:quotes')
 
   const quoteId = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(quoteId)) throwServer(400, 'Invalid quote ID')

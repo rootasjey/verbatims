@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { generateApiKey } from '~~/server/utils/api-key'
+import { generateApiKey, validateApiKeyPermissions } from '~~/server/utils/api-key'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAdmin(event)
@@ -11,7 +11,9 @@ export default defineEventHandler(async (event) => {
 
   const name = body.name.trim()
   const tier = body.tier === 'pro' || body.tier === 'enterprise' ? body.tier : 'free'
-  const permissions = Array.isArray(body.permissions) ? body.permissions : ['read']
+  const permissions = body.permissions === undefined
+    ? ['read']
+    : validateApiKeyPermissions(body.permissions)
   const readRateLimit = typeof body.readRateLimit === 'number' ? body.readRateLimit : 1000
   const readWindowSec = typeof body.readWindowSec === 'number' ? body.readWindowSec : 3600
   const writeRateLimit = typeof body.writeRateLimit === 'number' ? body.writeRateLimit : 1000

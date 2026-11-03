@@ -6,7 +6,7 @@ defineRouteMeta({
     summary: 'Delete a theme',
     description: 'Deletes a theme permanently.',
     tags: ['Themes'],
-    security: [{ apiKey: ['admin:themes'] }],
+    security: [{ apiKey: ['admin:themes', 'delete:themes'] }],
     parameters: [
       { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
     ],
@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiKeyRole(api, 'moderator', 'admin')
   requireApiPermission(api, 'admin:themes')
+  requireApiPermission(api, 'delete:themes')
 
   const id = getRouterParam(event, 'id')!
   if (!id || isNaN(parseInt(id))) {

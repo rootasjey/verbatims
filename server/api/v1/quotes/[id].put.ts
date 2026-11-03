@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { updateV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
 import { syncPrimaryAttribution, getQuoteProvenance } from '~~/server/utils/quote-provenance'
@@ -7,7 +7,7 @@ import { syncPrimaryAttribution, getQuoteProvenance } from '~~/server/utils/quot
 defineRouteMeta({
   openAPI: {
     summary: 'Update a quote',
-    description: 'Updates a quote. Users can only update their own quotes; moderators and admins can update any quote.',
+    description: 'Updates a quote. Users can only update their own quotes; moderators and admins can update any quote. Replacing attributions while removing an existing attribution also requires delete:quotes.',
     tags: ['Quotes'],
     security: [{ apiKey: ['write:quotes'] }],
     parameters: [
@@ -59,6 +59,32 @@ export default defineEventHandler(async (event) => {
   const currentProvenance = await getQuoteProvenance(quoteId)
   const primaryAttribution = currentProvenance.attributions.find(item => item.is_primary) ?? currentProvenance.attributions[0]
   const replacementAttributions = body.attributions
+  type AttributionReplacement = NonNullable<typeof replacementAttributions>[number]
+  const attributionsToUpdate: Array<{ id: number; replacement: AttributionReplacement }> = []
+  const attributionsToInsert: AttributionReplacement[] = []
+  const remainingAttributions = new Map<string, typeof currentProvenance.attributions>()
+  for (const attribution of currentProvenance.attributions) {
+    const key = JSON.stringify([attribution.author_id ?? null, attribution.reference_id ?? null])
+    const matches = remainingAttributions.get(key) ?? []
+    matches.push(attribution)
+    remainingAttributions.set(key, matches)
+  }
+
+  for (const replacement of replacementAttributions ?? []) {
+    const key = JSON.stringify([replacement.author_id ?? null, replacement.reference_id ?? null])
+    const match = remainingAttributions.get(key)?.shift()
+    if (match) {
+      attributionsToUpdate.push({ id: match.id, replacement })
+    } else {
+      attributionsToInsert.push(replacement)
+    }
+  }
+
+  const attributionsToDelete = [...remainingAttributions.values()].flat()
+  if (attributionsToDelete.length > 0) {
+    requireApiPermission(api, 'delete:quotes')
+  }
+
   const replacementPrimary = replacementAttributions?.find(attribution => attribution.is_primary)
   let authorId = replacementPrimary?.author_id ?? primaryAttribution?.author_id ?? null
   let referenceId = replacementPrimary?.reference_id ?? primaryAttribution?.reference_id ?? null
@@ -108,19 +134,45 @@ export default defineEventHandler(async (event) => {
   }
 
   if (replacementAttributions) {
-    await db.batch([
+    const statements: any[] = [
       db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId)),
-      db.delete(schema.quoteAttributions).where(eq(schema.quoteAttributions.quoteId, quoteId)),
-      db.insert(schema.quoteAttributions).values(replacementAttributions.map(attribution => ({
+    ]
+
+    if (attributionsToDelete.length > 0) {
+      statements.push(db.delete(schema.quoteAttributions)
+        .where(inArray(schema.quoteAttributions.id, attributionsToDelete.map(attribution => attribution.id))))
+    }
+
+    for (const { id, replacement } of attributionsToUpdate) {
+      const verified = isMod && replacement.status !== 'unverified'
+      statements.push(db.update(schema.quoteAttributions).set({
+        authorId: replacement.author_id,
+        referenceId: replacement.reference_id,
+        isPrimary: replacement.is_primary,
+        status: isMod ? replacement.status : 'unverified',
+        verifiedBy: verified ? api.userId : null,
+        verifiedAt: verified ? new Date() : null,
+        notes: replacement.notes,
+        updatedAt: new Date(),
+      }).where(eq(schema.quoteAttributions.id, id)))
+    }
+
+    for (const attribution of attributionsToInsert) {
+      const verified = isMod && attribution.status !== 'unverified'
+      statements.push(db.insert(schema.quoteAttributions).values({
         quoteId,
         authorId: attribution.author_id,
         referenceId: attribution.reference_id,
         isPrimary: attribution.is_primary,
         status: isMod ? attribution.status : 'unverified',
         notes: attribution.notes,
+        verifiedBy: verified ? api.userId : null,
+        verifiedAt: verified ? new Date() : null,
         createdBy: api.userId,
-      }))),
-    ] as any)
+      }))
+    }
+
+    await db.batch(statements as any)
   } else {
     const attributionStatus = isMod ? primaryAttribution?.status : 'unverified'
     const attributionId = await syncPrimaryAttribution(

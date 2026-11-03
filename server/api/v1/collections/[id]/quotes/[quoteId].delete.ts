@@ -6,7 +6,7 @@ defineRouteMeta({
     summary: 'Remove a quote from a collection',
     description: 'Removes a quote from a collection. User must own the collection.',
     tags: ['Collections'],
-    security: [{ apiKey: ['write:collections'] }],
+    security: [{ apiKey: ['delete:collections'] }],
     parameters: [
       { name: 'id', in: 'path', required: true, schema: { type: 'integer' }, description: 'Collection ID' },
       { name: 'quoteId', in: 'path', required: true, schema: { type: 'integer' }, description: 'Quote ID' },
@@ -21,7 +21,7 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
-  requireApiPermission(api, 'write:collections')
+  requireApiPermission(api, 'delete:collections')
 
   const collectionId = parseInt(getRouterParam(event, 'id') || '')
   const quoteId = parseInt(getRouterParam(event, 'quoteId') || '')

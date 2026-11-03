@@ -6,7 +6,7 @@ defineRouteMeta({
     summary: 'Remove social queue item',
     description: 'Deletes a single social queue item. Queued items are compacted after removal.',
     tags: ['Social'],
-    security: [{ apiKey: ['social:write'] }],
+    security: [{ apiKey: ['social:delete'] }],
     parameters: [
       { in: 'path', name: 'id', required: true, schema: { type: 'integer' }, description: 'Queue item ID' },
     ],
@@ -20,7 +20,7 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiKeyRole(api, 'moderator', 'admin')
-  requireApiPermission(api, 'social:write')
+  requireApiPermission(api, 'social:delete')
 
   const id = Number(getRouterParam(event, 'id'))
   const data = await deleteSocialQueueItem(id)

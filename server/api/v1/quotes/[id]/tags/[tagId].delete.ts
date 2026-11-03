@@ -6,7 +6,7 @@ defineRouteMeta({
     summary: 'Remove a tag from a quote',
     description: 'Detaches a tag from a quote.',
     tags: ['Quotes'],
-    security: [{ apiKey: ['write:quotes'] }],
+    security: [{ apiKey: ['delete:quotes'] }],
     parameters: [
       { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
       { name: 'tagId', in: 'path', required: true, schema: { type: 'integer' } },
@@ -22,7 +22,7 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiKeyRole(api, 'user', 'moderator', 'admin')
-  requireApiPermission(api, 'write:quotes')
+  requireApiPermission(api, 'delete:quotes')
 
   const quoteId = getRouterParam(event, 'id')!
   const tagId = getRouterParam(event, 'tagId')!

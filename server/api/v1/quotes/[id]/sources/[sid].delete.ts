@@ -3,10 +3,10 @@ import { eq } from 'drizzle-orm'
 import { requireQuoteSource } from '~~/server/utils/admin-quote-provenance'
 import { requireApiModerator } from '~~/server/utils/api-quote-provenance'
 
-defineRouteMeta({ openAPI: { summary: 'Delete quote source', tags: ['Quote provenance'], security: [{ apiKey: ['write:quotes'] }] } })
+defineRouteMeta({ openAPI: { summary: 'Delete quote source', tags: ['Quote provenance'], security: [{ apiKey: ['delete:quotes'] }] } })
 
 export default defineEventHandler(async (event) => {
-  requireApiModerator(event.context.api)
+  requireApiModerator(event.context.api, 'delete:quotes')
   const quoteId = Number(getRouterParam(event, 'id'))
   const sourceId = Number(getRouterParam(event, 'sid'))
   if (!Number.isInteger(quoteId) || !Number.isInteger(sourceId)) throwServer(400, 'Invalid source ID')

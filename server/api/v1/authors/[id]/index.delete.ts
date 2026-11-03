@@ -7,7 +7,7 @@ defineRouteMeta({
     summary: 'Delete an author',
     description: 'Deletes an author. Requires moderator or admin role. If the author has related quotes, a strategy must be provided: "delete" to remove all related quotes, or "anonymize" to set their author_id to null.',
     tags: ['Authors'],
-    security: [{ apiKey: ['write:authors'] }],
+    security: [{ apiKey: ['delete:authors'] }],
     parameters: [
       { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
     ],
@@ -34,7 +34,7 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
-  requireApiPermission(api, 'write:authors')
+  requireApiPermission(api, 'delete:authors')
   requireApiKeyRole(api, 'admin', 'moderator')
 
   const authorId = parseInt(getRouterParam(event, 'id') || '')

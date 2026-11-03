@@ -70,6 +70,8 @@ Local development uses the file-backed database at `.data/db/sqlite.db` through 
 
 The versioned API supports quotes, authors, references, tags, collections and search. API keys are managed from the developer dashboard; most endpoints require a key with the appropriate permissions.
 
+Write and delete access use separate permissions: `write:quotes` / `delete:quotes`, `write:authors` / `delete:authors`, `write:references` / `delete:references`, and `write:collections` / `delete:collections`. Social queue changes use `social:write`; removing queue items or clearing a queue uses `social:delete`. Theme deletions require both `admin:themes` and `delete:themes`. Existing role checks still apply, and `*` grants all permissions.
+
 ```bash
 curl 'https://verbatims.cc/api/v1/quotes?limit=5&language=en' \
   -H "Authorization: Bearer $VERBATIMS_API_KEY"

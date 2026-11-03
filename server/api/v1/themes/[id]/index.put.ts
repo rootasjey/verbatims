@@ -7,7 +7,7 @@ import { enqueueThemeLaunch } from '~~/server/utils/social-theme-launch'
 defineRouteMeta({
   openAPI: {
     summary: 'Update a theme',
-    description: 'Updates a theme and its translations.',
+    description: 'Updates a theme and its translations. Removing an existing translation also requires delete:themes.',
     tags: ['Themes'],
     security: [{ apiKey: ['admin:themes'] }],
     parameters: [
@@ -105,6 +105,15 @@ export default defineEventHandler(async (event) => {
   }
 
   if (Array.isArray(body.translations)) {
+    const existingTranslations = await db.select({ language: schema.themeTranslations.language })
+      .from(schema.themeTranslations)
+      .where(eq(schema.themeTranslations.themeId, themeId))
+      .all()
+    const desiredLanguages = new Set<string>(body.translations.map((translation: { language: string }) => translation.language))
+    if (existingTranslations.some(translation => !desiredLanguages.has(translation.language))) {
+      requireApiPermission(api, 'delete:themes')
+    }
+
     stmts.push(db.delete(schema.themeTranslations)
       .where(eq(schema.themeTranslations.themeId, themeId)))
 

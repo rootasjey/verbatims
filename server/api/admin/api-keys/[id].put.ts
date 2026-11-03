@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { validateApiKeyPermissions } from '~~/server/utils/api-key'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -13,8 +14,8 @@ export default defineEventHandler(async (event) => {
   if (body && typeof body.name === 'string' && body.name.trim().length > 0) {
     updates.name = body.name.trim()
   }
-  if (body && Array.isArray(body.permissions)) {
-    updates.permissions = JSON.stringify(body.permissions)
+  if (body && Object.hasOwn(body, 'permissions')) {
+    updates.permissions = JSON.stringify(validateApiKeyPermissions(body.permissions))
   }
   if (body && typeof body.readRateLimit === 'number' && body.readRateLimit > 0) {
     updates.readRateLimit = body.readRateLimit
