@@ -1324,6 +1324,39 @@ END;
 
 CREATE TRIGGER quote_editorial_audit_authors_update AFTER UPDATE ON authors
 WHEN EXISTS (SELECT 1 FROM quote_editorial_audit_context WHERE id = 1)
+  AND (
+    OLD.id IS NOT NEW.id
+    OR OLD.name IS NOT NEW.name
+    OR OLD.is_fictional IS NOT NEW.is_fictional
+    OR OLD.birth_date IS NOT NEW.birth_date
+    OR OLD.birth_year IS NOT NEW.birth_year
+    OR OLD.birth_era IS NOT NEW.birth_era
+    OR OLD.birth_month IS NOT NEW.birth_month
+    OR OLD.birth_day IS NOT NEW.birth_day
+    OR OLD.birth_is_approximate IS NOT NEW.birth_is_approximate
+    OR OLD.birth_calendar IS NOT NEW.birth_calendar
+    OR OLD.birth_location IS NOT NEW.birth_location
+    OR OLD.death_date IS NOT NEW.death_date
+    OR OLD.death_year IS NOT NEW.death_year
+    OR OLD.death_era IS NOT NEW.death_era
+    OR OLD.death_month IS NOT NEW.death_month
+    OR OLD.death_day IS NOT NEW.death_day
+    OR OLD.death_is_approximate IS NOT NEW.death_is_approximate
+    OR OLD.death_calendar IS NOT NEW.death_calendar
+    OR OLD.death_location IS NOT NEW.death_location
+    OR OLD.job IS NOT NEW.job
+    OR OLD.description IS NOT NEW.description
+    OR OLD.image_url IS NOT NEW.image_url
+    OR OLD.image_alt IS NOT NEW.image_alt
+    OR OLD.image_credit IS NOT NEW.image_credit
+    OR OLD.image_credit_status IS NOT NEW.image_credit_status
+    OR OLD.image_source_url IS NOT NEW.image_source_url
+    OR OLD.image_license IS NOT NEW.image_license
+    OR OLD.image_license_status IS NOT NEW.image_license_status
+    OR OLD.image_date IS NOT NEW.image_date
+    OR OLD.image_location IS NOT NEW.image_location
+    OR OLD.socials IS NOT NEW.socials
+  )
 BEGIN
   INSERT INTO quote_editorial_audit_events (actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, action, target_type, target_id, before_json, after_json, source, task_id, request_id)
   SELECT actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, 'update', 'author', CAST(NEW.id AS TEXT),
@@ -1343,6 +1376,25 @@ END;
 
 CREATE TRIGGER quote_editorial_audit_quote_references_update AFTER UPDATE ON quote_references
 WHEN EXISTS (SELECT 1 FROM quote_editorial_audit_context WHERE id = 1)
+  AND (
+    OLD.id IS NOT NEW.id
+    OR OLD.name IS NOT NEW.name
+    OR OLD.original_language IS NOT NEW.original_language
+    OR OLD.release_date IS NOT NEW.release_date
+    OR OLD.description IS NOT NEW.description
+    OR OLD.primary_type IS NOT NEW.primary_type
+    OR OLD.secondary_type IS NOT NEW.secondary_type
+    OR OLD.image_url IS NOT NEW.image_url
+    OR OLD.image_alt IS NOT NEW.image_alt
+    OR OLD.image_credit IS NOT NEW.image_credit
+    OR OLD.image_credit_status IS NOT NEW.image_credit_status
+    OR OLD.image_source_url IS NOT NEW.image_source_url
+    OR OLD.image_license IS NOT NEW.image_license
+    OR OLD.image_license_status IS NOT NEW.image_license_status
+    OR OLD.image_date IS NOT NEW.image_date
+    OR OLD.image_location IS NOT NEW.image_location
+    OR OLD.urls IS NOT NEW.urls
+  )
 BEGIN
   INSERT INTO quote_editorial_audit_events (actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, action, target_type, target_id, before_json, after_json, source, task_id, request_id)
   SELECT actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, 'update', 'reference', CAST(NEW.id AS TEXT),
