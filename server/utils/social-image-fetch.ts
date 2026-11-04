@@ -41,6 +41,11 @@ async function getResponseError(response: Response): Promise<string> {
 }
 
 export async function ensureRemoteImageReady(imageUrl: string, platformLabel: string): Promise<void> {
+  // A Worker cannot reliably fetch its own public route through the public host;
+  // Cloudflare can return 522 even when the same URL is reachable by providers.
+  // Let the social provider fetch first-party media directly.
+  if (getInternalImagePath(imageUrl)) return
+
   let lastError: Error | null = null
 
   for (let attempt = 1; attempt <= MAX_IMAGE_CHECK_ATTEMPTS; attempt++) {
