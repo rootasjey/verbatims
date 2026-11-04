@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 pt-2">
     <div class="space-y-6">
-      <div class="flex flex-col gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-end sm:justify-between dark:border-gray-800">
+      <div class="flex flex-col gap-4 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 class="font-serif text-2xl font-normal tracking-tight text-gray-900 dark:text-gray-100">{{ $ts('import_history.title') }}</h2>
           <p class="mt-1 font-sans text-sm leading-6 text-gray-600 dark:text-gray-400">
@@ -10,7 +10,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <NButton
-            btn="outline-gray"
+            btn="ghost-gray"
             size="sm"
             class="min-h-9 rounded-lg px-3"
             @click="refresh"
@@ -21,9 +21,9 @@
           </NButton>
           <NButton
             v-if="deletableCount > 0"
-            btn="outline-gray"
+            btn="ghost-gray"
             size="sm"
-            class="min-h-9 rounded-lg px-3 text-red-700 dark:text-red-300"
+            class="min-h-9 rounded-lg px-3 text-red-700 hover:bg-red-50/70 hover:text-red-800 dark:text-red-300 dark:hover:bg-red-950/30 dark:hover:text-red-200"
             @click="openClearHistoryDialog"
           >
             <NIcon name="i-ph-trash" />

@@ -50,7 +50,7 @@
   "label_relink_bundle": "Bundle de re-liaison (JSON ou ZIP)",
   "hint_relink": "JSON : objet avec tableaux. ZIP : le serveur analysera les données.",
   "button_start_relink": "Lancer la re-liaison",
-  "hint_relink_tip": "Astuce : si les ID de collection/citation sont manquants...",
+  "hint_relink_tip": "Pour les liens entre citations et collections, indiquez collection_name et quote_name si les identifiants manquent. Les deux éléments doivent déjà exister dans la base.",
   "tab_import": "Import",
   "tab_progress": "Progression",
   "tab_relink": "Relier les données",
