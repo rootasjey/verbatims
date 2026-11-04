@@ -24,6 +24,7 @@ import {
   resolveXProviderConfig
 } from './social-provider-config'
 import { getVerbatimsFallbackCanonicalUrl, verbatimsSocialPublishableSourceResolver } from './social-autopost-verbatims'
+import { ensureRemoteImageReady, fetchImagePayload } from './social-image-fetch'
 
 interface PublishResult {
   ok: boolean
@@ -1416,73 +1417,6 @@ function truncatePinterestTitle(text: string): string {
 
 async function delay(ms: number) {
   await new Promise(resolve => setTimeout(resolve, ms))
-}
-
-async function fetchImagePayload(imageUrl: string): Promise<{ bytes: ArrayBuffer, contentType: string }> {
-  const internalPath = getInternalImagePath(imageUrl)
-
-  if (internalPath) {
-    try {
-      const response = await fetch(new URL(internalPath, imageUrl))
-
-      return {
-        bytes: await response.arrayBuffer(),
-        contentType: response.headers.get('content-type') || 'image/png'
-      }
-    } catch {
-      // Fallback to external fetch below
-    }
-  }
-
-  const imageResponse = await fetch(imageUrl)
-  if (!imageResponse.ok) {
-    const details = await imageResponse.text().catch(() => '')
-    const suffix = details ? ` (${imageResponse.status}: ${details.slice(0, 240)})` : ` (${imageResponse.status})`
-    throw new Error(`Failed to fetch image from ${imageUrl}${suffix}`)
-  }
-
-  return {
-    bytes: await imageResponse.arrayBuffer(),
-    contentType: imageResponse.headers.get('content-type') || 'image/png'
-  }
-}
-
-async function ensureRemoteImageReady(imageUrl: string, platformLabel: string): Promise<void> {
-  const { contentType } = await fetchImagePayload(imageUrl)
-  const normalizedContentType = contentType.split(';')[0]?.trim().toLowerCase() || ''
-
-  if (!normalizedContentType.startsWith('image/')) {
-    throw new Error(`${platformLabel} media URL did not return an image (${normalizedContentType || 'unknown content type'})`)
-  }
-}
-
-function getInternalImagePath(imageUrl: string): string | null {
-  try {
-    const runtimeConfig = useRuntimeConfig()
-    const parsed = new URL(imageUrl)
-    const normalizedOrigin = parsed.origin.replace(/\/$/, '')
-    const knownOrigins = new Set(
-      [
-        String(runtimeConfig.public.siteUrl || ''),
-        String(runtimeConfig.public.authUrl || '')
-      ]
-        .map(value => value.trim().replace(/\/$/, ''))
-        .filter(Boolean)
-    )
-    const hostname = parsed.hostname.toLowerCase()
-    const isLocalHost = hostname === 'localhost'
-      || hostname === '127.0.0.1'
-      || hostname === '::1'
-      || hostname.endsWith('.local')
-    const isKnownOrigin = knownOrigins.has(normalizedOrigin)
-    if (!isLocalHost && !isKnownOrigin) return null
-    const pathname = parsed.pathname || ''
-    const isKnownImageEndpoint = pathname.startsWith('/api/social/images/') || pathname.startsWith('/api/og/')
-    if (!isKnownImageEndpoint) return null
-    return `${pathname}${parsed.search || ''}`
-  } catch {
-    return null
-  }
 }
 
 function toArrayBuffer(data: unknown): ArrayBuffer {
