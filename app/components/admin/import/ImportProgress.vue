@@ -210,6 +210,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import type { ImportProgress as BaseImportProgress } from '~~/server/types'
 
 const { $t, $ts } = useI18n()

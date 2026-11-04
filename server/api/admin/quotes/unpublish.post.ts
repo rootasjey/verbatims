@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and, inArray } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
 import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -54,7 +55,7 @@ export default defineEventHandler(async (event) => {
 
     let updatedCount = 0
     for (const idBatch of chunkForD1Bindings(updatableIds, 1, 1)) {
-      const updateResult = await db.update(schema.quotes)
+      const results = await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quotes)
         .set({
           status: 'draft',
           moderatorId: null,
@@ -66,8 +67,9 @@ export default defineEventHandler(async (event) => {
           inArray(schema.quotes.id, idBatch),
           eq(schema.quotes.status, 'approved')
         ))
-        .run()
-      updatedCount += Number((updateResult as any)?.changes ?? 0)
+        ])
+      const updateResult = results[1] as { changes?: number; meta?: { changes?: number } }
+      updatedCount += Number(updateResult?.meta?.changes ?? updateResult?.changes ?? 0)
     }
 
     for (const id of updatableIds) {

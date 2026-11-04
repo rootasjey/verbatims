@@ -49,6 +49,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useAdaptiveSuggestionPlacement } from '~/composables/useAdaptiveSuggestionPlacement'
 

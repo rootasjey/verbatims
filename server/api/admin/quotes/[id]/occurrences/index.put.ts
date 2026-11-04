@@ -2,9 +2,10 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { updateQuoteOccurrenceRequestSchema } from '../../../../../validation/schemas'
 import { requireAuthor, requireQuote, requireQuoteAttribution, requireQuoteOccurrence, requireReference } from '~~/server/utils/admin-quote-provenance'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event): Promise<{ success: true; data: { id: number; quote_id: number } }> => {
-  await requireModerator(event)
+  const { user } = await requireModerator(event)
   const quoteId = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(quoteId) || quoteId <= 0) throwServer(400, 'Invalid quote ID')
   await requireQuote(quoteId)
@@ -15,7 +16,7 @@ export default defineEventHandler(async (event): Promise<{ success: true; data: 
   await requireAuthor(body.author_id)
   await requireReference(body.reference_id)
 
-  await db.update(schema.quoteOccurrences).set({
+  await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quoteOccurrences).set({
     ...(body.attribution_id !== undefined ? { attributionId: body.attribution_id } : {}),
     ...(body.author_id !== undefined ? { authorId: body.author_id } : {}),
     ...(body.reference_id !== undefined ? { referenceId: body.reference_id } : {}),
@@ -26,7 +27,7 @@ export default defineEventHandler(async (event): Promise<{ success: true; data: 
     ...(body.excerpt !== undefined ? { excerpt: body.excerpt } : {}),
     ...(body.notes !== undefined ? { notes: body.notes } : {}),
     updatedAt: new Date(),
-  }).where(eq(schema.quoteOccurrences.id, body.occurrence_id)).run()
+  }).where(eq(schema.quoteOccurrences.id, body.occurrence_id))])
 
   return { success: true, data: { id: body.occurrence_id, quote_id: quoteId } }
 })

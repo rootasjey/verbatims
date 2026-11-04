@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
+import { runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -71,6 +72,7 @@ export default defineEventHandler(async (event) => {
           WHERE id IN (SELECT quote_id FROM ${schema.quoteAttributions} WHERE reference_id = ${refId})
         `))
       } else {
+        requireApiPermission(api, 'assign:references')
         const invalid = await db.get<{ count: number }>(sql`
           SELECT COUNT(*) as count FROM ${schema.quoteAttributions}
           WHERE reference_id = ${refId} AND author_id IS NULL
@@ -84,16 +86,14 @@ export default defineEventHandler(async (event) => {
       }
 
     statements.push(db.delete(schema.quoteReferences).where(eq(schema.quoteReferences.id, refId)))
-    await db.batch(statements as any)
+    await runApiAuditedBatch(event, api, statements)
 
     await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { strategy: strategy, quotes_affected: quoteCount, name: existing.name } })
 
     return { success: true, message: 'Reference deleted successfully', data: { quotesAffected: quoteCount, strategy: body.strategy } }
   }
 
-  await db.delete(schema.quoteReferences)
-    .where(eq(schema.quoteReferences.id, refId))
-    .run()
+  await runApiAuditedBatch(event, api, [db.delete(schema.quoteReferences).where(eq(schema.quoteReferences.id, refId))])
 
   await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { name: existing.name } })
 

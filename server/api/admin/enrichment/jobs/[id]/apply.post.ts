@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody<{ fields?: EnrichmentProposalField[] }>(event)
-  const result = await applyEnrichmentJob(id, body?.fields, user.id)
+  const result = await applyEnrichmentJob(id, body?.fields, user.id, event)
 
   return {
     success: true,

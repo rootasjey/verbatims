@@ -2,6 +2,8 @@ import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
 import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { hasApiPermission } from '~~/server/utils/api-key'
+import { runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -45,10 +47,10 @@ export default defineEventHandler(async (event) => {
     throwServer(403, 'You can only submit your own quotes for review')
   }
 
-  await db.update(schema.quotes)
+  await runApiAuditedBatch(event, api, [db.update(schema.quotes)
     .set({ status: 'pending', updatedAt: new Date() })
     .where(eq(schema.quotes.id, quoteId))
-    .run()
+    ])
 
   await logActivity(event, { type: 'quote_submitted', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: 'pending', submitter_id: quote.userId, name: quote.name } })
 
@@ -90,7 +92,7 @@ export default defineEventHandler(async (event) => {
         shares: updatedQuote!.sharesCount,
       },
       featured: updatedQuote!.isFeatured,
-       ...(await getQuoteProvenance(quoteId)),
+      ...(hasApiPermission(api, 'read:provenance') ? await getQuoteProvenance(quoteId) : {}),
       tags: tags.map(t => ({ id: t.id, name: t.name, color: t.color })),
       created_at: updatedQuote!.createdAt,
       updated_at: updatedQuote!.updatedAt,

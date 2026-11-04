@@ -5,6 +5,8 @@ import { buildAuthorEnrichmentPreview, buildReferenceEnrichmentPreview } from '.
 import { getEnrichmentPolicy, scheduleVerificationJobs } from './scheduler'
 import { resolveEnrichmentConfig } from './config'
 import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
+import type { H3Event } from 'h3'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 interface ProcessOptions {
   limit?: number
@@ -150,11 +152,11 @@ export async function previewReferenceEnrichment(referenceId: number, createdBy?
   return await getLatestReferenceJob(referenceId)
 }
 
-export async function applyAuthorEnrichmentJob(jobId: number, fields?: EnrichmentProposalField[], actedBy?: number | null) {
-  return await applyEnrichmentJob(jobId, fields, actedBy)
+export async function applyAuthorEnrichmentJob(jobId: number, fields: EnrichmentProposalField[] | undefined, actedBy: number, event: H3Event) {
+  return await applyEnrichmentJob(jobId, fields, actedBy, event)
 }
 
-export async function applyEnrichmentJob(jobId: number, fields?: EnrichmentProposalField[], actedBy?: number | null) {
+export async function applyEnrichmentJob(jobId: number, fields: EnrichmentProposalField[] | undefined, actedBy: number, event: H3Event) {
   const job = await db.select()
     .from(schema.entityEnrichmentJobs)
     .where(eq(schema.entityEnrichmentJobs.id, jobId))
@@ -169,11 +171,11 @@ export async function applyEnrichmentJob(jobId: number, fields?: EnrichmentPropo
   }
 
   if (job.entityType === 'author') {
-    return await applyAuthorJob(job, fields, actedBy)
+    return await applyAuthorJob(job, fields, actedBy, event)
   }
 
   if (job.entityType === 'reference') {
-    return await applyReferenceJob(job, fields, actedBy)
+    return await applyReferenceJob(job, fields, actedBy, event)
   }
 
   throw new Error('Unsupported enrichment job type')
@@ -181,8 +183,9 @@ export async function applyEnrichmentJob(jobId: number, fields?: EnrichmentPropo
 
 async function applyAuthorJob(
   job: typeof schema.entityEnrichmentJobs.$inferSelect,
-  fields?: EnrichmentProposalField[],
-  actedBy?: number | null,
+  fields: EnrichmentProposalField[] | undefined,
+  actedBy: number,
+  event: H3Event,
 ) {
   const preview = JSON.parse(job.resultPayload || 'null') as EntityEnrichmentPreview
   if (preview?.entity_type !== 'author') {
@@ -243,10 +246,10 @@ async function applyAuthorJob(
     if (proposal.fieldName === 'socials') updateData.socials = proposal.proposedValue
   }
 
-  await db.update(schema.authors)
+  const update = db.update(schema.authors)
     .set(updateData)
     .where(eq(schema.authors.id, job.entityId))
-    .run()
+  await runWebEditorialAuditedBatch(event, actedBy, [update], 'admin_enrichment')
 
   const now = new Date()
   const nextCheckAt = await computeNextCheckAt('author')
@@ -330,8 +333,9 @@ async function applyAuthorJob(
 
 async function applyReferenceJob(
   job: typeof schema.entityEnrichmentJobs.$inferSelect,
-  fields?: EnrichmentProposalField[],
-  actedBy?: number | null,
+  fields: EnrichmentProposalField[] | undefined,
+  actedBy: number,
+  event: H3Event,
 ) {
   const preview = JSON.parse(job.resultPayload || 'null') as EntityEnrichmentPreview
   if (preview?.entity_type !== 'reference') {
@@ -387,10 +391,10 @@ async function applyReferenceJob(
     if (proposal.fieldName === 'urls') updateData.urls = proposal.proposedValue
   }
 
-  await db.update(schema.quoteReferences)
+  const update = db.update(schema.quoteReferences)
     .set(updateData)
     .where(eq(schema.quoteReferences.id, job.entityId))
-    .run()
+  await runWebEditorialAuditedBatch(event, actedBy, [update], 'admin_enrichment')
 
   const now = new Date()
   const nextCheckAt = await computeNextCheckAt('reference')

@@ -1,8 +1,9 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createQuoteSchema } from '../../validation/schemas'
-import { getQuoteProvenance, syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance, syncPrimarySource } from '~~/server/utils/quote-provenance'
 import { detectSubmittedQuoteLanguage } from '~~/server/utils/quote-language'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -18,24 +19,26 @@ export default defineEventHandler(async (event) => {
     let referenceId = requestedPrimary.reference_id
 
     if (body.new_author?.name) {
-      const authorResult = await db.insert(schema.authors).values({
+      const authorResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.authors).values({
         name: body.new_author.name,
         isFictional: body.new_author.is_fictional || false,
         job: body.new_author.job || null,
         description: body.new_author.description || null
-      }).returning({ id: schema.authors.id }).get()
+      }).returning({ id: schema.authors.id })])
+      const authorResult = getAuditedBatchRow<{ id: number }>(authorResults, 1)
       
       authorId = authorResult.id
     }
 
     if (body.new_reference?.name) {
-      const referenceResult = await db.insert(schema.quoteReferences).values({
+      const referenceResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quoteReferences).values({
         name: body.new_reference.name,
         originalLanguage: body.new_reference.original_language || 'en',
         primaryType: body.new_reference.primary_type || 'other',
         description: body.new_reference.description ?? null,
         releaseDate: body.new_reference.release_date ?? null,
-      } as any).returning({ id: schema.quoteReferences.id }).get()
+      } as any).returning({ id: schema.quoteReferences.id })])
+      const referenceResult = getAuditedBatchRow<{ id: number }>(referenceResults, 1)
       
       referenceId = referenceResult.id
     }
@@ -84,27 +87,30 @@ export default defineEventHandler(async (event) => {
     const language = await detectSubmittedQuoteLanguage(event, body.name)
     let quoteId: number
     try {
-      const quoteResult = await db.insert(schema.quotes).values({
+      const quoteResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quotes).values({
         name: body.name,
         language,
         userId: user.id,
         status: 'draft',
         createdAt: new Date(),
         updatedAt: new Date()
-      } as any).returning({ id: schema.quotes.id }).get()
+      } as any).returning({ id: schema.quotes.id })])
+      const quoteResult = getAuditedBatchRow<{ id: number }>(quoteResults, 1)
       quoteId = quoteResult.id
 
-      await syncPrimaryAttribution(
+      const primaryStatus = isPrivileged ? requestedPrimary.status : 'unverified'
+      const attributionStatements = [db.insert(schema.quoteAttributions).values({
         quoteId,
-        authorId || null,
-        referenceId || null,
-        user.id,
-        isPrivileged ? requestedPrimary.status : 'unverified',
-        requestedPrimary.notes,
-      )
+        authorId: authorId || null,
+        referenceId: referenceId || null,
+        isPrimary: true,
+        status: primaryStatus,
+        notes: requestedPrimary.notes,
+        createdBy: user.id,
+        ...(primaryStatus === 'unverified' ? {} : { verifiedBy: user.id, verifiedAt: new Date() }),
+      })]
       const additionalAttributions = body.attributions.filter(attribution => !attribution.is_primary)
-      if (additionalAttributions.length) {
-        await db.batch(additionalAttributions.map(attribution => db.insert(schema.quoteAttributions).values({
+      attributionStatements.push(...additionalAttributions.map(attribution => db.insert(schema.quoteAttributions).values({
           quoteId,
           authorId: attribution.author_id,
           referenceId: attribution.reference_id,
@@ -112,11 +118,11 @@ export default defineEventHandler(async (event) => {
           status: isPrivileged ? attribution.status : 'unverified',
           notes: attribution.notes,
           createdBy: user.id,
-        })) as any)
-      }
+        })))
+      await runWebEditorialAuditedBatch(event, user.id, attributionStatements, 'web_user')
     } catch (error) {
       if (quoteId!) {
-        await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId)).run().catch(() => undefined)
+        await runWebEditorialAuditedBatch(event, user.id, [db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId))], 'web_user').catch(() => undefined)
       }
       throw error
     }

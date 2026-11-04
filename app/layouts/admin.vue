@@ -380,6 +380,7 @@ const adminNavGroups = computed<AdminNavGroup[]>(() => [
       { to: '/admin/harvest', label: String($t('admin.nav.harvest_quotes')), count: harvestedCount.value },
       { to: '/admin/enrichment', label: String($t('admin.nav.enrichment_queue')) },
       { to: '/admin/enrichment-audit', label: String($t('admin.nav.enrichment_audit')) },
+      { to: '/admin/editorial-history', label: String($t('admin.nav.editorial_history')) },
     ],
   },
   {

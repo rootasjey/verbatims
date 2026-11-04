@@ -7,6 +7,7 @@ import { schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { parseTimestampInput } from '~~/server/utils/date-normalization'
 import { authorLifeDateColumnsFromInput } from './author-life-date'
+import { getAuditedBatchRow, runImportedEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Record<string, any[]>> {
   const { unzipSync } = await import('fflate')
@@ -566,7 +567,7 @@ export async function importUsersFromDataset(db: any, importId: string, users: a
   return imported
 }
 
-export async function importAuthorsFromDataset(db: any, importId: string, authors: any[]): Promise<number> {
+export async function importAuthorsFromDataset(db: any, importId: string, authors: any[], actorUserId: number): Promise<number> {
   const total = authors.length
   let imported = 0
   updateStepProgress(importId, 'authors', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} authors...` })
@@ -599,8 +600,8 @@ export async function importAuthorsFromDataset(db: any, importId: string, author
         if (explicitId != null) values.id = explicitId
         stmts.push(db.insert(schema.authors).values(values).onConflictDoNothing({ target: schema.authors.id }))
       }
-      try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
-      catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
+      try { if (stmts.length > 0) { await runImportedEditorialAuditedBatch(actorUserId, importId, stmts); imported += stmts.length } }
+      catch (e) { for (const s of stmts) { try { await runImportedEditorialAuditedBatch(actorUserId, importId, [s]); imported++ } catch {} } }
       if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
     }
   }
@@ -622,7 +623,7 @@ export async function importAuthorsFromDataset(db: any, importId: string, author
   return imported
 } 
 
-export async function importReferencesFromDataset(db: any, importId: string, refs: any[]): Promise<number> {
+export async function importReferencesFromDataset(db: any, importId: string, refs: any[], actorUserId: number): Promise<number> {
   const total = refs.length
   let imported = 0
   updateStepProgress(importId, 'references', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} references...` })
@@ -656,8 +657,8 @@ export async function importReferencesFromDataset(db: any, importId: string, ref
         if (explicitId != null) values.id = explicitId
         stmts.push(db.insert(schema.quoteReferences).values(values).onConflictDoNothing({ target: schema.quoteReferences.id }))
       }
-      try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
-      catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
+      try { if (stmts.length > 0) { await runImportedEditorialAuditedBatch(actorUserId, importId, stmts); imported += stmts.length } }
+      catch (e) { for (const s of stmts) { try { await runImportedEditorialAuditedBatch(actorUserId, importId, [s]); imported++ } catch {} } }
       if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
     }
   }
@@ -724,7 +725,7 @@ export async function importTagsFromDataset(db: any, importId: string, tags: any
   return imported
 } 
 
-export async function importQuotesFromDataset(db: any, adminUserId: number, importId: string, quotes: any[]): Promise<number> {
+export async function importQuotesFromDataset(db: any, adminUserId: number, auditActorUserId: number, importId: string, quotes: any[]): Promise<number> {
   const total = quotes.length
   let imported = 0
   let skipped = 0
@@ -801,12 +802,12 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
 
           let quoteId: number | undefined
           try {
-            const quote = await db.insert(schema.quotes)
+            const quoteResults = await runImportedEditorialAuditedBatch(auditActorUserId, importId, [db.insert(schema.quotes)
               .values(values)
-              .returning({ id: schema.quotes.id })
-              .get()
+              .returning({ id: schema.quotes.id })])
+            const quote = getAuditedBatchRow<{ id: number }>(quoteResults, 1)
             quoteId = quote.id
-            const attribution = await db.insert(schema.quoteAttributions).values({
+            const attributionResults = await runImportedEditorialAuditedBatch(auditActorUserId, importId, [db.insert(schema.quoteAttributions).values({
               quoteId: quote.id,
               authorId,
               referenceId,
@@ -814,9 +815,10 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
               createdBy: adminUserId,
               createdAt,
               updatedAt,
-            }).returning({ id: schema.quoteAttributions.id }).get()
+            }).returning({ id: schema.quoteAttributions.id })])
+            const attribution = getAuditedBatchRow<{ id: number }>(attributionResults, 1)
             if (q.source_type || q.source_url) {
-              await db.insert(schema.quoteSources).values({
+              await runImportedEditorialAuditedBatch(auditActorUserId, importId, [db.insert(schema.quoteSources).values({
                 quoteId: quote.id,
                 attributionId: attribution.id,
                 sourceType: q.source_type || 'manual',
@@ -825,12 +827,12 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
                 createdBy: adminUserId,
                 createdAt,
                 updatedAt,
-              })
+              })])
             }
             batchImported++
           } catch (error) {
             if (quoteId) {
-              await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId)).run().catch(() => undefined)
+              await runImportedEditorialAuditedBatch(auditActorUserId, importId, [db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId))]).catch(() => undefined)
             }
             throw error
           }

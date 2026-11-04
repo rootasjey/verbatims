@@ -5,6 +5,7 @@
 
 import { db, schema } from 'hub:db'
 import { sql, eq } from 'drizzle-orm'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -68,7 +69,7 @@ export default defineEventHandler(async (event) => {
 
         // Delete the author
       statements.push(db.delete(schema.authors).where(eq(schema.authors.id, parseInt(authorId))))
-      await db.batch(statements as any)
+      await runWebEditorialAuditedBatch(event, user.id, statements)
 
       return {
         success: true,
@@ -81,9 +82,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // No related quotes: simple delete
-    await db.delete(schema.authors)
-      .where(eq(schema.authors.id, parseInt(authorId)))
-      .run()
+    await runWebEditorialAuditedBatch(event, user.id, [db.delete(schema.authors).where(eq(schema.authors.id, parseInt(authorId)))])
 
     return { success: true, message: 'Author deleted successfully', data: { quotesAffected: 0 } }
 

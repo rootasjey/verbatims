@@ -8,6 +8,17 @@ export const API_KEY_PERMISSIONS = [
   'read',
   'write:quotes',
   'delete:quotes',
+  // Legacy quote writes are upgraded by migration 0057; new keys can grant each
+  // provenance capability independently, including author/reference assignment.
+  'read:provenance',
+  'write:sources',
+  'delete:sources',
+  'write:occurrences',
+  'delete:occurrences',
+  'write:attributions',
+  'delete:attributions',
+  'assign:authors',
+  'assign:references',
   'write:authors',
   'delete:authors',
   'write:references',
@@ -62,6 +73,7 @@ export interface ApiKeyData {
   writeWindowSec: number
   isActive: boolean
   userRole: string
+  userName: string | null
 }
 
 export async function validateApiKey(key: string): Promise<ApiKeyData | null> {
@@ -83,6 +95,7 @@ export async function validateApiKey(key: string): Promise<ApiKeyData | null> {
       isActive: schema.apiKeys.isActive,
       expiresAt: schema.apiKeys.expiresAt,
       userRole: schema.users.role,
+      userName: schema.users.name,
     })
     .from(schema.apiKeys)
     .innerJoin(schema.users, eq(schema.apiKeys.userId, schema.users.id))
@@ -111,13 +124,18 @@ export async function validateApiKey(key: string): Promise<ApiKeyData | null> {
     writeWindowSec: result.writeWindowSec,
     isActive: result.isActive,
     userRole: result.userRole!,
+    userName: result.userName,
   }
 }
 
 export function requireApiPermission(apiKey: ApiKeyData, permission: string): void {
-  if (!apiKey.permissions.includes('*') && !apiKey.permissions.includes(permission)) {
+  if (!hasApiPermission(apiKey, permission)) {
     throwServer(403, `API key missing required permission: ${permission}`)
   }
+}
+
+export function hasApiPermission(apiKey: ApiKeyData, permission: string): boolean {
+  return apiKey.permissions.includes('*') || apiKey.permissions.includes(permission)
 }
 
 export function requireApiKeyRole(apiKey: ApiKeyData, ...roles: string[]): void {

@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { createQuoteOccurrenceSchema } from '../../../../../validation/schemas'
 import { requireAuthor, requireQuote, requireQuoteAttribution, requireReference } from '~~/server/utils/admin-quote-provenance'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event): Promise<{ success: true; data: { id: number; quote_id: number } }> => {
   const { user } = await requireModerator(event)
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event): Promise<{ success: true; data: 
   await requireAuthor(body.author_id)
   await requireReference(body.reference_id)
 
-  const created = await db.insert(schema.quoteOccurrences).values({
+  const results = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quoteOccurrences).values({
     quoteId,
     attributionId: body.attribution_id,
     authorId: body.author_id,
@@ -24,7 +25,8 @@ export default defineEventHandler(async (event): Promise<{ success: true; data: 
     excerpt: body.excerpt,
     notes: body.notes,
     createdBy: user.id,
-  }).returning({ id: schema.quoteOccurrences.id }).get()
+  }).returning({ id: schema.quoteOccurrences.id })])
+  const created = getAuditedBatchRow<{ id: number }>(results, 1)
 
   return { success: true, data: { id: created.id, quote_id: quoteId } }
 })

@@ -2,7 +2,8 @@ import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { updateQuoteSchema } from '../../validation/schemas'
-import { getQuoteProvenance, syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -41,23 +42,25 @@ export default defineEventHandler(async (event) => {
     let referenceId = replacementPrimary?.reference_id ?? primaryAttribution?.reference_id ?? null
 
     if (body.new_author?.name) {
-      const newAuthor = await db.insert(schema.authors).values({
+      const authorResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.authors).values({
         name: body.new_author.name,
         isFictional: body.new_author.is_fictional,
         createdAt: new Date(),
         updatedAt: new Date()
-      }).returning({ id: schema.authors.id }).get()
+      }).returning({ id: schema.authors.id })])
+      const newAuthor = getAuditedBatchRow<{ id: number }>(authorResults, 1)
       authorId = newAuthor.id
     }
 
     if (body.new_reference?.name) {
-      const newReference = await db.insert(schema.quoteReferences).values({
+      const referenceResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quoteReferences).values({
         name: body.new_reference.name,
         originalLanguage: body.new_reference.original_language || body.language || 'en',
         primaryType: body.new_reference.primary_type || 'other',
         createdAt: new Date(),
         updatedAt: new Date()
-      } as any).returning({ id: schema.quoteReferences.id }).get()
+      } as any).returning({ id: schema.quoteReferences.id })])
+      const newReference = getAuditedBatchRow<{ id: number }>(referenceResults, 1)
       referenceId = newReference.id
     }
 
@@ -77,7 +80,7 @@ export default defineEventHandler(async (event) => {
         author_id: authorId,
         reference_id: referenceId,
       } : attribution)
-      await db.batch([
+      await runWebEditorialAuditedBatch(event, user.id, [
         db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, parseInt(quoteId!))),
         db.delete(schema.quoteAttributions).where(eq(schema.quoteAttributions.quoteId, e.id)),
         db.insert(schema.quoteAttributions).values(resolvedAttributions.map(attribution => ({
@@ -89,10 +92,15 @@ export default defineEventHandler(async (event) => {
           notes: attribution.notes,
           createdBy: user.id,
         }))),
-      ] as any)
+      ] as any, 'web_user')
     } else {
-      await db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, parseInt(quoteId!))).run()
-      await syncPrimaryAttribution(e.id, authorId, referenceId, user.id, primaryAttribution?.status, primaryAttribution?.notes)
+      const statements: unknown[] = [db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, parseInt(quoteId!)))]
+      if (primaryAttribution) {
+        statements.push(db.update(schema.quoteAttributions).set({ authorId, referenceId, updatedAt: new Date() }).where(eq(schema.quoteAttributions.id, primaryAttribution.id)))
+      } else {
+        statements.push(db.insert(schema.quoteAttributions).values({ quoteId: e.id, authorId, referenceId, isPrimary: true, status: 'unverified', createdBy: user.id }))
+      }
+      await runWebEditorialAuditedBatch(event, user.id, statements, 'web_user')
     }
 
     if (body.source_type !== undefined || body.source_url !== undefined) {
@@ -107,14 +115,17 @@ export default defineEventHandler(async (event) => {
       if (!primaryAttributionId) throwServer(400, 'A quote requires a primary attribution to record provenance')
 
       if (body.source_type || body.source_url) {
-        await syncPrimarySource(e.id, primaryAttributionId.id, body.source_type, body.source_url, user.id)
+        const existingSource = await db.select({ id: schema.quoteSources.id }).from(schema.quoteSources).where(and(eq(schema.quoteSources.quoteId, e.id), eq(schema.quoteSources.isPrimary, true))).get()
+        const values = { attributionId: primaryAttributionId.id, sourceType: body.source_type || 'manual', sourceUrl: body.source_url || null, isPrimary: true, updatedAt: new Date() }
+        await runWebEditorialAuditedBatch(event, user.id, [existingSource
+          ? db.update(schema.quoteSources).set(values).where(eq(schema.quoteSources.id, existingSource.id))
+          : db.insert(schema.quoteSources).values({ ...values, quoteId: e.id, createdBy: user.id })], 'web_user')
       } else {
-        await db.delete(schema.quoteSources)
+        await runWebEditorialAuditedBatch(event, user.id, [db.delete(schema.quoteSources)
           .where(and(
             eq(schema.quoteSources.quoteId, e.id),
             eq(schema.quoteSources.isPrimary, true),
-          ))
-          .run()
+          ))], 'web_user')
       }
     }
 

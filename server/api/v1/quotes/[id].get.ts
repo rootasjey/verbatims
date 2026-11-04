@@ -5,7 +5,7 @@ import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 defineRouteMeta({
   openAPI: {
     summary: 'Get a single quote',
-    description: 'Returns details of an approved quote by ID.',
+    description: 'Returns details of an approved quote by ID. Attribution and source fields require read:provenance.',
     tags: ['Quotes'],
     security: [{ apiKey: [] }],
     parameters: [
@@ -43,7 +43,9 @@ export default defineEventHandler(async (event) => {
 
   if (!quote) throwServer(404, 'Quote not found')
 
-  const provenance = await getQuoteProvenance(quoteId)
+  const api = event.context.api
+  const canReadProvenance = api.permissions.includes('*') || api.permissions.includes('read:provenance')
+  const provenance = canReadProvenance ? await getQuoteProvenance(quoteId) : null
 
   const tags = await db
     .select({ name: schema.tags.name, color: schema.tags.color })
@@ -64,8 +66,7 @@ export default defineEventHandler(async (event) => {
         shares: quote.sharesCount,
       },
       featured: quote.isFeatured,
-       attributions: provenance.attributions,
-       sources: provenance.sources,
+      ...(provenance ? { attributions: provenance.attributions, sources: provenance.sources } : {}),
       tags: tags.map(t => ({ name: t.name, color: t.color })),
       created_at: quote.createdAt,
       updated_at: quote.updatedAt,

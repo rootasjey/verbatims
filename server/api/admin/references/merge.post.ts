@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 const MERGEABLE_FIELDS = ['name', 'description', 'releaseDate', 'imageUrl', 'secondaryType', 'originalLanguage', 'primaryType'] as const
 
@@ -100,7 +101,7 @@ export default defineEventHandler(async (event) => {
         })
         .where(eq(schema.quoteReferences.id, targetId)))
       statements.push(db.delete(schema.quoteReferences).where(eq(schema.quoteReferences.id, sourceId)))
-      await db.batch(statements as any)
+      await runWebEditorialAuditedBatch(event, user.id, statements)
 
       return {
         success: true,

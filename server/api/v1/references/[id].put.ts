@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateReferenceSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
+import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -109,11 +110,12 @@ export default defineEventHandler(async (event) => {
     throwServer(400, 'No fields to update')
   }
 
-  const updated = await db.update(schema.quoteReferences)
+  const results = await runApiAuditedBatch(event, api, [db.update(schema.quoteReferences)
     .set(updateData)
     .where(eq(schema.quoteReferences.id, refId))
     .returning()
-    .get()
+  ])
+  const updated = getAuditedBatchRow<typeof schema.quoteReferences.$inferSelect>(results, 1)
 
   await logActivity(event, { type: 'reference_edited', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { name: updated.name } })
 

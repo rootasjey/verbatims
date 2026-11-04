@@ -106,10 +106,10 @@ export default defineEventHandler(async (event) => {
         try { if (counts.users) { await importUsersInline(importId, parsedBundle.users ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `Users import failed: ${e.message}`] })
         }
-        try { if (counts.authors) { await importAuthorsInline(importId, parsedBundle.authors ?? [], options) } } catch (e: any) {
+        try { if (counts.authors) { await importAuthorsInline(importId, parsedBundle.authors ?? [], options, user.id) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `Authors import failed: ${e.message}`] })
         }
-        try { if (counts.references) { await importReferencesInline(importId, parsedBundle.references ?? [], options) } } catch (e: any) {
+        try { if (counts.references) { await importReferencesInline(importId, parsedBundle.references ?? [], options, user.id) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `References import failed: ${e.message}`] })
         }
         try { if (counts.tags) { await importTagsInline(importId, parsedBundle.tags ?? [], options) } } catch (e: any) {

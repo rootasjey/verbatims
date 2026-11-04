@@ -2,12 +2,14 @@ import { db, schema } from 'hub:db'
 import { eq, inArray } from 'drizzle-orm'
 import { updateV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
-import { syncPrimaryAttribution, getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { hasApiPermission, requireApiKeyRole } from '~~/server/utils/api-key'
 
 defineRouteMeta({
   openAPI: {
     summary: 'Update a quote',
-    description: 'Updates a quote. Users can only update their own quotes; moderators and admins can update any quote. Replacing attributions while removing an existing attribution also requires delete:quotes.',
+    description: 'Updates a quote. Users can only update their own quotes; moderators and admins can update any quote. Attribution edits require write:attributions; author/reference assignments and removals require their dedicated scopes. Inline author/reference creation requires write:authors or write:references and a moderator/admin account.',
     tags: ['Quotes'],
     security: [{ apiKey: ['write:quotes'] }],
     parameters: [
@@ -59,6 +61,7 @@ export default defineEventHandler(async (event) => {
   const currentProvenance = await getQuoteProvenance(quoteId)
   const primaryAttribution = currentProvenance.attributions.find(item => item.is_primary) ?? currentProvenance.attributions[0]
   const replacementAttributions = body.attributions
+  if (replacementAttributions) requireApiPermission(api, 'write:attributions')
   type AttributionReplacement = NonNullable<typeof replacementAttributions>[number]
   const attributionsToUpdate: Array<{ id: number; replacement: AttributionReplacement }> = []
   const attributionsToInsert: AttributionReplacement[] = []
@@ -82,7 +85,17 @@ export default defineEventHandler(async (event) => {
 
   const attributionsToDelete = [...remainingAttributions.values()].flat()
   if (attributionsToDelete.length > 0) {
-    requireApiPermission(api, 'delete:quotes')
+    requireApiPermission(api, 'delete:attributions')
+  }
+
+  for (const { id, replacement } of attributionsToUpdate) {
+    const current = currentProvenance.attributions.find(item => item.id === id)
+    if (current && replacement.author_id !== current.author_id) requireApiPermission(api, 'assign:authors')
+    if (current && replacement.reference_id !== current.reference_id) requireApiPermission(api, 'assign:references')
+  }
+  for (const attribution of attributionsToInsert) {
+    if (attribution.author_id != null) requireApiPermission(api, 'assign:authors')
+    if (attribution.reference_id != null) requireApiPermission(api, 'assign:references')
   }
 
   const replacementPrimary = replacementAttributions?.find(attribution => attribution.is_primary)
@@ -103,23 +116,31 @@ export default defineEventHandler(async (event) => {
   }
 
   if (body.new_author?.name) {
-    const newAuthor = await db.insert(schema.authors).values({
+    requireApiPermission(api, 'assign:authors')
+    requireApiPermission(api, 'write:authors')
+    requireApiKeyRole(api, 'moderator', 'admin')
+    const authorResults = await runApiAuditedBatch(event, api, [db.insert(schema.authors).values({
       name: body.new_author.name,
       isFictional: body.new_author.is_fictional,
       createdAt: new Date(),
       updatedAt: new Date()
-    }).returning({ id: schema.authors.id }).get()
+    }).returning({ id: schema.authors.id })])
+    const newAuthor = getAuditedBatchRow<{ id: number }>(authorResults, 1)
     authorId = newAuthor.id
   }
 
   if (body.new_reference?.name) {
-    const newReference = await db.insert(schema.quoteReferences).values({
+    requireApiPermission(api, 'assign:references')
+    requireApiPermission(api, 'write:references')
+    requireApiKeyRole(api, 'moderator', 'admin')
+    const referenceResults = await runApiAuditedBatch(event, api, [db.insert(schema.quoteReferences).values({
       name: body.new_reference.name,
       originalLanguage: body.new_reference.original_language || body.language || 'en',
       primaryType: body.new_reference.primary_type || 'other',
       createdAt: new Date(),
       updatedAt: new Date()
-    } as any).returning({ id: schema.quoteReferences.id }).get()
+    } as any).returning({ id: schema.quoteReferences.id })])
+    const newReference = getAuditedBatchRow<{ id: number }>(referenceResults, 1)
     referenceId = newReference.id
   }
 
@@ -172,18 +193,23 @@ export default defineEventHandler(async (event) => {
       }))
     }
 
-    await db.batch(statements as any)
+    await runApiAuditedBatch(event, api, statements)
   } else {
-    const attributionStatus = isMod ? primaryAttribution?.status : 'unverified'
-    const attributionId = await syncPrimaryAttribution(
-      quoteId,
-      authorId || null,
-      referenceId || null,
-      api.userId,
-      attributionStatus,
-      primaryAttribution?.notes,
-    )
-    await db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId)).run()
+    const statements: any[] = [db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId))]
+    if (authorId !== primaryAttribution?.author_id || referenceId !== primaryAttribution?.reference_id) {
+      requireApiPermission(api, 'write:attributions')
+      if (authorId != null) requireApiPermission(api, 'assign:authors')
+      if (referenceId != null) requireApiPermission(api, 'assign:references')
+    }
+    if (primaryAttribution) {
+      statements.push(db.update(schema.quoteAttributions).set({
+        authorId: authorId || null,
+        referenceId: referenceId || null,
+        ...(body.new_author || body.new_reference ? { status: 'unverified' as const, verifiedBy: null, verifiedAt: null } : {}),
+        updatedAt: new Date(),
+      }).where(eq(schema.quoteAttributions.id, primaryAttribution.id)))
+    }
+    await runApiAuditedBatch(event, api, statements)
   }
 
   await logActivity(event, { type: 'quote_edited', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: existingQuote.status, name: body.name } })
@@ -223,7 +249,7 @@ export default defineEventHandler(async (event) => {
         shares: updatedQuote!.sharesCount,
       },
       featured: updatedQuote!.isFeatured,
-       ...(await getQuoteProvenance(quoteId)),
+      ...(hasApiPermission(api, 'read:provenance') ? await getQuoteProvenance(quoteId) : {}),
       tags: tags.map(t => ({ name: t.name, color: t.color })),
       created_at: updatedQuote!.createdAt,
       updated_at: updatedQuote!.updatedAt,

@@ -250,6 +250,7 @@
         <div>
           <label class="mb-2 block font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ $t('label_permissions') }}</label>
           <ApiKeyPermissionPicker v-model="form.permissions" :sections="permissionSections" />
+          <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('permissions_audit_hint') }}</p>
         </div>
         </div>
 
@@ -380,8 +381,17 @@ const deleting = ref(false)
 
 const availablePermissions = [
   { label: String($t('perm_read')), value: 'read' },
+  { label: String($t('perm_read_provenance')), value: 'read:provenance' },
   { label: String($t('perm_quotes')), value: 'write:quotes' },
   { label: String($t('perm_delete_quotes')), value: 'delete:quotes' },
+  { label: String($t('perm_sources')), value: 'write:sources' },
+  { label: String($t('perm_delete_sources')), value: 'delete:sources' },
+  { label: String($t('perm_occurrences')), value: 'write:occurrences' },
+  { label: String($t('perm_delete_occurrences')), value: 'delete:occurrences' },
+  { label: String($t('perm_attributions')), value: 'write:attributions' },
+  { label: String($t('perm_delete_attributions')), value: 'delete:attributions' },
+  { label: String($t('perm_assign_authors')), value: 'assign:authors' },
+  { label: String($t('perm_assign_references')), value: 'assign:references' },
   { label: String($t('perm_authors')), value: 'write:authors' },
   { label: String($t('perm_delete_authors')), value: 'delete:authors' },
   { label: String($t('perm_references')), value: 'write:references' },
@@ -402,6 +412,7 @@ const permissionSections = [
     columns: [{ label: String($t('permissions_column_enabled')) }],
     rows: [
       { label: String($t('permissions_row_api')), scopes: ['read'] },
+      { label: String($t('permissions_row_provenance')), scopes: ['read:provenance'] },
       { label: String($t('permissions_row_all')), scopes: ['*'] },
     ],
   },
@@ -413,6 +424,11 @@ const permissionSections = [
     ],
     rows: [
       { label: String($t('permissions_row_quotes')), scopes: ['write:quotes', 'delete:quotes'] },
+      { label: String($t('permissions_row_sources')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:sources', 'delete:sources'] },
+      { label: String($t('permissions_row_occurrences')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:occurrences', 'delete:occurrences'] },
+      { label: String($t('permissions_row_attributions')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:attributions', 'delete:attributions'] },
+      { label: String($t('permissions_row_assign_author')), note: String($t('permissions_note_assignment')), noteTooltip: String($t('permissions_note_assignment_tooltip')), scopes: ['assign:authors', null] },
+      { label: String($t('permissions_row_assign_reference')), note: String($t('permissions_note_assignment')), noteTooltip: String($t('permissions_note_assignment_tooltip')), scopes: ['assign:references', null] },
       { label: String($t('permissions_row_authors')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:authors', 'delete:authors'] },
       { label: String($t('permissions_row_references')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:references', 'delete:references'] },
       { label: String($t('permissions_row_collections')), scopes: ['write:collections', 'delete:collections'] },
@@ -439,8 +455,17 @@ const permissionSections = [
 
 const permissionIcons: Record<string, string> = {
   read: 'i-lucide-eye',
+  'read:provenance': 'i-lucide-book-open-text',
   'write:quotes': 'i-lucide-quote',
   'delete:quotes': 'i-lucide-trash-2',
+  'write:sources': 'i-lucide-link',
+  'delete:sources': 'i-lucide-trash-2',
+  'write:occurrences': 'i-lucide-repeat-2',
+  'delete:occurrences': 'i-lucide-trash-2',
+  'write:attributions': 'i-lucide-user-round-pen',
+  'delete:attributions': 'i-lucide-trash-2',
+  'assign:authors': 'i-lucide-user-round',
+  'assign:references': 'i-lucide-book-open',
   'write:authors': 'i-lucide-user-round-pen',
   'delete:authors': 'i-lucide-trash-2',
   'write:references': 'i-lucide-book-open-check',

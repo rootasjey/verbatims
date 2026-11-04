@@ -227,7 +227,8 @@ interface ReferenceLookupResult {
  * Find existing author by name or create new one
  */
 export async function findOrCreateAuthor(
-  authorData: ImportAuthor
+  authorData: ImportAuthor,
+  insertAudited?: (statement: unknown) => Promise<{ id: number }>,
 ): Promise<AuthorLookupResult> {
   if (!authorData.name?.trim()) {
     throw new Error('Author name is required')
@@ -250,7 +251,7 @@ export async function findOrCreateAuthor(
   }
 
   // Create new author
-  const result = await db.insert(schema.authors).values({
+  const insert = db.insert(schema.authors).values({
     name: authorName,
     description: authorData.summary || authorData.description || null,
     job: authorData.job || null,
@@ -263,7 +264,8 @@ export async function findOrCreateAuthor(
     viewsCount: 0,
     likesCount: 0,
     sharesCount: 0
-  }).returning({ id: schema.authors.id }).get()
+  }).returning({ id: schema.authors.id })
+  const result = insertAudited ? await insertAudited(insert) : await insert.get()
 
   return {
     id: result.id,
@@ -275,7 +277,8 @@ export async function findOrCreateAuthor(
  * Find existing reference by name or create new one
  */
 export async function findOrCreateReference(
-  referenceData: ImportReference
+  referenceData: ImportReference,
+  insertAudited?: (statement: unknown) => Promise<{ id: number }>,
 ): Promise<ReferenceLookupResult> {
   if (!referenceData.name?.trim()) {
     throw new Error('Reference name is required')
@@ -298,7 +301,7 @@ export async function findOrCreateReference(
   }
 
   // Create new reference
-  const result = await db.insert(schema.quoteReferences).values({
+  const insert = db.insert(schema.quoteReferences).values({
     name: referenceName,
     originalLanguage: referenceData.original_language || referenceData.language || 'en',
     releaseDate: referenceData.release_date || null,
@@ -310,7 +313,8 @@ export async function findOrCreateReference(
     viewsCount: 0,
     likesCount: 0,
     sharesCount: 0
-  }).returning({ id: schema.quoteReferences.id }).get()
+  }).returning({ id: schema.quoteReferences.id })
+  const result = insertAudited ? await insertAudited(insert) : await insert.get()
 
   return {
     id: result.id,

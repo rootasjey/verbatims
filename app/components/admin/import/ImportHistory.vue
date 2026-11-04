@@ -242,6 +242,7 @@
 </template>
 
 <script lang="ts" setup>
+import { $fetch } from 'ofetch'
 import type { ImportPagination, ImportProgress } from '~~/server/types'
 
 const { $ts } = useI18n()

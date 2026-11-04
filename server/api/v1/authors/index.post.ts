@@ -4,6 +4,7 @@ import { createAuthorSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
 import { uploadAndStoreImage } from '~~/server/utils/image-storage'
 import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
+import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -68,7 +69,7 @@ export default defineEventHandler(async (event) => {
 
   if (existingAuthor) throwServer(409, 'An author with this name already exists')
 
-  const result = await db.insert(schema.authors)
+  const results = await runApiAuditedBatch(event, api, [db.insert(schema.authors)
     .values({
       name: body.name,
       isFictional: body.is_fictional,
@@ -85,16 +86,17 @@ export default defineEventHandler(async (event) => {
       sharesCount: 0,
     })
     .returning()
-    .get()
+  ])
+  const result = getAuditedBatchRow<typeof schema.authors.$inferSelect>(results, 1)
 
   let imageUrl = result.imageUrl
   if (body.image_url) {
     const storedUrl = await uploadAndStoreImage(body.image_url, 'authors', result.id)
     if (storedUrl && storedUrl !== result.imageUrl) {
-      await db.update(schema.authors)
+      await runApiAuditedBatch(event, api, [db.update(schema.authors)
         .set({ imageUrl: storedUrl, updatedAt: sql`CURRENT_TIMESTAMP` })
         .where(eq(schema.authors.id, result.id))
-        .run()
+      ])
       imageUrl = storedUrl
     }
   }

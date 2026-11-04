@@ -6,8 +6,9 @@ import { createBackupFile } from '../backup-database'
 import { createImportReport } from '../import-report'
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
+import { runImportedEditorialAuditedBatch } from '../api-editorial-audit'
 
-export async function importReferencesInline(parentImportId: string, references: any[], options: ImportOptions) {
+export async function importReferencesInline(parentImportId: string, references: any[], options: ImportOptions, actorUserId: number) {
   const validation = validateReferenceDataZod(references)
   if (!validation.isValid && !options.ignoreValidationErrors) {
     throw new Error(`References validation failed: ${validation.errors.length} errors`)
@@ -158,7 +159,7 @@ export async function importReferencesInline(parentImportId: string, references:
 
       try {
         if (stmts.length > 0) {
-            await db.batch(stmts as any)
+            await runImportedEditorialAuditedBatch(actorUserId, parentImportId, stmts)
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
             successfulRecords: p.successfulRecords + stmts.length,
@@ -170,7 +171,7 @@ export async function importReferencesInline(parentImportId: string, references:
           try {
             const s = stmts[idx]
             if (!s) continue
-            await s
+            await runImportedEditorialAuditedBatch(actorUserId, parentImportId, [s])
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -222,6 +223,7 @@ export async function processImportReferences(
   rawData: any,
   format: 'json' | 'csv' | 'xml' | 'firebase',
   options: ImportOptions,
+  actorUserId: number,
 ) {
   updateAdminImport(importId, { status: 'processing' })
 
@@ -242,7 +244,7 @@ export async function processImportReferences(
 
     updateAdminImport(importId, { totalRecords: references.length })
 
-    await importReferencesInline(importId, references, options)
+    await importReferencesInline(importId, references, options, actorUserId)
 
     // Persist completion
     try {

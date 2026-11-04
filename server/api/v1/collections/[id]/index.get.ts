@@ -1,6 +1,9 @@
 import { db, schema } from 'hub:db'
 import { and, eq, desc, count, inArray, sql } from 'drizzle-orm'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { hasApiPermission } from '~~/server/utils/api-key'
+
+type QuoteProvenanceMap = Awaited<ReturnType<typeof getPrimaryQuoteProvenance>>
 
 defineRouteMeta({
   openAPI: {
@@ -23,6 +26,7 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
+  const canReadProvenance = hasApiPermission(api, 'read:provenance')
   const collectionId = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(collectionId)) throwServer(400, 'Invalid collection ID')
 
@@ -81,8 +85,11 @@ export default defineEventHandler(async (event) => {
     .offset(offset)
     .all()
 
+  const provenanceRequest: Promise<QuoteProvenanceMap> = canReadProvenance
+    ? getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+    : Promise.resolve(new Map() as QuoteProvenanceMap)
   const [provenance, tagRows] = await Promise.all([
-    getPrimaryQuoteProvenance(quotes.map(quote => quote.id)),
+    provenanceRequest,
     quotes.length
       ? db.select({ quoteId: schema.quoteTags.quoteId, name: schema.tags.name, color: schema.tags.color })
         .from(schema.quoteTags)
@@ -105,10 +112,12 @@ export default defineEventHandler(async (event) => {
       language: quote.language,
       stats: { views: quote.viewsCount, likes: quote.likesCount, shares: quote.sharesCount },
       featured: !!quote.isFeatured,
-      author: attribution?.author_id ? attribution.author : null,
-      reference: attribution?.reference_id ? attribution.reference : null,
-      attributions: quoteProvenance?.attributions ?? [],
-      sources: quoteProvenance?.sources ?? [],
+      ...(canReadProvenance ? {
+        author: attribution?.author_id ? attribution.author : null,
+        reference: attribution?.reference_id ? attribution.reference : null,
+        attributions: quoteProvenance?.attributions ?? [],
+        sources: quoteProvenance?.sources ?? [],
+      } : {}),
       tags: tagsByQuoteId[quote.id] ?? [],
       added_at: quote.addedAtText,
       created_at: quote.createdAtText,

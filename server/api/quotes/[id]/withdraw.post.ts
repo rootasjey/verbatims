@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -26,7 +27,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Move back to draft and clear moderation fields
-    const result = await db.update(schema.quotes)
+    const results = await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quotes)
       .set({
         status: 'draft',
         moderatorId: null,
@@ -37,9 +38,9 @@ export default defineEventHandler(async (event) => {
         eq(schema.quotes.id, quoteId),
         eq(schema.quotes.userId, user.id),
         eq(schema.quotes.status, 'pending')
-      ))
+      ))], 'web_user')
 
-    const changes = result ? 1 : 0
+    const changes = Number((results[1] as { rowsAffected?: number } | undefined)?.rowsAffected ?? 0)
 
     return {
       success: true,

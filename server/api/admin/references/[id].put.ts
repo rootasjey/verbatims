@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateReferenceSchema } from '../../../validation/schemas'
 import { saveReferenceTranslations } from '~~/server/utils/entity-translations'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -83,11 +84,12 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update reference
-    const updatedReference = await db.update(schema.quoteReferences)
+    const results = await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quoteReferences)
       .set(updateData)
       .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
       .returning()
-      .get()
+    ])
+    const updatedReference = getAuditedBatchRow<typeof schema.quoteReferences.$inferSelect>(results, 1)
 
     await saveReferenceTranslations(parseInt(referenceId), body.translations)
 

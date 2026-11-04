@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import type { CreatedQuoteResult } from '~~/server/types'
 import { logActivity } from '~~/server/utils/activity-log'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -28,13 +29,13 @@ export default defineEventHandler(async (event) => {
     }
 
     // Move quote to pending
-    await db.update(schema.quotes)
+    await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quotes)
       .set({ 
         status: 'pending',
         updatedAt: new Date()
       })
       .where(eq(schema.quotes.id, parseInt(quoteId)))
-      .run()
+      ])
 
     await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: parseInt(quoteId), targetType: 'quote', metadata: { status: 'pending', submitter_id: quote!.userId, name: quote!.name } })
 

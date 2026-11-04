@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 const MERGEABLE_FIELDS = ['job', 'description', 'birthDate', 'birthYear', 'birthEra', 'birthMonth', 'birthDay', 'birthIsApproximate', 'birthCalendar', 'birthLocation', 'deathDate', 'deathYear', 'deathEra', 'deathMonth', 'deathDay', 'deathIsApproximate', 'deathCalendar', 'deathLocation', 'imageUrl', 'isFictional'] as const
 
@@ -92,7 +93,7 @@ export default defineEventHandler(async (event) => {
         })
         .where(eq(schema.authors.id, targetId)))
       statements.push(db.delete(schema.authors).where(eq(schema.authors.id, sourceId)))
-      await db.batch(statements as any)
+      await runWebEditorialAuditedBatch(event, user.id, statements)
 
       return {
         success: true,

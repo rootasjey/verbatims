@@ -60,6 +60,6 @@ export default defineEventHandler(async (event) => {
   }).run().catch(() => {})
 
   const clientSource = getHeader(event, 'x-client-source')
-  event.context.source = clientSource === 'cli' ? 'cli' : 'api_v1'
+  event.context.source = clientSource === 'cli' || clientSource === 'sdk' ? clientSource : 'api_v1'
   event.context.api = keyData
 })

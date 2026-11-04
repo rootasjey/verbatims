@@ -3,7 +3,7 @@ import { eq, sql } from 'drizzle-orm'
 import { isHarvestSourceType } from '#shared/constants/harvest'
 import type { HarvestQuoteImportItem } from '#shared/types/harvest'
 import { findOrCreateAuthor, findOrCreateReference } from '../../../utils/import-helpers'
-import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAdmin(event)
@@ -92,6 +92,9 @@ export default defineEventHandler(async (event) => {
           death_calendar: quoteData.new_author.death_calendar,
           image_url: quoteData.new_author.image_url,
           is_fictional: quoteData.new_author.is_fictional || false,
+        }, async (statement) => {
+          const results = await runWebEditorialAuditedBatch(event, user.id, [statement])
+          return getAuditedBatchRow<{ id: number }>(results, 1)
         })
         authorId = result.id
         if (result.isNew) authorsCreated++
@@ -104,6 +107,9 @@ export default defineEventHandler(async (event) => {
           primary_type: quoteData.new_reference.primary_type,
           original_language: quoteData.new_reference.original_language,
           description: quoteData.new_reference.description,
+        }, async (statement) => {
+          const results = await runWebEditorialAuditedBatch(event, user.id, [statement])
+          return getAuditedBatchRow<{ id: number }>(results, 1)
         })
         referenceId = result.id
         if (result.isNew) referencesCreated++
@@ -117,26 +123,31 @@ export default defineEventHandler(async (event) => {
         continue
       }
 
-      const createdQuote = await db.insert(schema.quotes).values({
+      const quoteResults = await runWebEditorialAuditedBatch(event, userId, [db.insert(schema.quotes).values({
         name: trimmedText,
         language: quoteData.language || 'en',
         userId,
         status: 'harvested',
-      }).returning({ id: schema.quotes.id }).get()
+      }).returning({ id: schema.quotes.id })])
+      const createdQuote = getAuditedBatchRow<{ id: number }>(quoteResults, 1)
 
-      const attributionId = await syncPrimaryAttribution(
-        createdQuote.id,
+      const attributionResults = await runWebEditorialAuditedBatch(event, userId, [db.insert(schema.quoteAttributions).values({
+        quoteId: createdQuote.id,
         authorId,
         referenceId,
-        userId,
-      )
-      await syncPrimarySource(
-        createdQuote.id,
-        attributionId,
+        isPrimary: true,
+        status: 'unverified',
+        createdBy: userId,
+      }).returning({ id: schema.quoteAttributions.id })])
+      const attribution = getAuditedBatchRow<{ id: number }>(attributionResults, 1)
+      await runWebEditorialAuditedBatch(event, userId, [db.insert(schema.quoteSources).values({
+        quoteId: createdQuote.id,
+        attributionId: attribution.id,
         sourceType,
-        quoteData.sourceUrl || null,
-        userId,
-      )
+        sourceUrl: quoteData.sourceUrl || null,
+        verificationStatus: 'unverified',
+        createdBy: userId,
+      })])
 
       imported++
     } catch (error: any) {

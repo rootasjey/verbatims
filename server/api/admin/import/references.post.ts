@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
     } catch (e) { console.warn('Failed to log import start:', e) }
 
     const runJob = () =>
-      processImportReferences(importId, data, format, options).catch((err) => {
+      processImportReferences(importId, data, format, options, user.id).catch((err) => {
         addAdminImportError(importId, `Fatal error: ${err.message}`)
         try {
           const p = getAdminImport(importId)!

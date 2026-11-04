@@ -92,6 +92,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import { computed, ref, watch } from 'vue'
 import { formatRelativeTime } from '~/utils/time-formatter'
 

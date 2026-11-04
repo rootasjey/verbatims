@@ -316,6 +316,27 @@
       "when": 1793674455000,
       "tag": "0056_split_api_key_delete_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "6",
+      "when": 1793823285000,
+      "tag": "0057_quote_editorial_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "6",
+      "when": 1793830427000,
+      "tag": "0058_audit_inline_author_reference_creates",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "6",
+      "when": 1793833569490,
+      "tag": "0059_audit_author_reference_updates_deletes",
+      "breakpoints": true
     }
   ]
 }
