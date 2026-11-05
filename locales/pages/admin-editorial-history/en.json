@@ -35,6 +35,7 @@
   "loading": "Loading…",
   "empty": "No actions in this history.",
   "unknown_actor": "Unknown actor",
+  "toggle_details": "Show or hide action details",
   "task": "Task",
   "before": "Before",
   "after": "After",

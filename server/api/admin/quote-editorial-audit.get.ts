@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, getTableColumns, gte, gt, like, lt, or } from 'drizzle-orm'
+import { and, asc, desc, eq, getTableColumns, gte, gt, inArray, like, lt, or } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 
 export default defineEventHandler(async (event) => {
@@ -51,14 +51,39 @@ export default defineEventHandler(async (event) => {
     .limit(limit)
     .all()
 
+  const authorIds = getTargetIds(events, 'author')
+  const referenceIds = getTargetIds(events, 'reference')
+  const [authors, references] = await Promise.all([
+    authorIds.length
+      ? db.select({ id: schema.authors.id }).from(schema.authors).where(inArray(schema.authors.id, authorIds)).all()
+      : Promise.resolve([]),
+    referenceIds.length
+      ? db.select({ id: schema.quoteReferences.id }).from(schema.quoteReferences).where(inArray(schema.quoteReferences.id, referenceIds)).all()
+      : Promise.resolve([]),
+  ])
+  const existingTargets = new Set([
+    ...authors.map(author => `author:${author.id}`),
+    ...references.map(reference => `reference:${reference.id}`),
+  ])
+
   return {
     success: true,
-    data: events,
+    data: events.map(event => ({
+      ...event,
+      targetExists: existingTargets.has(`${event.targetType}:${event.targetId}`),
+    })),
     next_before_id: order === 'newest' && events.length === limit ? events[events.length - 1]!.id : null,
     next_after_id: order === 'oldest' && events.length === limit ? events[events.length - 1]!.id : null,
     retention: 'indefinite',
   }
 })
+
+function getTargetIds(events: Array<{ targetType: string, targetId: string }>, targetType: 'author' | 'reference'): number[] {
+  return [...new Set(events
+    .filter(event => event.targetType === targetType)
+    .map(event => Number(event.targetId))
+    .filter(id => Number.isSafeInteger(id) && id > 0))]
+}
 
 function readAuditFilter(value: unknown): string | null {
   if (typeof value !== 'string') return null

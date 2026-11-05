@@ -57,19 +57,28 @@
       <TransitionGroup name="audit-events" tag="div" class="relative space-y-3">
       <article v-for="item in events" :key="item.id" class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
         <div>
-          <button type="button" class="flex w-full cursor-pointer flex-wrap items-center gap-x-4 gap-y-2 p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500" :aria-expanded="openEventId === item.id" @click="toggleEvent(item.id)">
+          <div class="flex w-full cursor-pointer flex-wrap items-center gap-x-4 gap-y-2 p-4" @click="toggleEvent(item.id)">
             <time class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ formatDate(item.occurredAt) }}</time>
             <span class="rounded-full px-2 py-1 text-xs font-medium" :class="actionClass(item.action)">{{ actionLabel(item.action) }}</span>
-            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ item.targetType }} #{{ item.targetId }}</span>
+            <NuxtLink v-if="targetPath(item)" :to="targetPath(item)!" class="flex items-center gap-2 text-sm font-medium text-gray-900 decoration-underline underline-offset-2 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-100 dark:hover:text-gray-300" @click.stop>
+              <NAvatar v-if="targetImageUrl(item)" :src="targetImageUrl(item)!" :alt="`${item.targetType} ${item.targetId}`" :rounded="item.targetType === 'reference' ? '2' : 'full'" size="xs" square="1.75em" class="shrink-0" />
+              {{ item.targetType }} #{{ item.targetId }}
+            </NuxtLink>
+            <span v-else class="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+              <NAvatar v-if="targetImageUrl(item)" :src="targetImageUrl(item)!" :alt="`${item.targetType} ${item.targetId}`" :rounded="item.targetType === 'reference' ? '2' : 'full'" size="xs" square="1.75em" class="shrink-0" />
+              {{ item.targetType }} #{{ item.targetId }}
+            </span>
             <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
               <UserAvatar v-if="item.actorUserId" :src="item.actorAvatarUrl" :alt="item.actorUserName || ($t('unknown_actor') as string)" size="xs" square="1.75em" class="shrink-0" />
               <span class="font-medium">{{ item.actorUserName || $t('unknown_actor') }}</span>
             </span>
             <span v-if="item.apiKeyId" class="text-xs text-gray-500 dark:text-gray-400">{{ item.apiKeyName || $t('api_key') }} #{{ item.apiKeyId }} · {{ item.apiKeyPrefix }}</span>
             <span class="ml-auto rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-600 dark:bg-gray-900 dark:text-gray-300">{{ sourceLabel(item.source) }}</span>
-            <NIcon name="i-tabler-chevron-down" class="ml-2 h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 motion-reduce:transition-none" :class="openEventId === item.id ? 'rotate-180' : ''" aria-hidden="true" />
+            <button type="button" class="ml-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-400 dark:hover:bg-gray-900 motion-reduce:transition-none" :aria-label="$t('toggle_details') as string" :aria-expanded="openEventId === item.id" @click.stop="toggleEvent(item.id)">
+              <NIcon name="i-tabler-chevron-down" class="h-4 w-4 transition-transform duration-200 motion-reduce:transition-none" :class="openEventId === item.id ? 'rotate-180' : ''" aria-hidden="true" />
+            </button>
             <span v-if="item.taskId" class="w-full truncate font-mono text-[11px] text-gray-400">{{ $t('task') }}: {{ item.taskId }}</span>
-          </button>
+          </div>
           <Transition name="audit-detail">
           <div v-if="openEventId === item.id" class="audit-detail-transition">
           <div class="audit-detail-inner grid gap-4 border-t border-gray-200 p-4 dark:border-gray-800 lg:grid-cols-2">
@@ -115,6 +124,7 @@ interface AuditEvent {
   action: string
   targetType: string
   targetId: string
+  targetExists: boolean
   beforeJson: string | null
   afterJson: string | null
   source: string
@@ -213,6 +223,27 @@ function toggleSortOrder() {
 
 function toggleEvent(id: number) {
   openEventId.value = openEventId.value === id ? null : id
+}
+
+function targetPath(item: AuditEvent): string | null {
+  if (!item.targetExists) return null
+  if (item.targetType === 'author') return `/authors/${encodeURIComponent(item.targetId)}`
+  if (item.targetType === 'reference') return `/references/${encodeURIComponent(item.targetId)}`
+  return null
+}
+
+function targetImageUrl(item: AuditEvent): string | null {
+  if (item.targetType !== 'author' && item.targetType !== 'reference') return null
+  const snapshot = item.afterJson || item.beforeJson
+  if (!snapshot) return null
+  try {
+    const parsed: unknown = JSON.parse(snapshot)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+    const imageUrl = (parsed as Record<string, unknown>).image_url
+    return typeof imageUrl === 'string' && imageUrl ? imageUrl : null
+  } catch {
+    return null
+  }
 }
 
 function resetFilters() {

@@ -35,6 +35,7 @@
   "loading": "Chargement…",
   "empty": "Aucune action dans cet historique.",
   "unknown_actor": "Acteur inconnu",
+  "toggle_details": "Afficher ou masquer le détail de l’action",
   "task": "Tâche",
   "before": "Avant",
   "after": "Après",
