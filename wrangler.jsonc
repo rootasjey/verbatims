@@ -85,6 +85,35 @@
       "migrations_dir": "server/db/migrations/sqlite"
     }
   ],
+  "previews": {
+    "r2_buckets": [
+      {
+        "binding": "BLOB",
+        "bucket_name": "verbatims-preview"
+      }
+    ],
+    "browser": {
+      "binding": "BROWSER"
+    },
+    "kv_namespaces": [
+      {
+        "binding": "CACHE",
+        "id": "6b69adf0026b4de4bbdca6f002cee8b3"
+      },
+      {
+        "binding": "KV",
+        "id": "2200ba71e0334a37b9185b0e760be6c4"
+      }
+    ],
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_id": "4bc027b9-2da7-436f-8fd0-396d6e9e5475",
+        "database_name": "verbatims-preview",
+        "migrations_dir": "server/db/migrations/sqlite"
+      }
+    ]
+  },
   "env": {
     "preview": {
       "r2_buckets": [
@@ -110,7 +139,7 @@
         {
           "binding": "DB",
           "database_id": "4bc027b9-2da7-436f-8fd0-396d6e9e5475",
-          "database_name": "verbatims_preview",
+          "database_name": "verbatims-preview",
           "migrations_dir": "server/db/migrations/sqlite"
         }
       ]
