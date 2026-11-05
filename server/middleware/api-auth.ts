@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
 
   if (!path.startsWith('/api/v1/')) return
   if (publicV1Paths.some(p => path.startsWith(p))) return
+  if (event.method === 'OPTIONS') return
 
   const authHeader = getHeader(event, 'authorization')
   if (!authHeader) {
