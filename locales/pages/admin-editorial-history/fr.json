@@ -38,6 +38,13 @@
   "task": "Tâche",
   "before": "Avant",
   "after": "Après",
+  "view_mode": "Format d’affichage",
+  "diff_view": "Différence",
+  "json_view": "JSON complet",
+  "added": "Ajouté",
+  "removed": "Supprimé",
+  "changed": "Modifié",
+  "no_changes": "Aucune différence à afficher.",
   "request": "Requête",
   "load_more": "Charger plus",
   "load_error": "Impossible de charger l’historique."

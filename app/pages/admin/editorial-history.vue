@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6">
-    <header class="flex flex-wrap items-end justify-between gap-4 border-b border-gray-200 pb-6 dark:border-gray-800">
+    <header class="flex flex-wrap items-end justify-between gap-4 pb-6">
       <div>
         <h1 class="font-serif text-3xl font-200 text-gray-900 dark:text-gray-100 md:text-4xl">{{ $t('title') }}</h1>
         <p class="mt-2 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{{ $t('subtitle') }}</p>
@@ -73,8 +73,21 @@
           <Transition name="audit-detail">
           <div v-if="openEventId === item.id" class="audit-detail-transition">
           <div class="audit-detail-inner grid gap-4 border-t border-gray-200 p-4 dark:border-gray-800 lg:grid-cols-2">
-            <section v-if="item.beforeJson"><h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{{ $t('before') }}</h2><pre class="max-h-96 overflow-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-200">{{ prettyJson(item.beforeJson) }}</pre></section>
-            <section v-if="item.afterJson"><h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{{ $t('after') }}</h2><pre class="max-h-96 overflow-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-200">{{ prettyJson(item.afterJson) }}</pre></section>
+            <AdminEditorialAuditPayload
+              v-if="item.beforeJson || item.afterJson"
+              :action="item.action"
+              :before-json="item.beforeJson"
+              :after-json="item.afterJson"
+              :before-label="$t('before') as string"
+              :after-label="$t('after') as string"
+              :view-label="$t('view_mode') as string"
+              :diff-label="$t('diff_view') as string"
+              :json-label="$t('json_view') as string"
+              :added-label="$t('added') as string"
+              :removed-label="$t('removed') as string"
+              :changed-label="$t('changed') as string"
+              :no-changes-label="$t('no_changes') as string"
+            />
             <p v-if="item.requestId" class="break-all text-xs text-gray-500 lg:col-span-2">{{ $t('request') }}: <code>{{ item.requestId }}</code></p>
           </div>
           </div>
@@ -209,14 +222,6 @@ function resetFilters() {
 
 function loadMore() {
   void fetchEvents(true)
-}
-
-function prettyJson(value: string) {
-  try {
-    return JSON.stringify(JSON.parse(value), null, 2)
-  } catch {
-    return value
-  }
 }
 
 function formatDate(value: string) {
