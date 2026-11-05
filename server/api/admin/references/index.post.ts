@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { createReferenceSchema } from '../../../validation/schemas'
 import { saveReferenceTranslations } from '~~/server/utils/entity-translations'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -20,7 +21,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Insert reference (without image URL — we'll upload to R2 first)
-    const result = await db.insert(schema.quoteReferences)
+    const results = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quoteReferences)
       .values({
         name: body.name,
         originalLanguage: body.original_language || 'en',
@@ -43,7 +44,8 @@ export default defineEventHandler(async (event) => {
         sharesCount: 0
       } as any)
       .returning()
-      .get()
+    ])
+    const result = getAuditedBatchRow<typeof schema.quoteReferences.$inferSelect>(results, 1)
 
     await saveReferenceTranslations(result.id, body.translations)
 
@@ -53,11 +55,12 @@ export default defineEventHandler(async (event) => {
     }
 
     if (finalImageUrl) {
-      const updated = await db.update(schema.quoteReferences)
+      const updatedResults = await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quoteReferences)
         .set({ imageUrl: finalImageUrl })
         .where(eq(schema.quoteReferences.id, result.id))
         .returning()
-        .get()
+      ])
+      const updated = getAuditedBatchRow<typeof schema.quoteReferences.$inferSelect>(updatedResults, 1)
 
       return {
         success: true,

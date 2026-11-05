@@ -1,6 +1,9 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { hasApiPermission } from '~~/server/utils/api-key'
+
+type QuoteProvenanceMap = Awaited<ReturnType<typeof getPrimaryQuoteProvenance>>
 
 defineRouteMeta({
   openAPI: {
@@ -18,6 +21,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
+  const canReadProvenance = hasApiPermission(event.context.api, 'read:provenance')
   const query = getQuery(event)
   const limit = Math.min(parseInt(query.limit as string) || 1, 10)
 
@@ -34,7 +38,9 @@ export default defineEventHandler(async (event) => {
     .limit(limit)
     .all()
 
-  const provenance = await getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+  const provenance = canReadProvenance
+    ? await getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+    : new Map() as QuoteProvenanceMap
 
   return {
     success: true,
@@ -46,18 +52,20 @@ export default defineEventHandler(async (event) => {
         id: quote.id,
         content: quote.name,
         language: quote.language,
-        author: attribution?.author_id ? {
+        ...(canReadProvenance ? {
+          author: attribution?.author_id ? {
           id: attribution.author_id,
           name: attribution.author?.name,
           fictional: attribution.author?.is_fictional,
-        } : null,
-        reference: attribution?.reference_id ? {
+          } : null,
+          reference: attribution?.reference_id ? {
           id: attribution.reference_id,
           name: attribution.reference?.name,
           type: attribution.reference?.primary_type,
-        } : null,
-        attributions: quoteProvenance?.attributions ?? [],
-        sources: quoteProvenance?.sources ?? [],
+          } : null,
+          attributions: quoteProvenance?.attributions ?? [],
+          sources: quoteProvenance?.sources ?? [],
+        } : {}),
         created_at: quote.createdAt,
       }
     }),

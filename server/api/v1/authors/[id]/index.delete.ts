@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
+import { runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -71,6 +72,7 @@ export default defineEventHandler(async (event) => {
           WHERE id IN (SELECT quote_id FROM ${schema.quoteAttributions} WHERE author_id = ${authorId})
         `))
       } else {
+        requireApiPermission(api, 'assign:authors')
         const invalid = await db.get<{ count: number }>(sql`
           SELECT COUNT(*) as count FROM ${schema.quoteAttributions}
           WHERE author_id = ${authorId} AND reference_id IS NULL
@@ -84,16 +86,14 @@ export default defineEventHandler(async (event) => {
       }
 
     statements.push(db.delete(schema.authors).where(eq(schema.authors.id, authorId)))
-    await db.batch(statements as any)
+    await runApiAuditedBatch(event, api, statements)
 
     await logActivity(event, { type: 'author_deleted', userId: api.userId, targetId: authorId, targetType: 'author', metadata: { strategy: strategy, quotes_affected: quoteCount, name: existing.name } })
 
     return { success: true, message: 'Author deleted successfully', data: { quotesAffected: quoteCount, strategy: body.strategy } }
   }
 
-  await db.delete(schema.authors)
-    .where(eq(schema.authors.id, authorId))
-    .run()
+  await runApiAuditedBatch(event, api, [db.delete(schema.authors).where(eq(schema.authors.id, authorId))])
 
   await logActivity(event, { type: 'author_deleted', userId: api.userId, targetId: authorId, targetType: 'author', metadata: { name: existing.name } })
 

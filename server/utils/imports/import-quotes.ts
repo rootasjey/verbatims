@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
 import type { ImportOptions } from '~~/server/types'
-import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { getAuditedBatchRow, runImportedEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export async function importQuotesInline(
   parentImportId: string,
@@ -79,13 +79,19 @@ export async function importQuotesInline(
         // Resolve author_id
         let authorId = q.author_id as number | undefined
         if (!authorId && q.author_name) {
-          const res = await findOrCreateAuthor({ name: String(q.author_name) })
+          const res = await findOrCreateAuthor({ name: String(q.author_name) }, async (statement) => {
+            const results = await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [statement])
+            return getAuditedBatchRow<{ id: number }>(results, 1)
+          })
           authorId = res.id
         }
         // Resolve reference_id
         let referenceId = q.reference_id as number | undefined
         if (!referenceId && q.reference_name) {
-          const res = await findOrCreateReference({ name: String(q.reference_name) })
+          const res = await findOrCreateReference({ name: String(q.reference_name) }, async (statement) => {
+            const results = await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [statement])
+            return getAuditedBatchRow<{ id: number }>(results, 1)
+          })
           referenceId = res.id
         }
         // Resolve user_id
@@ -179,19 +185,34 @@ export async function importQuotesInline(
         }
         let quoteId: number | undefined
         try {
-          const quote = await db.insert(schema.quotes)
+          const quoteResults = await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [db.insert(schema.quotes)
             .values(values)
-            .returning({ id: schema.quotes.id })
-            .get()
+            .returning({ id: schema.quotes.id })])
+          const quote = getAuditedBatchRow<{ id: number }>(quoteResults, 1)
           quoteId = quote.id
-          const attributionId = await syncPrimaryAttribution(quote.id, authorId ?? null, referenceId ?? null, userId)
+          const attributionResults = await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [db.insert(schema.quoteAttributions).values({
+            quoteId: quote.id,
+            authorId: authorId ?? null,
+            referenceId: referenceId ?? null,
+            isPrimary: true,
+            status: 'unverified',
+            createdBy: userId,
+          }).returning({ id: schema.quoteAttributions.id })])
+          const attribution = getAuditedBatchRow<{ id: number }>(attributionResults, 1)
           if (q.source_type || q.source_url) {
-            await syncPrimarySource(quote.id, attributionId, q.source_type, q.source_url || null, userId)
+            await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [db.insert(schema.quoteSources).values({
+              quoteId: quote.id,
+              attributionId: attribution.id,
+              sourceType: q.source_type || 'manual',
+              sourceUrl: q.source_url || null,
+              verificationStatus: 'unverified',
+              createdBy: userId,
+            })])
           }
           inserted++
         } catch (error: any) {
           if (quoteId) {
-            await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId)).run().catch(() => undefined)
+            await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId))]).catch(() => undefined)
           }
           skipped++
           report.addFailure({ index: i + j + 1, reason: error?.message || 'Failed to import quote' })
@@ -208,7 +229,7 @@ export async function importQuotesInline(
 
       try {
         if (stmts.length > 0) {
-            await db.batch(stmts as any)
+            await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, stmts)
         }
         if (stmts.length > 0 || inserted > 0) {
           const p = getAdminImport(parentImportId)!

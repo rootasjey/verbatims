@@ -765,6 +765,44 @@ export const apiKeyUsageLogs = sqliteTable('api_key_usage_logs', {
   createdIdx: index('idx_usage_logs_created').on(table.createdAt),
 }))
 
+// Durable editorial audit records intentionally have no foreign keys to users or API keys.
+// Revoking a key or deleting an account must not erase its historical events.
+export const quoteEditorialAuditEvents = sqliteTable('quote_editorial_audit_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  occurredAt: text('occurred_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  actorUserId: integer('actor_user_id'),
+  actorUserName: text('actor_user_name'),
+  apiKeyId: integer('api_key_id'),
+  apiKeyName: text('api_key_name'),
+  apiKeyPrefix: text('api_key_prefix'),
+  action: text('action').notNull(),
+  targetType: text('target_type').notNull(),
+  targetId: text('target_id').notNull(),
+  beforeJson: text('before_json'),
+  afterJson: text('after_json'),
+  source: text('source').notNull(),
+  taskId: text('task_id'),
+  requestId: text('request_id'),
+}, table => ({
+  occurredAtIdx: index('idx_quote_editorial_audit_occurred_at').on(table.occurredAt),
+  targetIdx: index('idx_quote_editorial_audit_target').on(table.targetType, table.targetId),
+  apiKeyIdx: index('idx_quote_editorial_audit_api_key').on(table.apiKeyId),
+}))
+
+// A singleton row is populated and cleared inside the same D1 batch as API mutations.
+// Triggers snapshot actual OLD/NEW rows, including generated IDs, atomically.
+export const quoteEditorialAuditContext = sqliteTable('quote_editorial_audit_context', {
+  id: integer('id').primaryKey(),
+  actorUserId: integer('actor_user_id'),
+  actorUserName: text('actor_user_name'),
+  apiKeyId: integer('api_key_id'),
+  apiKeyName: text('api_key_name'),
+  apiKeyPrefix: text('api_key_prefix'),
+  source: text('source').notNull(),
+  taskId: text('task_id'),
+  requestId: text('request_id'),
+})
+
 export const themeEnrichmentJobs = sqliteTable('theme_enrichment_jobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   themeId: integer('theme_id').notNull().references(() => themes.id, { onDelete: 'cascade' }),

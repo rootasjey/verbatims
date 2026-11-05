@@ -242,6 +242,7 @@
               class="block w-full min-w-0 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-600 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:font-semibold file:text-gray-800 hover:file:bg-gray-300 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:file:bg-gray-800 dark:file:text-gray-100 dark:hover:file:bg-gray-700"
             />
             <p class="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">{{ $t('hint_relink') }}</p>
+            <p class="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">{{ $t('hint_relink_tip') }}</p>
           </div>
 
           <div v-if="relinkFormat === 'json' && Object.keys(relinkPreviewCounts).length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -256,7 +257,6 @@
               {{ $t('button_start_relink') }}
             </NButton>
           </div>
-          <p class="text-xs leading-5 text-gray-500 dark:text-gray-400">{{ $t('hint_relink_tip') }}</p>
         </section>
       </TabsContent>
 

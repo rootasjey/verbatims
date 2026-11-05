@@ -50,7 +50,7 @@
   "label_relink_bundle": "Select Relink Bundle (JSON or ZIP)",
   "hint_relink": "JSON: object with arrays under supported keys. ZIP: server will parse counts.",
   "button_start_relink": "Start Relink",
-  "hint_relink_tip": "Tip: If collection/quote IDs are missing...",
+  "hint_relink_tip": "For quote–collection links, provide collection_name and quote_name if the IDs are missing. Both items must already exist in the database.",
   "tab_import": "Import",
   "tab_progress": "Progress",
   "tab_relink": "Relink data",

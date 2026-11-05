@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
 import throwServer from '~~/server/utils/throw-server'
 import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -47,9 +48,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update quote status to pending
-    await db.update(schema.quotes)
+    await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quotes)
       .set({ status: 'pending' })
-      .where(eq(schema.quotes.id, parseInt(quoteId!)))
+      .where(eq(schema.quotes.id, parseInt(quoteId!)))], 'web_user')
 
     // Fetch the updated quote with all related data
     const updatedQuoteData = await db.select({

@@ -180,6 +180,7 @@
       <div class="mt-4">
         <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('permissions_label') }}</label>
         <ApiKeyPermissionPicker v-model="newKeyPermissions" :sections="permissionSections" />
+        <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('permissions_audit_hint') }}</p>
       </div>
       <template #footer>
         <div class="flex justify-end gap-3">
@@ -251,6 +252,7 @@
         <div>
           <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('permissions_label') }}</label>
           <ApiKeyPermissionPicker v-model="editPermissions" :sections="permissionSections" />
+          <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('permissions_audit_hint') }}</p>
         </div>
       </div>
       <div v-if="editError" class="font-sans text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-sm -mb-2">
@@ -332,6 +334,7 @@ const permissionSections = [
     columns: [{ label: String($t('permissions_column_enabled')) }],
     rows: [
       { label: String($t('permissions_row_api')), scopes: ['read'] },
+      { label: String($t('permissions_row_provenance')), scopes: ['read:provenance'] },
       { label: String($t('permissions_row_all')), scopes: ['*'] },
     ],
   },
@@ -343,6 +346,11 @@ const permissionSections = [
     ],
     rows: [
       { label: String($t('permissions_row_quotes')), scopes: ['write:quotes', 'delete:quotes'] },
+      { label: String($t('permissions_row_sources')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:sources', 'delete:sources'] },
+      { label: String($t('permissions_row_occurrences')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:occurrences', 'delete:occurrences'] },
+      { label: String($t('permissions_row_attributions')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:attributions', 'delete:attributions'] },
+      { label: String($t('permissions_row_assign_author')), note: String($t('permissions_note_assignment')), noteTooltip: String($t('permissions_note_assignment_tooltip')), scopes: ['assign:authors', null] },
+      { label: String($t('permissions_row_assign_reference')), note: String($t('permissions_note_assignment')), noteTooltip: String($t('permissions_note_assignment_tooltip')), scopes: ['assign:references', null] },
       { label: String($t('permissions_row_authors')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:authors', 'delete:authors'] },
       { label: String($t('permissions_row_references')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['write:references', 'delete:references'] },
       { label: String($t('permissions_row_collections')), scopes: ['write:collections', 'delete:collections'] },

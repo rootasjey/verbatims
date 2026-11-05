@@ -2,6 +2,9 @@ import { db, schema } from 'hub:db'
 import { eq, and, or, like, desc, sql, count } from 'drizzle-orm'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 import { getContentLanguage, localizeAuthors, localizeReferences } from '~~/server/utils/entity-translations'
+import { hasApiPermission } from '~~/server/utils/api-key'
+
+type QuoteProvenanceMap = Awaited<ReturnType<typeof getPrimaryQuoteProvenance>>
 
 defineRouteMeta({
   openAPI: {
@@ -20,6 +23,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
+  const canReadProvenance = hasApiPermission(event.context.api, 'read:provenance')
   const query = getQuery(event)
   const q = (query.q as string || '').trim()
   const normalized = normalizeSearch(q)
@@ -135,7 +139,9 @@ export default defineEventHandler(async (event) => {
     .offset(offset)
     .all()
 
-  const provenance = await getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+  const provenance = canReadProvenance
+    ? await getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+    : new Map() as QuoteProvenanceMap
 
   return {
     success: true,
@@ -147,14 +153,16 @@ export default defineEventHandler(async (event) => {
         id: quote.id,
         content: quote.name,
         language: quote.language,
-        author: attribution?.author_id ? { id: attribution.author_id, name: attribution.author?.name } : null,
-        reference: attribution?.reference_id ? {
+        ...(canReadProvenance ? {
+          author: attribution?.author_id ? { id: attribution.author_id, name: attribution.author?.name } : null,
+          reference: attribution?.reference_id ? {
           id: attribution.reference_id,
           name: attribution.reference?.name,
           type: attribution.reference?.primary_type,
-        } : null,
-        attributions: quoteProvenance?.attributions ?? [],
-        sources: quoteProvenance?.sources ?? [],
+          } : null,
+          attributions: quoteProvenance?.attributions ?? [],
+          sources: quoteProvenance?.sources ?? [],
+        } : {}),
         created_at: quote.createdAt,
       }
     }),

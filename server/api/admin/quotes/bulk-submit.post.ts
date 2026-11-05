@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and, inArray } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -44,14 +45,13 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'All quotes must have at least 2 characters before submission')
     }
 
-    await Promise.all(quoteIds.map(id =>
+    await runWebEditorialAuditedBatch(event, user.id, quoteIds.map(id =>
       db.update(schema.quotes)
         .set({ 
           status: 'pending',
           updatedAt: new Date()
         })
         .where(eq(schema.quotes.id, id))
-        .run()
     ))
 
     for (const id of quoteIds) {

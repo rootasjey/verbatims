@@ -4,6 +4,7 @@ import type { CreatedQuoteResult } from '~~/server/types'
 import { autoTagQuoteById } from '~~/server/utils/tagging'
 import { moderateQuoteSchema } from '../../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -29,7 +30,7 @@ export default defineEventHandler(async (event) => {
     // Update quote status
     const newStatus = body.action === 'approve' ? 'approved' : 'rejected'
     
-    await db.update(schema.quotes)
+    await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quotes)
       .set({
         status: newStatus,
         moderatorId: user.id,
@@ -38,7 +39,7 @@ export default defineEventHandler(async (event) => {
         updatedAt: new Date()
       })
       .where(eq(schema.quotes.id, parseInt(quoteId)))
-      .run()
+      ])
 
     await logActivity(event, { type: 'quote_moderated', userId: user.id, targetId: parseInt(quoteId), targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason, name: quote.name } })
 

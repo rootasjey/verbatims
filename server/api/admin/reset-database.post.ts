@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { hashPasswordWorker } from '../../utils/password'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 /**
  * Clears user-owned catalogue data while preserving application configuration
@@ -76,7 +77,7 @@ export default defineEventHandler(async (event) => {
       }),
     ]
 
-    await db.batch(clearStatements as any)
+    await runWebEditorialAuditedBatch(event, user.id, clearStatements)
     const tablesCleared = clearStatements.length - 1
 
     console.warn(`User/content reset completed by admin ${user.name} (${user.email}); operational history and archives were preserved.`)

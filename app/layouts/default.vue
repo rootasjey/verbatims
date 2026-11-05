@@ -152,9 +152,7 @@
             <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between font-sans text-xl font-500 text-gray-900 dark:text-gray-100">
               {{ $t('nav.contribute') }}
               <span class="flex items-center gap-3">
-                <NAvatar v-if="user" size="2" :src="user.avatar_url" :alt="user.name">
-                  <template #fallback><BrandAvatarFallback /></template>
-                </NAvatar>
+                <UserAvatar v-if="user" size="2" :src="user.avatar_url" :alt="user.name" />
                 <NIcon name="i-ph-caret-down" class="transition-transform group-open:rotate-180" />
               </span>
             </summary>

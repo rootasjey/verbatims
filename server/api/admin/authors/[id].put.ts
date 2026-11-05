@@ -3,6 +3,7 @@ import { sql, eq, and } from 'drizzle-orm'
 import { updateAuthorSchema } from '../../../validation/schemas'
 import { saveAuthorTranslations } from '~~/server/utils/entity-translations'
 import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -84,11 +85,12 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update author
-    const updatedAuthor = await db.update(schema.authors)
+    const results = await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.authors)
       .set(updateData)
       .where(eq(schema.authors.id, parseInt(authorId!)))
       .returning()
-      .get()
+    ])
+    const updatedAuthor = getAuditedBatchRow<typeof schema.authors.$inferSelect>(results, 1)
 
     await saveAuthorTranslations(parseInt(authorId), body.translations)
 

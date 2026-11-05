@@ -2,15 +2,17 @@ import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
-import { syncPrimaryAttribution, getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 import { detectSubmittedQuoteLanguage } from '~~/server/utils/quote-language'
+import { hasApiPermission, requireApiKeyRole, requireApiPermission } from '~~/server/utils/api-key'
+import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
     summary: 'Create a quote',
-    description: 'Creates a new quote in draft status. The quote will be associated with the API key owner and requires moderation before being publicly visible.',
+    description: 'Creates a new quote in draft status. The quote will be associated with the API key owner and requires moderation before being publicly visible. Inline author/reference creation requires write:authors or write:references and a moderator/admin account.',
     tags: ['Quotes'],
-    security: [{ apiKey: ['write:quotes'] }],
+    security: [{ apiKey: ['write:quotes', 'write:attributions', 'assign:authors', 'assign:references'] }],
     requestBody: {
       required: true,
       content: {
@@ -58,28 +60,45 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, createV1QuoteSchema.parse)
 
   const requestedAttributions = body.attributions
+  requireApiPermission(api, 'write:attributions')
+  for (const attribution of requestedAttributions) {
+    if (attribution.author_id != null) requireApiPermission(api, 'assign:authors')
+    if (attribution.reference_id != null) requireApiPermission(api, 'assign:references')
+  }
+  if (body.new_author) {
+    requireApiPermission(api, 'assign:authors')
+    requireApiPermission(api, 'write:authors')
+    requireApiKeyRole(api, 'moderator', 'admin')
+  }
+  if (body.new_reference) {
+    requireApiPermission(api, 'assign:references')
+    requireApiPermission(api, 'write:references')
+    requireApiKeyRole(api, 'moderator', 'admin')
+  }
   const requestedPrimary = requestedAttributions.find(attribution => attribution.is_primary)!
   let authorId = requestedPrimary.author_id
   let referenceId = requestedPrimary.reference_id
 
   if (body.new_author?.name) {
-    const authorResult = await db.insert(schema.authors).values({
+    const authorResults = await runApiAuditedBatch(event, api, [db.insert(schema.authors).values({
       name: body.new_author.name,
       isFictional: body.new_author.is_fictional || false,
       job: body.new_author.job || null,
       description: body.new_author.description || null
-    }).returning({ id: schema.authors.id }).get()
+    }).returning({ id: schema.authors.id })])
+    const authorResult = getAuditedBatchRow<{ id: number }>(authorResults, 1)
     authorId = authorResult.id
   }
 
   if (body.new_reference?.name) {
-    const referenceResult = await db.insert(schema.quoteReferences).values({
+    const referenceResults = await runApiAuditedBatch(event, api, [db.insert(schema.quoteReferences).values({
       name: body.new_reference.name,
       originalLanguage: body.new_reference.original_language || 'en',
       primaryType: body.new_reference.primary_type || 'other',
       description: body.new_reference.description ?? null,
       releaseDate: body.new_reference.release_date ?? null,
-    } as any).returning({ id: schema.quoteReferences.id }).get()
+    } as any).returning({ id: schema.quoteReferences.id })])
+    const referenceResult = getAuditedBatchRow<{ id: number }>(referenceResults, 1)
     referenceId = referenceResult.id
   }
 
@@ -134,27 +153,31 @@ export default defineEventHandler(async (event) => {
     : 'unverified'
   let quoteId: number
   try {
-    const quoteResult = await db.insert(schema.quotes).values({
+    const quoteResults = await runApiAuditedBatch(event, api, [db.insert(schema.quotes).values({
       name: body.name,
       language,
       userId: api.userId,
       status: 'draft',
       createdAt: new Date(),
       updatedAt: new Date()
-    } as any).returning({ id: schema.quotes.id }).get()
+    } as any).returning({ id: schema.quotes.id })])
+    const quoteResult = getAuditedBatchRow<{ id: number }>(quoteResults, 1)
     quoteId = quoteResult.id
 
-    await syncPrimaryAttribution(
+    await runApiAuditedBatch(event, api, [db.insert(schema.quoteAttributions).values({
       quoteId,
-      authorId || null,
-      referenceId || null,
-      api.userId,
-      attributionStatus,
-      requestedPrimary.notes,
-    )
+      authorId: authorId || null,
+      referenceId: referenceId || null,
+      isPrimary: true,
+      status: attributionStatus,
+      notes: requestedPrimary.notes,
+      verifiedBy: attributionStatus === 'unverified' ? null : api.userId,
+      verifiedAt: attributionStatus === 'unverified' ? null : new Date(),
+      createdBy: api.userId,
+    })])
     const additionalAttributions = requestedAttributions.filter(attribution => !attribution.is_primary)
     if (additionalAttributions.length) {
-      await db.batch(additionalAttributions.map(attribution => db.insert(schema.quoteAttributions).values({
+      await runApiAuditedBatch(event, api, additionalAttributions.map(attribution => db.insert(schema.quoteAttributions).values({
         quoteId,
         authorId: attribution.author_id,
         referenceId: attribution.reference_id,
@@ -162,11 +185,11 @@ export default defineEventHandler(async (event) => {
         status: api.userRole === 'admin' || api.userRole === 'moderator' ? attribution.status : 'unverified',
         notes: attribution.notes,
         createdBy: api.userId,
-      })) as any)
+      })))
     }
   } catch (error) {
     if (quoteId!) {
-      await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId)).run().catch(() => undefined)
+      await runApiAuditedBatch(event, api, [db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId))]).catch(() => undefined)
     }
     throw error
   }
@@ -223,7 +246,7 @@ export default defineEventHandler(async (event) => {
         shares: createdQuote!.sharesCount,
       },
       featured: createdQuote!.isFeatured,
-      ...(await getQuoteProvenance(quoteId)),
+      ...(hasApiPermission(api, 'read:provenance') ? await getQuoteProvenance(quoteId) : {}),
       tags: tags.map(t => ({ name: t.name, color: t.color })),
       created_at: createdQuote!.createdAt,
       updated_at: createdQuote!.updatedAt,

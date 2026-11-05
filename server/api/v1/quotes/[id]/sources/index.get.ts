@@ -1,15 +1,15 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
-import { requireQuote } from '~~/server/utils/admin-quote-provenance'
-import { requireApiModerator } from '~~/server/utils/api-quote-provenance'
+import { requireApiQuoteReadAccess } from '~~/server/utils/api-quote-provenance'
+import { requireApiPermission } from '~~/server/utils/api-key'
 
-defineRouteMeta({ openAPI: { summary: 'List quote sources', tags: ['Quote provenance'], security: [{ apiKey: ['write:quotes'] }] } })
+defineRouteMeta({ openAPI: { summary: 'List quote sources', tags: ['Quote provenance'], security: [{ apiKey: ['read:provenance'] }] } })
 
 export default defineEventHandler(async (event) => {
-  requireApiModerator(event.context.api)
+  requireApiPermission(event.context.api, 'read:provenance')
   const quoteId = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(quoteId) || quoteId <= 0) throwServer(400, 'Invalid quote ID')
-  await requireQuote(quoteId)
+  await requireApiQuoteReadAccess(event.context.api, quoteId)
   const data = await db.select({
     id: schema.quoteSources.id,
     quote_id: schema.quoteSources.quoteId,

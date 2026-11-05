@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and, inArray } from 'drizzle-orm'
 import { autoTagQuoteById } from '~~/server/utils/tagging'
 import { logActivity } from '~~/server/utils/activity-log'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -57,7 +58,7 @@ export default defineEventHandler(async (event) => {
     // Perform bulk update
     const newStatus = body.action === 'approve' ? 'approved' : 'rejected'
     
-    await Promise.all(quoteIds.map(quoteId => 
+    await runWebEditorialAuditedBatch(event, user.id, quoteIds.map(quoteId =>
       db.update(schema.quotes)
         .set({
           status: newStatus,
@@ -67,7 +68,6 @@ export default defineEventHandler(async (event) => {
           updatedAt: new Date()
         })
         .where(eq(schema.quotes.id, quoteId))
-        .run()
     ))
 
     for (const quoteId of quoteIds) {

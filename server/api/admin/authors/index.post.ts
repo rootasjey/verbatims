@@ -3,6 +3,7 @@ import { eq, sql } from 'drizzle-orm'
 import { createAuthorSchema } from '../../../validation/schemas'
 import { saveAuthorTranslations } from '~~/server/utils/entity-translations'
 import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Insert author (without image URL — we'll upload to R2 first)
-    const result = await db.insert(schema.authors)
+    const results = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.authors)
       .values({
         name: body.name,
         isFictional: body.is_fictional,
@@ -46,7 +47,8 @@ export default defineEventHandler(async (event) => {
         sharesCount: 0
       })
       .returning()
-      .get()
+    ])
+    const result = getAuditedBatchRow<typeof schema.authors.$inferSelect>(results, 1)
 
     await saveAuthorTranslations(result.id, body.translations)
 
@@ -56,11 +58,12 @@ export default defineEventHandler(async (event) => {
     }
 
     if (finalImageUrl) {
-      const updated = await db.update(schema.authors)
+      const updatedResults = await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.authors)
         .set({ imageUrl: finalImageUrl })
         .where(eq(schema.authors.id, result.id))
         .returning()
-        .get()
+      ])
+      const updated = getAuditedBatchRow<typeof schema.authors.$inferSelect>(updatedResults, 1)
 
       return {
         success: true,

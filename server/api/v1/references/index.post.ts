@@ -3,6 +3,7 @@ import { eq, sql } from 'drizzle-orm'
 import { createReferenceSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
 import { uploadAndStoreImage } from '~~/server/utils/image-storage'
+import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -55,7 +56,7 @@ export default defineEventHandler(async (event) => {
 
   if (existingReference) throwServer(409, 'A reference with this name already exists')
 
-  const result = await db.insert(schema.quoteReferences)
+  const results = await runApiAuditedBatch(event, api, [db.insert(schema.quoteReferences)
     .values({
       name: body.name,
       originalLanguage: body.original_language || 'en',
@@ -78,16 +79,17 @@ export default defineEventHandler(async (event) => {
       sharesCount: 0,
     } as any)
     .returning()
-    .get()
+  ])
+  const result = getAuditedBatchRow<typeof schema.quoteReferences.$inferSelect>(results, 1)
 
   let imageUrl = result.imageUrl
   if (body.image_url) {
     const storedUrl = await uploadAndStoreImage(body.image_url, 'references', result.id)
     if (storedUrl && storedUrl !== result.imageUrl) {
-      await db.update(schema.quoteReferences)
+      await runApiAuditedBatch(event, api, [db.update(schema.quoteReferences)
         .set({ imageUrl: storedUrl, updatedAt: sql`CURRENT_TIMESTAMP` })
         .where(eq(schema.quoteReferences.id, result.id))
-        .run()
+      ])
       imageUrl = storedUrl
     }
   }

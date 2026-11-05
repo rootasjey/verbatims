@@ -88,7 +88,7 @@ export default defineEventHandler(async (event) => {
     // If async mode, start processing in background and return import ID
     if (isAsync) {
       // Start processing asynchronously; keep worker alive with waitUntil on Cloudflare
-      const runJob = () => processImportAsync(db, adminUser?.id || 0, importId, zipBytes, preloadedDatasets || undefined)
+      const runJob = () => processImportAsync(db, adminUser?.id || 0, importId, user.id, zipBytes, preloadedDatasets || undefined)
         .catch(error => {
           console.error('Async import failed:', error)
           addError(importId, `Import failed: ${error.message}`)
@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Synchronous processing (legacy mode)
-    const results = await processImportSync(db, adminUser?.id || 0, importId, zipBytes, preloadedDatasets || undefined)
+    const results = await processImportSync(db, adminUser?.id || 0, importId, user.id, zipBytes, preloadedDatasets || undefined)
 
     return {
       success: true,
@@ -132,6 +132,7 @@ async function processImportSync(
   db: any, 
   adminUserId: number,
   importId: string,
+  auditActorUserId: number,
   zipBytes?: Uint8Array | null,
   preloadedDatasets?: Record<string, any[]>,
 ) {
@@ -179,7 +180,7 @@ async function processImportSync(
   try {
     console.log('Importing authors...')
     if (datasets?.authors && datasets.authors.length > 0) {
-      results.authors = await importAuthorsFromDataset(db, importId, datasets.authors)
+      results.authors = await importAuthorsFromDataset(db, importId, datasets.authors, auditActorUserId)
       console.log(`✅ Imported ${results.authors} authors`)
     } else {
       updateStepProgress(importId, 'authors', {
@@ -197,7 +198,7 @@ async function processImportSync(
   try {
     console.log('Importing references...')
     if (datasets?.references && datasets.references.length > 0) {
-      results.references = await importReferencesFromDataset(db, importId, datasets.references)
+      results.references = await importReferencesFromDataset(db, importId, datasets.references, auditActorUserId)
       console.log(`✅ Imported ${results.references} references`)
     } else {
       updateStepProgress(importId, 'references', {
@@ -232,7 +233,7 @@ async function processImportSync(
   try {
     console.log('Importing quotes...')
     if (datasets?.quotes && datasets.quotes.length > 0) {
-      results.quotes = await importQuotesFromDataset(db, adminUserId, importId, datasets.quotes)
+      results.quotes = await importQuotesFromDataset(db, adminUserId, auditActorUserId, importId, datasets.quotes)
       console.log(`✅ Imported ${results.quotes} quotes`)
     } else {
       updateStepProgress(importId, 'quotes', {
@@ -376,11 +377,12 @@ async function processImportAsync(
   db: any,
   adminUserId: number,
   importId: string,
+  auditActorUserId: number,
   zipBytes?: Uint8Array | null,
   preloadedDatasets?: Record<string, any[]>,
 ) {
   try {
-    await processImportSync(db, adminUserId, importId, zipBytes, preloadedDatasets)
+    await processImportSync(db, adminUserId, importId, auditActorUserId, zipBytes, preloadedDatasets)
   } catch (error: any) {
     console.error('Async import failed:', error)
     addError(importId, `Import failed: ${error.message}`)

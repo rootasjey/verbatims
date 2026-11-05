@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
+import { runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -45,9 +46,7 @@ export default defineEventHandler(async (event) => {
 
   await logActivity(event, { type: 'quote_deleted', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: quote.status, name: quote!.name } })
 
-  await db.delete(schema.quotes)
-    .where(eq(schema.quotes.id, quoteId))
-    .run()
+  await runApiAuditedBatch(event, api, [db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId))])
 
   return {
     success: true,

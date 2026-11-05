@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -86,7 +87,7 @@ export default defineEventHandler(async (event) => {
           .limit(1)
           .get()
         if (!existing) {
-          await db.insert(schema.authors).values({ name: value })
+          await runApiAuditedBatch(event, api, [db.insert(schema.authors).values({ name: value })])
         }
         break
       }
@@ -97,7 +98,7 @@ export default defineEventHandler(async (event) => {
           .limit(1)
           .get()
         if (!existing) {
-          await db.insert(schema.quoteReferences).values({ name: value, primaryType: 'other' })
+          await runApiAuditedBatch(event, api, [db.insert(schema.quoteReferences).values({ name: value, primaryType: 'other' })])
         }
         break
       }

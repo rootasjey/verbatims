@@ -11,6 +11,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import { ref, watch } from 'vue'
 
 const props = defineProps<{ modelValue: { id: number; name: string } | null; label: string; endpoint: string }>()

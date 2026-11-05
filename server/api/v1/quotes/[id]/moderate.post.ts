@@ -3,6 +3,7 @@ import { eq, and } from 'drizzle-orm'
 import { moderateQuoteSchema } from '../../../../validation/schemas'
 import { autoTagQuoteById } from '~~/server/utils/tagging'
 import { logActivity } from '~~/server/utils/activity-log'
+import { runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -62,7 +63,7 @@ export default defineEventHandler(async (event) => {
 
   const newStatus = body.action === 'approve' ? 'approved' : 'rejected'
 
-  await db.update(schema.quotes)
+  await runApiAuditedBatch(event, api, [db.update(schema.quotes)
     .set({
       status: newStatus,
       moderatorId: api.userId,
@@ -71,7 +72,7 @@ export default defineEventHandler(async (event) => {
       updatedAt: new Date(),
     })
     .where(eq(schema.quotes.id, quoteId))
-    .run()
+    ])
 
   await logActivity(event, { type: 'quote_moderated', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason, name: quote.name } })
 

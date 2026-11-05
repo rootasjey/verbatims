@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { createQuoteSourceSchema } from '../../../../../validation/schemas'
 import { requireAttributionForQuote, requireOccurrenceForAttribution, requireQuote } from '~~/server/utils/admin-quote-provenance'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -9,15 +10,14 @@ export default defineEventHandler(async (event) => {
   if (!Number.isInteger(quoteId) || quoteId <= 0) throwServer(400, 'Invalid quote ID')
   await requireQuote(quoteId)
   const body = await readValidatedBody(event, createQuoteSourceSchema.parse)
+  if (body.attribution_id == null) throwServer(400, 'A source must belong to an attribution')
   await requireAttributionForQuote(quoteId, body.attribution_id)
   await requireOccurrenceForAttribution(quoteId, body.attribution_id, body.occurrence_id)
 
-  if (body.is_primary) {
-    await db.update(schema.quoteSources).set({ isPrimary: false, updatedAt: new Date() }).where(eq(schema.quoteSources.quoteId, quoteId)).run()
-  }
-
   const verified = body.verification_status !== 'unverified'
-  const created = await db.insert(schema.quoteSources).values({
+  const statements = []
+  if (body.is_primary) statements.push(db.update(schema.quoteSources).set({ isPrimary: false, updatedAt: new Date() }).where(eq(schema.quoteSources.quoteId, quoteId)))
+  statements.push(db.insert(schema.quoteSources).values({
     quoteId,
     attributionId: body.attribution_id,
     occurrenceId: body.occurrence_id,
@@ -31,7 +31,9 @@ export default defineEventHandler(async (event) => {
     verifiedBy: verified ? user.id : null,
     verifiedAt: verified ? new Date() : null,
     createdBy: user.id,
-  }).returning({ id: schema.quoteSources.id }).get()
+  }).returning({ id: schema.quoteSources.id }))
+  const results = await runWebEditorialAuditedBatch(event, user.id, statements)
+  const created = getAuditedBatchRow<{ id: number }>(results, results.length - 2)
 
   return { success: true, data: { id: created.id, quote_id: quoteId } }
 })

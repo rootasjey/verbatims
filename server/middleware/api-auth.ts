@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
 
   if (!path.startsWith('/api/v1/')) return
   if (publicV1Paths.some(p => path.startsWith(p))) return
+  if (event.method === 'OPTIONS') return
 
   const authHeader = getHeader(event, 'authorization')
   if (!authHeader) {
@@ -60,6 +61,6 @@ export default defineEventHandler(async (event) => {
   }).run().catch(() => {})
 
   const clientSource = getHeader(event, 'x-client-source')
-  event.context.source = clientSource === 'cli' ? 'cli' : 'api_v1'
+  event.context.source = clientSource === 'cli' || clientSource === 'sdk' ? clientSource : 'api_v1'
   event.context.api = keyData
 })

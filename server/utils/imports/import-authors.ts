@@ -6,8 +6,9 @@ import { validateAuthorDataZod } from '../validation/author'
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { authorLifeDateColumnsFromInput } from '../author-life-date'
+import { runImportedEditorialAuditedBatch } from '../api-editorial-audit'
 
-export async function importAuthorsInline(parentImportId: string, authors: any[], options: ImportOptions) {
+export async function importAuthorsInline(parentImportId: string, authors: any[], options: ImportOptions, actorUserId: number) {
   const validation = validateAuthorDataZod(authors)
   if (!validation.isValid && !options.ignoreValidationErrors) {
     throw new Error(`Authors validation failed: ${validation.errors.length} errors`)
@@ -174,7 +175,7 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
 
       try {
         if (stmts.length > 0) {
-            await db.batch(stmts as any)
+            await runImportedEditorialAuditedBatch(actorUserId, parentImportId, stmts)
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
             successfulRecords: p.successfulRecords + stmts.length,
@@ -186,7 +187,7 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
           try {
             const s = stmts[idx]
             if (!s) continue
-            await s
+            await runImportedEditorialAuditedBatch(actorUserId, parentImportId, [s])
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -233,6 +234,7 @@ export async function processImportAuthors(
   rawData: any,
   format: 'json' | 'csv' | 'xml',
   options: ImportOptions,
+  actorUserId: number,
 ) {
   updateAdminImport(importId, { status: 'processing' })
   try {
@@ -244,7 +246,7 @@ export async function processImportAuthors(
     else throw new Error(`Unsupported format: ${format}`)
 
     updateAdminImport(importId, { totalRecords: authors.length })
-    await importAuthorsInline(importId, authors, options)
+    await importAuthorsInline(importId, authors, options, actorUserId)
     try {
       const pp = getAdminImport(importId)!
       await db.update(schema.importLogs)

@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, inArray, sql } from 'drizzle-orm'
-import { getQuoteProvenance, syncPrimaryAttribution } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -49,12 +50,13 @@ export default defineEventHandler(async (event) => {
       authorId = primaryAttribution.author_id || null
       hasUpdate = true
     } else if (body.new_author && body.new_author.name) {
-      const newAuthor = await db.insert(schema.authors).values({
+      const authorResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.authors).values({
         name: body.new_author.name.trim(),
         isFictional: body.new_author.is_fictional || false,
         createdAt: new Date(),
         updatedAt: new Date()
-      }).returning({ id: schema.authors.id }).get()
+      }).returning({ id: schema.authors.id })])
+      const newAuthor = getAuditedBatchRow<{ id: number }>(authorResults, 1)
 
       authorId = newAuthor.id
       hasUpdate = true
@@ -65,13 +67,14 @@ export default defineEventHandler(async (event) => {
       referenceId = primaryAttribution.reference_id || null
       hasUpdate = true
     } else if (body.new_reference && body.new_reference.name) {
-      const newReference = await db.insert(schema.quoteReferences).values({
+      const referenceResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quoteReferences).values({
         name: body.new_reference.name.trim(),
         originalLanguage: body.new_reference.original_language || body.language || 'en',
         primaryType: body.new_reference.primary_type || 'other',
         createdAt: new Date(),
         updatedAt: new Date()
-      }).returning({ id: schema.quoteReferences.id }).get()
+      }).returning({ id: schema.quoteReferences.id })])
+      const newReference = getAuditedBatchRow<{ id: number }>(referenceResults, 1)
 
       referenceId = newReference.id
       hasUpdate = true
@@ -114,7 +117,7 @@ export default defineEventHandler(async (event) => {
           .where(eq(schema.quoteAttributions.id, primary!.id)))
       }
     }
-    await db.batch(statements as any)
+    await runWebEditorialAuditedBatch(event, user.id, statements)
 
     return {
       success: true,

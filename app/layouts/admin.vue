@@ -51,9 +51,7 @@
                 <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between font-sans text-lg font-600 text-gray-900 dark:text-gray-100">
                   {{ $t('nav.contribute') }}
                   <span class="flex items-center gap-3">
-                    <NAvatar v-if="user" size="2" :src="user.avatar_url" :alt="user.name">
-                      <template #fallback><BrandAvatarFallback /></template>
-                    </NAvatar>
+                    <UserAvatar v-if="user" size="2" :src="user.avatar_url" :alt="user.name" />
                     <NIcon name="i-ph-caret-down" class="transition-transform group-open:rotate-180" />
                   </span>
                 </summary>
@@ -380,6 +378,7 @@ const adminNavGroups = computed<AdminNavGroup[]>(() => [
       { to: '/admin/harvest', label: String($t('admin.nav.harvest_quotes')), count: harvestedCount.value },
       { to: '/admin/enrichment', label: String($t('admin.nav.enrichment_queue')) },
       { to: '/admin/enrichment-audit', label: String($t('admin.nav.enrichment_audit')) },
+      { to: '/admin/editorial-history', label: String($t('admin.nav.editorial_history')) },
     ],
   },
   {

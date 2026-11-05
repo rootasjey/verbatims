@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql, and, inArray } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
 import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -37,7 +38,7 @@ const targetStatus = new_status || 'draft'
       ))
       .all())
 
-    const result = await db.update(schema.quotes)
+    const results = await runWebEditorialAuditedBatch(event, user.id, [db.update(schema.quotes)
       .set({
         status: statusValue,
         moderatorId: user.id,
@@ -48,8 +49,9 @@ const targetStatus = new_status || 'draft'
         inArray(schema.quotes.id, quoteIdBatch),
         eq(schema.quotes.status, 'harvested'),
       ))
-      .execute()
-    approvedCount += result?.rowsAffected ?? 0
+      ])
+    const result = results[1] as { rowsAffected?: number; changes?: number; meta?: { changes?: number } }
+    approvedCount += result?.meta?.changes ?? result?.rowsAffected ?? result?.changes ?? 0
   }
 
   for (const id of quote_ids) {

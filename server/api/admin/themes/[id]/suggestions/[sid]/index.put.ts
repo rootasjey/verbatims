@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -54,7 +55,7 @@ export default defineEventHandler(async (event) => {
             .limit(1)
             .get()
           if (!existing) {
-            await db.insert(schema.authors).values({ name: value })
+            await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.authors).values({ name: value })])
           }
           break
         }
@@ -65,7 +66,7 @@ export default defineEventHandler(async (event) => {
             .limit(1)
             .get()
           if (!existing) {
-            await db.insert(schema.quoteReferences).values({ name: value, primaryType: 'other' })
+            await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quoteReferences).values({ name: value, primaryType: 'other' })])
           }
           break
         }

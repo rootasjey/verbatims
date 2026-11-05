@@ -3,6 +3,7 @@ import { sql, eq, and } from 'drizzle-orm'
 import { updateAuthorSchema } from '../../../validation/schemas'
 import { authorLifeDateColumnsFromInput } from '~~/server/utils/author-life-date'
 import { logActivity } from '~~/server/utils/activity-log'
+import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
 defineRouteMeta({
   openAPI: {
@@ -116,11 +117,12 @@ export default defineEventHandler(async (event) => {
     throwServer(400, 'No fields to update')
   }
 
-  const updated = await db.update(schema.authors)
+  const results = await runApiAuditedBatch(event, api, [db.update(schema.authors)
     .set(updateData)
     .where(eq(schema.authors.id, authorId))
     .returning()
-    .get()
+  ])
+  const updated = getAuditedBatchRow<typeof schema.authors.$inferSelect>(results, 1)
 
   await logActivity(event, { type: 'author_edited', userId: api.userId, targetId: authorId, targetType: 'author', metadata: { name: updated.name } })
 

@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const runJob = () =>
-      processImportAuthors(importId, data, format, options)
+      processImportAuthors(importId, data, format, options, user.id)
         .catch((err) => {
           addAdminImportError(importId, `Fatal error: ${err.message}`)
           try {

@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, desc, sql, count } from 'drizzle-orm'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { requireApiPermission } from '~~/server/utils/api-key'
 
 defineRouteMeta({
   openAPI: {
@@ -33,6 +34,8 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
+  const api = event.context.api
+  const canReadProvenance = api.permissions.includes('*') || api.permissions.includes('read:provenance')
   const query = getQuery(event)
   const page = parseInt(query.page as string) || 1
   const limit = Math.min(parseInt(query.limit as string) || 20, 100)
@@ -40,6 +43,7 @@ export default defineEventHandler(async (event) => {
   const language = query.language as string | undefined
   const authorId = query.author_id ? parseInt(query.author_id as string) : undefined
   const referenceId = query.reference_id ? parseInt(query.reference_id as string) : undefined
+  if (!canReadProvenance && (authorId || referenceId)) requireApiPermission(api, 'read:provenance')
   const search = query.search as string | undefined
   const tag = query.tag as string | undefined
   const sortBy = (query.sort_by as string) || 'created_at'
@@ -109,7 +113,7 @@ export default defineEventHandler(async (event) => {
     .all()
 
   const quoteIds = quotes.map(q => q.id)
-  const provenance = await getPrimaryQuoteProvenance(quoteIds)
+  const provenance = canReadProvenance ? await getPrimaryQuoteProvenance(quoteIds) : new Map()
   const tagsMap: Record<number, { name: string; color: string | null }[]> = {}
   if (quoteIds.length > 0) {
     const tags = await db
@@ -141,8 +145,7 @@ export default defineEventHandler(async (event) => {
         shares: q.sharesCount,
       },
       featured: q.isFeatured,
-      attributions: quoteProvenance?.attributions ?? [],
-      sources: quoteProvenance?.sources ?? [],
+      ...(canReadProvenance ? { attributions: quoteProvenance?.attributions ?? [], sources: quoteProvenance?.sources ?? [] } : {}),
       tags: tagsMap[q.id] || [],
       created_at: q.createdAt,
       updated_at: q.updatedAt,

@@ -11,7 +11,7 @@ defineRouteMeta({
         description: 'API key details',
         content: {
           'application/json': {
-            example: { success: true, data: { key_id: 1, name: 'My Key', key_prefix: 'vbt_a1b2c3', permissions: ['read', 'write:quotes'], user_role: 'user', rate_limits: { read: { limit: 1000, window: 3600, used: 42, remaining: 958, reset: 1700000000 }, write: { limit: 1000, window: 3600, used: 3, remaining: 997, reset: 1700000000 } } } },
+            example: { success: true, data: { key_id: 1, name: 'My Key', key_prefix: 'vbt_a1b2c3', permissions: ['read', 'read:provenance', 'write:quotes', 'write:sources'], user_role: 'user', rate_limits: { read: { limit: 1000, window: 3600, used: 42, remaining: 958, reset: 1700000000 }, write: { limit: 1000, window: 3600, used: 3, remaining: 997, reset: 1700000000 } } } },
           },
         },
       },
