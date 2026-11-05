@@ -46,13 +46,14 @@ quote_status = "unverified"
 existing_review_outcome = "source_candidate_found"
 existing_review_notes = "2026-10-16. Formulation attribuée à Coluche dans des catalogues secondaires; un recueil est cité (« Coluche les inoubliables »), et une reprise la rattache au sketch « L’étudiant ». Enregistrement/transcription primaire non contrôlé. https://www.dicocitations.com/auteurs-citations-pseudos/1085/Coluche.php ; https://blogs.mediapart.fr/association-amour-de-la-justice/blog/300326/justice-nous-ne-nous-y-retrouvons-plus"
 
-review_outcome = "source_candidate_found"
-reviewed_at = "2026-10-30"
-review_notes = "La formulation exacte n’a pas été retrouvée dans une source primaire. Une page de compilation distingue cette version (« appelez-moi / je vous dirai ») d’une variante liée au sketch « L’étudiant » (« Écrivez-nous / on vous expliquera ») et rapporte une attribution concurrente aux Cyniques sans preuve directe. Conserver l’attribution à Coluche comme non vérifiée; aucune correction de texte ou d’auteur justifiée à ce stade."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-03"
+review_notes = "La formulation exacte n’a pas été retrouvée dans une source primaire. Une page de compilation distingue cette version (« appelez-moi / je vous dirai ») d’une variante liée au sketch « L’étudiant » (« Écrivez-nous / on vous expliquera ») et rapporte une attribution concurrente aux Cyniques sans preuve directe. Conserver l’attribution à Coluche comme non vérifiée; aucune correction de texte ou d’auteur justifiée à ce stade.\n\nBatch 001 (2026-11-03): résultat inconclusif. Secondary dossier distinguishes current wording from the L’étudiant variant and records a competing Les Cyniques claim. Its primary recording was not inspected; metadata and an indirect comment cannot establish priority. An initial open failed (cache miss); a subsequent indexed search retrieved the dossier. No exact primary witness located. Keep Coluche and wording unchanged, unverified. Prochaine recherche : Listen to a lawfully accessible L’étudiant recording and locate the passage; inspect Les Cyniques L’assurance chômage recording before proposing any attribution change. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://citations-plus.com/citation/102-citation-si-avez-besoin-quelque-chose-appelez-dirai-comment-passer-coluche"
 source_level = "secondary"
+locator = "Origine et source de la citation; evidence items 1–4"
 support = "La page identifie la formulation exacte comme non retrouvée et documente une variante liée au sketch « L’étudiant »; elle n’est pas une source primaire."
 [[quotes.attributions]]
 id = 1
@@ -74,13 +75,14 @@ quote_status = "unverified"
 existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. Recherche exacte: pas de source primaire ni d’auteur établi. Une base de citations classe une formulation proche comme anonyme; ne pas attribuer davantage sans source. https://citations.webescence.com/citations/anonyme/Dans-vie-perd-jamais-Soit-gagne-Soit-apprend-10702"
 
-review_outcome = "disputed"
-reviewed_at = "2026-10-30"
-review_notes = "Cette formulation française correspond à une famille de maximes souvent attribuées à George Bernard Shaw, mais Quote Investigator ne trouve pas de preuve substantielle d’un usage par Shaw. La source retrace des formes voisines à Sydney J. Harris (1969) et Thomas Szasz (1973). La citation française exacte et son auteur restent non établis; garder « Anonyme » plutôt que d’ajouter une attribution non sourcée."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-03"
+review_notes = "Cette formulation française correspond à une famille de maximes souvent attribuées à George Bernard Shaw, mais Quote Investigator ne trouve pas de preuve substantielle d’un usage par Shaw. La source retrace des formes voisines à Sydney J. Harris (1969) et Thomas Szasz (1973). La citation française exacte et son auteur restent non établis; garder « Anonyme » plutôt que d’ajouter une attribution non sourcée.\n\nBatch 001 (2026-11-03): résultat inconclusif. Secondary historical investigation finds no substantive Shaw evidence and traces related English forms to Harris (1969) and Szasz (1973). Those are related formulations, not proof of authorship of this exact French text. Primary scans were not independently inspected. Current Anonymous attribution remains appropriate as an unresolved attribution, not a verified author identity. Prochaine recherche : Consult the cited Record-Gazette 18 April 1969 p.1 col.10 and Szasz The Second Sin p.49; locate a French translation witness before assigning an author. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://quoteinvestigator.com/2021/09/28/create-yourself/"
 source_level = "secondary"
+locator = "Reply and chronology; notes 1–3 and 8–10"
 support = "Étude documentée de l’origine des variantes anglaises; elle rejette les attributions à Shaw faute de preuve et relève des occurrences antérieures chez Sydney J. Harris et Thomas Szasz."
 [[quotes.attributions]]
 id = 2
@@ -132,13 +134,14 @@ quote_status = "unverified"
 existing_review_outcome = "source_candidate_found"
 existing_review_notes = "2026-10-16. Formulation exacte reproduite et créditée à George Bernard Shaw dans La Dramaturgie d’Yves Lavandier, extrait p. 16, référence bibliographique [173]. Source secondaire; œuvre originale de Shaw non identifiée. https://media.electre-ng.com/extraits/extrait-id/ec832bd4d4081746c31cb5024dd3a8fb9ec9b6bfccb89f4070ab3f72168c0378.pdf"
 
-review_outcome = "source_candidate_found"
-reviewed_at = "2026-10-30"
-review_notes = "La formulation française exacte et le crédit à George Bernard Shaw sont reproduits dans un extrait éditorial d’Yves Lavandier, avec un renvoi bibliographique [173]. C’est une source secondaire; l’œuvre originale de Shaw et le passage primaire n’ont pas été identifiés. Laisser le texte et l’attribution inchangés mais non vérifiés."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-03"
+review_notes = "La formulation française exacte et le crédit à George Bernard Shaw sont reproduits dans un extrait éditorial d’Yves Lavandier, avec un renvoi bibliographique [173]. C’est une source secondaire; l’œuvre originale de Shaw et le passage primaire n’ont pas été identifiés. Laisser le texte et l’attribution inchangés mais non vérifiés.\n\nBatch 001 (2026-11-03): résultat inconclusif. Exact French wording and Shaw credit occur in the 2019 publisher excerpt of Yves Lavandier La Dramaturgie. This is secondary evidence for Shaw. A teaching edition points to Preface to Plays Pleasant, consistent with existing reference #169, but the Shaw primary text and French translation were not inspected. Internet Archive playspleasantunp02shaw OCR attempt timed out during TLS; web open also failed. Do not treat a catalogue or teaching excerpt as primary verification. Historical audit locator p.16 is corrected here to printed p.17 / PDF index 16. Prochaine recherche : Inspect the actual Plays Pleasant preface scan and its French translation; compare the current reference before any reference proposal. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://media.electre-ng.com/extraits/extrait-id/ec832bd4d4081746c31cb5024dd3a8fb9ec9b6bfccb89f4070ab3f72168c0378.pdf"
 source_level = "secondary"
+locator = "PDF index 16 (17th PDF page), printed p.17, Introduction epigraph, George Bernard Shaw [173]"
 support = "Extrait d’ouvrage qui reproduit la phrase française et l’attribue à George Bernard Shaw; renvoi [173], sans preuve primaire visible dans l’extrait."
 [[quotes.attributions]]
 id = 4
@@ -162,13 +165,14 @@ quote_status = "unverified"
 existing_review_outcome = "source_candidate_found"
 existing_review_notes = "2026-10-16. Reprise bibliographique repérée dans Pensées et anecdotes, Le Cherche Midi, 1995, p. 112. Texte du recueil non consulté directement; vérifier la page avant confirmation. https://bribes.org/biblio/bribes59.pdf"
 
-review_outcome = "source_candidate_found"
-reviewed_at = "2026-10-30"
-review_notes = "Une transcription bibliographique attribue le texte à Coluche, Pensées et anecdotes (Le Cherche Midi, 1995), p. 112. Le livre lui-même n’a pas été consulté; texte exact et attribution restent à confirmer sur l’édition citée. Aucune correction de production pour l’instant."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-03"
+review_notes = "Une transcription bibliographique attribue le texte à Coluche, Pensées et anecdotes (Le Cherche Midi, 1995), p. 112. Le livre lui-même n’a pas été consulté; texte exact et attribution restent à confirmer sur l’édition citée. Aucune correction de production pour l’instant.\n\nBatch 001 (2026-11-03): résultat inconclusif. The compilation transcribes wording matching the current citation apart from typography and cites the 1995 collection p.112. This is a useful bibliographic lead, not direct consultation of the collection. No primary edition page inspected. Retain current attribution and no linked reference; adding a reference would be protected and needs evidence and explicit approval. Prochaine recherche : Inspect Pensées et anecdotes (1995) p.112 in a lawful library/preview copy; only then formulate a precise source/reference proposal. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://bribes.org/biblio/bribes59.pdf"
 source_level = "secondary"
+locator = "PDF index 451 (452nd PDF page), printed p.452, RICHESSE; entry cites Coluche, Pensées et anecdotes, Le cherche midi 1995 p.112"
 support = "La transcription cite Coluche, Pensées et anecdotes (1995), p. 112; elle constitue une piste bibliographique, pas la consultation de l’édition primaire."
 [[quotes.attributions]]
 id = 5
@@ -191,8 +195,8 @@ existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. Attribution à Anne Lamott largement reprise, mais les versions retrouvées disent « it may float forth and open like those fluted Japanese blossoms… »; la formulation en base est raccourcie et diffère. Source primaire (livre) non contrôlée. https://www.spiritualityandpractice.com/quotes/quotations/view/26277/spiritual-quotation"
 
 review_outcome = "inconclusive"
-reviewed_at = "2026-10-30"
-review_notes = "La formulation exacte est répétée par plusieurs sites de citations, mais je n’ai pas retrouvé le passage dans un livre d’Anne Lamott ou une autre source primaire. Une version plus longue circule avec une fin différente (« …opens like those fluted Japanese blossoms… »); la citation en base peut être tronquée. Garder le texte et l’attribution non vérifiés jusqu’à contrôle d’une édition."
+reviewed_at = "2026-11-03"
+review_notes = "La formulation exacte est répétée par plusieurs sites de citations, mais je n’ai pas retrouvé le passage dans un livre d’Anne Lamott ou une autre source primaire. Une version plus longue circule avec une fin différente (« …opens like those fluted Japanese blossoms… »); la citation en base peut être tronquée. Garder le texte et l’attribution non vérifiés jusqu’à contrôle d’une édition.\n\nBatch 001 (2026-11-03): résultat inconclusif. Secondary excerpt credits Plan B but gives a different formulation (pronoun opening and modal wording); BrainyQuote https://www.brainyquote.com/quotes/anne_lamott_381086 repeats the current version without a primary locator. These establish circulation and a book lead, not that the current sentence is verbatim Lamott. No publisher/book page or signed essay containing this wording inspected. No exact correction justified yet. Prochaine recherche : Inspect a lawful Plan B edition or publisher excerpt and locate the hope paragraph. Determine whether current wording is a paraphrase before proposing text or protected reference changes. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://www.brainyquote.com/quotes/anne_lamott_381086"
@@ -203,6 +207,11 @@ support = "Reproduit la formulation exacte et l’attribue à Anne Lamott, sans 
 url = "https://mommastrong.com/pages/what-is-the-hook"
 source_level = "secondary"
 support = "Reprend la même version, également sans localisation bibliographique."
+[[quotes.audit_sources]]
+url = "https://www.spiritualityandpractice.com/quotes/quotations/view/26277/spiritual-quotation"
+source_level = "secondary"
+locator = "Spiritual Quotation; paragraph on hope; book credit Plan B: Further Thoughts on Faith"
+support = "Secondary excerpt credits Plan B but gives a different formulation (pronoun opening and modal wording); BrainyQuote https://www.brainyquote.com/quotes/anne_lamott_381086 repeats the current version without a primary locator. These establish circulation and a book lead, not that the current sentence is verbatim Lamott. No publisher/book page or signed essay containing this wording inspected. No exact correction justified yet."
 [[quotes.attributions]]
 id = 6
 author_id = 51

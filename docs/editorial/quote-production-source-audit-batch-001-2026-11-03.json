@@ -1,0 +1,354 @@
+{
+  "schema_version": 1,
+  "batch": 1,
+  "reviewer": "Sun",
+  "cohort_commit": "b339ab9a",
+  "membership_captured_at": "2026-11-03T10:37:37.885Z",
+  "quote_ids": [
+    1,
+    2,
+    4,
+    5,
+    6
+  ],
+  "reviewed_count": 5,
+  "remaining_count": 2450,
+  "counts": {
+    "verified_accurate": 0,
+    "corrected": 0,
+    "unresolved": 5,
+    "awaiting_approval": 0
+  },
+  "pending_protected_changes": [],
+  "post_snapshot_findings": [],
+  "records": [
+    {
+      "quote_id": 1,
+      "reviewer": "Sun",
+      "research_date": "2026-11-03",
+      "retrieved_at": "2026-11-03T11:11:17.075948+00:00",
+      "membership": {
+        "quoteId": 1,
+        "sourceCount": 0,
+        "sourceFlags": [],
+        "auditOutcome": "source_candidate_found",
+        "includedBy": [
+          "no_source"
+        ]
+      },
+      "current_production": {
+        "id": 1,
+        "content": "Si vous avez besoin de quelque chose, appelez-moi. Je vous dirai comment vous en passer.",
+        "language": "fr",
+        "stats": {
+          "views": 1,
+          "likes": 0,
+          "shares": 0
+        },
+        "featured": false,
+        "attributions": [
+          {
+            "id": 1,
+            "quote_id": 1,
+            "author_id": 334,
+            "reference_id": null,
+            "is_primary": true,
+            "status": "unverified",
+            "verified_by": null,
+            "verified_at": null,
+            "notes": null,
+            "author": {
+              "id": 334,
+              "name": "Coluche",
+              "is_fictional": false,
+              "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Coluche%2C_1986%2C_European_Parliament.jpg"
+            }
+          }
+        ],
+        "sources": [],
+        "tags": [],
+        "created_at": null,
+        "updated_at": null
+      },
+      "outcome": "unresolved",
+      "review_outcome": "inconclusive",
+      "evidence": [
+        {
+          "url": "https://citations-plus.com/citation/102-citation-si-avez-besoin-quelque-chose-appelez-dirai-comment-passer-coluche",
+          "level": "secondary",
+          "locator": "Origine et source de la citation; evidence items 1–4"
+        }
+      ],
+      "reasoning": "Secondary dossier distinguishes current wording from the L’étudiant variant and records a competing Les Cyniques claim. Its primary recording was not inspected; metadata and an indirect comment cannot establish priority. An initial open failed (cache miss); a subsequent indexed search retrieved the dossier. No exact primary witness located. Keep Coluche and wording unchanged, unverified.",
+      "searches_and_access_limits": "Coluche \"Si vous avez besoin de quelque chose\" \"étudiant\"; \"Coluche\" \"appelez-moi\" \"L’étudiant\"",
+      "next_research": "Listen to a lawfully accessible L’étudiant recording and locate the passage; inspect Les Cyniques L’assurance chômage recording before proposing any attribution change.",
+      "proposed_production_diff": null,
+      "protected_field_proposal": null,
+      "production_changes_applied": false
+    },
+    {
+      "quote_id": 2,
+      "reviewer": "Sun",
+      "research_date": "2026-11-03",
+      "retrieved_at": "2026-11-03T11:11:17.921428+00:00",
+      "membership": {
+        "quoteId": 2,
+        "sourceCount": 0,
+        "sourceFlags": [],
+        "auditOutcome": "inconclusive",
+        "includedBy": [
+          "no_source"
+        ]
+      },
+      "current_production": {
+        "id": 2,
+        "content": "Le but de la vie n'est pas de se trouver mais de se créer !",
+        "language": "fr",
+        "stats": {
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        "featured": false,
+        "attributions": [
+          {
+            "id": 2,
+            "quote_id": 2,
+            "author_id": 245,
+            "reference_id": null,
+            "is_primary": true,
+            "status": "unverified",
+            "verified_by": null,
+            "verified_at": null,
+            "notes": null,
+            "author": {
+              "id": 245,
+              "name": "Anonyme",
+              "is_fictional": false,
+              "image_url": ""
+            }
+          }
+        ],
+        "sources": [],
+        "tags": [],
+        "created_at": null,
+        "updated_at": null
+      },
+      "outcome": "unresolved",
+      "review_outcome": "inconclusive",
+      "evidence": [
+        {
+          "url": "https://quoteinvestigator.com/2021/09/28/create-yourself/",
+          "level": "secondary",
+          "locator": "Reply and chronology; notes 1–3 and 8–10"
+        }
+      ],
+      "reasoning": "Secondary historical investigation finds no substantive Shaw evidence and traces related English forms to Harris (1969) and Szasz (1973). Those are related formulations, not proof of authorship of this exact French text. Primary scans were not independently inspected. Current Anonymous attribution remains appropriate as an unresolved attribution, not a verified author identity.",
+      "searches_and_access_limits": "\"Le but de la vie\" \"se créer\" Shaw; direct reading of existing historical investigation",
+      "next_research": "Consult the cited Record-Gazette 18 April 1969 p.1 col.10 and Szasz The Second Sin p.49; locate a French translation witness before assigning an author.",
+      "proposed_production_diff": null,
+      "protected_field_proposal": null,
+      "production_changes_applied": false
+    },
+    {
+      "quote_id": 4,
+      "reviewer": "Sun",
+      "research_date": "2026-11-03",
+      "retrieved_at": "2026-11-03T11:11:18.654221+00:00",
+      "membership": {
+        "quoteId": 4,
+        "sourceCount": 0,
+        "sourceFlags": [],
+        "auditOutcome": "source_candidate_found",
+        "includedBy": [
+          "no_source"
+        ]
+      },
+      "current_production": {
+        "id": 4,
+        "content": "La vérité est que l'invention dramatique est le premier effort de l'homme pour devenir intellectuellement conscient.",
+        "language": "fr",
+        "stats": {
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        "featured": false,
+        "attributions": [
+          {
+            "id": 4,
+            "quote_id": 4,
+            "author_id": 117,
+            "reference_id": 169,
+            "is_primary": true,
+            "status": "unverified",
+            "verified_by": null,
+            "verified_at": null,
+            "notes": null,
+            "author": {
+              "id": 117,
+              "name": "George Bernard Shaw",
+              "is_fictional": false,
+              "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/George_Bernard_Shaw_MET_DP359539.jpg"
+            },
+            "reference": {
+              "id": 169,
+              "name": "Préface aux pièces plaisantes",
+              "primary_type": "book",
+              "image_url": "https://firebasestorage.googleapis.com/v0/b/memorare-98eee.appspot.com/o/images%2Fpp%2FPréface aux pièces plaisantes-1704118718971.jpg?alt=media"
+            }
+          }
+        ],
+        "sources": [],
+        "tags": [],
+        "created_at": null,
+        "updated_at": null
+      },
+      "outcome": "unresolved",
+      "review_outcome": "inconclusive",
+      "evidence": [
+        {
+          "url": "https://media.electre-ng.com/extraits/extrait-id/ec832bd4d4081746c31cb5024dd3a8fb9ec9b6bfccb89f4070ab3f72168c0378.pdf",
+          "level": "secondary",
+          "locator": "PDF index 16 (17th PDF page), printed p.17, Introduction epigraph, George Bernard Shaw [173]"
+        }
+      ],
+      "reasoning": "Exact French wording and Shaw credit occur in the 2019 publisher excerpt of Yves Lavandier La Dramaturgie. This is secondary evidence for Shaw. A teaching edition points to Preface to Plays Pleasant, consistent with existing reference #169, but the Shaw primary text and French translation were not inspected. Internet Archive playspleasantunp02shaw OCR attempt timed out during TLS; web open also failed. Do not treat a catalogue or teaching excerpt as primary verification. Historical audit locator p.16 is corrected here to printed p.17 / PDF index 16.",
+      "searches_and_access_limits": "Shaw \"dramatic invention\" \"intellectually conscious\"; \"Shaw\" \"Plays pleasant\" preface archive.org; direct publisher excerpt and IA OCR access attempt",
+      "next_research": "Inspect the actual Plays Pleasant preface scan and its French translation; compare the current reference before any reference proposal.",
+      "proposed_production_diff": null,
+      "protected_field_proposal": null,
+      "production_changes_applied": false
+    },
+    {
+      "quote_id": 5,
+      "reviewer": "Sun",
+      "research_date": "2026-11-03",
+      "retrieved_at": "2026-11-03T11:11:19.256349+00:00",
+      "membership": {
+        "quoteId": 5,
+        "sourceCount": 0,
+        "sourceFlags": [],
+        "auditOutcome": "source_candidate_found",
+        "includedBy": [
+          "no_source"
+        ]
+      },
+      "current_production": {
+        "id": 5,
+        "content": "Il paraît que la crise rend les riches plus riches et les pauvres plus pauvres. Je ne vois pas en quoi c'est une crise. Depuis que je suis petit, c'est comme ça.",
+        "language": "fr",
+        "stats": {
+          "views": 1,
+          "likes": 0,
+          "shares": 0
+        },
+        "featured": false,
+        "attributions": [
+          {
+            "id": 5,
+            "quote_id": 5,
+            "author_id": 334,
+            "reference_id": null,
+            "is_primary": true,
+            "status": "unverified",
+            "verified_by": null,
+            "verified_at": null,
+            "notes": null,
+            "author": {
+              "id": 334,
+              "name": "Coluche",
+              "is_fictional": false,
+              "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Coluche%2C_1986%2C_European_Parliament.jpg"
+            }
+          }
+        ],
+        "sources": [],
+        "tags": [],
+        "created_at": null,
+        "updated_at": null
+      },
+      "outcome": "unresolved",
+      "review_outcome": "inconclusive",
+      "evidence": [
+        {
+          "url": "https://bribes.org/biblio/bribes59.pdf",
+          "level": "secondary",
+          "locator": "PDF index 451 (452nd PDF page), printed p.452, RICHESSE; entry cites Coluche, Pensées et anecdotes, Le cherche midi 1995 p.112"
+        }
+      ],
+      "reasoning": "The compilation transcribes wording matching the current citation apart from typography and cites the 1995 collection p.112. This is a useful bibliographic lead, not direct consultation of the collection. No primary edition page inspected. Retain current attribution and no linked reference; adding a reference would be protected and needs evidence and explicit approval.",
+      "searches_and_access_limits": "\"Coluche\" \"crise\" \"Pensées et anecdotes\" 112; direct BRIBES text search \"crise rend\"",
+      "next_research": "Inspect Pensées et anecdotes (1995) p.112 in a lawful library/preview copy; only then formulate a precise source/reference proposal.",
+      "proposed_production_diff": null,
+      "protected_field_proposal": null,
+      "production_changes_applied": false
+    },
+    {
+      "quote_id": 6,
+      "reviewer": "Sun",
+      "research_date": "2026-11-03",
+      "retrieved_at": "2026-11-03T11:11:19.559766+00:00",
+      "membership": {
+        "quoteId": 6,
+        "sourceCount": 0,
+        "sourceFlags": [],
+        "auditOutcome": "inconclusive",
+        "includedBy": [
+          "no_source"
+        ]
+      },
+      "current_production": {
+        "id": 6,
+        "content": "When hope is not pinned wriggling onto a shiny image or expectation, it sometimes floats forth and opens.",
+        "language": "en",
+        "stats": {
+          "views": 1,
+          "likes": 0,
+          "shares": 0
+        },
+        "featured": false,
+        "attributions": [
+          {
+            "id": 6,
+            "quote_id": 6,
+            "author_id": 51,
+            "reference_id": null,
+            "is_primary": true,
+            "status": "unverified",
+            "verified_by": null,
+            "verified_at": null,
+            "notes": null,
+            "author": {
+              "id": 51,
+              "name": "Anne Lamott",
+              "is_fictional": false,
+              "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Anne-Lamott-2013-San-Francisco.jpg"
+            }
+          }
+        ],
+        "sources": [],
+        "tags": [],
+        "created_at": null,
+        "updated_at": null
+      },
+      "outcome": "unresolved",
+      "review_outcome": "inconclusive",
+      "evidence": [
+        {
+          "url": "https://www.spiritualityandpractice.com/quotes/quotations/view/26277/spiritual-quotation",
+          "level": "secondary",
+          "locator": "Spiritual Quotation; paragraph on hope; book credit Plan B: Further Thoughts on Faith"
+        }
+      ],
+      "reasoning": "Secondary excerpt credits Plan B but gives a different formulation (pronoun opening and modal wording); BrainyQuote https://www.brainyquote.com/quotes/anne_lamott_381086 repeats the current version without a primary locator. These establish circulation and a book lead, not that the current sentence is verbatim Lamott. No publisher/book page or signed essay containing this wording inspected. No exact correction justified yet.",
+      "searches_and_access_limits": "\"When hope is not pinned wriggling\" Anne Lamott; \"Anne Lamott\" \"pinned wriggling\" book; Lamott \"pinned\" \"Traveling Mercies\"; \"Lamott\" \"pinned wriggling\" \"Plan B\"; site.salon.com \"Lamott\" \"wriggling\"",
+      "next_research": "Inspect a lawful Plan B edition or publisher excerpt and locate the hope paragraph. Determine whether current wording is a paraphrase before proposing text or protected reference changes.",
+      "proposed_production_diff": null,
+      "protected_field_proposal": null,
+      "production_changes_applied": false
+    }
+  ],
+  "repository_publication": "Workspace proposals only; not committed or pushed. Authorised frozen membership remains version-controlled at b339ab9a.",
+  "limits": "Current API returned null timestamps, not snapshot values. No write baseline established. Historical October 30 audit remains unchanged."
+}
