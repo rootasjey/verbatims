@@ -1,13 +1,20 @@
-import { and, desc, eq, gte, like, lt, or } from 'drizzle-orm'
+import { and, asc, desc, eq, getTableColumns, gte, gt, like, lt, or } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
   const query = getQuery(event)
   const requestedLimit = Number(query.limit ?? 50)
+  const order = query.order === undefined ? 'newest' : query.order
   const beforeId = query.before_id === undefined ? undefined : Number(query.before_id)
+  const afterId = query.after_id === undefined ? undefined : Number(query.after_id)
   if (!Number.isInteger(requestedLimit) || requestedLimit < 1) throwServer(400, 'Invalid limit')
+  if (order !== 'newest' && order !== 'oldest') throwServer(400, 'Invalid order')
   if (beforeId !== undefined && (!Number.isInteger(beforeId) || beforeId < 1)) throwServer(400, 'Invalid before_id')
+  if (afterId !== undefined && (!Number.isInteger(afterId) || afterId < 1)) throwServer(400, 'Invalid after_id')
+  if ((beforeId !== undefined && afterId !== undefined) || (order === 'newest' && afterId !== undefined) || (order === 'oldest' && beforeId !== undefined)) {
+    throwServer(400, 'Invalid audit cursor for order')
+  }
   const limit = Math.min(requestedLimit, 100)
   const from = parseAuditDate(query.from, 'from')
   const to = parseAuditDate(query.to, 'to')
@@ -20,7 +27,8 @@ export default defineEventHandler(async (event) => {
   const action = readAuditFilter(query.action)
   const source = readAuditFilter(query.source)
   const filters = [
-    beforeId ? lt(schema.quoteEditorialAuditEvents.id, beforeId) : undefined,
+    order === 'newest' && beforeId ? lt(schema.quoteEditorialAuditEvents.id, beforeId) : undefined,
+    order === 'oldest' && afterId ? gt(schema.quoteEditorialAuditEvents.id, afterId) : undefined,
     from ? gte(schema.quoteEditorialAuditEvents.occurredAt, `${from} 00:00:00`) : undefined,
     toExclusive ? lt(schema.quoteEditorialAuditEvents.occurredAt, `${toExclusive} 00:00:00`) : undefined,
     actor ? like(schema.quoteEditorialAuditEvents.actorUserName, `%${actor}%`) : undefined,
@@ -33,16 +41,21 @@ export default defineEventHandler(async (event) => {
     source ? eq(schema.quoteEditorialAuditEvents.source, source) : undefined,
   ].filter((filter): filter is NonNullable<typeof filter> => Boolean(filter))
 
-  const events = await db.select().from(schema.quoteEditorialAuditEvents)
+  const events = await db.select({
+    ...getTableColumns(schema.quoteEditorialAuditEvents),
+    actorAvatarUrl: schema.users.avatarUrl,
+  }).from(schema.quoteEditorialAuditEvents)
+    .leftJoin(schema.users, eq(schema.quoteEditorialAuditEvents.actorUserId, schema.users.id))
     .where(filters.length ? and(...filters) : undefined)
-    .orderBy(desc(schema.quoteEditorialAuditEvents.id))
+    .orderBy(order === 'newest' ? desc(schema.quoteEditorialAuditEvents.id) : asc(schema.quoteEditorialAuditEvents.id))
     .limit(limit)
     .all()
 
   return {
     success: true,
     data: events,
-    next_before_id: events.length === limit ? events[events.length - 1]!.id : null,
+    next_before_id: order === 'newest' && events.length === limit ? events[events.length - 1]!.id : null,
+    next_after_id: order === 'oldest' && events.length === limit ? events[events.length - 1]!.id : null,
     retention: 'indefinite',
   }
 })

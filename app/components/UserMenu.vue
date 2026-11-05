@@ -6,15 +6,11 @@
       icon
       class="hover:scale-105 active:scale-95 transition-transform min-w-0 min-h-0"
     >
-      <NAvatar
+      <UserAvatar
         size="2"
         :src="user.avatar_url" 
         :alt="user.name"
-      >
-        <template #fallback>
-          <BrandAvatarFallback />
-        </template>
-      </NAvatar>
+      />
     </NButton>
   </NDropdownMenu>
 </template>
