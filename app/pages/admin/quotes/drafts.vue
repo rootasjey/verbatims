@@ -5,7 +5,7 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Drafts
+            {{ pageT('title') }}
           </h1>
         </div>
         <div class="hidden md:flex items-center gap-3">
@@ -134,20 +134,35 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">
-                <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
+                <button
+                  type="button"
+                  class="block w-full text-left font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:focus-visible:ring-gray-500"
+                  :aria-label="`${String($t('action_edit'))}: ${quote.name}`"
+                  @click.stop="editQuote(quote)"
+                >
                   {{ quote.name }}
-                </blockquote>
+                </button>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <template v-if="quote.author?.name">
                     <ContextMenu v-if="quote.author?.id" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
-                      <span class="cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{{ quote.author.name }}</span>
+                      <button
+                        type="button"
+                        class="text-left hover:text-gray-700 dark:hover:text-gray-300 transition-colors focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:focus-visible:ring-gray-500"
+                        :aria-label="`${String($t('action_edit_author'))}: ${quote.author.name}`"
+                        @click.stop="editAuthor(quote.author)"
+                      >{{ quote.author.name }}</button>
                     </ContextMenu>
                     <span v-else>{{ quote.author.name }}</span>
                   </template>
                   <span v-if="quote.author?.name && quote.reference?.name">&middot;</span>
                   <template v-if="quote.reference?.name">
                     <ContextMenu v-if="quote.reference?.id" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
-                      <span class="cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{{ quote.reference.name }}</span>
+                      <button
+                        type="button"
+                        class="text-left hover:text-gray-700 dark:hover:text-gray-300 transition-colors focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:focus-visible:ring-gray-500"
+                        :aria-label="`${String($t('action_edit_reference'))}: ${quote.reference.name}`"
+                        @click.stop="editReference(quote.reference)"
+                      >{{ quote.reference.name }}</button>
                     </ContextMenu>
                     <span v-else>{{ quote.reference.name }}</span>
                   </template>
@@ -188,7 +203,7 @@
                 </NCombobox>
               </td>
               <td class="px-3 py-3">
-                <span class="font-sans text-xs text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-md">Draft</span>
+                <span class="font-sans text-xs text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-md">{{ $t('common.status_draft') }}</span>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(quote.created_at) }}</td>
               <td class="px-3 py-3">
@@ -307,6 +322,7 @@ import { useErrorToast } from '~/composables/useErrorToast'
 
 const { showErrorToast } = useErrorToast()
 const { $t } = useI18n()
+const pageT = useI18n().$_t({ ...useRoute() })
 
 definePageMeta({
   layout: 'admin',
@@ -314,7 +330,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Draft Quotes - Admin - Verbatims'
+  title: pageT('meta_title') as string
 })
 
 const selectedQuote = ref<AdminQuote | null>(null)
