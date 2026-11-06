@@ -168,6 +168,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
+
 const { $t } = useI18n()
 const route = useRoute()
 const sidebarOpen = ref(false)

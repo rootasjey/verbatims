@@ -205,6 +205,7 @@
 
 <script setup lang="ts">
 import OverflowingTabLabel from '~/components/OverflowingTabLabel.vue'
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 import { useQuoteStepTransition } from '~/composables/useQuoteStepTransition'

@@ -214,6 +214,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 
 interface Props {

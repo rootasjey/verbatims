@@ -353,6 +353,7 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types';
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import {
   formatDashboardQuoteDate,
   formatDashboardQuoteDateRelative,

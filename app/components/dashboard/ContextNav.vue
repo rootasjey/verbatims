@@ -115,6 +115,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
+
 const route = useRoute()
 const { $t } = useI18n()
 const { user } = useUserSession()

@@ -234,6 +234,11 @@ export interface QuoteWithMetadata extends QuoteWithRelations {
  * Database quote result with joined data from related tables
  */
 export interface DatabaseQuoteWithRelations extends Quote {
+  provenance?: {
+    attributions: QuoteAttribution[]
+    sources: QuoteSource[]
+  }
+
   // Joined author fields
   author_name?: string;
   author_job?: string;
