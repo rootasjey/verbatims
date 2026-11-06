@@ -40,7 +40,7 @@
         <div :class="['flex items-center gap-2', $slots['header-progress'] ? 'absolute -top-2 right-0' : centerTitle && 'justify-end']">
           <slot name="header-actions" />
           <NTooltip :content="$t('components.app_dialog.close')?.toString()">
-            <NButton btn="ghost-gray" @click="close" size="sm" label="i-ph-x" icon class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500 dark:focus-visible:ring-stone-400" />
+            <NButton btn="ghost-gray" @click="close" size="sm" label="i-ph-x" icon :class="['shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500 dark:focus-visible:ring-stone-400', closeButtonClass]" />
           </NTooltip>
         </div>
         <div
@@ -67,7 +67,7 @@
     <template v-if="!hideFooter" #footer>
       <slot name="footer">
         <div class="w-full flex justify-end gap-3 pt-4 border-t border-gray-200/80 dark:border-neutral-700/80">
-          <NButton btn="ghost-gray" :class="['font-600', cancelButtonClass]" :disabled="submitting" @click="close">{{ cancelText }}</NButton>
+          <NButton btn="ghost-gray" :rounded="cancelButtonRounded" :class="['font-600', cancelButtonClass]" :disabled="submitting" @click="close">{{ cancelText }}</NButton>
           <slot name="submit">
             <PrimaryButton :disabled="!canSubmit" :loading="submitting" @click="$emit('submit')" class="rounded-full px-5">
               <span class="flex items-center gap-2">
@@ -91,6 +91,8 @@ interface Props {
   submitText?: string
   cancelText?: string
   cancelButtonClass?: string
+  cancelButtonRounded?: string
+  closeButtonClass?: string
   submitting?: boolean
   canSubmit?: boolean
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'

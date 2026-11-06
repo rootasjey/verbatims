@@ -183,7 +183,10 @@
 
       <p v-if="draftSaved" role="status" aria-live="polite" :class="['quote-draft-saved-feedback flex items-center gap-2 font-sans text-sm text-gray-600 dark:text-gray-300', { 'quote-draft-saved-feedback--pulse': draftSavedPulseActive }]">
         <NIcon name="i-tabler-circle-check" class="h-4 w-4 shrink-0" />
-        {{ $t('components.dialogs.draft_saved_continue') }}
+        <span>
+          <NuxtLink :to="draftEditUrl" class="underline decoration-gray-400 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:decoration-neutral-500 dark:hover:text-gray-100" @click="closeDialog">{{ $t('components.dialogs.draft_saved') }}</NuxtLink>
+          {{ $t('components.dialogs.attribution_ready_for_next_quote') }}
+        </span>
       </p>
       <div class="flex items-center justify-between gap-3 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
         <NButton btn="ghost-gray" type="button" :disabled="submitting" @click="quoteStep === 2 ? goToQuoteStep() : closeDialog()">
@@ -222,11 +225,17 @@ const emit = defineEmits<Emits>()
 
 const { $t } = useI18n()
 const { user } = useUserSession()
+const { publishMutation } = useDashboardQuoteEvents()
 
 const quoteTextarea = ref<HTMLTextAreaElement | null>(null)
 const quoteStep = ref<1 | 2>(1)
 const lastSavedQuote = ref('')
 const draftSaved = ref(false)
+const savedDraftId = ref<number | null>(null)
+const draftEditUrl = computed(() => ({
+  path: '/dashboard/my-quotes/drafts',
+  query: { edit: savedDraftId.value ? String(savedDraftId.value) : undefined },
+}))
 const draftSavedPulseActive = ref(false)
 let draftSavedPulseTimer: ReturnType<typeof setTimeout> | undefined
 const attributionRequiredPulseActive = ref(false)
@@ -517,7 +526,9 @@ const submitQuote = async () => {
 
 const submitCreateQuote = async (payload: CreateQuoteData) => {
   const savedText = form.value.content.trim()
-  await $fetch<{ success: boolean }, '/api/quotes'>('/api/quotes', { method: 'POST', body: payload })
+  const response = await $fetch<{ success: boolean; data: { id: number } }, '/api/quotes'>('/api/quotes', { method: 'POST', body: payload })
+  publishMutation({ type: 'created', quoteIds: [response.data.id], toStatus: 'draft' })
+  savedDraftId.value = response.data.id
   lastSavedQuote.value = savedText
   form.value.content = ''
   draftSaved.value = true
@@ -535,6 +546,7 @@ const submitUpdateQuote = async (
     method: 'PUT',
     body: payload
   })
+  publishMutation({ type: 'updated', quoteIds: [editQuoteId] })
   emit('quote-updated')
   closeDialog()
 }

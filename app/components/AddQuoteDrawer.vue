@@ -44,7 +44,10 @@
 					</div>
 					<p v-if="draftSaved" role="status" aria-live="polite" :class="['quote-draft-saved-feedback mb-4 flex items-center gap-2 font-sans text-sm text-gray-600 dark:text-gray-300', { 'quote-draft-saved-feedback--pulse': draftSavedPulseActive }]">
 						<NIcon name="i-tabler-circle-check" class="h-4 w-4 shrink-0" />
-						{{ $t('components.dialogs.draft_saved_continue') }}
+						<span>
+							<NuxtLink :to="draftEditUrl" class="underline decoration-gray-400 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:decoration-neutral-500 dark:hover:text-gray-100" @click="isOpen = false">{{ $t('components.dialogs.draft_saved') }}</NuxtLink>
+							{{ $t('components.dialogs.attribution_ready_for_next_quote') }}
+						</span>
 					</p>
 
 					<div ref="stepViewportRef" :style="{ height: stepViewportHeight }" class="quote-step-viewport relative overflow-hidden" @transitionend.self="finishStepTransition">
@@ -278,10 +281,16 @@ const emit = defineEmits<Emits>()
 
 const { $t } = useI18n()
 const { user } = useUserSession()
+const { publishMutation } = useDashboardQuoteEvents()
 const step = ref<number>(1)
 const quoteInputRef = ref<any>(null)
 const lastSavedQuote = ref('')
 const draftSaved = ref(false)
+const savedDraftId = ref<number | null>(null)
+const draftEditUrl = computed(() => ({
+	path: '/dashboard/my-quotes/drafts',
+	query: { edit: savedDraftId.value ? String(savedDraftId.value) : undefined },
+}))
 const draftSavedPulseActive = ref(false)
 let draftSavedPulseTimer: ReturnType<typeof setTimeout> | undefined
 const quotePlaceholder = computed(() => {
@@ -496,11 +505,13 @@ const submitQuote = async () => {
 			new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value, primary_type: 'other' as const } : undefined
 		}
 
-		await $fetch<{ success: boolean }, '/api/quotes'>('/api/quotes', {
+		const response = await $fetch<{ success: boolean; data: { id: number } }, '/api/quotes'>('/api/quotes', {
 			method: 'POST',
 			body: payload
 		})
 
+		savedDraftId.value = response.data.id
+		publishMutation({ type: 'created', quoteIds: [response.data.id], toStatus: 'draft' })
 		lastSavedQuote.value = savedText
 		form.value.content = ''
 		draftSaved.value = true

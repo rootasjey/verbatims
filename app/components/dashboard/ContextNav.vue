@@ -131,6 +131,10 @@ const collectionsCount = useState<number | null>(`dashboard-collections-count-${
 const { data: dashboardStats, refresh: refreshDashboardStats } = await useFetch('/api/dashboard/stats', {
   key: `dashboard-context-nav-stats-${userKey}`
 })
+const { latestMutation } = useDashboardQuoteEvents()
+watch(latestMutation, (mutation) => {
+  if (mutation) void refreshDashboardStats()
+})
 const countForGroup = (id: string) => {
   const stats = dashboardStats.value?.data
   if (id === 'favourites') return favouritesCount.value ?? stats?.favourites ?? 0

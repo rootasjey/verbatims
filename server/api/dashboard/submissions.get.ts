@@ -11,6 +11,7 @@ export default defineEventHandler(async (event) => {
     const page = parseInt(query.page as string) || 1
     const offset = (page - 1) * limit
     const status = query.status as string
+    const quoteId = Number(query.quote_id)
     const language = query.language as string
     const search = query.search as string || ''
 
@@ -19,6 +20,10 @@ export default defineEventHandler(async (event) => {
 
     if (status && ['draft', 'pending', 'approved', 'rejected'].includes(status)) {
       conditions.push(eq(schema.quotes.status, status as any))
+    }
+
+    if (Number.isSafeInteger(quoteId) && quoteId > 0) {
+      conditions.push(eq(schema.quotes.id, quoteId))
     }
 
     if (language) {
