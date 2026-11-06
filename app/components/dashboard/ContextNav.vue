@@ -115,6 +115,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
+
 const route = useRoute()
 const { $t } = useI18n()
 const { user } = useUserSession()
@@ -130,6 +132,10 @@ const favouritesCount = useState<number | null>(`dashboard-favourites-count-${us
 const collectionsCount = useState<number | null>(`dashboard-collections-count-${userKey}`, () => null)
 const { data: dashboardStats, refresh: refreshDashboardStats } = await useFetch('/api/dashboard/stats', {
   key: `dashboard-context-nav-stats-${userKey}`
+})
+const { latestMutation } = useDashboardQuoteEvents()
+watch(latestMutation, (mutation) => {
+  if (mutation) void refreshDashboardStats()
 })
 const countForGroup = (id: string) => {
   const stats = dashboardStats.value?.data

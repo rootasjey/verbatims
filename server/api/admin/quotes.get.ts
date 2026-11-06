@@ -1,5 +1,6 @@
 import { db } from 'hub:db'
 import { sql, SQL } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -87,7 +88,12 @@ export default defineEventHandler(async (event) => {
 
     const total = totalResult?.total || 0
     const hasMore = offset + quotesResult.length < total
-    const processedQuotes = transformAdminQuotes(quotesResult)
+    const provenanceByQuote = await getPrimaryQuoteProvenance(quotesResult.map(quote => quote.id))
+    const quotesWithProvenance = quotesResult.map(quote => ({
+      ...quote,
+      provenance: provenanceByQuote.get(quote.id),
+    }))
+    const processedQuotes = transformAdminQuotes(quotesWithProvenance)
     
     return {
       success: true,

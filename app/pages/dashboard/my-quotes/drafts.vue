@@ -136,19 +136,19 @@
             />
             <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link flex-1 min-w-0 block" @click.prevent="handleEditQuote(quote)">
               <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em]" />
-              <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span v-if="quote.author?.name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author.name }}</span>
-                <span v-if="!quote.author?.name && (quote as any).author_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ (quote as any).author_name }}</span>
-                <span v-if="(quote.author?.name || (quote as any).author_name) && (quote.reference?.name || (quote as any).reference_name)" class="text-gray-300 dark:text-gray-600">·</span>
-                <span v-if="quote.reference?.name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference.name }}</span>
-                <span v-if="!quote.reference?.name && (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ (quote as any).reference_name }}</span>
-                <span v-if="formatDashboardQuoteDate(quote, 'draft')" class="text-gray-300 dark:text-gray-600">·</span>
-                <NTooltip v-if="formatDashboardQuoteDate(quote, 'draft')" :content="formatDashboardQuoteDateTooltip(quote, 'draft', locale || 'en') ?? ''">
-                  <time class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDashboardQuoteDateRelative(quote, 'draft', locale || 'en') }}</time>
-                </NTooltip>
-                <span class="font-sans text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ $t('common.status_draft') }}</span>
-              </div>
             </NuxtLink>
+            <div class="mt-1.5 flex flex-wrap items-center gap-2">
+              <NuxtLink v-if="quote.author?.id" :to="`/authors/${quote.author.id}`" class="font-sans text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" @click.stop>{{ quote.author.name }}</NuxtLink>
+              <span v-else-if="quote.author?.name || (quote as any).author_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name }}</span>
+              <span v-if="(quote.author?.name || (quote as any).author_name) && (quote.reference?.name || (quote as any).reference_name)" class="text-gray-300 dark:text-gray-600">·</span>
+              <NuxtLink v-if="quote.reference?.id" :to="`/references/${quote.reference.id}`" class="font-sans text-xs text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300" @click.stop>{{ quote.reference.name }}</NuxtLink>
+              <span v-else-if="quote.reference?.name || (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference?.name || (quote as any).reference_name }}</span>
+              <span v-if="formatDashboardQuoteDate(quote, 'draft')" class="text-gray-300 dark:text-gray-600">·</span>
+              <NTooltip v-if="formatDashboardQuoteDate(quote, 'draft')" :content="formatDashboardQuoteDateTooltip(quote, 'draft', locale || 'en') ?? ''">
+                <time class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDashboardQuoteDateRelative(quote, 'draft', locale || 'en') }}</time>
+              </NTooltip>
+              <span class="font-sans text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ $t('common.status_draft') }}</span>
+            </div>
             <div class="hidden md:block">
               <NDropdownMenu :items="getMobileActions(quote)" :modal="false">
                 <button @click.stop class="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-black/5 dark:text-gray-400 dark:hover:bg-white/10">
@@ -202,15 +202,19 @@
                 @toggle="toggleQuote(index, quote.id, $event.shiftKey)"
               />
               <div class="min-w-0">
-                <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
+                <button type="button" data-selection-primary class="block max-w-full text-left" @click.stop="editQuote(quote)">
+                  <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
+                </button>
                 <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-600 dark:text-gray-400">
-                  <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
-                    <span>{{ quote.author.name }}</span>
+                  <ContextMenu v-if="quote.author?.name && quote.author?.id" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
+                    <NuxtLink :to="`/authors/${quote.author.id}`" class="hover:text-gray-900 dark:hover:text-gray-200" @click.stop>{{ quote.author.name }}</NuxtLink>
                   </ContextMenu>
-                  <span v-if="quote.author?.name && quote.reference?.name" aria-hidden="true" class="text-gray-400 dark:text-gray-600">·</span>
-                  <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
-                    <span>{{ quote.reference.name }}</span>
+                  <span v-else-if="quote.author?.name">{{ quote.author.name }}</span>
+                  <span v-if="(quote.author?.name || (quote as any).author_name) && (quote.reference?.name || (quote as any).reference_name)" aria-hidden="true" class="text-gray-400 dark:text-gray-600">·</span>
+                  <ContextMenu v-if="quote.reference?.name && quote.reference?.id" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
+                    <NuxtLink :to="`/references/${quote.reference.id}`" class="hover:text-gray-900 dark:hover:text-gray-200" @click.stop>{{ quote.reference.name }}</NuxtLink>
                   </ContextMenu>
+                  <span v-else-if="quote.reference?.name">{{ quote.reference.name }}</span>
                 </div>
                 <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-gray-500 dark:text-gray-400">
                   <span class="font-medium text-gray-700 dark:text-gray-300">{{ $t('common.status_draft') }}</span>
@@ -349,6 +353,7 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types';
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import {
   formatDashboardQuoteDate,
   formatDashboardQuoteDateRelative,
@@ -369,7 +374,9 @@ definePageMeta({
 
 const { $t } = useI18n()
 const { locale } = useI18nLocale()
-const pageT = useI18n().$_t({ ...useRoute() })
+const route = useRoute()
+const router = useRouter()
+const pageT = useI18n().$_t({ ...route })
 const showAddQuoteDialog = useState('app-add-quote-dialog-open', () => false)
 const showAddQuoteDrawer = useState('app-add-quote-drawer-open', () => false)
 
@@ -596,14 +603,14 @@ const loadDrafts = async (page = 1) => {
   try {
     if (page === 1) loading.value = true
     if (page > 1) loadingMore.value = true
-    const queryParams: any = { page, limit: pageSize.value, status: 'draft' }
+    const queryParams: Record<string, string | number> = { page, limit: pageSize.value, status: 'draft' }
 
     if (languageStore.currentLanguageValue !== 'all') {
       queryParams.language = languageStore.currentLanguageValue
     }
 
-    if (searchQuery.value) {
-      queryParams.search = searchQuery.value
+    if (searchQuery.value.trim()) {
+      queryParams.search = searchQuery.value.trim()
     }
 
     const response = await $fetch<{
@@ -612,12 +619,17 @@ const loadDrafts = async (page = 1) => {
     }>('/api/dashboard/submissions', { query: queryParams })
 
     const data = response?.data || []
+    const responseTotalPages = response.pagination?.totalPages || Math.ceil((response.pagination?.total || 0) / (response.pagination?.limit || pageSize.value))
+    if (responseTotalPages > 0 && page > responseTotalPages) {
+      await loadDrafts(responseTotalPages)
+      return
+    }
+
     quotes.value = data
     clearSelection()
-
     totalDrafts.value = response.pagination?.total || 0
     pageSize.value = response.pagination?.limit || pageSize.value
-    totalPages.value = response.pagination?.totalPages || Math.ceil((response.pagination?.total || 0) / (response.pagination?.limit || pageSize.value))
+    totalPages.value = responseTotalPages
     currentPage.value = page
     hasMore.value = response?.pagination?.hasMore ?? (currentPage.value < totalPages.value)
   } catch (error) {
@@ -633,6 +645,45 @@ const loadDrafts = async (page = 1) => {
 
 watch(currentPage, () => {
   loadDrafts(currentPage.value)
+})
+
+const clearEditQuery = async () => {
+  const { edit: _edit, ...query } = route.query
+  await router.replace({ query })
+}
+
+const openDraftFromQuery = async (value: unknown) => {
+  const requestedEditId = typeof value === 'string' ? Number(value) : Number.NaN
+  if (!Number.isSafeInteger(requestedEditId) || requestedEditId <= 0) {
+    if (route.query.edit === value) await clearEditQuery()
+    return
+  }
+
+  try {
+    const response = await $fetch<{ data: DashboardQuote[] }>('/api/dashboard/submissions', {
+      query: { page: 1, limit: 1, status: 'draft', quote_id: requestedEditId }
+    })
+    const requestedDraft = response.data?.find(quote => quote.id === requestedEditId)
+    if (requestedDraft) openDraftForEditing(requestedDraft)
+  } catch (error) {
+    console.error('Failed to open requested draft:', error)
+  } finally {
+    if (route.query.edit === value) await clearEditQuery()
+  }
+}
+
+watch(() => route.query.edit, (value) => {
+  if (value !== undefined) void openDraftFromQuery(value)
+})
+
+const { latestMutation, publishMutation } = useDashboardQuoteEvents()
+watch(latestMutation, (mutation) => {
+  if (!mutation) return
+  const affectsDrafts = mutation.type === 'created'
+    || mutation.type === 'updated'
+    || mutation.fromStatus === 'draft'
+    || mutation.toStatus === 'draft'
+  if (affectsDrafts) void loadDrafts(currentPage.value)
 })
 
 watchDebounced([searchQuery, sortBy], () => {
@@ -753,11 +804,20 @@ const editQuote = (quote: DashboardQuote) => {
   showEditQuoteDialog.value = true
 }
 
+const openDraftForEditing = (quote: DashboardQuote) => {
+  if (window.matchMedia('(min-width: 768px)').matches) {
+    editQuote(quote)
+    return
+  }
+
+  selectedQuote.value = quote
+  showEditQuoteDrawer.value = true
+}
+
 const onQuoteUpdated = () => {
   showEditQuoteDialog.value = false
   showEditQuoteDrawer.value = false
   selectedQuote.value = null
-  loadDrafts(currentPage.value)
 }
 
 const onBulkEditComplete = () => {
@@ -799,6 +859,8 @@ const submitQuote = async (quote: DashboardQuote) => {
   try {
     await $fetch(`/api/quotes/${quote.id}/submit`, { method: 'POST' })
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
+    totalDrafts.value = Math.max(0, totalDrafts.value - 1)
+    publishMutation({ type: 'status-changed', quoteIds: [quote.id], fromStatus: 'draft', toStatus: 'pending' })
   } catch (error: any) {
     console.error('Failed to submit quote:', error)
     showErrorToast(error, $t('error_submit') as string)
@@ -816,7 +878,10 @@ const deleteDraft = async () => {
   deleting.value = true
   try {
     await $fetch(`/api/quotes/${selectedQuote.value.id}`, { method: 'DELETE' } as any)
-    quotes.value = quotes.value.filter(q => q.id !== selectedQuote.value?.id)
+    const deletedId = selectedQuote.value.id
+    quotes.value = quotes.value.filter(q => q.id !== deletedId)
+    totalDrafts.value = Math.max(0, totalDrafts.value - 1)
+    publishMutation({ type: 'deleted', quoteIds: [deletedId], fromStatus: 'draft' })
     showDeleteModal.value = false
     selectedQuote.value = null
   } catch (error) {
@@ -850,7 +915,10 @@ const bulkSubmit = async () => {
       await Promise.all(batch.map(id => $fetch(`/api/quotes/${id}/submit`, { method: 'POST' } as any)))
     }
 
-    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
+    const submittedIds = [...selectedQuotes.value]
+    quotes.value = quotes.value.filter(q => !submittedIds.includes(q.id))
+    totalDrafts.value = Math.max(0, totalDrafts.value - submittedIds.length)
+    publishMutation({ type: 'status-changed', quoteIds: submittedIds, fromStatus: 'draft', toStatus: 'pending' })
     clearSelection()
   } catch (error) {
     console.error('Failed to bulk submit:', error)
@@ -871,7 +939,10 @@ const bulkDelete = async () => {
       await Promise.all(batch.map(id => $fetch(`/api/quotes/${id}`, { method: 'DELETE' } as any)))
     }
 
-    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
+    const deletedIds = [...selectedQuotes.value]
+    quotes.value = quotes.value.filter(q => !deletedIds.includes(q.id))
+    totalDrafts.value = Math.max(0, totalDrafts.value - deletedIds.length)
+    publishMutation({ type: 'deleted', quoteIds: deletedIds, fromStatus: 'draft' })
     clearSelection()
     showBulkDeleteModal.value = false
   } catch (error) {
@@ -970,6 +1041,7 @@ onMounted(() => {
     if (!hasLoadedOnce.value && loading.value) showInitialSkeleton.value = true
   }, 250)
   loadDrafts()
+  if (route.query.edit !== undefined) void openDraftFromQuery(route.query.edit)
 })
 
 onBeforeUnmount(() => {

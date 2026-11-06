@@ -214,6 +214,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 
 interface Props {
@@ -228,6 +229,7 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const { publishMutation } = useDashboardQuoteEvents()
 
 const isOpen = computed({
 	get: () => !!props.open,
@@ -320,6 +322,7 @@ const submitQuote = async () => {
 				method: 'PUT',
 				body: payload
 			})
+			publishMutation({ type: 'updated', quoteIds: [props.editQuote.id] })
 		} else {
 			// Create new quote
 			const payload = {
@@ -334,10 +337,11 @@ const submitQuote = async () => {
 				new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value, primary_type: 'other' as const } : undefined,
 			}
 
-			await $fetch<{ success: boolean }, '/api/quotes'>('/api/quotes', {
+			const response = await $fetch<{ success: boolean; data: { id: number } }, '/api/quotes'>('/api/quotes', {
 				method: 'POST',
 				body: payload
 			})
+			publishMutation({ type: 'created', quoteIds: [response.data.id], toStatus: 'draft' })
 		}
 
 		resetForm()

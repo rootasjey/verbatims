@@ -168,6 +168,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
+
 const { $t } = useI18n()
 const route = useRoute()
 const sidebarOpen = ref(false)
@@ -175,6 +177,7 @@ const sidebarCollapsed = ref(false)
 const showAddQuote = ref(false)
 const showReportDrawer = ref(false)
 const { user } = useUserSession()
+const { latestMutation } = useDashboardQuoteEvents()
 
 // Quote counts for badges
 const draftCount = ref(0)
@@ -205,6 +208,10 @@ const loadQuoteCounts = async () => {
     console.error('Failed to load quote counts:', error)
   }
 }
+
+watch(latestMutation, (mutation) => {
+  if (mutation) void loadQuoteCounts()
+})
 
 // Close sidebar when route changes (mobile)
 watch(() => route.path, () => {
