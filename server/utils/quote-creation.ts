@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import type { CreateQuoteSourceData } from '~~/shared/types/quote'
+import { authorLifeDateColumnsFromInput } from './author-life-date'
 
 type AttributionStatus = 'unverified' | 'manually_verified' | 'externally_verified' | 'disputed'
 
@@ -9,6 +10,23 @@ type InlineAuthor = {
   isFictional?: boolean
   job?: string | null
   description?: string | null
+  birth_date?: string
+  birth_year?: number | null
+  birth_era?: 'bce' | 'ce'
+  birth_month?: number | null
+  birth_day?: number | null
+  birth_is_approximate?: boolean
+  birth_calendar?: string
+  birth_location?: string
+  death_date?: string
+  death_year?: number | null
+  death_era?: 'bce' | 'ce'
+  death_month?: number | null
+  death_day?: number | null
+  death_is_approximate?: boolean
+  death_calendar?: string
+  death_location?: string
+  image_url?: string
 }
 
 type InlineReference = {
@@ -30,7 +48,7 @@ export type QuoteCreationBatchInput = {
   requestKey: string
   userId: number
   payloadHash: string
-  quote: { name: string; language: string }
+  quote: { name: string; language: string; status?: 'draft' | 'harvested' }
   authorId: number | null
   referenceId: number | null
   newAuthor?: InlineAuthor
@@ -42,8 +60,10 @@ export type QuoteCreationBatchInput = {
   }
   additionalAttributions?: AdditionalAttribution[]
   sources?: CreateQuoteSourceData[]
+  sourcesArePrimary?: boolean
   tagIds?: number[]
   activitySource?: string
+  retainIdempotencyRecord?: boolean
 }
 
 export function normalizeQuoteCreationRequestKey(value?: string | null) {
@@ -106,11 +126,19 @@ export function buildQuoteCreationStatements(input: QuoteCreationBatchInput) {
   })]
 
   if (input.newAuthor) {
+    const authorInput = Object.fromEntries(
+      Object.entries(input.newAuthor).filter(([, value]) => value !== undefined),
+    )
     statements.push(db.insert(schema.authors).values({
       name: input.newAuthor.name,
       isFictional: input.newAuthor.isFictional ?? false,
       job: input.newAuthor.job ?? null,
       description: input.newAuthor.description ?? null,
+      ...authorLifeDateColumnsFromInput('birth', authorInput),
+      birthLocation: input.newAuthor.birth_location ?? null,
+      ...authorLifeDateColumnsFromInput('death', authorInput),
+      deathLocation: input.newAuthor.death_location ?? null,
+      imageUrl: input.newAuthor.image_url ?? null,
     }))
     statements.push(db.update(schema.quoteCreationRequests)
       .set({ authorId: sql`last_insert_rowid()` })
@@ -134,7 +162,7 @@ export function buildQuoteCreationStatements(input: QuoteCreationBatchInput) {
     name: input.quote.name,
     language: input.quote.language as any,
     userId: input.userId,
-    status: 'draft',
+    status: input.quote.status ?? 'draft',
     createdAt: new Date(),
     updatedAt: new Date(),
   }))
@@ -185,7 +213,7 @@ export function buildQuoteCreationStatements(input: QuoteCreationBatchInput) {
       translatorName: source.translator_name ?? null,
       verificationStatus: 'unverified',
       notes: source.notes ?? null,
-      isPrimary: false,
+      isPrimary: input.sourcesArePrimary ?? false,
       createdBy: input.userId,
     }))
   }
@@ -200,15 +228,20 @@ export function buildQuoteCreationStatements(input: QuoteCreationBatchInput) {
       userId: input.userId,
       targetId: field('quote_id'),
       targetType: 'quote',
-      metadata: JSON.stringify({ status: 'draft', name: input.quote.name }),
+      metadata: JSON.stringify({ status: input.quote.status ?? 'draft', name: input.quote.name }),
       source: input.activitySource,
     }))
   }
 
-  // Keep only the idempotency result after the transaction commits.
-  statements.push(db.update(schema.quoteCreationRequests)
-    .set({ authorId: null, referenceId: null, primaryAttributionId: null })
-    .where(eq(schema.quoteCreationRequests.requestKey, requestKey)))
+  if (input.retainIdempotencyRecord === false) {
+    statements.push(db.delete(schema.quoteCreationRequests)
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)))
+  } else {
+    // Keep only the idempotency result after the transaction commits.
+    statements.push(db.update(schema.quoteCreationRequests)
+      .set({ authorId: null, referenceId: null, primaryAttributionId: null })
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)))
+  }
 
   return { statements, quoteIdResultIndex }
 }

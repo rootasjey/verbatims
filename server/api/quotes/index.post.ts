@@ -20,23 +20,27 @@ export default defineEventHandler(async (event) => {
       await requireRateLimit(event, `create-quote:user:${user.id}`, 10, 3600, 'You have reached the limit of quote creations. Please try again later.')
     }
 
-    if (!priorRequest && requestedPrimary.author_id && !body.new_author) {
-      const author = await db.select({ id: schema.authors.id })
-        .from(schema.authors)
-        .where(eq(schema.authors.id, requestedPrimary.author_id))
-        .get()
-      if (!author) {
-        throwServer(400, 'Invalid author ID')
-      }
-    }
+    if (!priorRequest) {
+      for (const attribution of body.attributions) {
+        if (attribution.author_id != null) {
+          const author = await db.select({ id: schema.authors.id })
+            .from(schema.authors)
+            .where(eq(schema.authors.id, attribution.author_id))
+            .get()
+          if (!author && !(attribution.is_primary && body.new_author)) {
+            throwServer(400, 'Invalid author ID')
+          }
+        }
 
-    if (!priorRequest && requestedPrimary.reference_id && !body.new_reference) {
-      const reference = await db.select({ id: schema.quoteReferences.id })
-        .from(schema.quoteReferences)
-        .where(eq(schema.quoteReferences.id, requestedPrimary.reference_id))
-        .get()
-      if (!reference) {
-        throwServer(400, 'Invalid reference ID')
+        if (attribution.reference_id != null) {
+          const reference = await db.select({ id: schema.quoteReferences.id })
+            .from(schema.quoteReferences)
+            .where(eq(schema.quoteReferences.id, attribution.reference_id))
+            .get()
+          if (!reference && !(attribution.is_primary && body.new_reference)) {
+            throwServer(400, 'Invalid reference ID')
+          }
+        }
       }
     }
 
