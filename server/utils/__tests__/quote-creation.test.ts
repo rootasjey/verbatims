@@ -170,7 +170,7 @@ describe('quote edit batches', () => {
     expect(quote?.name).toBe('Quote to rename')
   })
 
-  it('allows rejected quotes to share normalized text with active quotes', async () => {
+  it('allows rejected duplicates but blocks their activation while the text is claimed', async () => {
     await seedUser(currentDb.db)
     await seedQuote(currentDb.db, { name: 'Existing quote', status: 'approved' })
     await seedQuote(currentDb.db, { name: 'Rejected duplicate', status: 'rejected' })
@@ -179,5 +179,14 @@ describe('quote edit batches', () => {
       .set({ name: ' existing quote ' })
       .where(eq(currentDb.schema.quotes.id, 2))
       .run()).resolves.toBeDefined()
+
+    await expect(currentDb.db.update(currentDb.schema.quotes)
+      .set({ status: 'approved' })
+      .where(eq(currentDb.schema.quotes.id, 2))
+      .run()).rejects.toThrow()
+
+    const rejectedQuote = await currentDb.db.select().from(currentDb.schema.quotes)
+      .where(eq(currentDb.schema.quotes.id, 2)).get()
+    expect(rejectedQuote?.status).toBe('rejected')
   })
 })
