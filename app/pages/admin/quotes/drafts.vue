@@ -30,7 +30,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
+              <span class="text-xs font-medium leading-none">{{ modelValue?.value ? modelValue.label : $t('common.all_languages') }}</span>
             </template>
           </NCombobox>
         </div>
@@ -57,7 +57,7 @@
           }"
         >
           <template #trigger="{ modelValue }">
-            <span class="text-xs leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
+            <span class="text-xs leading-none">{{ modelValue?.value ? modelValue.label : $t('common.all_languages') }}</span>
           </template>
         </NCombobox>
       </div>
