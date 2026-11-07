@@ -150,22 +150,22 @@
 
         <div v-if="canEditProvenance" class="space-y-4 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
           <div>
-            <h3 class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">Provenance</h3>
-            <p class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">Record where this quote was verified.</p>
+            <h3 class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">{{ $t('components.dialogs.provenance_title') }}</h3>
+            <p class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.provenance_hint') }}</p>
           </div>
           <div class="grid gap-3 sm:grid-cols-2">
             <div>
-              <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">Source type</label>
+              <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.provenance_source_type') }}</label>
               <NCombobox
                 v-model="selectedSourceType"
                 :items="sourceTypeOptions"
                 by="value"
                 :disabled="submitting"
-                :_combobox-input="{ placeholder: 'Search source type...', class: 'text-sm' }"
+                :_combobox-input="{ placeholder: $t('components.dialogs.search_source_type'), class: 'text-sm' }"
                 :_combobox-list="{ class: 'min-w-[220px]' }"
                 :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'w-full justify-between rounded-lg' }"
               >
-                <template #trigger="{ modelValue }">{{ modelValue?.label || 'No source type' }}</template>
+                <template #trigger="{ modelValue }">{{ modelValue?.label || $t('components.dialogs.no_source_type') }}</template>
               </NCombobox>
             </div>
             <div>
