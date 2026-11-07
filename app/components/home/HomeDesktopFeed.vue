@@ -108,7 +108,7 @@
                 :_dropdown-menu-content="{ side: 'bottom', align: 'start', sideOffset: 4 }"
                 @update:open="imageCreditContextMenuOpen = $event"
               >
-                <span aria-hidden="true" class="fixed z-50 h-px w-px" :style="imageCreditContextMenuPosition" />
+                <span aria-hidden="true" class="fixed h-px w-px" :style="imageCreditContextMenuPosition" />
               </NDropdownMenu>
             </template>
             <div v-else-if="hasThemeWithoutQuotes" class="homepage-v3-cover-empty-state max-w-2xl px-4" :class="props.theme?.image_url ? 'text-white' : 'text-gray-900 dark:text-gray-100'">

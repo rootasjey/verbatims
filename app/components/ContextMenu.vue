@@ -16,7 +16,7 @@
     </div>
     <ContextMenuPortal to="body">
       <ContextMenuContent
-        :class="['z-50 min-w-40 overflow-hidden rounded-md border border-base bg-popover p-1 text-popover shadow-md',
+        :class="['z-layer-popover min-w-40 overflow-hidden rounded-md border border-base bg-popover p-1 text-popover shadow-md',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
           'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -41,7 +41,7 @@
             </ContextMenuSubTrigger>
             <ContextMenuPortal to="body">
               <ContextMenuSubContent
-                class="z-50 min-w-40 overflow-hidden rounded-md border border-base bg-popover p-1 text-popover shadow-lg
+                class="z-layer-popover min-w-40 overflow-hidden rounded-md border border-base bg-popover p-1 text-popover shadow-lg
                   data-[state=open]:animate-in data-[state=closed]:animate-out
                   data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0
                   data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
@@ -65,7 +65,7 @@
                     </ContextMenuSubTrigger>
                     <ContextMenuPortal to="body">
                       <ContextMenuSubContent
-                        class="z-50 min-w-40 overflow-hidden rounded-md border border-base bg-popover p-1 text-popover shadow-lg
+                        class="z-layer-popover min-w-40 overflow-hidden rounded-md border border-base bg-popover p-1 text-popover shadow-lg
                           data-[state=open]:animate-in data-[state=closed]:animate-out
                           data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0
                           data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"

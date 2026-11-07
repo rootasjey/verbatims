@@ -29,7 +29,7 @@
         :dismissible="true"
         :close-threshold="0.25"
         :show-close="false"
-        :una="{ drawerContent: 'z-[60] max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-[#F7F5EF] dark:bg-[#1C1917] shadow-2xl', drawerOverlay: 'z-[55] bg-black/45' }"
+        :una="{ drawerContent: 'z-layer-modal-panel max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-[#F7F5EF] dark:bg-[#1C1917] shadow-2xl', drawerOverlay: 'z-layer-modal-scrim bg-black/45' }"
       >
         <template #body>
           <div v-if="quote" id="quote-actions-drawer" class="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4">

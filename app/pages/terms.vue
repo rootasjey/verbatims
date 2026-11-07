@@ -701,7 +701,7 @@ onBeforeUnmount(() => {
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   border: 2px solid #8bb4ff;
-  z-index: 1000;
+  z-index: var(--z-layer-accessibility);
 }
 .tos-root.prefers-dark .skip-link:focus {
   background: #0e0f12;

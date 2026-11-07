@@ -192,7 +192,7 @@
 
     <div
       v-if="totalPages > 1 || selectedIds.length > 0"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      class="fixed bottom-0 z-layer-sticky bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -236,7 +236,7 @@
       max-width="xl"
       scrollable
       :dialog-content-style="{ width: 'calc(100vw - 2rem)', maxWidth: '42rem' }"
-      :una="{ dialogContent: 'top-[calc(50%+1.25rem)] max-h-[calc(100dvh_-_5rem)] box-border max-w-[calc(100vw_-_2rem)] overflow-x-hidden px-3 sm:px-4 [&_*:focus-visible]:ring-stone-600 dark:[&_*:focus-visible]:ring-stone-400', dialogOverlay: 'z-[39] bg-black/45' }"
+      :una="{ dialogContent: 'top-[calc(50%+1.25rem)] max-h-[calc(100dvh_-_5rem)] box-border max-w-[calc(100vw_-_2rem)] overflow-x-hidden px-3 sm:px-4 [&_*:focus-visible]:ring-stone-600 dark:[&_*:focus-visible]:ring-stone-400', dialogOverlay: 'z-layer-modal-scrim bg-black/45' }"
     >
       <template #header-title>
         <div role="tablist" :aria-label="$t('dialog_sections') as string" class="grid min-w-0 flex-1 grid-cols-4 gap-2 sm:gap-3">
@@ -686,7 +686,7 @@
                       v-if="featuredQuoteActive && featuredQuoteResults.length"
                       ref="featuredQuoteSuggestionListbox"
                       role="listbox"
-                      class="absolute left-0 right-0 z-50 overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
+                      class="absolute left-0 right-0 z-layer-panel-popover overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
                       :class="featuredQuoteSuggestionPlacement === 'above' ? 'bottom-full mb-1' : 'top-full mt-1'"
                       :style="{ maxHeight: `${featuredQuoteSuggestionMaxHeight}px` }"
                     >
@@ -794,7 +794,7 @@
                     <div
                       v-if="featuredRefActive && featuredRefResults.length"
                       role="listbox"
-                      class="absolute bottom-full left-0 right-0 z-50 mb-1 max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
+                      class="absolute bottom-full left-0 right-0 z-layer-panel-popover mb-1 max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
                     >
                       <div
                         v-for="(s, si) in featuredRefResults"
@@ -851,7 +851,7 @@
                       />
                       <div class="relative col-span-2 min-w-0 transition-all duration-300 sm:col-span-1 sm:col-start-2" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
                         <NInput v-model="filter.value" :placeholder="$t('dialog_filter_value') as string" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
-                        <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                        <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-layer-panel-popover bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                           <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                          :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
                             {{ s.label }}
                           </div>

@@ -3,7 +3,7 @@
     :aria-hidden="isHidden ? 'true' : undefined"
     :inert="isHidden ? true : undefined"
     :class="{ 'mobile-bottom-navigation--hidden': isHidden }"
-    class="mobile-bottom-navigation fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 safe-area-pb md:hidden"
+    class="mobile-bottom-navigation fixed bottom-6 left-1/2 transform -translate-x-1/2 z-layer-sticky safe-area-pb md:hidden"
   >
     <!-- Floating Navigation Container -->
     <div class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 px-2 py-2">

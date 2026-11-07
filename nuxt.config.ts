@@ -321,6 +321,20 @@ export default defineNuxtConfig({
 
   unocss: {
     preflight: true,
+    shortcuts: {
+      'z-layer-page': 'z-[var(--z-layer-page)]',
+      'z-layer-local': 'z-[var(--z-layer-local)]',
+      'z-layer-sticky': 'z-[var(--z-layer-sticky)]',
+      'z-layer-page-scrim': 'z-[var(--z-layer-page-scrim)]',
+      'z-layer-app-chrome': 'z-[var(--z-layer-app-chrome)]',
+      'z-layer-popover': 'z-[var(--z-layer-popover)]',
+      'z-layer-modal-scrim': 'z-[var(--z-layer-modal-scrim)]',
+      'z-layer-modal-chrome': 'z-[var(--z-layer-modal-chrome)]',
+      'z-layer-modal-panel': 'z-[var(--z-layer-modal-panel)]',
+      'z-layer-panel-popover': 'z-[var(--z-layer-panel-popover)]',
+      'z-layer-notifications': 'z-[var(--z-layer-notifications)]',
+      'z-layer-accessibility': 'z-[var(--z-layer-accessibility)]',
+    },
     icons: {
       scale: 1.0,
       extraProperties: {

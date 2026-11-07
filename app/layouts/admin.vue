@@ -2,7 +2,7 @@
   <div data-admin-workbench class="min-h-screen bg-[#FAFAF9] text-gray-950 dark:bg-[#0C0A09] dark:text-gray-50">
     <AppMastheadBar />
 
-    <header :class="['fixed inset-x-0 top-0 flex items-center justify-between px-4 py-2.5 transition-colors md:hidden', (themeEditorOpen || modalScrollLocked) ? 'pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'z-40 bg-[#FAFAF9] dark:bg-[#0C0A09]']">
+    <header :class="['fixed inset-x-0 top-0 flex items-center justify-between px-4 py-2.5 transition-colors md:hidden', (themeEditorOpen || modalScrollLocked) ? 'pointer-events-none z-layer-modal-chrome bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'z-layer-app-chrome bg-[#FAFAF9] dark:bg-[#0C0A09]']">
       <NuxtLink to="/" class="font-subtitle text-xl font-700 italic tracking-[0.1rem] text-gray-950 dark:text-gray-50">
         verbatims
       </NuxtLink>
@@ -25,7 +25,7 @@
         :dismissible="true"
         :close-threshold="0.25"
         :show-close="false"
-        :una="{ drawerContent: 'z-[60] h-screen rounded-none bg-[#FAFAF9] dark:bg-[#0C0A09]', drawerOverlay: 'z-[55] bg-black/45' }"
+        :una="{ drawerContent: 'z-layer-modal-panel h-screen rounded-none bg-[#FAFAF9] dark:bg-[#0C0A09]', drawerOverlay: 'z-layer-modal-scrim bg-black/45' }"
       >
         <template #body>
           <div id="admin-mobile-site-menu" class="flex h-full flex-col overflow-y-auto px-6 pb-12 pt-8">
@@ -576,17 +576,17 @@ watch(() => adminNavGroups.value.flatMap(group => [group.label, ...group.items.m
   background-color: var(--admin-table-header) !important;
 }
 
-[data-admin-content] div[class*="bottom-0"][class*="z-20"] {
+[data-admin-content] div[class*="bottom-0"][class*="z-layer-sticky"] {
   background-color: var(--admin-sidebar-surface);
   border-color: var(--admin-border);
   box-shadow: 0 -6px 18px rgb(12 10 9 / 6%);
 }
 
-.dark [data-admin-content] div[class*="bottom-0"][class*="z-20"] {
+.dark [data-admin-content] div[class*="bottom-0"][class*="z-layer-sticky"] {
   box-shadow: 0 -6px 18px rgb(0 0 0 / 24%);
 }
 
-[data-admin-content] div[class*="bottom-0"][class*="z-20"] button {
+[data-admin-content] div[class*="bottom-0"][class*="z-layer-sticky"] button {
   border-radius: 9999px;
 }
 

@@ -5,12 +5,13 @@
     </NuxtLayout>
     <MobileBottomNavigation v-if="!isAuthPage && !isDashboardPage && !isAdminPage" />
     <NuxtRouteAnnouncer />
-    <NToaster :_toast-viewport="{ class: 'z-[200]' }" />
+    <NToaster :_toast-viewport="{ class: 'z-layer-notifications' }" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import '@una-ui/preset/una.css'
+import '@/styles/layers.css'
 import '@/styles/main.css'
 import MobileBottomNavigation from '~/components/MobileBottomNavigation.vue'
 

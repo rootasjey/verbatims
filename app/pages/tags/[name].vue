@@ -35,7 +35,7 @@
       </header>
 
       <main class="mx-auto max-w-6xl px-4 pb-24 sm:px-6 lg:px-10">
-        <div ref="stickyToolbarRef" class="sticky top-14 z-20 -mx-4 mb-5 bg-[#FAFAF9]/95 px-4 pb-3 pt-2 backdrop-blur-md sm:-mx-6 sm:px-6 md:mb-8 md:pt-3 lg:-mx-10 lg:px-10 dark:bg-[#0C0A09]/95">
+        <div ref="stickyToolbarRef" class="sticky top-14 z-layer-sticky -mx-4 mb-5 bg-[#FAFAF9]/95 px-4 pb-3 pt-2 backdrop-blur-md sm:-mx-6 sm:px-6 md:mb-8 md:pt-3 lg:-mx-10 lg:px-10 dark:bg-[#0C0A09]/95">
           <div v-if="isStickyToolbarStuck" class="tag-sticky-mobile-context mb-2 flex items-center justify-between gap-3 md:hidden">
             <button
               type="button"

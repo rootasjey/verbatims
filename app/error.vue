@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#F7F5EF] text-gray-900 dark:bg-[#0C0A09] dark:text-gray-100">
     <AppMastheadBar surface="warm" />
-    <header class="fixed left-0 right-0 top-0 z-40 flex items-center justify-between bg-[#F7F5EF] px-4 py-3 dark:bg-[#0C0A09] md:hidden">
+    <header class="fixed left-0 right-0 top-0 z-layer-app-chrome flex items-center justify-between bg-[#F7F5EF] px-4 py-3 dark:bg-[#0C0A09] md:hidden">
       <NuxtLink to="/" class="rounded-sm px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3C82F6]" :aria-label="String(t('error_page.home'))">
         <span class="font-subtitle text-xl font-700 italic tracking-[0.1rem]">verbatims</span>
       </NuxtLink>

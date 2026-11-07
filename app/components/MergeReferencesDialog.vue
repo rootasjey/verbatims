@@ -166,7 +166,7 @@
           v-for="cell in expandedCells"
           :key="cell.key"
           tabindex="-1"
-          class="fixed w-96 border border-gray-200 dark:border-gray-700 rounded-sm shadow-xl bg-white dark:bg-gray-900 z-50 outline-none"
+          class="fixed w-96 border border-gray-200 dark:border-gray-700 rounded-sm shadow-xl bg-white dark:bg-gray-900 z-layer-panel-popover outline-none"
           :style="{ left: `${cell.x}px`, top: `${cell.y}px` }"
           @keydown.escape.prevent.stop="closeExpanded(cell.key)"
           @mousedown.stop="startDrag(cell.key, $event)"

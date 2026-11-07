@@ -27,7 +27,7 @@
           :items="actionOptions"
           by="value"
           :_combobox-input="{ placeholder: $t('search_options') as string, class: 'text-sm' }"
-          :_combobox-list="{ class: 'z-[60] min-w-[180px] rounded-lg border border-gray-700 shadow-xl' }"
+          :_combobox-list="{ class: 'z-layer-popover min-w-[180px] rounded-lg border border-gray-700 shadow-xl' }"
           :_combobox-trigger="{ ariaLabel: $t('action') as string, btn: 'outline-gray', size: 'md', trailing: 'i-lucide-chevron-down', class: 'mt-1 min-h-10 w-full justify-between rounded-lg font-sans text-sm' }"
         >
           <template #trigger="{ modelValue }">{{ modelValue?.label }}</template>
@@ -40,7 +40,7 @@
           :items="sourceOptions"
           by="value"
           :_combobox-input="{ placeholder: $t('search_options') as string, class: 'text-sm' }"
-          :_combobox-list="{ class: 'z-[60] min-w-[220px] rounded-lg border border-gray-700 shadow-xl' }"
+          :_combobox-list="{ class: 'z-layer-popover min-w-[220px] rounded-lg border border-gray-700 shadow-xl' }"
           :_combobox-trigger="{ ariaLabel: $t('source') as string, btn: 'outline-gray', size: 'md', trailing: 'i-lucide-chevron-down', class: 'mt-1 min-h-10 w-full justify-between rounded-lg font-sans text-sm' }"
         >
           <template #trigger="{ modelValue }">{{ modelValue?.label }}</template>

@@ -296,7 +296,7 @@
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 flex items-center justify-between gap-3 whitespace-nowrap rounded-t-xl border-x border-t border-gray-200 bg-[#FAFAF9] px-4 py-3 shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-[#0C0A09] sm:px-6 lg:px-8"
+      class="fixed bottom-0 z-layer-sticky flex items-center justify-between gap-3 whitespace-nowrap rounded-t-xl border-x border-t border-gray-200 bg-[#FAFAF9] px-4 py-3 shadow-sm transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-[#0C0A09] sm:px-6 lg:px-8"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="min-w-0 truncate font-sans text-xs text-gray-500 dark:text-gray-400">

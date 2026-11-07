@@ -1,11 +1,12 @@
 <template>
   <NCombobox
     v-model="selected"
+    v-model:open="isOpen"
     :items="localeOptions"
     by="value"
     :_combobox-input="comboboxInputProps"
     :_combobox-list="{
-      class: 'z-[61] min-w-[160px]',
+      class: 'z-layer-panel-popover min-w-[160px]',
     }"
     :_combobox-trigger="{
       btn: 'ghost-gray',
@@ -15,7 +16,7 @@
     }"
   >
     <template #trigger="{ modelValue }">
-      <div class="flex items-center gap-1.5">
+      <div ref="triggerRef" class="flex items-center gap-1.5">
         <img
           v-if="modelValue"
           :src="modelValue.flag"
@@ -41,6 +42,10 @@
 </template>
 
 <script setup lang="ts">
+const isOpen = ref(false)
+const triggerRef = ref<HTMLElement | null>(null)
+let dialogObserver: MutationObserver | null = null
+
 const { $switchLocale } = useI18n()
 const { locale } = useI18nLocale()
 
@@ -69,4 +74,32 @@ const selected = computed({
     $switchLocale(val.value)
   }
 })
+
+const closeIfAnotherDialogIsOpen = () => {
+  if (!isOpen.value) return
+
+  const triggerDialog = triggerRef.value?.closest('[role="dialog"]')
+  const anotherDialogIsOpen = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"][data-state="open"]'))
+    .some(dialog => dialog !== triggerDialog)
+
+  if (anotherDialogIsOpen || !triggerRef.value?.isConnected) {
+    isOpen.value = false
+  }
+}
+
+watch(isOpen, (open) => {
+  if (open) nextTick(closeIfAnotherDialogIsOpen)
+})
+
+onMounted(() => {
+  dialogObserver = new MutationObserver(closeIfAnotherDialogIsOpen)
+  dialogObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['data-state'],
+    childList: true,
+    subtree: true,
+  })
+})
+
+onBeforeUnmount(() => dialogObserver?.disconnect())
 </script>

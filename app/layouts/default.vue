@@ -12,7 +12,7 @@
     <header
       :class="[
         'fixed top-0 left-0 right-0 md:hidden px-4 py-3 safe-area-pt transition-colors',
-        modalScrollLocked ? 'pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'z-40',
+        modalScrollLocked ? 'pointer-events-none z-layer-modal-chrome bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'z-layer-app-chrome',
           {
             'bg-[#F7F5EF] dark:bg-[#0C0A09]': !modalScrollLocked && scrollY === 0 && usesWarmEditorialSurface,
             'bg-[#FAFAF9] dark:bg-[#0C0A09]': !modalScrollLocked && scrollY === 0 && !usesWarmEditorialSurface,
@@ -93,7 +93,7 @@
         :dismissible="true"
         :close-threshold="0.25"
         :show-close="false"
-        :una="{ drawerContent: 'z-[60] rounded-t-3xl bg-[#F7F5EF] dark:bg-[#1C1917] shadow-2xl', drawerOverlay: 'z-[55] bg-black/45' }"
+        :una="{ drawerContent: 'z-layer-modal-panel rounded-t-3xl bg-[#F7F5EF] dark:bg-[#1C1917] shadow-2xl', drawerOverlay: 'z-layer-modal-scrim bg-black/45' }"
       >
         <template #body>
           <div id="mobile-theme-sheet" class="px-6 pb-8 pt-5" aria-label="Theme details">
@@ -123,7 +123,7 @@
         :dismissible="true"
         :close-threshold="0.25"
         :show-close="false"
-        :una="{ drawerContent: 'z-[60] h-screen rounded-none bg-[#F7F5EF] dark:bg-[#0C0A09]', drawerOverlay: 'z-[55] bg-black/45' }"
+        :una="{ drawerContent: 'z-layer-modal-panel h-screen rounded-none bg-[#F7F5EF] dark:bg-[#0C0A09]', drawerOverlay: 'z-layer-modal-scrim bg-black/45' }"
       >
         <template #body>
       <div

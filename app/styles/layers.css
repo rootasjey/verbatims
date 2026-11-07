@@ -1,0 +1,51 @@
+:root {
+  /* Global layers use ten-point steps; component-local stacks keep small values. */
+  --z-layer-page: 0;
+  --z-layer-local: 10;
+  --z-layer-sticky: 20;
+  --z-layer-page-scrim: 30;
+  --z-layer-app-chrome: 40;
+  --z-layer-popover: 50;
+  --z-layer-modal-scrim: 60;
+  --z-layer-modal-chrome: 70;
+  --z-layer-modal-panel: 80;
+  --z-layer-panel-popover: 90;
+  --z-layer-notifications: 100;
+  --z-layer-accessibility: 110;
+}
+
+:root :is(
+  .alert-dialog-overlay,
+  .dialog-overlay,
+  .dialog-scroll-overlay,
+  .drawer-overlay,
+  .sheet-overlay
+) {
+  z-index: var(--z-layer-modal-scrim);
+}
+
+:root :is(
+  .alert-dialog-content,
+  .dialog-content,
+  .dialog-scroll-content,
+  .drawer-content,
+  .sheet-content
+) {
+  z-index: var(--z-layer-modal-panel);
+}
+
+:root :is(
+  .combobox-list,
+  .dropdown-menu-content,
+  .dropdown-menu-sub-content,
+  .hover-card-content,
+  .popover-content,
+  .select-content,
+  .tooltip-content
+) {
+  z-index: var(--z-layer-panel-popover);
+}
+
+:root .toast-viewport {
+  z-index: var(--z-layer-notifications);
+}

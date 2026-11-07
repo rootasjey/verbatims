@@ -22,7 +22,7 @@
         ref="suggestionListbox"
         :id="listboxId"
         role="listbox"
-        class="absolute left-0 right-0 z-50 overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
+        class="absolute left-0 right-0 z-layer-panel-popover overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAF9] shadow-xl dark:border-neutral-700 dark:bg-[#151515]"
         :class="placement === 'above' ? 'bottom-full mb-1' : 'top-full mt-1'"
         :style="{ maxHeight: `${suggestionMaxHeight}px` }"
       >

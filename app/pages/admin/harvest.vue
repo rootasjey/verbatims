@@ -164,7 +164,7 @@
       </div>
     </div>
 
-    <div v-if="importResult" class="fixed bottom-4 right-4 z-50 bg-green-50 dark:bg-green-900/30 border border-dashed border-green-200 dark:border-green-700 px-4 py-3 shadow-lg max-w-md">
+    <div v-if="importResult" class="fixed bottom-4 right-4 z-layer-notifications bg-green-50 dark:bg-green-900/30 border border-dashed border-green-200 dark:border-green-700 px-4 py-3 shadow-lg max-w-md">
       <div class="flex items-start gap-3">
         <NIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
         <div>

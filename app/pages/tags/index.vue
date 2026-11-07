@@ -13,7 +13,7 @@
       <div
         v-if="loading || tags.length > 0 || searchQuery"
         ref="searchToolbar"
-        class="sticky top-14 z-20 mb-5 bg-[#FAFAF9]/95 pt-2 backdrop-blur-md transition-transform duration-300 ease-out dark:bg-[#0C0A09]/95 md:mb-8 md:pt-3"
+        class="sticky top-14 z-layer-sticky mb-5 bg-[#FAFAF9]/95 pt-2 backdrop-blur-md transition-transform duration-300 ease-out dark:bg-[#0C0A09]/95 md:mb-8 md:pt-3"
         :class="searchToolbarVisible ? 'translate-y-0' : '-translate-y-[calc(100%+1rem)] pointer-events-none'"
       >
         <TagSearch

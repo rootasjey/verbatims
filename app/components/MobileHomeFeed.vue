@@ -106,7 +106,7 @@
           :_dropdown-menu-content="{ side: 'bottom', align: 'start', sideOffset: 4 }"
           @update:open="imageCreditContextMenuOpen = $event"
         >
-          <span aria-hidden="true" class="fixed z-50 h-px w-px" :style="imageCreditContextMenuPosition" />
+          <span aria-hidden="true" class="fixed h-px w-px" :style="imageCreditContextMenuPosition" />
         </NDropdownMenu>
       </div>
       <div class="homepage-v3-cover-actions mb-14 flex items-center justify-center gap-3">

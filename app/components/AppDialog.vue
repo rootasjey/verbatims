@@ -2,7 +2,7 @@
   <Teleport to="#teleports">
     <div
       v-if="preserveAppChrome && isOpen"
-      class="fixed inset-0 z-[49] bg-black/45"
+      class="fixed inset-0 z-layer-modal-scrim bg-black/45"
       aria-hidden="true"
       @click="close"
     />

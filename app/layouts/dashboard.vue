@@ -8,7 +8,7 @@
       <aside
         id="dashboard-sidebar"
         :class="[
-          'fixed z-40 inset-y-0 left-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r b-dashed border-gray-200 dark:border-gray-700 pt-16 transition-all duration-300 ease-in-out',
+          'fixed z-layer-app-chrome inset-y-0 left-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r b-dashed border-gray-200 dark:border-gray-700 pt-16 transition-all duration-300 ease-in-out',
           sidebarCollapsed ? 'w-16' : 'w-64',
           'lg:translate-x-0',
           sidebarOpen ? 'translate-x-0 mt-0' : '-translate-x-full mt-1.5',
@@ -136,7 +136,7 @@
       <!-- Mobile Sidebar Overlay -->
       <div
         v-if="sidebarOpen"
-        class="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
+        class="fixed inset-0 z-layer-page-scrim bg-black bg-opacity-50 lg:hidden"
         @click="sidebarOpen = false"
       />
 

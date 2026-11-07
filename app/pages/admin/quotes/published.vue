@@ -310,7 +310,7 @@
 
     <div
       v-if="totalPages > 1 || selectedQuotes.length > 0"
-      class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
+      class="fixed bottom-0 z-layer-sticky flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="shrink-0 font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -382,7 +382,7 @@
                   item-key="label"
                   value-key="label"
                   :_select-trigger="{ class: '!h-11 !min-h-11 !w-full !rounded-md !border !border-gray-300 !bg-white !px-3 !text-sm dark:!border-gray-700 dark:!bg-[#171615]' }"
-                  :_select-content="{ bodyLock: false, class: 'z-[70] border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
+                  :_select-content="{ bodyLock: false, class: 'z-layer-panel-popover border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
                   :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig"
                 >
                   <template #content="{ items }">
@@ -399,7 +399,7 @@
                   item-key="label"
                   value-key="label"
                   :_select-trigger="{ class: '!h-11 !min-h-11 !w-full !rounded-md !border !border-gray-300 !bg-white !px-3 !text-sm dark:!border-gray-700 dark:!bg-[#171615]' }"
-                  :_select-content="{ bodyLock: false, class: 'z-[70] border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
+                  :_select-content="{ bodyLock: false, class: 'z-layer-panel-popover border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
                   :disabled="loadingQuoteAuditConfig || savingQuoteAuditConfig"
                 >
                   <template #content="{ items }">
@@ -461,7 +461,7 @@
                 :placeholder="$t('audit_test_models_unavailable') as string"
                 class="w-full min-w-0"
                 :_select-trigger="{ class: '!h-11 !min-h-11 !w-full !max-w-full !overflow-hidden !rounded-md !border !border-gray-300 !bg-white !px-3 !text-sm dark:!border-gray-700 dark:!bg-[#171615]' }"
-                :_select-content="{ bodyLock: false, class: 'z-[70] max-w-[calc(100vw-2rem)] sm:max-w-96 border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
+                :_select-content="{ bodyLock: false, class: 'z-layer-panel-popover max-w-[calc(100vw-2rem)] sm:max-w-96 border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#171615]' }"
                 :disabled="loadingQuoteAuditConfig || runningQuoteAuditTest || quoteAuditTestModels.length === 0"
               >
                 <template #value>

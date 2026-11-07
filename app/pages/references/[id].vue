@@ -419,7 +419,7 @@
       :_dropdown-menu-content="{ side: 'bottom', align: 'start', sideOffset: 4 }"
       @update:open="posterImageContextMenuOpen = $event"
     >
-      <span aria-hidden="true" class="fixed z-50 h-px w-px" :style="posterImageContextMenuPosition" />
+      <span aria-hidden="true" class="fixed h-px w-px" :style="posterImageContextMenuPosition" />
     </NDropdownMenu>
   </div>
 

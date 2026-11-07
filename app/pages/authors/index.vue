@@ -12,7 +12,7 @@
     <main class="mx-auto max-w-6xl px-4 pb-24 sm:px-6 lg:px-10">
       <div
         ref="searchToolbar"
-        class="sticky top-14 z-20 mb-5 bg-[#FAFAF9]/95 pt-2 backdrop-blur-md transition-transform duration-300 ease-out dark:bg-[#0C0A09]/95 md:mb-8 md:pt-3"
+        class="sticky top-14 z-layer-sticky mb-5 bg-[#FAFAF9]/95 pt-2 backdrop-blur-md transition-transform duration-300 ease-out dark:bg-[#0C0A09]/95 md:mb-8 md:pt-3"
         :class="searchToolbarVisible ? 'translate-y-0' : '-translate-y-[calc(100%+1rem)] pointer-events-none'"
       >
         <AuthorsSearch
@@ -34,7 +34,7 @@
       <div
         v-if="!searchQuery && renderedSortBy === 'name' && dbLetters.size > 0"
         :style="{ top: `${alphabetNavTop}px` }"
-        class="relative sticky z-20 mb-6 border-black/10 bg-[#FAFAF9] transition-[top] duration-300 ease-out dark:border-white/10 dark:bg-[#0C0A09] sm:mb-8"
+        class="relative sticky z-layer-sticky mb-6 border-black/10 bg-[#FAFAF9] transition-[top] duration-300 ease-out dark:border-white/10 dark:bg-[#0C0A09] sm:mb-8"
         :class="searchToolbarVisible && !isAtPageTop ? 'border-b' : 'border-y'"
       >
         <nav

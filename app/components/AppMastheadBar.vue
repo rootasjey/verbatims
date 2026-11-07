@@ -5,8 +5,8 @@
     class="w-full hidden md:block transition-all duration-300"
     :class="[
       mastheadPinned
-        ? (usesWarmEditorialSurface ? 'fixed inset-x-0 top-0 pointer-events-none z-[60] bg-[#F7F5EF]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'fixed inset-x-0 top-0 pointer-events-none z-[60] bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60')
-        : 'sticky top-0 z-40',
+        ? (usesWarmEditorialSurface ? 'fixed inset-x-0 top-0 pointer-events-none z-layer-modal-chrome bg-[#F7F5EF]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60' : 'fixed inset-x-0 top-0 pointer-events-none z-layer-modal-chrome bg-[#FAFAF9]/60 backdrop-blur-sm dark:bg-[#0C0A09]/60')
+        : 'sticky top-0 z-layer-app-chrome',
       !mastheadPinned && scrollY === 0
         ? (usesWarmEditorialSurface ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
         : !mastheadPinned

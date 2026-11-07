@@ -8,7 +8,7 @@
         </h1>
       </header>
 
-      <div class="sticky top-14 z-20 -mx-6 mb-8 bg-[#F7F5EF]/95 px-6 pb-5 pt-2 backdrop-blur-md dark:bg-[#0C0A09]/95 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
+      <div class="sticky top-14 z-layer-sticky -mx-6 mb-8 bg-[#F7F5EF]/95 px-6 pb-5 pt-2 backdrop-blur-md dark:bg-[#0C0A09]/95 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
         <div class="search-field flex min-h-11 items-center gap-3 rounded-md border border-black/15 px-3 dark:border-white/20 md:min-h-0 md:gap-4 md:rounded-none md:border-0 md:border-b md:px-0 md:pb-3">
           <NIcon name="i-ph-magnifying-glass" class="h-6 w-6 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
           <span class="min-w-0 flex-1 truncate font-sans text-base text-gray-900 dark:text-gray-100 md:text-2xl">
@@ -134,7 +134,7 @@
         </h1>
       </header>
 
-      <div class="sticky top-14 z-20 -mx-6 mb-8 bg-[#F7F5EF]/95 px-6 pb-5 pt-2 backdrop-blur-md dark:bg-[#0C0A09]/95 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
+      <div class="sticky top-14 z-layer-sticky -mx-6 mb-8 bg-[#F7F5EF]/95 px-6 pb-5 pt-2 backdrop-blur-md dark:bg-[#0C0A09]/95 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
         <div class="flex items-center gap-2">
           <div class="search-field flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-md border border-black/15 px-3 transition-colors focus-within:border-black/50 dark:border-white/20 dark:focus-within:border-white/50 md:min-h-0 md:gap-4 md:rounded-none md:border-0 md:border-b md:px-0 md:pb-3 md:focus-within:border-black md:focus-within:border-b-2 md:dark:focus-within:border-white">
             <NIcon name="i-ph-magnifying-glass" class="h-6 w-6 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
@@ -168,7 +168,7 @@
           </div>
         </div>
 
-        <div v-if="filterCommand" id="search-filter-suggestions" role="listbox" :aria-label="$t('filter_suggestions') as string" class="absolute inset-x-6 top-full z-30 mt-2 max-h-72 overflow-y-auto rounded-md border border-black/10 bg-[#F7F5EF] p-2 shadow-lg sm:inset-x-8 lg:inset-x-10 dark:border-white/10 dark:bg-[#17191e]">
+        <div v-if="filterCommand" id="search-filter-suggestions" role="listbox" :aria-label="$t('filter_suggestions') as string" class="absolute inset-x-6 top-full z-layer-popover mt-2 max-h-72 overflow-y-auto rounded-md border border-black/10 bg-[#F7F5EF] p-2 shadow-lg sm:inset-x-8 lg:inset-x-10 dark:border-white/10 dark:bg-[#17191e]">
           <p v-if="filterSuggestions.length === 0" class="px-3 py-2 font-sans text-sm text-gray-500 dark:text-gray-400">{{ filterSuggestionMessage || $t('filter_suggestions_empty') }}</p>
           <div v-else class="relative">
             <div

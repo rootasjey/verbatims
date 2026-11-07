@@ -381,7 +381,7 @@
       :_dropdown-menu-content="{ class: 'author-avatar-image-context-menu', side: 'bottom', align: 'start', sideOffset: 4 }"
       @update:open="avatarImageContextMenuOpen = $event"
     >
-      <span aria-hidden="true" class="fixed z-50 h-px w-px" :style="avatarImageContextMenuPosition" />
+      <span aria-hidden="true" class="fixed h-px w-px" :style="avatarImageContextMenuPosition" />
     </NDropdownMenu>
   </div>
 
