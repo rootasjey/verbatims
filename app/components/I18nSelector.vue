@@ -5,7 +5,7 @@
     by="value"
     :_combobox-input="comboboxInputProps"
     :_combobox-list="{
-      class: 'z-[70] min-w-[160px]',
+      class: 'z-[61] min-w-[160px]',
     }"
     :_combobox-trigger="{
       btn: 'ghost-gray',
