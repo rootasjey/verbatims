@@ -109,14 +109,31 @@ export interface QuoteSource {
   attribution_id: number | null
   occurrence_id?: number | null
   source_type: string
+  source_medium?: QuoteSourceMedium | null
   source_url?: string | null
   label?: string | null
+  locator_type?: QuoteSourceLocatorType | null
+  locator_value?: string | null
   translator_name?: string | null
   verification_status: QuoteProvenanceStatus
   verified_by?: number | null
   verified_at?: string | null
   notes?: string | null
   is_primary: boolean
+}
+
+export type QuoteSourceMedium = 'book' | 'web_page' | 'transcript' | 'audio' | 'document' | 'other'
+export type QuoteSourceLocatorType = 'page' | 'chapter' | 'timecode'
+
+export interface CreateQuoteSourceData {
+  source_type?: string
+  source_medium?: QuoteSourceMedium | null
+  source_url?: string | null
+  label?: string | null
+  translator_name?: string | null
+  locator_type?: QuoteSourceLocatorType | null
+  locator_value?: string | null
+  notes?: string | null
 }
 
 export type QuoteOccurrenceType = 'origin' | 'quotation' | 'adaptation' | 'performance' | 'other'
@@ -178,6 +195,7 @@ export interface CreateQuoteData {
     status?: QuoteProvenanceStatus;
     notes?: string | null;
   }>;
+  sources?: CreateQuoteSourceData[];
   new_author?: {
     name: string;
     is_fictional?: boolean;

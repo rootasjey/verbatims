@@ -237,8 +237,11 @@ CREATE TABLE IF NOT EXISTS quote_sources (
   attribution_id INTEGER,
   occurrence_id INTEGER,
   source_type TEXT NOT NULL,
+  source_medium TEXT CHECK (source_medium IN ('book', 'web_page', 'transcript', 'audio', 'document', 'other')),
   source_url TEXT,
   label TEXT,
+  locator_type TEXT CHECK (locator_type IN ('page', 'chapter', 'timecode')),
+  locator_value TEXT,
   translator_name TEXT,
   verification_status TEXT NOT NULL DEFAULT 'unverified' CHECK (verification_status IN ('unverified', 'manually_verified', 'externally_verified', 'disputed')),
   verified_by INTEGER,
@@ -253,6 +256,22 @@ CREATE TABLE IF NOT EXISTS quote_sources (
   FOREIGN KEY (occurrence_id) REFERENCES quote_occurrences(id) ON DELETE SET NULL,
   FOREIGN KEY (verified_by) REFERENCES users(id) ON DELETE SET NULL,
   FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Idempotency records and temporary generated-ID handoff for atomic quote creation.
+CREATE TABLE IF NOT EXISTS quote_creation_requests (
+  request_key TEXT PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  payload_hash TEXT NOT NULL DEFAULT '',
+  author_id INTEGER,
+  reference_id INTEGER,
+  quote_id INTEGER REFERENCES quotes(id) ON DELETE SET NULL,
+  primary_attribution_id INTEGER,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE TABLE IF NOT EXISTS quote_name_claims (
+  normalized_name TEXT PRIMARY KEY
 );
 
 CREATE INDEX IF NOT EXISTS idx_quote_attributions_quote ON quote_attributions(quote_id);
@@ -1285,7 +1304,7 @@ WHEN EXISTS (SELECT 1 FROM quote_editorial_audit_context WHERE id = 1)
 BEGIN
   INSERT INTO quote_editorial_audit_events (actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, action, target_type, target_id, after_json, source, task_id, request_id)
   SELECT actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, 'create', 'source', CAST(NEW.id AS TEXT),
-    json_object('id', NEW.id, 'quote_id', NEW.quote_id, 'attribution_id', NEW.attribution_id, 'occurrence_id', NEW.occurrence_id, 'source_type', NEW.source_type, 'source_url', NEW.source_url, 'label', NEW.label, 'translator_name', NEW.translator_name, 'verification_status', NEW.verification_status, 'verified_by', NEW.verified_by, 'verified_at', NEW.verified_at, 'notes', NEW.notes, 'is_primary', NEW.is_primary, 'created_by', NEW.created_by, 'created_at', NEW.created_at, 'updated_at', NEW.updated_at), source, task_id, request_id
+    json_object('id', NEW.id, 'quote_id', NEW.quote_id, 'attribution_id', NEW.attribution_id, 'occurrence_id', NEW.occurrence_id, 'source_type', NEW.source_type, 'source_medium', NEW.source_medium, 'source_url', NEW.source_url, 'label', NEW.label, 'locator_type', NEW.locator_type, 'locator_value', NEW.locator_value, 'translator_name', NEW.translator_name, 'verification_status', NEW.verification_status, 'verified_by', NEW.verified_by, 'verified_at', NEW.verified_at, 'notes', NEW.notes, 'is_primary', NEW.is_primary, 'created_by', NEW.created_by, 'created_at', NEW.created_at, 'updated_at', NEW.updated_at), source, task_id, request_id
   FROM quote_editorial_audit_context WHERE id = 1;
 END;
 CREATE TRIGGER quote_editorial_audit_sources_update AFTER UPDATE ON quote_sources
@@ -1293,8 +1312,8 @@ WHEN EXISTS (SELECT 1 FROM quote_editorial_audit_context WHERE id = 1)
 BEGIN
   INSERT INTO quote_editorial_audit_events (actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, action, target_type, target_id, before_json, after_json, source, task_id, request_id)
   SELECT actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, 'update', 'source', CAST(NEW.id AS TEXT),
-    json_object('id', OLD.id, 'quote_id', OLD.quote_id, 'attribution_id', OLD.attribution_id, 'occurrence_id', OLD.occurrence_id, 'source_type', OLD.source_type, 'source_url', OLD.source_url, 'label', OLD.label, 'translator_name', OLD.translator_name, 'verification_status', OLD.verification_status, 'verified_by', OLD.verified_by, 'verified_at', OLD.verified_at, 'notes', OLD.notes, 'is_primary', OLD.is_primary, 'created_by', OLD.created_by, 'created_at', OLD.created_at, 'updated_at', OLD.updated_at),
-    json_object('id', NEW.id, 'quote_id', NEW.quote_id, 'attribution_id', NEW.attribution_id, 'occurrence_id', NEW.occurrence_id, 'source_type', NEW.source_type, 'source_url', NEW.source_url, 'label', NEW.label, 'translator_name', NEW.translator_name, 'verification_status', NEW.verification_status, 'verified_by', NEW.verified_by, 'verified_at', NEW.verified_at, 'notes', NEW.notes, 'is_primary', NEW.is_primary, 'created_by', NEW.created_by, 'created_at', NEW.created_at, 'updated_at', NEW.updated_at), source, task_id, request_id
+    json_object('id', OLD.id, 'quote_id', OLD.quote_id, 'attribution_id', OLD.attribution_id, 'occurrence_id', OLD.occurrence_id, 'source_type', OLD.source_type, 'source_medium', OLD.source_medium, 'source_url', OLD.source_url, 'label', OLD.label, 'locator_type', OLD.locator_type, 'locator_value', OLD.locator_value, 'translator_name', OLD.translator_name, 'verification_status', OLD.verification_status, 'verified_by', OLD.verified_by, 'verified_at', OLD.verified_at, 'notes', OLD.notes, 'is_primary', OLD.is_primary, 'created_by', OLD.created_by, 'created_at', OLD.created_at, 'updated_at', OLD.updated_at),
+    json_object('id', NEW.id, 'quote_id', NEW.quote_id, 'attribution_id', NEW.attribution_id, 'occurrence_id', NEW.occurrence_id, 'source_type', NEW.source_type, 'source_medium', NEW.source_medium, 'source_url', NEW.source_url, 'label', NEW.label, 'locator_type', NEW.locator_type, 'locator_value', NEW.locator_value, 'translator_name', NEW.translator_name, 'verification_status', NEW.verification_status, 'verified_by', NEW.verified_by, 'verified_at', NEW.verified_at, 'notes', NEW.notes, 'is_primary', NEW.is_primary, 'created_by', NEW.created_by, 'created_at', NEW.created_at, 'updated_at', NEW.updated_at), source, task_id, request_id
   FROM quote_editorial_audit_context WHERE id = 1;
 END;
 CREATE TRIGGER quote_editorial_audit_sources_delete AFTER DELETE ON quote_sources
@@ -1302,7 +1321,7 @@ WHEN EXISTS (SELECT 1 FROM quote_editorial_audit_context WHERE id = 1)
 BEGIN
   INSERT INTO quote_editorial_audit_events (actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, action, target_type, target_id, before_json, source, task_id, request_id)
   SELECT actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, 'delete', 'source', CAST(OLD.id AS TEXT),
-    json_object('id', OLD.id, 'quote_id', OLD.quote_id, 'attribution_id', OLD.attribution_id, 'occurrence_id', OLD.occurrence_id, 'source_type', OLD.source_type, 'source_url', OLD.source_url, 'label', OLD.label, 'translator_name', OLD.translator_name, 'verification_status', OLD.verification_status, 'verified_by', OLD.verified_by, 'verified_at', OLD.verified_at, 'notes', OLD.notes, 'is_primary', OLD.is_primary, 'created_by', OLD.created_by, 'created_at', OLD.created_at, 'updated_at', OLD.updated_at), source, task_id, request_id
+    json_object('id', OLD.id, 'quote_id', OLD.quote_id, 'attribution_id', OLD.attribution_id, 'occurrence_id', OLD.occurrence_id, 'source_type', OLD.source_type, 'source_medium', OLD.source_medium, 'source_url', OLD.source_url, 'label', OLD.label, 'locator_type', OLD.locator_type, 'locator_value', OLD.locator_value, 'translator_name', OLD.translator_name, 'verification_status', OLD.verification_status, 'verified_by', OLD.verified_by, 'verified_at', OLD.verified_at, 'notes', OLD.notes, 'is_primary', OLD.is_primary, 'created_by', OLD.created_by, 'created_at', OLD.created_at, 'updated_at', OLD.updated_at), source, task_id, request_id
   FROM quote_editorial_audit_context WHERE id = 1;
 END;
 CREATE TRIGGER quote_editorial_audit_authors_insert AFTER INSERT ON authors
@@ -1410,4 +1429,38 @@ BEGIN
   SELECT actor_user_id, actor_user_name, api_key_id, api_key_name, api_key_prefix, 'delete', 'reference', CAST(OLD.id AS TEXT),
     json_object('id', OLD.id, 'name', OLD.name, 'original_language', OLD.original_language, 'release_date', OLD.release_date, 'description', OLD.description, 'primary_type', OLD.primary_type, 'secondary_type', OLD.secondary_type, 'image_url', OLD.image_url, 'image_alt', OLD.image_alt, 'image_credit', OLD.image_credit, 'image_credit_status', OLD.image_credit_status, 'image_source_url', OLD.image_source_url, 'image_license', OLD.image_license, 'image_license_status', OLD.image_license_status, 'image_date', OLD.image_date, 'image_location', OLD.image_location, 'urls', OLD.urls, 'updated_at', OLD.updated_at ), source, task_id, request_id
   FROM quote_editorial_audit_context WHERE id = 1;
+END;
+
+-- A separate claim table prevents concurrent quote submissions with different
+-- idempotency keys from racing past the application duplicate check.
+INSERT OR IGNORE INTO quote_name_claims (normalized_name)
+SELECT lower(trim(name)) FROM quotes WHERE status <> 'rejected';
+
+CREATE TRIGGER quote_name_claims_after_insert AFTER INSERT ON quotes
+WHEN NEW.status <> 'rejected'
+BEGIN
+  INSERT OR IGNORE INTO quote_name_claims (normalized_name)
+  VALUES (lower(trim(NEW.name)));
+END;
+
+CREATE TRIGGER quote_name_claims_after_update AFTER UPDATE OF name, status ON quotes
+BEGIN
+  DELETE FROM quote_name_claims
+  WHERE normalized_name = lower(trim(OLD.name))
+    AND NOT EXISTS (
+      SELECT 1 FROM quotes
+      WHERE status <> 'rejected' AND lower(trim(name)) = lower(trim(OLD.name))
+    );
+  INSERT OR IGNORE INTO quote_name_claims (normalized_name)
+  SELECT lower(trim(NEW.name)) WHERE NEW.status <> 'rejected';
+END;
+
+CREATE TRIGGER quote_name_claims_after_delete AFTER DELETE ON quotes
+BEGIN
+  DELETE FROM quote_name_claims
+  WHERE normalized_name = lower(trim(OLD.name))
+    AND NOT EXISTS (
+      SELECT 1 FROM quotes
+      WHERE status <> 'rejected' AND lower(trim(name)) = lower(trim(OLD.name))
+    );
 END;

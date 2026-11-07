@@ -61,6 +61,8 @@
             <div class="min-w-0 break-words text-sm">
               <a v-if="source.source_url" :href="source.source_url" target="_blank" rel="noopener noreferrer" class="break-words text-blue-600 hover:underline dark:text-blue-400">{{ source.label || source.source_type }}</a>
               <span v-else class="break-words text-gray-700 dark:text-gray-300">{{ source.label || source.source_type }}</span>
+              <p v-if="source.source_medium" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $t(`components.dialogs.source_medium_${source.source_medium}`) }}</p>
+              <p v-if="source.locator_type && source.locator_value" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $t(`components.dialogs.locator_${source.locator_type}`) }}: {{ source.locator_value }}</p>
               <p v-if="source.occurrence_id" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ occurrenceLabel(source.occurrence_id) }}</p>
               <p v-if="source.translator_name" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Translator: {{ source.translator_name }}</p>
             </div>
@@ -79,11 +81,15 @@
       <p v-else-if="editingSource === null" class="text-xs text-gray-500 dark:text-gray-400">No source recorded.</p>
     <div v-if="creatingSource" class="mt-3 border border-gray-200 p-3 dark:border-gray-700">
       <div class="grid gap-2 sm:grid-cols-2"><input v-model="sourceForm.source_type" placeholder="Source type" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><input v-model="sourceForm.label" placeholder="Label" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"></div>
+      <label class="mt-2 block text-xs text-gray-600 dark:text-gray-400">Medium
+        <select v-model="sourceForm.source_medium" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null">Not specified</option><option value="book">Book</option><option value="web_page">Web page</option><option value="transcript">Transcript</option><option value="audio">Audio</option><option value="document">Document</option><option value="other">Other</option></select>
+      </label>
       <label class="mt-2 block text-xs text-gray-600 dark:text-gray-400">Supports occurrence (optional)
         <select v-model="sourceForm.occurrence_id" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null">Attribution evidence</option><option v-for="item in attributionOccurrences" :key="item.id" :value="item.id">{{ occurrenceLabel(item.id) }}</option></select>
       </label>
       <input v-model="sourceForm.translator_name" placeholder="Translator name" class="mt-2 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600">
       <input v-model="sourceForm.source_url" type="url" placeholder="https://..." class="mt-2 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600">
+      <div class="mt-2 grid gap-2 sm:grid-cols-2"><select v-model="sourceForm.locator_type" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600" @change="sourceForm.locator_value = ''"><option :value="null">No locator</option><option value="page">Page</option><option value="chapter">Chapter</option><option value="timecode">Timecode</option></select><input v-model="sourceForm.locator_value" :disabled="!sourceForm.locator_type" :placeholder="sourceForm.locator_type === 'timecode' ? '83:45 or HH:MM:SS' : 'Locator value'" class="border border-gray-300 bg-transparent px-2 py-1.5 disabled:opacity-60 dark:border-gray-600" @blur="normalizeSourceLocator"></div>
       <div class="mt-2 flex items-center justify-between"><select v-model="sourceForm.attribution_id" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null">Quote-level evidence</option><option v-for="item in attributions" :key="item.id" :value="item.id">{{ item.author?.name || 'Unknown author' }}</option></select><select v-model="sourceForm.verification_status" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option v-for="status in statuses" :key="status" :value="status">{{ statusLabel(status) }}</option></select></div>
       <div class="mt-2 flex justify-end gap-2"><NButton btn="link-gray" size="xs" @click="cancelSource">Cancel</NButton><NButton btn="soft-blue" size="xs" :disabled="saving" @click="saveSource">Save</NButton></div>
     </div>
@@ -119,11 +125,15 @@
           <input v-model="sourceForm.source_type" placeholder="Source type" class="border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
           <input v-model="sourceForm.label" placeholder="Label" class="border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
         </div>
+        <label class="block text-xs text-gray-600 dark:text-gray-400">Medium
+          <select v-model="sourceForm.source_medium" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600"><option :value="null">Not specified</option><option value="book">Book</option><option value="web_page">Web page</option><option value="transcript">Transcript</option><option value="audio">Audio</option><option value="document">Document</option><option value="other">Other</option></select>
+        </label>
         <label class="block text-xs text-gray-600 dark:text-gray-400">Supports occurrence (optional)
           <select v-model="sourceForm.occurrence_id" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600"><option :value="null">Attribution evidence</option><option v-for="item in attributionOccurrences" :key="item.id" :value="item.id">{{ occurrenceLabel(item.id) }}</option></select>
         </label>
         <input v-model="sourceForm.translator_name" placeholder="Translator name" class="w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
         <input v-model="sourceForm.source_url" type="url" placeholder="https://..." class="w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
+        <div class="grid gap-2 sm:grid-cols-2"><select v-model="sourceForm.locator_type" class="border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600" @change="sourceForm.locator_value = ''"><option :value="null">No locator</option><option value="page">Page</option><option value="chapter">Chapter</option><option value="timecode">Timecode</option></select><input v-model="sourceForm.locator_value" :disabled="!sourceForm.locator_type" :placeholder="sourceForm.locator_type === 'timecode' ? '83:45 or HH:MM:SS' : 'Locator value'" class="border border-gray-300 bg-transparent px-2 py-1.5 text-sm disabled:opacity-60 dark:border-gray-600" @blur="normalizeSourceLocator"></div>
         <div class="flex items-center justify-between gap-3">
           <select v-model="sourceForm.verification_status" class="border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600"><option v-for="status in statuses" :key="status" :value="status">{{ statusLabel(status) }}</option></select>
           <label class="text-xs text-gray-500"><input v-model="sourceForm.is_primary" type="checkbox"> Primary</label>
@@ -136,9 +146,11 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
+import { normalizeTimecode } from '~~/shared/utils/timecode'
 
 const props = withDefaults(defineProps<{ quoteId: number; attributions: QuoteAttribution[]; sources: QuoteSource[]; occurrences: QuoteOccurrence[]; panel?: 'attributions' | 'sources' | 'all' }>(), { panel: 'all' })
 const emit = defineEmits<{ changed: [] }>()
+const { $t } = useI18n()
 const panel = computed(() => props.panel)
 const toast = useToast()
 const statuses: QuoteProvenanceStatus[] = ['unverified', 'manually_verified', 'externally_verified', 'disputed']
@@ -152,7 +164,7 @@ const confirmingAttribution = ref<number | null>(null)
 const confirmingSource = ref<number | null>(null)
 const saving = ref(false)
 const attributionForm = reactive<{ author: Author | null; reference: QuoteReference | null; status: QuoteProvenanceStatus; notes: string; is_primary: boolean }>({ author: null, reference: null, status: 'unverified', notes: '', is_primary: false })
-const sourceForm = reactive<{ attribution_id: number | null; occurrence_id: number | null; source_type: string; source_url: string; label: string; translator_name: string; verification_status: QuoteProvenanceStatus; is_primary: boolean }>({ attribution_id: null, occurrence_id: null, source_type: '', source_url: '', label: '', translator_name: '', verification_status: 'unverified', is_primary: false })
+const sourceForm = reactive<{ attribution_id: number | null; occurrence_id: number | null; source_type: string; source_medium: QuoteSourceMedium | null; source_url: string; label: string; locator_type: QuoteSourceLocatorType | null; locator_value: string; translator_name: string; verification_status: QuoteProvenanceStatus; is_primary: boolean }>({ attribution_id: null, occurrence_id: null, source_type: '', source_medium: null, source_url: '', label: '', locator_type: null, locator_value: '', translator_name: '', verification_status: 'unverified', is_primary: false })
 const attributionOccurrences = computed(() => props.occurrences.filter(item => item.attribution_id === null || sourceForm.attribution_id === null || item.attribution_id === sourceForm.attribution_id))
 watch(() => sourceForm.attribution_id, (attributionId) => {
   if (sourceForm.occurrence_id && !props.occurrences.some(item => item.id === sourceForm.occurrence_id && (item.attribution_id === null || attributionId === null || item.attribution_id === attributionId))) {
@@ -177,10 +189,11 @@ const cancelAttributionEdit = () => { attributionEditOpen.value = false; resetAt
 const saveAttribution = async () => { saving.value = true; try { const body = { author_id: attributionForm.author?.id || null, reference_id: attributionForm.reference?.id || null, status: attributionForm.status, notes: attributionForm.notes || null, is_primary: attributionForm.is_primary }; if (creatingAttribution.value) await $fetch(`/api/admin/quotes/${props.quoteId}/attributions`, { method: 'POST', body }); else await $fetch(`/api/admin/quotes/${props.quoteId}/attributions/${editingAttribution.value}`, { method: 'PUT', body }); attributionEditOpen.value = false; resetAttribution(); emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 const removeAttribution = async (item: QuoteAttribution) => { saving.value = true; try { await $fetch(`/api/admin/quotes/${props.quoteId}/attributions/${item.id}`, { method: 'DELETE' }); confirmingAttribution.value = null; emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 const resetSource = () => { editingSource.value = null; creatingSource.value = false; confirmingSource.value = null }
-const startSource = () => { Object.assign(sourceForm, { attribution_id: props.attributions.find(item => item.is_primary)?.id || null, occurrence_id: null, source_type: '', source_url: '', label: '', translator_name: '', verification_status: 'unverified', is_primary: false }); creatingSource.value = true; editingSource.value = null }
-const editSource = (item: QuoteSource) => { Object.assign(sourceForm, { attribution_id: item.attribution_id || null, occurrence_id: item.occurrence_id ?? null, source_type: item.source_type, source_url: item.source_url || '', label: item.label || '', translator_name: item.translator_name || '', verification_status: item.verification_status, is_primary: item.is_primary }); editingSource.value = item.id; creatingSource.value = false; sourceEditOpen.value = true }
+const startSource = () => { Object.assign(sourceForm, { attribution_id: props.attributions.find(item => item.is_primary)?.id || null, occurrence_id: null, source_type: '', source_medium: null, source_url: '', label: '', locator_type: null, locator_value: '', translator_name: '', verification_status: 'unverified', is_primary: false }); creatingSource.value = true; editingSource.value = null }
+const editSource = (item: QuoteSource) => { Object.assign(sourceForm, { attribution_id: item.attribution_id ?? null, occurrence_id: item.occurrence_id ?? null, source_type: item.source_type, source_medium: item.source_medium ?? null, source_url: item.source_url || '', label: item.label || '', locator_type: item.locator_type ?? null, locator_value: item.locator_value || '', translator_name: item.translator_name || '', verification_status: item.verification_status, is_primary: item.is_primary }); editingSource.value = item.id; creatingSource.value = false; sourceEditOpen.value = true }
 const cancelSource = resetSource
 const cancelSourceEdit = () => { sourceEditOpen.value = false; resetSource() }
-const saveSource = async () => { saving.value = true; try { const body = { attribution_id: sourceForm.attribution_id, occurrence_id: sourceForm.occurrence_id, source_type: sourceForm.source_type, source_url: sourceForm.source_url || null, label: sourceForm.label || null, translator_name: sourceForm.translator_name.trim() || null, verification_status: sourceForm.verification_status, is_primary: sourceForm.is_primary }; if (creatingSource.value) await $fetch(`/api/admin/quotes/${props.quoteId}/sources`, { method: 'POST', body }); else await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${editingSource.value}`, { method: 'PUT', body }); sourceEditOpen.value = false; resetSource(); emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
+const normalizeSourceLocator = () => { if (sourceForm.locator_type !== 'timecode' || !sourceForm.locator_value) return; const normalized = normalizeTimecode(sourceForm.locator_value); if (normalized) sourceForm.locator_value = normalized }
+const saveSource = async () => { saving.value = true; try { const body = { attribution_id: sourceForm.attribution_id, occurrence_id: sourceForm.occurrence_id, source_type: sourceForm.source_type, source_medium: sourceForm.source_medium, source_url: sourceForm.source_url || null, label: sourceForm.label || null, locator_type: sourceForm.locator_type, locator_value: sourceForm.locator_value || null, translator_name: sourceForm.translator_name.trim() || null, verification_status: sourceForm.verification_status, is_primary: sourceForm.is_primary }; if (creatingSource.value) await $fetch(`/api/admin/quotes/${props.quoteId}/sources`, { method: 'POST', body }); else await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${editingSource.value}`, { method: 'PUT', body }); sourceEditOpen.value = false; resetSource(); emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 const removeSource = async (item: QuoteSource) => { saving.value = true; try { await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${item.id}`, { method: 'DELETE' }); confirmingSource.value = null; emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 </script>

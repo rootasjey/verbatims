@@ -5,7 +5,7 @@ import { requireAttributionForQuote, requireOccurrenceForAttribution, requireQuo
 import { requireApiModerator } from '~~/server/utils/api-quote-provenance'
 import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 
-defineRouteMeta({ openAPI: { summary: 'Create quote source', description: 'Requires a source attribution belonging to this quote. Changes are recorded in the editorial audit log.', tags: ['Quote provenance'], security: [{ apiKey: ['write:sources'] }] } })
+defineRouteMeta({ openAPI: { summary: 'Create quote source', description: 'A source may be attached to this quote or one of its attributions. Changes are recorded in the editorial audit log.', tags: ['Quote provenance'], security: [{ apiKey: ['write:sources'] }] } })
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
@@ -14,7 +14,6 @@ export default defineEventHandler(async (event) => {
   if (!Number.isInteger(quoteId) || quoteId <= 0) throwServer(400, 'Invalid quote ID')
   await requireQuote(quoteId)
   const body = await readValidatedBody(event, createQuoteSourceSchema.parse)
-  if (body.attribution_id == null) throwServer(400, 'A source must belong to an attribution')
   await requireAttributionForQuote(quoteId, body.attribution_id)
   await requireOccurrenceForAttribution(quoteId, body.attribution_id, body.occurrence_id)
 
@@ -28,8 +27,11 @@ export default defineEventHandler(async (event) => {
     attributionId: body.attribution_id,
     occurrenceId: body.occurrence_id,
     sourceType: body.source_type,
+    sourceMedium: body.source_medium ?? null,
     sourceUrl: body.source_url || null,
     label: body.label || null,
+    locatorType: body.locator_type ?? null,
+    locatorValue: body.locator_value || null,
     translatorName: body.translator_name || null,
     verificationStatus: body.verification_status,
     notes: body.notes || null,

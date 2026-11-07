@@ -1,148 +1,132 @@
 import { db, schema } from 'hub:db'
-import { eq, sql, and, ne } from 'drizzle-orm'
+import { eq, sql, and, ne, inArray } from 'drizzle-orm'
 import { createQuoteSchema } from '../../validation/schemas'
 import { getQuoteProvenance, syncPrimarySource } from '~~/server/utils/quote-provenance'
 import { detectSubmittedQuoteLanguage } from '~~/server/utils/quote-language'
 import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { buildQuoteCreationStatements, findQuoteCreationRequest, hashQuoteCreationPayload, normalizeQuoteCreationRequestKey, scopeQuoteCreationRequestKey } from '~~/server/utils/quote-creation'
 
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireAuth(event)
-    if (user.role === 'user') {
+    const body = await readValidatedBody(event, createQuoteSchema.parse)
+    const requestedPrimary = body.attributions.find(attribution => attribution.is_primary)!
+    const requestKey = normalizeQuoteCreationRequestKey(getHeader(event, 'idempotency-key'))
+    const payloadHash = await hashQuoteCreationPayload(body)
+    const priorRequest = await findQuoteCreationRequest(requestKey, user.id, payloadHash)
+    let quoteId = priorRequest?.quoteId ?? undefined
+
+    if (!priorRequest && user.role === 'user') {
       await requireRateLimit(event, `create-quote:user:${user.id}`, 10, 3600, 'You have reached the limit of quote creations. Please try again later.')
     }
 
-    const body = await readValidatedBody(event, createQuoteSchema.parse)
-
-    const requestedPrimary = body.attributions.find(attribution => attribution.is_primary)!
-    let authorId = requestedPrimary.author_id
-    let referenceId = requestedPrimary.reference_id
-
-    if (body.new_author?.name) {
-      const authorResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.authors).values({
-        name: body.new_author.name,
-        isFictional: body.new_author.is_fictional || false,
-        job: body.new_author.job || null,
-        description: body.new_author.description || null
-      }).returning({ id: schema.authors.id })])
-      const authorResult = getAuditedBatchRow<{ id: number }>(authorResults, 1)
-      
-      authorId = authorResult.id
-    }
-
-    if (body.new_reference?.name) {
-      const referenceResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quoteReferences).values({
-        name: body.new_reference.name,
-        originalLanguage: body.new_reference.original_language || 'en',
-        primaryType: body.new_reference.primary_type || 'other',
-        description: body.new_reference.description ?? null,
-        releaseDate: body.new_reference.release_date ?? null,
-      } as any).returning({ id: schema.quoteReferences.id })])
-      const referenceResult = getAuditedBatchRow<{ id: number }>(referenceResults, 1)
-      
-      referenceId = referenceResult.id
-    }
-
-    // Validate author_id if provided
-    if (authorId) {
+    if (!priorRequest && requestedPrimary.author_id && !body.new_author) {
       const author = await db.select({ id: schema.authors.id })
         .from(schema.authors)
-        .where(eq(schema.authors.id, authorId))
+        .where(eq(schema.authors.id, requestedPrimary.author_id))
         .get()
       if (!author) {
         throwServer(400, 'Invalid author ID')
       }
     }
 
-    // Validate reference_id if provided
-    if (referenceId) {
+    if (!priorRequest && requestedPrimary.reference_id && !body.new_reference) {
       const reference = await db.select({ id: schema.quoteReferences.id })
         .from(schema.quoteReferences)
-        .where(eq(schema.quoteReferences.id, referenceId))
+        .where(eq(schema.quoteReferences.id, requestedPrimary.reference_id))
         .get()
       if (!reference) {
         throwServer(400, 'Invalid reference ID')
       }
     }
 
-    if (authorId == null && referenceId == null) {
+    if (!priorRequest && requestedPrimary.author_id == null && requestedPrimary.reference_id == null && !body.new_author && !body.new_reference) {
       throwServer(400, 'A quote requires an author or reference')
     }
 
-    // Check for duplicate quotes (fuzzy matching)
-    const similarQuotes = await db.select({ id: schema.quotes.id })
-      .from(schema.quotes)
-      .where(and(
-        sql`LOWER(TRIM(${schema.quotes.name})) = LOWER(TRIM(${body.name}))`,
-        ne(schema.quotes.status, 'rejected')
-      ))
-      .limit(1)
-      .get()
+    if (priorRequest && !priorRequest.quoteId) throwServer(409, 'This Idempotency-Key was already used')
 
-    if (similarQuotes) {
-      throwServer(409, 'A similar quote already exists')
-    }
+    if (!priorRequest) {
+      const similarQuotes = await db.select({ id: schema.quotes.id })
+        .from(schema.quotes)
+        .where(and(
+          sql`LOWER(TRIM(${schema.quotes.name})) = LOWER(TRIM(${body.name}))`,
+          ne(schema.quotes.status, 'rejected')
+        ))
+        .limit(1)
+        .get()
+      if (similarQuotes) throwServer(409, 'A similar quote already exists')
 
-    const isPrivileged = user.role === 'admin' || user.role === 'moderator'
-    const language = await detectSubmittedQuoteLanguage(event, body.name)
-    let quoteId: number
-    try {
-      const quoteResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quotes).values({
-        name: body.name,
-        language,
+      const isPrivileged = user.role === 'admin' || user.role === 'moderator'
+      const language = await detectSubmittedQuoteLanguage(event, body.name)
+      const requestedTagIds = [...new Set((body.tags ?? []).map(Number).filter(Number.isInteger))]
+      const validTags = requestedTagIds.length
+        ? await db.select({ id: schema.tags.id }).from(schema.tags).where(inArray(schema.tags.id, requestedTagIds)).all()
+        : []
+      const { statements, quoteIdResultIndex } = buildQuoteCreationStatements({
+        requestKey: scopeQuoteCreationRequestKey(requestKey, user.id),
         userId: user.id,
-        status: 'draft',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      } as any).returning({ id: schema.quotes.id })])
-      const quoteResult = getAuditedBatchRow<{ id: number }>(quoteResults, 1)
-      quoteId = quoteResult.id
-
-      const primaryStatus = isPrivileged ? requestedPrimary.status : 'unverified'
-      const attributionStatements = [db.insert(schema.quoteAttributions).values({
-        quoteId,
-        authorId: authorId || null,
-        referenceId: referenceId || null,
-        isPrimary: true,
-        status: primaryStatus,
-        notes: requestedPrimary.notes,
-        createdBy: user.id,
-        ...(primaryStatus === 'unverified' ? {} : { verifiedBy: user.id, verifiedAt: new Date() }),
-      })]
-      const additionalAttributions = body.attributions.filter(attribution => !attribution.is_primary)
-      attributionStatements.push(...additionalAttributions.map(attribution => db.insert(schema.quoteAttributions).values({
-          quoteId,
+        payloadHash,
+        quote: { name: body.name, language },
+        authorId: requestedPrimary.author_id,
+        referenceId: requestedPrimary.reference_id,
+        newAuthor: body.new_author ? {
+          name: body.new_author.name,
+          isFictional: body.new_author.is_fictional,
+          job: body.new_author.job,
+          description: body.new_author.description,
+        } : undefined,
+        newReference: body.new_reference ? {
+          name: body.new_reference.name,
+          originalLanguage: body.new_reference.original_language,
+          primaryType: body.new_reference.primary_type,
+          description: body.new_reference.description,
+          releaseDate: body.new_reference.release_date,
+        } : undefined,
+        primaryAttribution: {
+          status: isPrivileged ? requestedPrimary.status : 'unverified',
+          notes: requestedPrimary.notes,
+          verifiedBy: isPrivileged && requestedPrimary.status !== 'unverified' ? user.id : null,
+        },
+        additionalAttributions: body.attributions.filter(attribution => !attribution.is_primary).map(attribution => ({
           authorId: attribution.author_id,
           referenceId: attribution.reference_id,
-          isPrimary: false,
           status: isPrivileged ? attribution.status : 'unverified',
           notes: attribution.notes,
-          createdBy: user.id,
-        })))
-      await runWebEditorialAuditedBatch(event, user.id, attributionStatements, 'web_user')
-    } catch (error) {
-      if (quoteId!) {
-        await runWebEditorialAuditedBatch(event, user.id, [db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId))], 'web_user').catch(() => undefined)
+        })),
+        sources: body.sources,
+        tagIds: validTags.map(tag => tag.id),
+      })
+
+      try {
+        const results = await runWebEditorialAuditedBatch(event, user.id, statements, 'web_user')
+        quoteId = getAuditedBatchRow<{ quoteId: number }>(results, quoteIdResultIndex + 1).quoteId
+      } catch (error) {
+        // A response can be lost after D1 commits. Resolve a repeated request
+        // key from the committed idempotency row instead of creating again.
+        let committedRequest: Awaited<ReturnType<typeof findQuoteCreationRequest>>
+        try {
+          committedRequest = await findQuoteCreationRequest(requestKey, user.id, payloadHash)
+        } catch (lookupError: any) {
+          if (lookupError?.statusCode === 409) throw lookupError
+        }
+        if (!committedRequest?.quoteId) {
+          const similarQuote = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .where(and(
+              sql`LOWER(TRIM(${schema.quotes.name})) = LOWER(TRIM(${body.name}))`,
+              ne(schema.quotes.status, 'rejected')
+            ))
+            .limit(1)
+            .get()
+          if (similarQuote) throwServer(409, 'A similar quote already exists')
+          throw error
+        }
+        quoteId = committedRequest.quoteId
       }
-      throw error
     }
 
-    // Add tags if provided
-    if (body.tags && body.tags.length > 0) {
-      for (const tagId of body.tags) {
-        const tag = await db.select({ id: schema.tags.id })
-          .from(schema.tags)
-          .where(eq(schema.tags.id, Number(tagId)))
-          .get()
-        
-        if (tag) {
-          await db.insert(schema.quoteTags).values({
-            quoteId,
-            tagId: tagId
-          } as any).run()
-        }
-      }
-    }
+    if (!quoteId) throwServer(500, 'Quote creation did not return an ID')
 
     // Fetch the created quote with all related data
     const createdQuote = await db.select({

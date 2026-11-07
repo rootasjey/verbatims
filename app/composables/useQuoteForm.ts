@@ -37,6 +37,7 @@ const APPLY_CONFIDENCE_THRESHOLD = 0.35
 const LOW_CONFIDENCE_THRESHOLD = 0.55
 
 export function useQuoteForm() {
+  const sources = ref<CreateQuoteSourceData[]>([])
   const form = ref({
     content: '',
     language: { ...DEFAULT_LANGUAGE },
@@ -181,6 +182,20 @@ export function useQuoteForm() {
   const showAuthorSuggestions = ref(false)
   const showReferenceSuggestions = ref(false)
   const submitting = ref(false)
+  const submissionKey = ref('')
+  const submissionFingerprint = ref('')
+  const rotateSubmissionKey = () => {
+    submissionKey.value = crypto.randomUUID()
+    submissionFingerprint.value = ''
+  }
+  const getSubmissionKey = (payload: unknown) => {
+    const fingerprint = JSON.stringify(payload)
+    if (!submissionKey.value || submissionFingerprint.value !== fingerprint) {
+      rotateSubmissionKey()
+      submissionFingerprint.value = fingerprint
+    }
+    return submissionKey.value
+  }
   const selectedAuthorIndex = ref(-1)
   const selectedReferenceIndex = ref(-1)
 
@@ -421,6 +436,7 @@ export function useQuoteForm() {
   }
 
   const resetForm = () => {
+    sources.value = []
     form.value = {
       content: '',
       language: { ...DEFAULT_LANGUAGE },
@@ -437,6 +453,8 @@ export function useQuoteForm() {
     referenceSuggestions.value = []
     selectedAuthorIndex.value = -1
     selectedReferenceIndex.value = -1
+    submissionKey.value = ''
+    submissionFingerprint.value = ''
   }
 
   const initializeFormForEdit = (editQuote?: QuoteWithRelations | AdminQuote | null) => {
@@ -496,6 +514,23 @@ export function useQuoteForm() {
   }
 
   const createPayload = (): CreateQuoteData => {
+    const sourcePayload = sources.value
+      .map(source => ({
+        ...source,
+        source_url: source.source_url?.trim() || null,
+        label: source.label?.trim() || null,
+        translator_name: source.translator_name?.trim() || null,
+        locator_value: source.locator_value?.trim() || null,
+        notes: source.notes?.trim() || null,
+      }))
+      .filter(source => source.source_url
+        || source.label
+        || source.source_medium
+        || source.locator_type
+        || source.locator_value
+        || source.translator_name
+        || source.notes)
+
     return {
       name: form.value.content.trim(),
       language: form.value.language.value as QuoteLanguage,
@@ -504,6 +539,7 @@ export function useQuoteForm() {
         reference_id: form.value.selectedReference?.id || null,
         is_primary: true,
       }],
+      ...(sourcePayload.length ? { sources: sourcePayload } : {}),
       new_author: form.value.selectedAuthor?.id === 0 ? { name: form.value.selectedAuthor.name, is_fictional: false } : undefined,
       new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value as QuoteLanguage, primary_type: 'other' as const } : undefined
     }
@@ -512,6 +548,7 @@ export function useQuoteForm() {
   return {
     // state
     form,
+    sources,
     languageOptions,
     languageDetection,
     languageManuallySelected,
@@ -522,6 +559,9 @@ export function useQuoteForm() {
     showAuthorSuggestions,
     showReferenceSuggestions,
     submitting,
+    submissionKey,
+    rotateSubmissionKey,
+    getSubmissionKey,
     selectedAuthorIndex,
     selectedReferenceIndex,
 

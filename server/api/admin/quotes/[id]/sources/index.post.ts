@@ -10,7 +10,6 @@ export default defineEventHandler(async (event) => {
   if (!Number.isInteger(quoteId) || quoteId <= 0) throwServer(400, 'Invalid quote ID')
   await requireQuote(quoteId)
   const body = await readValidatedBody(event, createQuoteSourceSchema.parse)
-  if (body.attribution_id == null) throwServer(400, 'A source must belong to an attribution')
   await requireAttributionForQuote(quoteId, body.attribution_id)
   await requireOccurrenceForAttribution(quoteId, body.attribution_id, body.occurrence_id)
 
@@ -22,8 +21,11 @@ export default defineEventHandler(async (event) => {
     attributionId: body.attribution_id,
     occurrenceId: body.occurrence_id,
     sourceType: body.source_type,
+    sourceMedium: body.source_medium ?? null,
     sourceUrl: body.source_url || null,
     label: body.label || null,
+    locatorType: body.locator_type ?? null,
+    locatorValue: body.locator_value || null,
     translatorName: body.translator_name || null,
     verificationStatus: body.verification_status,
     notes: body.notes || null,

@@ -34,12 +34,15 @@
 				</section>
 
 				<form v-else @submit.prevent="submitQuote" @keydown.capture="handleCreateEscape" @keydown="handleCreateFormKeydown" class="space-y-6">
-					<div class="mb-6 grid grid-cols-2 gap-3" :aria-label="String($t('components.dialogs.add_quote_steps'))">
+					<div class="mb-6 grid grid-cols-3 gap-3" :aria-label="String($t('components.dialogs.add_quote_steps'))">
 						<button type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.quote_step'))" :aria-current="step === 1 ? 'step' : undefined" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors', step === 1 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToQuoteStep">
 							<OverflowingTabLabel number="01" :label="String($t('components.dialogs.quote_step'))" />
 						</button>
 						<button type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.attribution_step'))" :aria-current="step === 2 ? 'step' : undefined" :disabled="form.content.trim().length < 2" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', step === 2 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToAttributionStep">
 							<OverflowingTabLabel number="02" :label="String($t('components.dialogs.attribution_step'))" />
+						</button>
+						<button type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.source_step'))" :aria-current="step === 3 ? 'step' : undefined" :disabled="!hasAttribution || submitting" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', step === 3 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToSourceStep">
+							<OverflowingTabLabel :label="String($t('components.dialogs.source_step'))" />
 						</button>
 					</div>
 					<p v-if="draftSaved" role="status" aria-live="polite" :class="['quote-draft-saved-feedback mb-4 flex items-center gap-2 font-sans text-sm text-gray-600 dark:text-gray-300', { 'quote-draft-saved-feedback--pulse': draftSavedPulseActive }]">
@@ -70,7 +73,7 @@
 						</div>
 					</div>
 
-					<div v-else key="attribution" data-quote-step="2" class="space-y-5">
+					<div v-else-if="step === 2" key="attribution" data-quote-step="2" class="space-y-5">
 						<!-- Author Selection -->
 						<div>
 							<label class="sr-only">
@@ -226,6 +229,10 @@
 							{{ $t('components.dialogs.attribution_required') }}
 						</p>
 					</div>
+
+					<div v-else key="sources" data-quote-step="3" class="py-2">
+						<QuoteSourcesEditor v-model="sources" :disabled="submitting" />
+					</div>
 					</Transition>
 					</div>
 
@@ -233,11 +240,11 @@
 						<NButton
 							btn="light:soft dark:soft-white"
 							type="button"
-							@click="step === 2 ? goToQuoteStep() : isOpen = false"
+							@click="step > 1 ? goToPreviousStep() : isOpen = false"
 							:disabled="submitting"
 							class="min-w-24"
 						>
-							{{ step === 2 ? $t('common.back') : $t('common.cancel') }}
+							{{ step > 1 ? $t('common.back') : $t('common.cancel') }}
 						</NButton>
 						<NButton v-if="step === 1"
 							btn="solid-black"
@@ -310,8 +317,10 @@ watch(isOpen, (open) => {
 	if (open) step.value = 1
 	else clearDraftSavedPulse()
 })
+
 const {
 	form,
+	sources,
 	authorQuery,
 	referenceQuery,
 	authorSuggestions,
@@ -319,6 +328,8 @@ const {
 	showAuthorSuggestions,
 	showReferenceSuggestions,
 	submitting,
+	rotateSubmissionKey,
+	getSubmissionKey,
 	selectedAuthorIndex,
 	selectedReferenceIndex,
 	authorInputRef,
@@ -341,7 +352,10 @@ const {
 	createNewReference,
 	clearAuthor,
 	clearReference,
+	createPayload,
 } = useQuoteForm()
+
+const hasAttribution = computed(() => Boolean(form.value.selectedAuthor || form.value.selectedReference))
 
 const authorSuggestionsHeight = ref('0px')
 const referenceSuggestionsHeight = ref('0px')
@@ -455,6 +469,16 @@ const goToAttributionStep = async () => {
 	void nextTick(() => authorInputRef.value?.focus?.())
 }
 
+const goToSourceStep = async () => {
+	if (form.value.content.trim().length < 2 || !hasAttribution.value) return
+	await changeStep(3)
+}
+
+const goToPreviousStep = async () => {
+	if (step.value === 3) await goToAttributionStep()
+	else await goToQuoteStep()
+}
+
 const goToQuoteStep = async () => {
 	await changeStep(1)
 	void nextTick(() => quoteInputRef.value?.$el?.querySelector('textarea')?.focus())
@@ -469,7 +493,7 @@ const handleCreateFormKeydown = (event: KeyboardEvent) => {
 		return
 	}
 
-	if (step.value === 2 && event.key === 'Enter' && !submitting.value) {
+		if (step.value > 1 && event.key === 'Enter' && !submitting.value) {
 		event.preventDefault()
 		void submitQuote()
 	}
@@ -479,7 +503,8 @@ const handleCreateEscape = (event: KeyboardEvent) => {
 	if (event.key !== 'Escape') return
 	event.preventDefault()
 	event.stopPropagation()
-	if (step.value === 2) void goToQuoteStep()
+	if (step.value === 3) void goToAttributionStep()
+	else if (step.value === 2) void goToQuoteStep()
 	else isOpen.value = false
 }
 
@@ -494,27 +519,21 @@ const submitQuote = async () => {
 	try {
 		submitting.value = true
 		const savedText = form.value.content.trim()
-		const payload = {
-			name: form.value.content.trim(),
-			language: form.value.language.value,
-			attributions: [{
-				author_id: form.value.selectedAuthor?.id || null,
-				reference_id: form.value.selectedReference?.id || null,
-				is_primary: true,
-			}],
-			new_author: form.value.selectedAuthor?.id === 0 ? { name: form.value.selectedAuthor.name, is_fictional: false } : undefined,
-			new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value, primary_type: 'other' as const } : undefined
-		}
+		const payload = createPayload()
+		const idempotencyKey = getSubmissionKey(payload)
 
 		const response = await $fetch<{ success: boolean; data: { id: number } }, '/api/quotes'>('/api/quotes', {
 			method: 'POST',
-			body: payload
+			body: payload,
+			headers: { 'Idempotency-Key': idempotencyKey },
 		})
+		rotateSubmissionKey()
 
 		savedDraftId.value = response.data.id
 		publishMutation({ type: 'created', quoteIds: [response.data.id], toStatus: 'draft' })
 		lastSavedQuote.value = savedText
 		form.value.content = ''
+		sources.value = []
 		draftSaved.value = true
 		void triggerDraftSavedPulse()
 		emit('submitted')

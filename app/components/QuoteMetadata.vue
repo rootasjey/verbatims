@@ -31,25 +31,36 @@
 
 
             <!-- Source -->
-            <div v-if="primarySource?.source_url || primarySource?.translator_name" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
+            <div v-if="quote.sources?.length" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-start gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-link" class="w-4 h-4 mr-2 text-gray-400" />
                 {{ $t('components.quote_metadata.source') }}
               </dt>
-              <dd class="sm:col-span-2 ml-0 text-base text-size-3.5 font-sans font-500">
-                <a v-if="primarySource.source_url"
-                  :href="primarySource.source_url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  {{ getSourceLabel(primarySource.source_type) }}
-                  <NIcon name="i-ph-arrow-square-out" class="w-3.5 h-3.5" />
-                  <span class="sr-only">(opens in a new tab)</span>
-                </a>
-                <span v-else>{{ getSourceLabel(primarySource.source_type) }}</span>
-                <div v-if="primarySource.translator_name" class="mt-1 text-sm font-normal text-gray-600 dark:text-gray-400">
-                  {{ $t('components.quote_metadata.translator') }}: {{ primarySource.translator_name }}
+              <dd class="sm:col-span-2 ml-0 space-y-3 text-base text-size-3.5 font-sans font-500">
+                <div v-for="source in quote.sources" :key="source.id" class="min-w-0">
+                  <a v-if="source.source_url"
+                    :href="source.source_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 break-all text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    {{ getSourceLabel(source) }}
+                    <NIcon name="i-ph-arrow-square-out" class="h-3.5 w-3.5 shrink-0" />
+                    <span class="sr-only">(opens in a new tab)</span>
+                  </a>
+                  <span v-else>{{ getSourceLabel(source) }}</span>
+                  <div v-if="source.source_medium" class="mt-0.5 text-sm font-normal text-gray-600 dark:text-gray-400">
+                    {{ getMediumLabel(source.source_medium) }}
+                  </div>
+                  <div v-if="source.locator_type && source.locator_value" class="mt-0.5 text-sm font-normal text-gray-600 dark:text-gray-400">
+                    {{ $t(`components.dialogs.locator_${source.locator_type}`) }}: {{ source.locator_value }}
+                  </div>
+                  <div v-if="source.translator_name" class="mt-0.5 text-sm font-normal text-gray-600 dark:text-gray-400">
+                    {{ $t('components.quote_metadata.translator') }}: {{ source.translator_name }}
+                  </div>
+                  <div class="mt-1 text-sm font-normal text-gray-600 dark:text-gray-400">
+                    {{ $t('components.quote_metadata.source_verification') }}: {{ sourceVerificationLabel(source.verification_status) }}
+                  </div>
                 </div>
               </dd>
             </div>
@@ -153,7 +164,11 @@ const sourceLabels: Record<string, string> = {
   'wikiquote-fr': 'Wikiquote (French)',
 }
 
-const getSourceLabel = (sourceType?: string) => sourceType ? (sourceLabels[sourceType] || sourceType) : 'Original source'
+const getSourceLabel = (source: QuoteSource) => source.label
+  || (source.source_medium ? getMediumLabel(source.source_medium) : undefined)
+  || (source.source_type ? (sourceLabels[source.source_type] || source.source_type) : 'Original source')
+const getMediumLabel = (medium: QuoteSourceMedium) => String($t(`components.dialogs.source_medium_${medium}`))
+const sourceVerificationLabel = (status: QuoteProvenanceStatus) => String($t(`components.quote_metadata.status_${status}`))
 
 interface Props {
   quote: QuoteWithRelations;
@@ -171,7 +186,6 @@ const metadataOpenModel = computed({
 })
 
 const primaryAttribution = computed(() => props.quote.attributions?.find(attribution => attribution.is_primary))
-const primarySource = computed(() => props.quote.sources?.find(source => source.is_primary) ?? props.quote.sources?.[0])
 const provenanceLabel = (status: string) => ({
   manually_verified: 'Manually verified',
   externally_verified: 'Externally verified',

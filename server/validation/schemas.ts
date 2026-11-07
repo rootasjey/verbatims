@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { isTroncheAvatarUrl } from '../utils/avatar'
+import { normalizeTimecode } from '../../shared/utils/timecode'
 
 export const validLanguages = [
   'en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko',
@@ -51,6 +52,40 @@ const quoteAttributionsPayloadSchema = z.array(z.object({
   { message: 'A quote requires exactly one primary attribution' },
 )
 
+const quoteSourceFieldsSchema = z.object({
+  source_type: z.string().max(100).trim().optional().default('manual'),
+  source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'document', 'other']).optional().nullable(),
+  source_url: z.string().url().optional().nullable(),
+  label: z.string().max(200).trim().optional().nullable(),
+  translator_name: z.string().max(200).trim().optional().nullable(),
+  locator_type: z.enum(['page', 'chapter', 'timecode']).optional().nullable(),
+  locator_value: z.string().max(250).trim().optional().nullable(),
+  notes: z.string().max(5000).trim().optional().nullable(),
+})
+
+const quoteSourceInputSchema = quoteSourceFieldsSchema.superRefine((source, context) => {
+  if (!source.source_url && !source.label) {
+    context.addIssue({ code: 'custom', message: 'A source requires a URL or label', path: ['source_url'] })
+  }
+
+  if (Boolean(source.locator_type) !== Boolean(source.locator_value)) {
+    context.addIssue({ code: 'custom', message: 'A locator requires both a type and value', path: ['locator_value'] })
+  }
+
+  if (source.locator_type === 'timecode' && source.locator_value && !normalizeTimecode(source.locator_value)) {
+    context.addIssue({ code: 'custom', message: 'Use MM:SS or HH:MM:SS with seconds below 60', path: ['locator_value'] })
+  }
+}).transform((source) => ({
+  ...source,
+  label: source.label || null,
+  source_url: source.source_url || null,
+  translator_name: source.translator_name || null,
+  locator_value: source.locator_type === 'timecode' && source.locator_value
+    ? normalizeTimecode(source.locator_value)
+    : source.locator_value || null,
+  notes: source.notes || null,
+}))
+
 const attributionOrInlineEntity = (data: { attributions: Array<{ author_id: number | null, reference_id: number | null }>, new_author?: unknown, new_reference?: unknown }) =>
   data.attributions.every(attribution => attribution.author_id !== null || attribution.reference_id !== null)
     || !!data.new_author
@@ -60,6 +95,7 @@ export const createQuoteSchema = z.object({
   name: z.string().min(2).max(4000).trim(),
   language: z.enum(validLanguages).optional(),
   attributions: quoteAttributionsPayloadSchema,
+  sources: z.array(quoteSourceInputSchema).max(10).optional(),
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),
     is_fictional: z.boolean().optional().default(false),
@@ -119,15 +155,54 @@ export const createQuoteSourceSchema = z.object({
   attribution_id: nullablePositiveInt.optional().default(null),
   occurrence_id: nullablePositiveInt.optional().default(null),
   source_type: z.string().min(1).max(100).trim(),
+  source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'document', 'other']).optional().nullable(),
   source_url: z.string().url().optional().nullable(),
   label: z.string().max(200).trim().optional().nullable(),
+  locator_type: z.enum(['page', 'chapter', 'timecode']).optional().nullable(),
+  locator_value: z.string().max(250).trim().optional().nullable(),
   translator_name: z.string().max(200).trim().optional().nullable(),
   verification_status: provenanceStatus.optional().default('unverified'),
   notes: z.string().max(5000).trim().optional().nullable(),
   is_primary: z.boolean().optional().default(false),
-})
+}).superRefine((source, context) => {
+  if (Boolean(source.locator_type) !== Boolean(source.locator_value)) {
+    context.addIssue({ code: 'custom', message: 'A locator requires both a type and value', path: ['locator_value'] })
+  }
 
-export const updateQuoteSourceSchema = createQuoteSourceSchema.partial()
+  if (source.locator_type === 'timecode' && source.locator_value && !normalizeTimecode(source.locator_value)) {
+    context.addIssue({ code: 'custom', message: 'Use MM:SS or HH:MM:SS with seconds below 60', path: ['locator_value'] })
+  }
+}).transform(source => ({
+  ...source,
+  label: source.label || null,
+  source_url: source.source_url || null,
+  locator_value: source.locator_type === 'timecode' && source.locator_value
+    ? normalizeTimecode(source.locator_value)
+    : source.locator_value || null,
+  notes: source.notes || null,
+}))
+
+export const updateQuoteSourceSchema = quoteSourceFieldsSchema.partial().extend({
+  source_type: z.string().min(1).max(100).trim().optional(),
+  attribution_id: nullablePositiveInt.optional(),
+  occurrence_id: nullablePositiveInt.optional(),
+  verification_status: provenanceStatus.optional(),
+  is_primary: z.boolean().optional(),
+}).superRefine((source, context) => {
+  if (source.locator_type !== undefined && source.locator_value !== undefined
+    && Boolean(source.locator_type) !== Boolean(source.locator_value)) {
+    context.addIssue({ code: 'custom', message: 'A locator requires both a type and value', path: ['locator_value'] })
+  }
+
+  if (source.locator_type === 'timecode' && source.locator_value && !normalizeTimecode(source.locator_value)) {
+    context.addIssue({ code: 'custom', message: 'Use MM:SS or HH:MM:SS with seconds below 60', path: ['locator_value'] })
+  }
+}).transform(source => ({
+  ...source,
+  locator_value: source.locator_type === 'timecode' && source.locator_value
+    ? normalizeTimecode(source.locator_value)
+    : source.locator_value,
+}))
 
 const quoteOccurrenceFields = z.object({
   attribution_id: nullablePositiveInt.optional().default(null),
