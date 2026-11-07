@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, ne, sql } from 'drizzle-orm'
 import type { CreateQuoteSourceData } from '~~/shared/types/quote'
 import { authorLifeDateColumnsFromInput } from './author-life-date'
 
@@ -87,6 +87,49 @@ function buildImportedReferenceStatements(requestKey: string, reference: InlineR
   ]
 }
 
+export function buildQuoteInlineEditResolutionStatements(input: {
+  requestKey: string
+  userId: number
+  quoteId: number
+  authorId: number | null
+  referenceId: number | null
+  newAuthor?: InlineAuthor
+  newReference?: InlineReference
+}) {
+  const { requestKey } = input
+  const statements: unknown[] = [db.insert(schema.quoteCreationRequests).values({
+    requestKey,
+    userId: input.userId,
+    payloadHash: '',
+    quoteId: input.quoteId,
+    authorId: input.authorId,
+    referenceId: input.referenceId,
+  })]
+
+  if (input.newAuthor) {
+    statements.push(...buildImportedAuthorStatements(requestKey, input.newAuthor))
+  }
+  if (input.newReference) {
+    statements.push(...buildImportedReferenceStatements(requestKey, input.newReference))
+  }
+
+  return {
+    statements,
+    authorId: input.newAuthor
+      ? sql<number | null>`(SELECT author_id FROM quote_creation_requests WHERE request_key = ${requestKey})`
+      : input.authorId,
+    referenceId: input.newReference
+      ? sql<number | null>`(SELECT reference_id FROM quote_creation_requests WHERE request_key = ${requestKey})`
+      : input.referenceId,
+    primaryAttributionId: sql<number | null>`(SELECT primary_attribution_id FROM quote_creation_requests WHERE request_key = ${requestKey})`,
+    setPrimaryAttributionId: (attributionId: number | ReturnType<typeof sql>) => db.update(schema.quoteCreationRequests)
+      .set({ primaryAttributionId: attributionId })
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)),
+    cleanup: db.delete(schema.quoteCreationRequests)
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)),
+  }
+}
+
 export type QuoteCreationBatchInput = {
   requestKey: string
   userId: number
@@ -134,6 +177,34 @@ export function normalizeQuoteCreationRequestKey(value?: string | null) {
 
 export function scopeQuoteCreationRequestKey(requestKey: string, userId: number) {
   return `${userId}:${requestKey}`
+}
+
+export async function assertQuoteNameAvailable(quoteId: number, name: string) {
+  const existing = await db.select({ id: schema.quotes.id })
+    .from(schema.quotes)
+    .where(and(
+      sql`LOWER(TRIM(${schema.quotes.name})) = LOWER(TRIM(${name}))`,
+      ne(schema.quotes.status, 'rejected'),
+      ne(schema.quotes.id, quoteId),
+    ))
+    .limit(1)
+    .get()
+
+  if (existing) throwServer(409, 'A similar quote already exists')
+}
+
+export function isQuoteNameConflictError(error: unknown) {
+  const seen = new Set<unknown>()
+  let current: unknown = error
+  while (current && typeof current === 'object' && !seen.has(current)) {
+    seen.add(current)
+    const candidate = current as { message?: unknown; cause?: unknown }
+    if (typeof candidate.message === 'string' && candidate.message.includes('Active quote text already exists')) {
+      return true
+    }
+    current = candidate.cause
+  }
+  return false
 }
 
 export async function hashQuoteCreationPayload(value: unknown) {

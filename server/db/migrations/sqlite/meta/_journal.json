@@ -372,6 +372,13 @@
       "when": 1794072000000,
       "tag": "0064_quote_name_claims",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "6",
+      "when": 1794072001000,
+      "tag": "0065_prevent_quote_rename_duplicates",
+      "breakpoints": true
     }
   ]
 }

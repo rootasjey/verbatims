@@ -1443,6 +1443,20 @@ BEGIN
   VALUES (lower(trim(NEW.name)));
 END;
 
+CREATE TRIGGER quotes_prevent_active_name_conflict
+BEFORE UPDATE OF name ON quotes
+WHEN NEW.status <> 'rejected'
+  AND lower(trim(NEW.name)) <> lower(trim(OLD.name))
+  AND EXISTS (
+    SELECT 1 FROM quotes
+    WHERE id <> NEW.id
+      AND status <> 'rejected'
+      AND lower(trim(name)) = lower(trim(NEW.name))
+  )
+BEGIN
+  SELECT RAISE(ABORT, 'Active quote text already exists');
+END;
+
 CREATE TRIGGER quote_name_claims_after_update AFTER UPDATE OF name, status ON quotes
 BEGIN
   DELETE FROM quote_name_claims
