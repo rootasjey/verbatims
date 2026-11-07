@@ -169,7 +169,7 @@
               </NCombobox>
             </div>
             <div>
-              <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">Source URL</label>
+              <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.source_url') }}</label>
               <input
                 v-model="form.sourceUrl"
                 type="url"
@@ -304,14 +304,16 @@ const {
   createPayload
 } = useQuoteForm()
 
-const sourceTypeOptions = [
-  { label: 'No source type', value: '' },
+type SourceTypeOption = { label: string; value: string }
+
+const sourceTypeOptions = computed<SourceTypeOption[]>(() => [
+  { label: String($t('components.dialogs.no_source_type')), value: '' },
   { label: 'Wikiquote (English)', value: 'wikiquote-en' },
   { label: 'Wikiquote (French)', value: 'wikiquote-fr' }
-]
+])
 const selectedSourceType = computed({
-  get: () => sourceTypeOptions.find(option => option.value === form.value.sourceType) ?? sourceTypeOptions[0],
-  set: (option: typeof sourceTypeOptions[number] | null) => { form.value.sourceType = option?.value ?? '' }
+  get: () => sourceTypeOptions.value.find(option => option.value === form.value.sourceType) ?? sourceTypeOptions.value[0],
+  set: (option: SourceTypeOption | null) => { form.value.sourceType = option?.value ?? '' }
 })
 
 const authorSuggestionsHeight = ref('0px')
