@@ -23,7 +23,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.value?.startsWith('priority_') ? $t('sort_other') : modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ modelValue?.value?.startsWith('priority_') ? $t('sort_other') : sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NButton btn="solid-black" size="sm" trailing="i-lucide-grid-2x2-plus" class="gap-2 rounded-lg" @click="openCreate">
@@ -41,7 +41,7 @@
             :_combobox-list="{ class: 'min-w-[180px]' }"
             :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }"
           >
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.value?.startsWith('priority_') ? $t('sort_other') : modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.value?.startsWith('priority_') ? $t('sort_other') : sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
           <NButton btn="solid-black" size="sm" trailing="i-lucide-grid-2x2-plus" class="gap-2 rounded-lg" @click="openCreate">
             {{ $t('new_theme') }}
@@ -1796,7 +1796,7 @@ function onSecondaryHexInput(value: string) {
 
 const filters = ref<any[]>([])
 
-const filterTypeOptions = [
+const filterTypeOptions = computed(() => [
   { value: 'keyword', label: String($t('dialog_filter_keyword')) },
   { value: 'tag_name', label: String($t('dialog_filter_tag')) },
   { value: 'author_name', label: String($t('dialog_filter_author')) },
@@ -1804,15 +1804,15 @@ const filterTypeOptions = [
   { value: 'author_id', label: String($t('dialog_filter_author_id')) },
   { value: 'reference_id', label: String($t('dialog_filter_reference_id')) },
   { value: 'language', label: String($t('dialog_filter_language')) },
-]
-const filterTypeLabels = filterTypeOptions.map(option => option.label)
+])
+const filterTypeLabels = computed(() => filterTypeOptions.value.map(option => option.label))
 
 function displayFilterType(type: string) {
-  return filterTypeOptions.find(option => option.value === type)?.label || type
+  return filterTypeOptions.value.find(option => option.value === type)?.label || type
 }
 
 function setFilterType(index: number, label: string) {
-  const option = filterTypeOptions.find(candidate => candidate.label === label)
+  const option = filterTypeOptions.value.find(candidate => candidate.label === label)
   if (!option || !filters.value[index]) return
   filters.value[index].type = option.value
   onFilterValueInput(index)
@@ -1885,7 +1885,7 @@ useAdminKeyboardShortcuts({
   },
 })
 
-const sortOptions = [
+const sortOptions = computed(() => [
   { label: $t('sort_active_upcoming') as string, value: 'active_upcoming' },
   { label: $t('sort_priority_high') as string, value: 'priority_desc' },
   { label: $t('sort_priority_low') as string, value: 'priority_asc' },
@@ -1895,8 +1895,8 @@ const sortOptions = [
   { label: $t('sort_fewest_filters') as string, value: 'filters_asc' },
   { label: $t('sort_slug_az') as string, value: 'slug_asc' },
   { label: $t('sort_scheduled') as string, value: 'scheduled_date_desc' },
-]
-const nonPrioritySortOptions = sortOptions.filter(option => !option.value.startsWith('priority_'))
+])
+const nonPrioritySortOptions = computed(() => sortOptions.value.filter(option => !option.value.startsWith('priority_')))
 
 useSyncedQueryFilters({
   keys: ['q', 'sort'],
@@ -1904,20 +1904,20 @@ useSyncedQueryFilters({
     const sort = readSyncedQueryValue(query.sort)
     return {
       q: readSyncedQueryValue(query.q),
-      sort: sortOptions.some(option => option.value === sort) ? sort : 'active_upcoming'
+      sort: sortOptions.value.some(option => option.value === sort) ? sort : 'active_upcoming'
     }
   },
   write: (query, state) => ({ ...query, q: state.q.trim() || undefined, sort: state.sort === 'active_upcoming' ? undefined : state.sort }),
   get: () => ({ q: searchQuery.value, sort: selectedSort.value.value }),
   apply: (state) => {
     searchQuery.value = state.q
-    selectedSort.value = sortOptions.find(option => option.value === state.sort) ?? sortOptions[0]!
+    selectedSort.value = sortOptions.value.find(option => option.value === state.sort) ?? sortOptions.value[0]!
   },
   onFilterChange: () => { currentPage.value = 1 }
 })
 
 const togglePrioritySort = () => {
-  selectedSort.value = sortOptions.find(option => option.value === (selectedSort.value.value === 'priority_desc' ? 'priority_asc' : 'priority_desc'))!
+  selectedSort.value = sortOptions.value.find(option => option.value === (selectedSort.value.value === 'priority_desc' ? 'priority_asc' : 'priority_desc'))!
 }
 
 const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc' | 'desc' | null => {
@@ -1928,7 +1928,7 @@ const sortDirectionFor = (ascendingValue: string, descendingValue: string): 'asc
 
 const toggleSort = (ascendingValue: string, descendingValue: string) => {
   const nextValue = selectedSort.value.value === descendingValue ? ascendingValue : descendingValue
-  const option = sortOptions.find(item => item.value === nextValue)
+  const option = sortOptions.value.find(item => item.value === nextValue)
   if (!option) return
   selectedSort.value = option
   currentPage.value = 1
@@ -2113,7 +2113,7 @@ const loadThemes = async () => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedSort.value = sortOptions[0]!
+  selectedSort.value = sortOptions.value[0]!
   currentPage.value = 1
   rowSelection.value = {}
 }

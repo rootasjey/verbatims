@@ -25,7 +25,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NButton btn="solid-black" size="sm" trailing="i-lucide-tag-plus" class="gap-2 rounded-lg" @click="openCreateTagDialog">
@@ -48,7 +48,7 @@
         </div>
         <div class="flex items-center">
           <NCombobox v-model="selectedSort" :items="sortOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
         </div>
       </div>
@@ -178,7 +178,7 @@
         <div>
           <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('dialog_backfill_status_scope') }}</label>
           <select v-model="backfillStatus" class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none">
-            <option v-for="opt in backfillStatusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          <option v-for="opt in backfillStatusOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
           </select>
         </div>
         <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" v-model="backfillOnlyUntagged" class="accent-gray-700 dark:accent-gray-300" /> {{ $t('dialog_backfill_untagged') }}</label>
@@ -264,7 +264,7 @@ const backfillDryRun = ref(true)
 const backfillOnlyUntagged = ref(true)
 const backfillResetExisting = ref(false)
 const backfillLimit = ref(2000)
-const backfillStatus = ref({ label: $t('dialog_backfill_approved') as string, value: 'approved' })
+const backfillStatus = ref('approved')
 
 const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
 
@@ -423,7 +423,7 @@ const confirmBulkDelete = async () => {
 const triggerBackfill = async () => {
   backfillProcessing.value = true
   try {
-    const response: any = await $fetch('/api/admin/quotes/backfill-tags', { method: 'POST', body: { dryRun: backfillDryRun.value, status: backfillStatus.value.value, onlyUntagged: backfillOnlyUntagged.value, resetExisting: backfillResetExisting.value, limit: Math.min(Math.max(backfillLimit.value ?? 2000, 1), 5000) } })
+    const response: any = await $fetch('/api/admin/quotes/backfill-tags', { method: 'POST', body: { dryRun: backfillDryRun.value, status: backfillStatus.value, onlyUntagged: backfillOnlyUntagged.value, resetExisting: backfillResetExisting.value, limit: Math.min(Math.max(backfillLimit.value ?? 2000, 1), 5000) } })
     const scanned = response?.results?.quotes_scanned ?? 0; const matched = response?.results?.quotes_with_matches ?? 0; const linksAttempted = response?.results?.links_attempted ?? 0
     useToast().toast({ toast: 'soft-success', title: (backfillDryRun.value ? $t('toast_backfill_dry') : $t('toast_backfill_complete')) as string, description: `${scanned} ${$t('toast_backfill_scanned')} &middot; ${matched} ${$t('toast_backfill_matched')} &middot; ${linksAttempted} ${$t('toast_backfill_links')}` })
     showBackfillDialog.value = false; await loadTags()

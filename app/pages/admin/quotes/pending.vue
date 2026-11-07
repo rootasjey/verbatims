@@ -26,7 +26,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none py-1">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none py-1">{{ statusOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NCombobox
@@ -49,7 +49,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
+              <span class="text-xs font-medium leading-none">{{ modelValue?.value ? languageOptions.find(option => option.value === modelValue.value)?.label ?? modelValue.label : $t('common.all_languages') }}</span>
             </template>
           </NCombobox>
         </div>
@@ -76,7 +76,7 @@
           }"
         >
           <template #trigger="{ modelValue }">
-            <span class="text-xs leading-none">{{ modelValue?.label }}</span>
+            <span class="text-xs leading-none">{{ statusOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
           </template>
         </NCombobox>
       </div>

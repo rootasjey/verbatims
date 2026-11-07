@@ -29,7 +29,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ typeFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NCombobox
@@ -48,7 +48,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <AdminViewMenu v-model="isCardView" :label="$t('view_menu_label') as string" :table-label="$t('view_table') as string" :cards-label="$t('view_cards') as string" />
@@ -66,7 +66,7 @@
             <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
           </NCombobox>
           <NCombobox v-if="isCardView" v-model="selectedSort" :items="sortOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
           <div class="ml-auto"><AdminViewMenu v-model="isCardView" :label="$t('view_menu_label') as string" :table-label="$t('view_table') as string" :cards-label="$t('view_cards') as string" /></div>
         </div>
@@ -140,7 +140,7 @@
                 <div class="flex items-center justify-between gap-2">
                   <span>{{ $t('col_reference') }}</span>
                   <NCombobox v-model="selectedSort" :items="sortOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal max-w-40 rounded-md border-[#d2cfc6] bg-[#f0efe9] normal-case text-gray-800 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200' }">
-                    <template #trigger="{ modelValue }"><span class="max-w-24 truncate">{{ modelValue?.label }}</span></template>
+                    <template #trigger="{ modelValue }"><span class="max-w-24 truncate">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
                   </NCombobox>
                 </div>
               </th>

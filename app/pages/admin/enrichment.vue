@@ -74,7 +74,7 @@
                 <div class="space-y-2">
                   <span class="block font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_entity') }}</span>
                   <NCombobox v-model="selectedEntityType" :items="entityTypeOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-white dark:border-white/15 dark:bg-white/[0.06]' }">
-                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ entityTypeOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
                   </NCombobox>
                 </div>
               </th>
@@ -82,7 +82,7 @@
                 <div class="space-y-2">
                   <span class="block font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</span>
                   <NCombobox v-model="selectedStatus" :items="statusOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-white dark:border-white/15 dark:bg-white/[0.06]' }">
-                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ statusOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
                   </NCombobox>
                 </div>
               </th>

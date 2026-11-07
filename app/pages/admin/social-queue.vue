@@ -101,7 +101,7 @@
                     </template>
                   </NInput>
                   <NCombobox v-model="selectedContentType" :items="contentTypeOptions" by="value" :_combobox-input="{ placeholder: $t('content_type_filter_placeholder'), class: 'text-xs' }" :_combobox-list="{ class: 'min-w-[160px]', align: 'start' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label || $t('content_type_all') }}</span></template>
+                    <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.value ? contentTypeOptions.find(option => option.value === modelValue.value)?.label ?? modelValue.label : $t('content_type_all') }}</span></template>
                   </NCombobox>
                 </div>
               </th>

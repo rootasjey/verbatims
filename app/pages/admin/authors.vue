@@ -29,7 +29,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ fictionalFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NCombobox
@@ -47,7 +47,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <AdminViewMenu v-model="isCardView" :label="$t('view_menu_label') as string" :table-label="$t('view_table') as string" :cards-label="$t('view_cards') as string" />
@@ -67,10 +67,10 @@
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <NCombobox v-model="selectedFictionalFilter" :items="fictionalFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ fictionalFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
           <NCombobox v-model="selectedSort" :items="sortOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
           <div class="ml-auto"><AdminViewMenu v-model="isCardView" :label="$t('view_menu_label') as string" :table-label="$t('view_table') as string" :cards-label="$t('view_cards') as string" /></div>
         </div>
@@ -527,11 +527,11 @@ const onAuthorTypeChange = async (author: any, newType: { label: string; value: 
   }
 }
 
-const fictionalFilterOptions = [
+const fictionalFilterOptions = computed(() => [
   { label: $t('filter_all_types') as string, value: '' },
   { label: $t('filter_real') as string, value: 'false' },
   { label: $t('filter_fictional') as string, value: 'true' }
-]
+])
 
 const sortOptions = computed(() => [
   { label: $t('sort_name_az') as string, value: 'name_asc' }, { label: $t('sort_name_za') as string, value: 'name_desc' },
@@ -547,7 +547,7 @@ useSyncedQueryFilters({
     const sort = readSyncedQueryValue(query.sort)
     return {
       q: readSyncedQueryValue(query.q),
-      fictional: fictionalFilterOptions.some(option => option.value === fictional) ? fictional : '',
+      fictional: fictionalFilterOptions.value.some(option => option.value === fictional) ? fictional : '',
       sort: sortOptions.value.some(option => option.value === sort) ? sort : 'name_asc'
     }
   },
@@ -560,7 +560,7 @@ useSyncedQueryFilters({
   get: () => ({ q: searchQuery.value, fictional: selectedFictionalFilter.value.value, sort: selectedSort.value.value }),
   apply: (state) => {
     searchQuery.value = state.q
-    selectedFictionalFilter.value = fictionalFilterOptions.find(option => option.value === state.fictional) ?? fictionalFilterOptions[0]!
+    selectedFictionalFilter.value = fictionalFilterOptions.value.find(option => option.value === state.fictional) ?? fictionalFilterOptions.value[0]!
     selectedSort.value = sortOptions.value.find(option => option.value === state.sort) ?? sortOptions.value[0]!
   },
   onFilterChange: () => { currentPage.value = 1 }
@@ -608,7 +608,7 @@ const loadAuthors = async () => {
 }
 
 const resetFilters = () => {
-  searchQuery.value = ''; selectedFictionalFilter.value = fictionalFilterOptions[0]!
+  searchQuery.value = ''; selectedFictionalFilter.value = fictionalFilterOptions.value[0]!
   selectedSort.value = sortOptions.value[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 

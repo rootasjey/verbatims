@@ -25,7 +25,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ roleFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NCombobox
@@ -43,7 +43,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ statusFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
         </div>
@@ -52,10 +52,10 @@
         <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder_mobile') as string" class="w-full font-sans text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400" />
         <div class="flex flex-wrap items-center gap-2">
           <NCombobox v-model="selectedRoleFilter" :items="roleFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ roleFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
           <NCombobox v-model="selectedStatusFilter" :items="statusFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[180px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ statusFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
         </div>
       </div>

@@ -379,7 +379,7 @@ const showDeleteDialog = ref(false)
 const deletingKey = ref<any | null>(null)
 const deleting = ref(false)
 
-const availablePermissions = [
+const availablePermissions = computed(() => [
   { label: String($t('perm_read')), value: 'read' },
   { label: String($t('perm_read_provenance')), value: 'read:provenance' },
   { label: String($t('perm_quotes')), value: 'write:quotes' },
@@ -404,9 +404,9 @@ const availablePermissions = [
   { label: String($t('perm_themes')), value: 'admin:themes' },
   { label: String($t('perm_delete_themes')), value: 'delete:themes' },
   { label: String($t('perm_all')), value: '*' },
-]
+])
 
-const permissionSections = [
+const permissionSections = computed(() => [
   {
     label: String($t('permissions_group_access')),
     columns: [{ label: String($t('permissions_column_enabled')) }],
@@ -451,7 +451,7 @@ const permissionSections = [
     ],
     rows: [{ label: String($t('permissions_row_themes')), note: String($t('permissions_note_moderator')), noteTooltip: String($t('permissions_note_moderator_tooltip')), scopes: ['admin:themes', 'delete:themes'] }],
   },
-]
+])
 
 const permissionIcons: Record<string, string> = {
   read: 'i-lucide-eye',
@@ -481,18 +481,18 @@ const permissionIcons: Record<string, string> = {
 }
 
 function permissionLabel(value: string) {
-  return availablePermissions.find(permission => permission.value === value)?.label ?? value
+  return availablePermissions.value.find(permission => permission.value === value)?.label ?? value
 }
 
 function permissionIcon(value: string) {
   return permissionIcons[value] ?? 'i-lucide-key-round'
 }
 
-const tierOptions = [
+const tierOptions = computed(() => [
   { label: String($t('tier_free')), value: 'free' },
   { label: String($t('tier_pro')), value: 'pro' },
   { label: String($t('tier_enterprise')), value: 'enterprise' },
-]
+])
 
 const form = reactive({
   name: '',
@@ -505,8 +505,8 @@ const form = reactive({
 })
 
 const selectedTierOption = computed({
-  get: () => tierOptions.find(option => option.value === form.tier) ?? tierOptions[0]!,
-  set: (option: typeof tierOptions[number] | null) => { if (option) form.tier = option.value }
+  get: () => tierOptions.value.find(option => option.value === form.tier) ?? tierOptions.value[0]!,
+  set: (option: { label: string; value: string } | null) => { if (option) form.tier = option.value }
 })
 
 const tierClass = (tier: string) => {

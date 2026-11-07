@@ -26,11 +26,11 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs font-medium leading-none">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NCombobox v-model="selectedAuditProgress" :items="auditProgressFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[200px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-sm leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs font-medium leading-none">{{ auditProgressFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
           <NButton btn="outline-gray" size="sm" class="!h-10 !min-h-10 gap-1.5" aria-haspopup="dialog" @click="showAuditSettingsDialog = true">
             <NIcon name="i-lucide-sliders-horizontal" class="h-4 w-4" aria-hidden="true" />
@@ -62,7 +62,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs leading-none">{{ modelValue?.label }}</span>
+              <span class="text-xs leading-none">{{ sortOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span>
             </template>
           </NCombobox>
           <NCombobox
@@ -82,11 +82,11 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
+              <span class="text-xs leading-none">{{ modelValue?.value ? languageOptions.find(option => option.value === modelValue.value)?.label ?? modelValue.label : $t('common.all_languages') }}</span>
             </template>
           </NCombobox>
           <NCombobox v-model="selectedAuditProgress" :items="auditProgressFilterOptions" by="value" :_combobox-list="{ class: 'min-w-[200px]' }" :_combobox-trigger="{ btn: 'outline-gray', size: 'xs', trailing: 'i-lucide-chevron-down', class: 'gap-1 px-2 text-xs leading-normal font-normal w-fit min-w-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]' }">
-            <template #trigger="{ modelValue }"><span class="text-xs leading-none">{{ modelValue?.label }}</span></template>
+            <template #trigger="{ modelValue }"><span class="text-xs leading-none">{{ auditProgressFilterOptions.find(option => option.value === modelValue?.value)?.label ?? modelValue?.label }}</span></template>
           </NCombobox>
           <NButton btn="outline-gray" size="xs" class="gap-1" aria-haspopup="dialog" @click="showAuditSettingsDialog = true">
             <NIcon name="i-lucide-sliders-horizontal" class="h-3.5 w-3.5" aria-hidden="true" />
@@ -132,7 +132,7 @@
               <th class="w-28 px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="flex items-center gap-1.5">
                   <span>{{ $t('col_language') }}</span>
-                  <NTooltip :content="$t('filter_by_language', { selected: (selectedLanguage.label || $t('common.all_languages')) as string }) as string">
+                  <NTooltip :content="$t('filter_by_language', { selected: selectedLanguageLabel }) as string">
                     <NCombobox
                       v-model="selectedLanguage"
                       :items="languageOptions"
@@ -147,7 +147,7 @@
                         size: 'xs',
                         trailing: '',
                         class: 'relative !inline-flex !h-6 !min-h-6 !w-6 !min-w-6 !items-center !justify-center !px-0 !py-0 rounded-md border-[#d2cfc6] bg-[#f0efe9] dark:border-white/15 dark:bg-white/[0.06]',
-                        ariaLabel: $t('filter_by_language', { selected: (selectedLanguage.label || $t('common.all_languages')) as string }) as string,
+                        ariaLabel: $t('filter_by_language', { selected: selectedLanguageLabel }) as string,
                       }"
                     >
                       <template #trigger>
@@ -814,6 +814,9 @@ const languageOptions = computed(() =>
 )
 
 const selectedLanguage = ref({ label: $t('common.all_languages') as string, value: '' })
+const selectedLanguageLabel = computed(() => selectedLanguage.value.value
+  ? languageOptions.value.find(option => option.value === selectedLanguage.value.value)?.label ?? selectedLanguage.value.label
+  : $t('common.all_languages') as string)
 const selectedAuditProgress = ref({ label: $t('audit_filter_all') as string, value: '' })
 const auditProgressFilterOptions = computed(() => [
   { label: $t('audit_filter_all') as string, value: '' },
