@@ -1,10 +1,11 @@
 import { db, schema } from 'hub:db'
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, sql } from 'drizzle-orm'
 import { updateV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
 import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
-import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 import { hasApiPermission, requireApiKeyRole } from '~~/server/utils/api-key'
+import { assertQuoteNameAvailable, buildQuoteInlineEditResolutionStatements, isQuoteNameConflictError, scopeQuoteCreationRequestKey } from '~~/server/utils/quote-creation'
 
 defineRouteMeta({
   openAPI: {
@@ -35,6 +36,7 @@ defineRouteMeta({
       '200': { description: 'Quote updated' },
       '403': { description: 'Not authorized to update this quote' },
       '404': { description: 'Quote not found' },
+      '409': { description: 'Another active quote already has this text' },
     },
   },
 })
@@ -119,32 +121,15 @@ export default defineEventHandler(async (event) => {
     requireApiPermission(api, 'assign:authors')
     requireApiPermission(api, 'write:authors')
     requireApiKeyRole(api, 'moderator', 'admin')
-    const authorResults = await runApiAuditedBatch(event, api, [db.insert(schema.authors).values({
-      name: body.new_author.name,
-      isFictional: body.new_author.is_fictional,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }).returning({ id: schema.authors.id })])
-    const newAuthor = getAuditedBatchRow<{ id: number }>(authorResults, 1)
-    authorId = newAuthor.id
   }
 
   if (body.new_reference?.name) {
     requireApiPermission(api, 'assign:references')
     requireApiPermission(api, 'write:references')
     requireApiKeyRole(api, 'moderator', 'admin')
-    const referenceResults = await runApiAuditedBatch(event, api, [db.insert(schema.quoteReferences).values({
-      name: body.new_reference.name,
-      originalLanguage: body.new_reference.original_language || body.language || 'en',
-      primaryType: body.new_reference.primary_type || 'other',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    } as any).returning({ id: schema.quoteReferences.id })])
-    const newReference = getAuditedBatchRow<{ id: number }>(referenceResults, 1)
-    referenceId = newReference.id
   }
 
-  if (authorId == null && referenceId == null) {
+  if (authorId == null && referenceId == null && !body.new_author && !body.new_reference) {
     throwServer(400, 'A quote requires an author or reference')
   }
 
@@ -154,8 +139,30 @@ export default defineEventHandler(async (event) => {
     updatedAt: new Date(),
   }
 
+  if (body.name !== undefined && body.name.trim().toLowerCase() !== existingQuote.name.trim().toLowerCase()) {
+    await assertQuoteNameAvailable(quoteId, body.name)
+  }
+  const hasInlineEntity = Boolean(body.new_author?.name || body.new_reference?.name)
+  const resolution = hasInlineEntity ? buildQuoteInlineEditResolutionStatements({
+    requestKey: scopeQuoteCreationRequestKey(`quote-edit:${crypto.randomUUID()}`, api.userId),
+    userId: api.userId,
+    quoteId,
+    authorId,
+    referenceId,
+    newAuthor: body.new_author ? {
+      name: body.new_author.name,
+      isFictional: body.new_author.is_fictional,
+    } : undefined,
+    newReference: body.new_reference ? {
+      name: body.new_reference.name,
+      originalLanguage: body.new_reference.original_language || body.language || 'en',
+      primaryType: body.new_reference.primary_type || 'other',
+    } : undefined,
+  }) : undefined
+
   if (replacementAttributions) {
     const statements: any[] = [
+      ...(resolution?.statements ?? []),
       db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId)),
     ]
 
@@ -167,8 +174,8 @@ export default defineEventHandler(async (event) => {
     for (const { id, replacement } of attributionsToUpdate) {
       const verified = isMod && replacement.status !== 'unverified'
       statements.push(db.update(schema.quoteAttributions).set({
-        authorId: replacement.author_id,
-        referenceId: replacement.reference_id,
+        authorId: replacement.is_primary && body.new_author && resolution ? resolution.authorId : replacement.author_id,
+        referenceId: replacement.is_primary && body.new_reference && resolution ? resolution.referenceId : replacement.reference_id,
         isPrimary: replacement.is_primary,
         status: isMod ? replacement.status : 'unverified',
         verifiedBy: verified ? api.userId : null,
@@ -182,8 +189,8 @@ export default defineEventHandler(async (event) => {
       const verified = isMod && attribution.status !== 'unverified'
       statements.push(db.insert(schema.quoteAttributions).values({
         quoteId,
-        authorId: attribution.author_id,
-        referenceId: attribution.reference_id,
+        authorId: attribution.is_primary && body.new_author && resolution ? resolution.authorId : attribution.author_id,
+        referenceId: attribution.is_primary && body.new_reference && resolution ? resolution.referenceId : attribution.reference_id,
         isPrimary: attribution.is_primary,
         status: isMod ? attribution.status : 'unverified',
         notes: attribution.notes,
@@ -193,23 +200,55 @@ export default defineEventHandler(async (event) => {
       }))
     }
 
-    await runApiAuditedBatch(event, api, statements)
+    if (resolution) {
+      statements.push(resolution.setPrimaryAttributionId(sql`(
+        SELECT id FROM quote_attributions WHERE quote_id = ${quoteId} AND is_primary = true ORDER BY id LIMIT 1
+      )`))
+      statements.push(resolution.cleanup)
+    }
+
+    try {
+      await runApiAuditedBatch(event, api, statements)
+    } catch (error) {
+      if (isQuoteNameConflictError(error)) throwServer(409, 'A similar quote already exists')
+      throw error
+    }
   } else {
-    const statements: any[] = [db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId))]
-    if (authorId !== primaryAttribution?.author_id || referenceId !== primaryAttribution?.reference_id) {
+    const statements: any[] = [
+      ...(resolution?.statements ?? []),
+      db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId)),
+    ]
+    if (authorId !== primaryAttribution?.author_id || referenceId !== primaryAttribution?.reference_id || resolution) {
       requireApiPermission(api, 'write:attributions')
-      if (authorId != null) requireApiPermission(api, 'assign:authors')
-      if (referenceId != null) requireApiPermission(api, 'assign:references')
+      if (authorId != null || body.new_author) requireApiPermission(api, 'assign:authors')
+      if (referenceId != null || body.new_reference) requireApiPermission(api, 'assign:references')
     }
     if (primaryAttribution) {
       statements.push(db.update(schema.quoteAttributions).set({
-        authorId: authorId || null,
-        referenceId: referenceId || null,
+        authorId: resolution?.authorId ?? authorId ?? null,
+        referenceId: resolution?.referenceId ?? referenceId ?? null,
         ...(body.new_author || body.new_reference ? { status: 'unverified' as const, verifiedBy: null, verifiedAt: null } : {}),
         updatedAt: new Date(),
       }).where(eq(schema.quoteAttributions.id, primaryAttribution.id)))
+      if (resolution) statements.push(resolution.setPrimaryAttributionId(primaryAttribution.id))
+    } else if (resolution) {
+      statements.push(db.insert(schema.quoteAttributions).values({
+        quoteId,
+        authorId: resolution.authorId,
+        referenceId: resolution.referenceId,
+        isPrimary: true,
+        status: 'unverified',
+        createdBy: api.userId,
+      }))
+      statements.push(resolution.setPrimaryAttributionId(sql`last_insert_rowid()`))
     }
-    await runApiAuditedBatch(event, api, statements)
+    if (resolution) statements.push(resolution.cleanup)
+    try {
+      await runApiAuditedBatch(event, api, statements)
+    } catch (error) {
+      if (isQuoteNameConflictError(error)) throwServer(409, 'A similar quote already exists')
+      throw error
+    }
   }
 
   await logActivity(event, { type: 'quote_edited', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: existingQuote.status, name: body.name } })

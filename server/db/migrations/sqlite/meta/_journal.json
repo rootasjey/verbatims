@@ -344,6 +344,48 @@
       "when": 1793834906524,
       "tag": "0060_skip_audit_timestamp_only_updates",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "6",
+      "when": 1794000000000,
+      "tag": "0061_add_quote_source_medium_and_locator",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "6",
+      "when": 1794070000000,
+      "tag": "0062_atomic_quote_creation",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "6",
+      "when": 1794071000000,
+      "tag": "0063_quote_creation_payload_hash",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "6",
+      "when": 1794072000000,
+      "tag": "0064_quote_name_claims",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "6",
+      "when": 1794072001000,
+      "tag": "0065_prevent_quote_rename_duplicates",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "6",
+      "when": 1794072002000,
+      "tag": "0066_prevent_quote_duplicate_reactivation",
+      "breakpoints": true
     }
   ]
 }

@@ -87,12 +87,20 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
       // Build statements according to policy
       const stmts: any[] = []
       let skipped = 0
+      const seenInSub = new Set<string>()
 
       for (const author of sub) {
         const socialsField = author.socials
           ? (typeof author.socials === 'string' ? author.socials : JSON.stringify(author.socials))
           : '{}'
         const key = String(author.name || '').toLowerCase().trim()
+        if (authorPolicy === 'ignore' && key) {
+          if (seenInSub.has(key)) {
+            skipped++
+            continue
+          }
+          seenInSub.add(key)
+        }
         const match = key && existingByKey.get(key)
 
         if (match && authorPolicy === 'ignore') {

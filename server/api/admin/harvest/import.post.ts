@@ -2,8 +2,8 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { isHarvestSourceType } from '#shared/constants/harvest'
 import type { HarvestQuoteImportItem } from '#shared/types/harvest'
-import { findOrCreateAuthor, findOrCreateReference } from '../../../utils/import-helpers'
-import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { buildQuoteCreationStatements, hashQuoteCreationPayload, scopeQuoteCreationRequestKey, type QuoteCreationBatchInput } from '~~/server/utils/quote-creation'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAdmin(event)
@@ -48,8 +48,9 @@ export default defineEventHandler(async (event) => {
   }).returning({ id: schema.harvestLogs.id }).get()
 
   const logId = logResult?.id
+  if (!logId) throwServer(500, 'Failed to create harvest log')
 
-  for (const quoteData of quotes) {
+  for (const [index, quoteData] of quotes.entries()) {
     try {
       const trimmedText = (quoteData.text || '').trim()
       if (trimmedText.length < 2 || trimmedText.length > 4000) {
@@ -71,48 +72,64 @@ export default defineEventHandler(async (event) => {
       }
 
       let authorId: number | null = quoteData.author_id || null
+      let newAuthor: QuoteCreationBatchInput['newAuthor']
       if (!authorId && quoteData.new_author) {
-        const result = await findOrCreateAuthor({
-          name: quoteData.new_author.name,
-          job: quoteData.new_author.job,
-          description: quoteData.new_author.description,
-          birth_date: quoteData.new_author.birth_date,
-          birth_year: quoteData.new_author.birth_year,
-          birth_era: quoteData.new_author.birth_era,
-          birth_month: quoteData.new_author.birth_month,
-          birth_day: quoteData.new_author.birth_day,
-          birth_is_approximate: quoteData.new_author.birth_is_approximate,
-          birth_calendar: quoteData.new_author.birth_calendar,
-          death_date: quoteData.new_author.death_date,
-          death_year: quoteData.new_author.death_year,
-          death_era: quoteData.new_author.death_era,
-          death_month: quoteData.new_author.death_month,
-          death_day: quoteData.new_author.death_day,
-          death_is_approximate: quoteData.new_author.death_is_approximate,
-          death_calendar: quoteData.new_author.death_calendar,
-          image_url: quoteData.new_author.image_url,
-          is_fictional: quoteData.new_author.is_fictional || false,
-        }, async (statement) => {
-          const results = await runWebEditorialAuditedBatch(event, user.id, [statement])
-          return getAuditedBatchRow<{ id: number }>(results, 1)
-        })
-        authorId = result.id
-        if (result.isNew) authorsCreated++
+        const authorName = quoteData.new_author.name.trim()
+        if (!authorName) throw new Error('Author name is required')
+        const existingAuthor = await db.select({ id: schema.authors.id })
+          .from(schema.authors)
+          .where(sql`LOWER(${schema.authors.name}) = LOWER(${authorName})`)
+          .limit(1)
+          .get()
+        if (existingAuthor) {
+          authorId = existingAuthor.id
+        } else {
+          newAuthor = {
+            name: authorName,
+            isFictional: quoteData.new_author.is_fictional || false,
+            job: quoteData.new_author.job,
+            description: quoteData.new_author.description,
+            birth_date: quoteData.new_author.birth_date,
+            birth_year: quoteData.new_author.birth_year,
+            birth_era: quoteData.new_author.birth_era,
+            birth_month: quoteData.new_author.birth_month,
+            birth_day: quoteData.new_author.birth_day,
+            birth_is_approximate: quoteData.new_author.birth_is_approximate,
+            birth_calendar: quoteData.new_author.birth_calendar,
+            birth_location: quoteData.new_author.birth_location,
+            death_date: quoteData.new_author.death_date,
+            death_year: quoteData.new_author.death_year,
+            death_era: quoteData.new_author.death_era,
+            death_month: quoteData.new_author.death_month,
+            death_day: quoteData.new_author.death_day,
+            death_is_approximate: quoteData.new_author.death_is_approximate,
+            death_calendar: quoteData.new_author.death_calendar,
+            death_location: quoteData.new_author.death_location,
+            image_url: quoteData.new_author.image_url,
+          }
+        }
       }
 
       let referenceId: number | null = quoteData.reference_id || null
+      let newReference: QuoteCreationBatchInput['newReference']
       if (!referenceId && quoteData.new_reference) {
-        const result = await findOrCreateReference({
-          name: quoteData.new_reference.name,
-          primary_type: quoteData.new_reference.primary_type,
-          original_language: quoteData.new_reference.original_language,
-          description: quoteData.new_reference.description,
-        }, async (statement) => {
-          const results = await runWebEditorialAuditedBatch(event, user.id, [statement])
-          return getAuditedBatchRow<{ id: number }>(results, 1)
-        })
-        referenceId = result.id
-        if (result.isNew) referencesCreated++
+        const referenceName = quoteData.new_reference.name.trim()
+        if (!referenceName) throw new Error('Reference name is required')
+        const existingReference = await db.select({ id: schema.quoteReferences.id })
+          .from(schema.quoteReferences)
+          .where(sql`LOWER(${schema.quoteReferences.name}) = LOWER(${referenceName})`)
+          .limit(1)
+          .get()
+        if (existingReference) {
+          referenceId = existingReference.id
+        } else {
+          newReference = {
+            name: referenceName,
+            originalLanguage: quoteData.new_reference.original_language,
+            primaryType: quoteData.new_reference.primary_type,
+            description: quoteData.new_reference.description,
+          }
+        }
       }
 
       const userId = user.id
@@ -123,33 +140,27 @@ export default defineEventHandler(async (event) => {
         continue
       }
 
-      const quoteResults = await runWebEditorialAuditedBatch(event, userId, [db.insert(schema.quotes).values({
-        name: trimmedText,
-        language: quoteData.language || 'en',
+      const requestKey = scopeQuoteCreationRequestKey(`harvest:${logId}:${index}`, userId)
+      const payloadHash = await hashQuoteCreationPayload(quoteData)
+      const { statements } = buildQuoteCreationStatements({
+        requestKey,
         userId,
-        status: 'harvested',
-      }).returning({ id: schema.quotes.id })])
-      const createdQuote = getAuditedBatchRow<{ id: number }>(quoteResults, 1)
-
-      const attributionResults = await runWebEditorialAuditedBatch(event, userId, [db.insert(schema.quoteAttributions).values({
-        quoteId: createdQuote.id,
+        payloadHash,
+        quote: { name: trimmedText, language: quoteData.language || 'en', status: 'harvested' },
         authorId,
         referenceId,
-        isPrimary: true,
-        status: 'unverified',
-        createdBy: userId,
-      }).returning({ id: schema.quoteAttributions.id })])
-      const attribution = getAuditedBatchRow<{ id: number }>(attributionResults, 1)
-      await runWebEditorialAuditedBatch(event, userId, [db.insert(schema.quoteSources).values({
-        quoteId: createdQuote.id,
-        attributionId: attribution.id,
-        sourceType,
-        sourceUrl: quoteData.sourceUrl || null,
-        verificationStatus: 'unverified',
-        createdBy: userId,
-      })])
+        newAuthor,
+        newReference,
+        primaryAttribution: { status: 'unverified' },
+        sources: [{ source_type: sourceType, source_url: quoteData.sourceUrl || null }],
+        sourcesArePrimary: true,
+        retainIdempotencyRecord: false,
+      })
+      await runWebEditorialAuditedBatch(event, userId, statements, 'admin_harvest')
 
       imported++
+      if (newAuthor) authorsCreated++
+      if (newReference) referencesCreated++
     } catch (error: any) {
       skipped++
       errors.push(`Failed to import quote: ${error?.message || 'Unknown error'}`)

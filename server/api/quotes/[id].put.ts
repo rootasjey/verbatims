@@ -1,9 +1,10 @@
 import { db, schema } from 'hub:db'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { updateQuoteSchema } from '../../validation/schemas'
 import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
-import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { assertQuoteNameAvailable, buildQuoteInlineEditResolutionStatements, isQuoteNameConflictError, scopeQuoteCreationRequestKey } from '~~/server/utils/quote-creation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -41,30 +42,7 @@ export default defineEventHandler(async (event) => {
     let authorId = replacementPrimary?.author_id ?? primaryAttribution?.author_id ?? null
     let referenceId = replacementPrimary?.reference_id ?? primaryAttribution?.reference_id ?? null
 
-    if (body.new_author?.name) {
-      const authorResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.authors).values({
-        name: body.new_author.name,
-        isFictional: body.new_author.is_fictional,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning({ id: schema.authors.id })])
-      const newAuthor = getAuditedBatchRow<{ id: number }>(authorResults, 1)
-      authorId = newAuthor.id
-    }
-
-    if (body.new_reference?.name) {
-      const referenceResults = await runWebEditorialAuditedBatch(event, user.id, [db.insert(schema.quoteReferences).values({
-        name: body.new_reference.name,
-        originalLanguage: body.new_reference.original_language || body.language || 'en',
-        primaryType: body.new_reference.primary_type || 'other',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      } as any).returning({ id: schema.quoteReferences.id })])
-      const newReference = getAuditedBatchRow<{ id: number }>(referenceResults, 1)
-      referenceId = newReference.id
-    }
-
-    if (authorId == null && referenceId == null) {
+    if (authorId == null && referenceId == null && !body.new_author && !body.new_reference) {
       throwServer(400, 'A quote requires an author or reference')
     }
 
@@ -74,16 +52,102 @@ export default defineEventHandler(async (event) => {
       updatedAt: new Date(),
     }
 
-    if (replacementAttributions) {
-      const resolvedAttributions = replacementAttributions.map(attribution => attribution.is_primary ? {
-        ...attribution,
-        author_id: authorId,
-        reference_id: referenceId,
-      } : attribution)
-      await runWebEditorialAuditedBatch(event, user.id, [
+    const hasInlineEntity = Boolean(body.new_author?.name || body.new_reference?.name)
+    if (body.name !== undefined && body.name.trim().toLowerCase() !== e.name.trim().toLowerCase()) {
+      await assertQuoteNameAvailable(e.id, body.name)
+    }
+
+    if (hasInlineEntity) {
+      const resolution = buildQuoteInlineEditResolutionStatements({
+        requestKey: scopeQuoteCreationRequestKey(`quote-edit:${crypto.randomUUID()}`, user.id),
+        userId: user.id,
+        quoteId: e.id,
+        authorId,
+        referenceId,
+        newAuthor: body.new_author ? {
+          name: body.new_author.name,
+          isFictional: body.new_author.is_fictional,
+        } : undefined,
+        newReference: body.new_reference ? {
+          name: body.new_reference.name,
+          originalLanguage: body.new_reference.original_language || body.language || 'en',
+          primaryType: body.new_reference.primary_type || 'other',
+        } : undefined,
+      })
+      const statements: unknown[] = [
+        ...resolution.statements,
+        db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, e.id)),
+      ]
+
+      if (replacementAttributions) {
+        const resolvedAttributions = replacementAttributions.map(attribution => attribution.is_primary ? {
+          ...attribution,
+          author_id: resolution.authorId,
+          reference_id: resolution.referenceId,
+        } : attribution)
+        statements.push(db.delete(schema.quoteAttributions).where(eq(schema.quoteAttributions.quoteId, e.id)))
+        statements.push(db.insert(schema.quoteAttributions).values(resolvedAttributions.map(attribution => ({
+          quoteId: e.id,
+          authorId: attribution.author_id,
+          referenceId: attribution.reference_id,
+          isPrimary: attribution.is_primary,
+          status: isAdmin ? attribution.status : 'unverified',
+          notes: attribution.notes,
+          createdBy: user.id,
+        }))))
+        statements.push(resolution.setPrimaryAttributionId(sql`(
+          SELECT id FROM quote_attributions WHERE quote_id = ${e.id} AND is_primary = true ORDER BY id LIMIT 1
+        )`))
+      } else if (primaryAttribution) {
+        statements.push(db.update(schema.quoteAttributions)
+          .set({ authorId: resolution.authorId, referenceId: resolution.referenceId, updatedAt: new Date() })
+          .where(eq(schema.quoteAttributions.id, primaryAttribution.id)))
+        statements.push(resolution.setPrimaryAttributionId(primaryAttribution.id))
+      } else {
+        statements.push(db.insert(schema.quoteAttributions).values({
+          quoteId: e.id,
+          authorId: resolution.authorId,
+          referenceId: resolution.referenceId,
+          isPrimary: true,
+          status: 'unverified',
+          createdBy: user.id,
+        }))
+        statements.push(resolution.setPrimaryAttributionId(sql`last_insert_rowid()`))
+      }
+
+      if (body.source_type !== undefined || body.source_url !== undefined) {
+        if (body.source_type || body.source_url) {
+          const sourceType = body.source_type || 'manual'
+          const sourceUrl = body.source_url || null
+          statements.push(db.run(sql`UPDATE quote_sources
+            SET attribution_id = ${resolution.primaryAttributionId},
+                source_type = ${sourceType}, source_url = ${sourceUrl}, updated_at = CURRENT_TIMESTAMP
+            WHERE quote_id = ${e.id} AND is_primary = true`))
+          statements.push(db.run(sql`INSERT INTO quote_sources
+            (quote_id, attribution_id, source_type, source_url, is_primary, created_by)
+            SELECT ${e.id}, ${resolution.primaryAttributionId}, ${sourceType}, ${sourceUrl}, true, ${user.id}
+            WHERE NOT EXISTS (
+              SELECT 1 FROM quote_sources WHERE quote_id = ${e.id} AND is_primary = true
+            )`))
+        } else {
+          statements.push(db.delete(schema.quoteSources)
+            .where(and(eq(schema.quoteSources.quoteId, e.id), eq(schema.quoteSources.isPrimary, true))))
+        }
+      }
+
+      statements.push(resolution.cleanup)
+      try {
+        await runWebEditorialAuditedBatch(event, user.id, statements, 'web_user')
+      } catch (error) {
+        if (isQuoteNameConflictError(error)) throwServer(409, 'A similar quote already exists')
+        throw error
+      }
+    } else if (replacementAttributions) {
+      try {
+        await runWebEditorialAuditedBatch(event, user.id, [
         db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, parseInt(quoteId!))),
         db.delete(schema.quoteAttributions).where(eq(schema.quoteAttributions.quoteId, e.id)),
-        db.insert(schema.quoteAttributions).values(resolvedAttributions.map(attribution => ({
+        db.insert(schema.quoteAttributions).values(replacementAttributions.map(attribution => ({
           quoteId: e.id,
           authorId: attribution.author_id,
           referenceId: attribution.reference_id,
@@ -92,7 +156,11 @@ export default defineEventHandler(async (event) => {
           notes: attribution.notes,
           createdBy: user.id,
         }))),
-      ] as any, 'web_user')
+        ] as any, 'web_user')
+      } catch (error) {
+        if (isQuoteNameConflictError(error)) throwServer(409, 'A similar quote already exists')
+        throw error
+      }
     } else {
       const statements: unknown[] = [db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, parseInt(quoteId!)))]
       if (primaryAttribution) {
@@ -100,10 +168,15 @@ export default defineEventHandler(async (event) => {
       } else {
         statements.push(db.insert(schema.quoteAttributions).values({ quoteId: e.id, authorId, referenceId, isPrimary: true, status: 'unverified', createdBy: user.id }))
       }
-      await runWebEditorialAuditedBatch(event, user.id, statements, 'web_user')
+      try {
+        await runWebEditorialAuditedBatch(event, user.id, statements, 'web_user')
+      } catch (error) {
+        if (isQuoteNameConflictError(error)) throwServer(409, 'A similar quote already exists')
+        throw error
+      }
     }
 
-    if (body.source_type !== undefined || body.source_url !== undefined) {
+    if (!hasInlineEntity && (body.source_type !== undefined || body.source_url !== undefined)) {
       const primaryAttributionId = await db.select({ id: schema.quoteAttributions.id })
         .from(schema.quoteAttributions)
         .where(and(

@@ -75,7 +75,7 @@ export async function importReferencesInline(parentImportId: string, references:
       // Prefetch existing by composite key (lower(name)|primary_type)
       let existingByKey = new Map<string, { id: number, name: string, primary_type: string }>()
       if (refPolicy !== 'insert') {
-        const keys = Array.from(new Set(sub.map((r) => `${String(r.name||'').toLowerCase().trim()}|${String(r.primary_type||'')}`).filter(k => k.split('|')[0])))
+        const keys = Array.from(new Set(sub.map((r) => `${String(r.name||'').toLowerCase().trim()}|${String(r.primary_type||'other')}`).filter(k => k.split('|')[0])))
         for (const k of keys) {
           const [n, pt] = k.split('|')
           const row = await db.select({ id: schema.quoteReferences.id, name: schema.quoteReferences.name, primaryType: schema.quoteReferences.primaryType })
@@ -89,6 +89,7 @@ export async function importReferencesInline(parentImportId: string, references:
 
       const stmts: any[] = []
       let skipped = 0
+      const seenInSub = new Set<string>()
 
       for (const reference of sub) {
         let urlsField = '[]'
@@ -98,6 +99,13 @@ export async function importReferencesInline(parentImportId: string, references:
           else if (typeof reference.urls === 'object') urlsField = JSON.stringify(reference.urls)
         }
         const key = `${String(reference.name||'').toLowerCase().trim()}|${String(reference.primary_type||'other')}`
+        if (refPolicy === 'ignore') {
+          if (seenInSub.has(key)) {
+            skipped++
+            continue
+          }
+          seenInSub.add(key)
+        }
         const match = existingByKey.get(key)
 
         if (match && refPolicy === 'ignore') { skipped++; continue }

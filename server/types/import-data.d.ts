@@ -27,6 +27,11 @@ export interface ImportConflictOptions {
   tags?: ConflictPolicy
   authors?: ConflictPolicy
   references?: ConflictPolicy
+  /**
+   * Quotes default to `ignore` for ordinary imports. `insert` explicitly
+   * preserves duplicate rows for a backup/restore; `upsert` also merges the
+   * incoming attribution and source when the normalized quote text exists.
+   */
   quotes?: ConflictPolicy
 }
 
@@ -39,6 +44,7 @@ export interface ImportOptions {
    * Preserve explicit IDs from import data when possible.
    * When true and an item contains a valid numeric `id`, importers may insert using that ID
    * and then adjust sqlite_sequence to MAX(id) to keep AUTOINCREMENT in sync.
+   * For quotes, this also defaults the conflict policy to `insert` unless one is supplied.
    */
   preserveIds?: boolean
   conflict?: ImportConflictOptions

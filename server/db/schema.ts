@@ -356,8 +356,11 @@ export const quoteSources = sqliteTable('quote_sources', {
   attributionId: integer('attribution_id').references(() => quoteAttributions.id, { onDelete: 'set null' }),
   occurrenceId: integer('occurrence_id').references(() => quoteOccurrences.id, { onDelete: 'set null' }),
   sourceType: text('source_type').notNull(),
+  sourceMedium: text('source_medium', { enum: ['book', 'web_page', 'transcript', 'audio', 'document', 'other'] }),
   sourceUrl: text('source_url'),
   label: text('label'),
+  locatorType: text('locator_type', { enum: ['page', 'chapter', 'timecode'] }),
+  locatorValue: text('locator_value'),
   translatorName: text('translator_name'),
   verificationStatus: text('verification_status', { enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }).notNull().default('unverified'),
   verifiedBy: integer('verified_by').references(() => users.id, { onDelete: 'set null' }),
@@ -373,6 +376,23 @@ export const quoteSources = sqliteTable('quote_sources', {
   occurrenceIdx: index('idx_quote_sources_occurrence').on(table.occurrenceId),
   statusIdx: index('idx_quote_sources_status').on(table.verificationStatus),
 }))
+
+// Durable idempotency keys also provide a row that the atomic quote creation
+// batch can use to pass generated IDs between its sequential statements.
+export const quoteCreationRequests = sqliteTable('quote_creation_requests', {
+  requestKey: text('request_key').primaryKey(),
+  userId: integer('user_id').notNull(),
+  payloadHash: text('payload_hash').notNull().default(''),
+  authorId: integer('author_id'),
+  referenceId: integer('reference_id'),
+  quoteId: integer('quote_id').references(() => quotes.id, { onDelete: 'set null' }),
+  primaryAttributionId: integer('primary_attribution_id'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export const quoteNameClaims = sqliteTable('quote_name_claims', {
+  normalizedName: text('normalized_name').primaryKey(),
+})
 
 export const quoteAuditReviews = sqliteTable('quote_audit_reviews', {
   quoteId: integer('quote_id').primaryKey().references(() => quotes.id, { onDelete: 'cascade' }),

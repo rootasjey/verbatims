@@ -61,6 +61,7 @@ export interface HarvestQuoteImportItem {
     birth_day?: number | null
     birth_is_approximate?: boolean
     birth_calendar?: string
+    birth_location?: string
     death_date?: string
     death_year?: number | null
     death_era?: 'bce' | 'ce'
@@ -68,6 +69,7 @@ export interface HarvestQuoteImportItem {
     death_day?: number | null
     death_is_approximate?: boolean
     death_calendar?: string
+    death_location?: string
     image_url?: string
   }
   reference_id?: number
