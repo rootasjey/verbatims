@@ -1,7 +1,8 @@
 import { db, schema } from 'hub:db'
-import { eq, and, sql } from 'drizzle-orm'
+import { eq, and, inArray, isNull, ne, sql } from 'drizzle-orm'
 import type { ImportOptions } from '~~/server/types'
-import { getAuditedBatchRow, runImportedEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { runImportedEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
+import { buildQuoteCreationStatements, buildQuoteImportUpsertStatements, hashQuoteCreationPayload, scopeQuoteCreationRequestKey, type QuoteCreationBatchInput } from '~~/server/utils/quote-creation'
 
 export async function importQuotesInline(
   parentImportId: string,
@@ -67,206 +68,189 @@ export async function importQuotesInline(
     for (let j = 0; j < batch.length; j += subSize) {
       const sub = batch.slice(j, j + subSize)
 
-      const quotePolicy = options.conflict?.quotes?.mode || 'insert'
+      const quotePolicy = options.conflict?.quotes?.mode || (options.preserveIds ? 'insert' : 'ignore')
       const quoteStrategy = options.conflict?.quotes?.updateStrategy || 'fill-missing'
       const allowedFields = new Set(options.conflict?.quotes?.fields || ['status','is_featured','rejection_reason','moderator_id','moderated_at'])
 
-      const stmts: any[] = []
       let skipped = 0
-      let inserted = 0
+      let successful = 0
+      let failed = 0
 
-      for (const q of sub) {
-        // Resolve author_id
-        let authorId = q.author_id as number | undefined
-        if (!authorId && q.author_name) {
-          const res = await findOrCreateAuthor({ name: String(q.author_name) }, async (statement) => {
-            const results = await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [statement])
-            return getAuditedBatchRow<{ id: number }>(results, 1)
-          })
-          authorId = res.id
-        }
-        // Resolve reference_id
-        let referenceId = q.reference_id as number | undefined
-        if (!referenceId && q.reference_name) {
-          const res = await findOrCreateReference({ name: String(q.reference_name) }, async (statement) => {
-            const results = await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [statement])
-            return getAuditedBatchRow<{ id: number }>(results, 1)
-          })
-          referenceId = res.id
-        }
-        // Resolve user_id
-        let userId = q.user_id as number | undefined
-        if (!userId && q.user_email) {
-          const row = await db.select({ id: schema.users.id })
-            .from(schema.users)
-            .where(eq(schema.users.email, String(q.user_email)))
-            .limit(1)
-            .get()
-          if (row?.id) userId = row.id
-        }
-        if (!userId) userId = fallbackUserId
-
-        const lang = q.language || 'en'
-        const status = q.status || 'draft'
-        const isFeatured = q.is_featured ?? false
-        const views = q.views_count || 0
-        const likes = q.likes_count || 0
-        const shares = q.shares_count || 0
-
-        // Conflict handling
-        let matchedId: number | undefined
-        if (quotePolicy !== 'insert') {
-          const existing = await db.select({ id: schema.quotes.id })
-            .from(schema.quotes)
-            .where(and(eq(schema.quotes.name, q.name), eq(schema.quotes.language, lang)))
-            .limit(1)
-            .get()
-            
-          if (existing?.id) matchedId = existing.id
-        }
-
-        if (matchedId && quotePolicy === 'ignore') {
-          skipped++
-          continue
-        }
-
-        if (matchedId && quotePolicy === 'upsert') {
-          const updateData: any = {}
-          
-          const addFieldFill = (key: keyof typeof schema.quotes, value: any, allowed: boolean) => {
-             if (!allowed) return
-             if (quoteStrategy === 'overwrite') {
-               updateData[key] = value
-             } else {
-               // fill-missing: update only if current is null
-               // col = COALESCE(col, new_val)
-               updateData[key] = sql`COALESCE(${schema.quotes[key]}, ${value})`
-             }
-          }
-
-          if (allowedFields.has('name')) addFieldFill('name', q.name, true)
-          if (allowedFields.has('status')) addFieldFill('status', status, true)
-          if (allowedFields.has('is_featured')) addFieldFill('isFeatured', isFeatured ? 1 : 0, true)
-          if (allowedFields.has('rejection_reason')) addFieldFill('rejectionReason', q.rejection_reason || null, true)
-          if (allowedFields.has('moderator_id')) addFieldFill('moderatorId', q.moderator_id || null, true)
-          if (allowedFields.has('moderated_at')) addFieldFill('moderatedAt', q.moderated_at ? new Date(q.moderated_at) : null, true)
-
-          if (Object.keys(updateData).length > 0) {
-             updateData.updatedAt = new Date()
-             stmts.push(db.update(schema.quotes).set(updateData).where(eq(schema.quotes.id, matchedId)))
-          }
-          continue
-        }
-
-        if (authorId == null && referenceId == null) {
-          skipped++
-          report.addFailure({ index: i + j + 1, reason: 'An author or reference is required' })
-          continue
-        }
-
-        // Insert the quote and its primary attribution together. This cannot use
-        // the old batch path because the attribution needs the generated quote ID.
-        const explicitId = options.preserveIds && Number.isFinite(Number(q.id)) ? Number(q.id) : undefined
-        const values = {
-            id: explicitId,
-            name: q.name,
-            language: lang,
-            userId: userId,
-            status: status,
-            moderatorId: q.moderator_id || null,
-            moderatedAt: q.moderated_at ? new Date(q.moderated_at) : null,
-            rejectionReason: q.rejection_reason || null,
-            viewsCount: views,
-            likesCount: likes,
-            sharesCount: shares,
-            isFeatured: isFeatured,
-            createdAt: q.created_at ? new Date(q.created_at) : new Date(),
-            updatedAt: q.updated_at ? new Date(q.updated_at) : new Date(),
-        }
-        let quoteId: number | undefined
+      for (let recordOffset = 0; recordOffset < sub.length; recordOffset++) {
+        const q = sub[recordOffset]
+        const recordIndex = i + j + recordOffset + 1
         try {
-          const quoteResults = await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [db.insert(schema.quotes)
-            .values(values)
-            .returning({ id: schema.quotes.id })])
-          const quote = getAuditedBatchRow<{ id: number }>(quoteResults, 1)
-          quoteId = quote.id
-          const attributionResults = await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [db.insert(schema.quoteAttributions).values({
-            quoteId: quote.id,
+          const name = String(q.name ?? '').trim()
+          if (!name) throw new Error('Quote text is required')
+          const lang = q.language || 'en'
+          let matchedQuotes: Array<{ id: number }> = []
+
+          if (quotePolicy !== 'insert') {
+            matchedQuotes = await db.select({ id: schema.quotes.id })
+              .from(schema.quotes)
+              .where(and(
+                sql`LOWER(TRIM(${schema.quotes.name})) = LOWER(TRIM(${name}))`,
+                ne(schema.quotes.status, 'rejected'),
+              ))
+              .limit(2)
+              .all()
+          }
+
+          if (matchedQuotes.length > 1) {
+            skipped++
+            report.addWarning(`Record ${recordIndex}: multiple active quotes share this normalized text; provenance was not merged automatically.`)
+            continue
+          }
+          const matchedId = matchedQuotes[0]?.id
+
+          if (matchedId && quotePolicy === 'ignore') {
+            skipped++
+            report.addWarning(`Record ${recordIndex}: duplicate normalized quote text skipped; incoming attribution and source were not imported.`)
+            continue
+          }
+
+          const ownerId = await resolveImportedQuoteOwner(q, fallbackUserId)
+          const { authorId, newAuthor } = await resolveImportedQuoteAuthor(q)
+          const { referenceId, newReference } = await resolveImportedQuoteReference(q)
+          const hasIncomingAttribution = authorId != null || referenceId != null || Boolean(newAuthor || newReference)
+          if (!matchedId && !hasIncomingAttribution) {
+            throw new Error('An author or reference is required')
+          }
+
+          const source = q.source_type || q.source_url
+            ? { source_type: q.source_type || 'manual', source_url: q.source_url || null }
+            : undefined
+          const payloadHash = await hashQuoteCreationPayload(q)
+          const requestKey = scopeQuoteCreationRequestKey(`quote-import:${parentImportId}:${recordIndex}`, fallbackUserId)
+
+          if (matchedId && quotePolicy === 'upsert') {
+            const updateData: Record<string, unknown> = {}
+            const addFieldFill = (key: keyof typeof schema.quotes, value: unknown, allowed: boolean) => {
+              if (!allowed) return
+              updateData[key] = quoteStrategy === 'overwrite'
+                ? value
+                : sql`COALESCE(${schema.quotes[key]}, ${value})`
+            }
+            addFieldFill('name', name, allowedFields.has('name'))
+            addFieldFill('status', q.status || 'draft', allowedFields.has('status'))
+            addFieldFill('isFeatured', q.is_featured ?? false, allowedFields.has('is_featured'))
+            addFieldFill('rejectionReason', q.rejection_reason || null, allowedFields.has('rejection_reason'))
+            addFieldFill('moderatorId', q.moderator_id || null, allowedFields.has('moderator_id'))
+            addFieldFill('moderatedAt', q.moderated_at ? new Date(q.moderated_at) : null, allowedFields.has('moderated_at'))
+            if (Object.keys(updateData).length > 0) updateData.updatedAt = new Date()
+
+            let existingAttributionIds: number[] = []
+            if (!newAuthor && !newReference && hasIncomingAttribution) {
+              const attributionConditions = [eq(schema.quoteAttributions.quoteId, matchedId)]
+              attributionConditions.push(authorId == null ? isNull(schema.quoteAttributions.authorId) : eq(schema.quoteAttributions.authorId, authorId))
+              attributionConditions.push(referenceId == null ? isNull(schema.quoteAttributions.referenceId) : eq(schema.quoteAttributions.referenceId, referenceId))
+              const attributions = await db.select({ id: schema.quoteAttributions.id })
+                .from(schema.quoteAttributions)
+                .where(and(...attributionConditions))
+                .orderBy(schema.quoteAttributions.id)
+                .all()
+              existingAttributionIds = attributions.map(attribution => attribution.id)
+            }
+            const existingAttributionId = existingAttributionIds[0]
+
+            let sourceToAdd = source
+            const skipAttribution = !hasIncomingAttribution
+            if (sourceToAdd && (existingAttributionIds.length > 0 || skipAttribution)) {
+              const sourceConditions = [
+                eq(schema.quoteSources.quoteId, matchedId),
+                eq(schema.quoteSources.sourceType, sourceToAdd.source_type || 'manual'),
+              ]
+              sourceConditions.push(existingAttributionIds.length === 0
+                ? isNull(schema.quoteSources.attributionId)
+                : inArray(schema.quoteSources.attributionId, existingAttributionIds))
+              sourceConditions.push(sourceToAdd.source_url == null
+                ? isNull(schema.quoteSources.sourceUrl)
+                : eq(schema.quoteSources.sourceUrl, sourceToAdd.source_url))
+              const duplicateSource = await db.select({ id: schema.quoteSources.id })
+                .from(schema.quoteSources)
+                .where(and(...sourceConditions))
+                .limit(1)
+                .get()
+              if (duplicateSource) sourceToAdd = undefined
+            }
+
+            if (Object.keys(updateData).length === 0 && (existingAttributionIds.length > 0 || skipAttribution) && !sourceToAdd) {
+              skipped++
+              report.addWarning(`Record ${recordIndex}: matching quote already has this attribution and source; no changes applied.`)
+              continue
+            }
+
+            const hasPrimaryAttribution = hasIncomingAttribution ? await db.select({ id: schema.quoteAttributions.id })
+              .from(schema.quoteAttributions)
+              .where(and(eq(schema.quoteAttributions.quoteId, matchedId), eq(schema.quoteAttributions.isPrimary, true)))
+              .limit(1)
+              .get() : undefined
+            const upsertStatements = buildQuoteImportUpsertStatements({
+              requestKey,
+              userId: ownerId,
+              payloadHash,
+              quoteId: matchedId,
+              updateData,
+              authorId: authorId ?? null,
+              referenceId: referenceId ?? null,
+              newAuthor,
+              newReference,
+              existingAttributionId,
+              attributionIsPrimary: !hasPrimaryAttribution,
+              skipAttribution,
+              source: sourceToAdd,
+              retainIdempotencyRecord: false,
+            })
+            await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, upsertStatements)
+            successful++
+            continue
+          }
+
+          const explicitId = options.preserveIds && Number.isFinite(Number(q.id)) ? Number(q.id) : undefined
+          const { statements } = buildQuoteCreationStatements({
+            requestKey,
+            userId: ownerId,
+            payloadHash,
+            quote: {
+              id: explicitId,
+              name,
+              language: lang,
+              status: q.status || 'draft',
+              moderatorId: q.moderator_id || null,
+              moderatedAt: q.moderated_at ? new Date(q.moderated_at) : null,
+              rejectionReason: q.rejection_reason || null,
+              viewsCount: q.views_count || 0,
+              likesCount: q.likes_count || 0,
+              sharesCount: q.shares_count || 0,
+              isFeatured: q.is_featured ?? false,
+              createdAt: q.created_at ? new Date(q.created_at) : new Date(),
+              updatedAt: q.updated_at ? new Date(q.updated_at) : new Date(),
+            },
             authorId: authorId ?? null,
             referenceId: referenceId ?? null,
-            isPrimary: true,
-            status: 'unverified',
-            createdBy: userId,
-          }).returning({ id: schema.quoteAttributions.id })])
-          const attribution = getAuditedBatchRow<{ id: number }>(attributionResults, 1)
-          if (q.source_type || q.source_url) {
-            await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [db.insert(schema.quoteSources).values({
-              quoteId: quote.id,
-              attributionId: attribution.id,
-              sourceType: q.source_type || 'manual',
-              sourceUrl: q.source_url || null,
-              verificationStatus: 'unverified',
-              createdBy: userId,
-            })])
-          }
-          inserted++
+            newAuthor,
+            newReference,
+            primaryAttribution: { status: 'unverified' },
+            sources: source ? [source] : undefined,
+            claimName: quotePolicy !== 'insert',
+            retainIdempotencyRecord: false,
+          })
+          await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, statements)
+          successful++
         } catch (error: any) {
-          if (quoteId) {
-            await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, [db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId))]).catch(() => undefined)
-          }
-          skipped++
-          report.addFailure({ index: i + j + 1, reason: error?.message || 'Failed to import quote' })
+          failed++
+          report.addFailure({ index: recordIndex, reason: error?.message || 'Failed to import quote', item: q })
         }
       }
 
-      if (skipped > 0) {
-        const p0 = getAdminImport(parentImportId)!
+      if (skipped > 0 || successful > 0 || failed > 0) {
+        const progress = getAdminImport(parentImportId)!
         updateAdminImport(parentImportId, {
-          processedRecords: Math.min(p0.processedRecords + skipped, p0.totalRecords),
-          warnings: [...p0.warnings, `Skipped ${skipped} duplicate quotes (policy: ${quotePolicy}).`]
+          successfulRecords: progress.successfulRecords + successful,
+          failedRecords: progress.failedRecords + failed,
+          processedRecords: Math.min(progress.processedRecords + successful + skipped + failed, progress.totalRecords),
+          ...(skipped > 0 ? { warnings: [...progress.warnings, `Skipped ${skipped} quote records (policy: ${quotePolicy}).`] } : {}),
         })
-      }
-
-      try {
-        if (stmts.length > 0) {
-            await runImportedEditorialAuditedBatch(fallbackUserId, parentImportId, stmts)
-        }
-        if (stmts.length > 0 || inserted > 0) {
-          const p = getAdminImport(parentImportId)!
-          updateAdminImport(parentImportId, {
-            successfulRecords: p.successfulRecords + stmts.length + inserted,
-            processedRecords: Math.min((p.processedRecords + stmts.length + inserted), p.totalRecords),
-          })
-        }
-      } catch (e: any) {
-        for (let idx = 0; idx < stmts.length; idx++) {
-          try {
-            const s = stmts[idx]
-            if (!s) continue
-            // Drizzle query execution
-            await s
-            const p = getAdminImport(parentImportId)!
-            updateAdminImport(parentImportId, {
-              successfulRecords: p.successfulRecords + 1,
-              processedRecords: Math.min((p.processedRecords + 1), p.totalRecords)
-            })
-          } catch (ie: any) {
-            const p = getAdminImport(parentImportId)!
-            updateAdminImport(parentImportId, {
-              failedRecords: p.failedRecords + 1,
-              processedRecords: Math.min((p.processedRecords + 1), p.totalRecords),
-              errors: [...p.errors, `Failed to import quote: ${ie.message}`]
-            })
-            report.addFailure({ index: i + j + (idx + 1), reason: ie.message })
-          }
-        }
-        if (inserted > 0) {
-          const p = getAdminImport(parentImportId)!
-          updateAdminImport(parentImportId, {
-            successfulRecords: p.successfulRecords + inserted,
-            processedRecords: Math.min((p.processedRecords + inserted), p.totalRecords),
-          })
-        }
       }
 
       if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
@@ -302,6 +286,55 @@ export async function importQuotesInline(
     const link = `/api/admin/import/report/${parentImportId}`
     updateAdminImport(parentImportId, { warnings: [...p.warnings, `Report available: ${link}`] })
   }
+}
+
+async function resolveImportedQuoteOwner(quote: any, fallbackUserId: number) {
+  let userId = quote.user_id as number | undefined
+  if (!userId && quote.user_email) {
+    const user = await db.select({ id: schema.users.id })
+      .from(schema.users)
+      .where(eq(schema.users.email, String(quote.user_email)))
+      .limit(1)
+      .get()
+    if (user?.id) userId = user.id
+  }
+  return userId || fallbackUserId
+}
+
+async function resolveImportedQuoteAuthor(quote: any): Promise<{
+  authorId: number | null
+  newAuthor?: QuoteCreationBatchInput['newAuthor']
+}> {
+  if (quote.author_id) return { authorId: Number(quote.author_id) }
+  const name = String(quote.author_name ?? '').trim()
+  if (!name) return { authorId: null }
+
+  const author = await db.select({ id: schema.authors.id })
+    .from(schema.authors)
+    .where(sql`LOWER(${schema.authors.name}) = LOWER(${name})`)
+    .limit(1)
+    .get()
+  return author
+    ? { authorId: author.id }
+    : { authorId: null, newAuthor: { name } }
+}
+
+async function resolveImportedQuoteReference(quote: any): Promise<{
+  referenceId: number | null
+  newReference?: QuoteCreationBatchInput['newReference']
+}> {
+  if (quote.reference_id) return { referenceId: Number(quote.reference_id) }
+  const name = String(quote.reference_name ?? '').trim()
+  if (!name) return { referenceId: null }
+
+  const reference = await db.select({ id: schema.quoteReferences.id })
+    .from(schema.quoteReferences)
+    .where(sql`LOWER(${schema.quoteReferences.name}) = LOWER(${name})`)
+    .limit(1)
+    .get()
+  return reference
+    ? { referenceId: reference.id }
+    : { referenceId: null, newReference: { name, primaryType: 'other', originalLanguage: 'en' } }
 }
 
 // High-level processing + parsers moved from API route

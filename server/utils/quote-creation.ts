@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import type { CreateQuoteSourceData } from '~~/shared/types/quote'
 import { authorLifeDateColumnsFromInput } from './author-life-date'
 
@@ -44,11 +44,68 @@ type AdditionalAttribution = {
   notes?: string | null
 }
 
+function buildImportedAuthorStatements(requestKey: string, author: InlineAuthor) {
+  const authorInput = Object.fromEntries(
+    Object.entries(author).filter(([, value]) => value !== undefined),
+  )
+  const birth = authorLifeDateColumnsFromInput('birth', authorInput)
+  const death = authorLifeDateColumnsFromInput('death', authorInput)
+  return [
+    db.run(sql`INSERT INTO authors (
+      name, is_fictional, job, description,
+      birth_date, birth_year, birth_era, birth_month, birth_day, birth_is_approximate, birth_calendar, birth_location,
+      death_date, death_year, death_era, death_month, death_day, death_is_approximate, death_calendar, death_location,
+      image_url
+    ) SELECT
+      ${author.name}, ${author.isFictional ?? false}, ${author.job ?? null}, ${author.description ?? null},
+      ${birth.birthDate ?? null}, ${birth.birthYear ?? null}, ${birth.birthEra ?? 'ce'}, ${birth.birthMonth ?? null}, ${birth.birthDay ?? null}, ${birth.birthIsApproximate ?? false}, ${birth.birthCalendar ?? 'gregorian-proleptic'}, ${author.birth_location ?? null},
+      ${death.deathDate ?? null}, ${death.deathYear ?? null}, ${death.deathEra ?? 'ce'}, ${death.deathMonth ?? null}, ${death.deathDay ?? null}, ${death.deathIsApproximate ?? false}, ${death.deathCalendar ?? 'gregorian-proleptic'}, ${author.death_location ?? null},
+      ${author.image_url ?? null}
+    FROM quote_creation_requests
+    WHERE request_key = ${requestKey}
+      AND NOT EXISTS (SELECT 1 FROM authors WHERE LOWER(name) = LOWER(${author.name}))`),
+    db.update(schema.quoteCreationRequests)
+      .set({ authorId: sql`(
+        SELECT id FROM authors WHERE LOWER(name) = LOWER(${author.name}) ORDER BY id LIMIT 1
+      )` })
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)),
+  ]
+}
+
+function buildImportedReferenceStatements(requestKey: string, reference: InlineReference) {
+  return [
+    db.run(sql`INSERT INTO quote_references (name, original_language, primary_type, description, release_date)
+      SELECT ${reference.name}, ${reference.originalLanguage ?? 'en'}, ${reference.primaryType}, ${reference.description ?? null}, ${reference.releaseDate ?? null}
+      FROM quote_creation_requests
+      WHERE request_key = ${requestKey}
+        AND NOT EXISTS (SELECT 1 FROM quote_references WHERE LOWER(name) = LOWER(${reference.name}))`),
+    db.update(schema.quoteCreationRequests)
+      .set({ referenceId: sql`(
+        SELECT id FROM quote_references WHERE LOWER(name) = LOWER(${reference.name}) ORDER BY id LIMIT 1
+      )` })
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)),
+  ]
+}
+
 export type QuoteCreationBatchInput = {
   requestKey: string
   userId: number
   payloadHash: string
-  quote: { name: string; language: string; status?: 'draft' | 'harvested' }
+  quote: {
+    name: string
+    language: string
+    status?: 'harvested' | 'draft' | 'pending' | 'approved' | 'rejected'
+    id?: number
+    moderatorId?: number | null
+    moderatedAt?: Date | null
+    rejectionReason?: string | null
+    viewsCount?: number
+    likesCount?: number
+    sharesCount?: number
+    isFeatured?: boolean
+    createdAt?: Date
+    updatedAt?: Date
+  }
   authorId: number | null
   referenceId: number | null
   newAuthor?: InlineAuthor
@@ -63,6 +120,7 @@ export type QuoteCreationBatchInput = {
   sourcesArePrimary?: boolean
   tagIds?: number[]
   activitySource?: string
+  claimName?: boolean
   retainIdempotencyRecord?: boolean
 }
 
@@ -121,50 +179,37 @@ export function buildQuoteCreationStatements(input: QuoteCreationBatchInput) {
     payloadHash: input.payloadHash,
     authorId: input.authorId,
     referenceId: input.referenceId,
-  }), db.insert(schema.quoteNameClaims).values({
-    normalizedName: sql`lower(trim(${input.quote.name}))`,
   })]
 
-  if (input.newAuthor) {
-    const authorInput = Object.fromEntries(
-      Object.entries(input.newAuthor).filter(([, value]) => value !== undefined),
-    )
-    statements.push(db.insert(schema.authors).values({
-      name: input.newAuthor.name,
-      isFictional: input.newAuthor.isFictional ?? false,
-      job: input.newAuthor.job ?? null,
-      description: input.newAuthor.description ?? null,
-      ...authorLifeDateColumnsFromInput('birth', authorInput),
-      birthLocation: input.newAuthor.birth_location ?? null,
-      ...authorLifeDateColumnsFromInput('death', authorInput),
-      deathLocation: input.newAuthor.death_location ?? null,
-      imageUrl: input.newAuthor.image_url ?? null,
+  if (input.claimName !== false && input.quote.status !== 'rejected') {
+    statements.push(db.insert(schema.quoteNameClaims).values({
+      normalizedName: sql`lower(trim(${input.quote.name}))`,
     }))
-    statements.push(db.update(schema.quoteCreationRequests)
-      .set({ authorId: sql`last_insert_rowid()` })
-      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)))
+  }
+
+  if (input.newAuthor) {
+    statements.push(...buildImportedAuthorStatements(requestKey, input.newAuthor))
   }
 
   if (input.newReference) {
-    statements.push(db.insert(schema.quoteReferences).values({
-      name: input.newReference.name,
-      originalLanguage: input.newReference.originalLanguage ?? 'en',
-      primaryType: input.newReference.primaryType as any,
-      description: input.newReference.description ?? null,
-      releaseDate: input.newReference.releaseDate ?? null,
-    }))
-    statements.push(db.update(schema.quoteCreationRequests)
-      .set({ referenceId: sql`last_insert_rowid()` })
-      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)))
+    statements.push(...buildImportedReferenceStatements(requestKey, input.newReference))
   }
 
   statements.push(db.insert(schema.quotes).values({
+    id: input.quote.id,
     name: input.quote.name,
     language: input.quote.language as any,
     userId: input.userId,
     status: input.quote.status ?? 'draft',
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    moderatorId: input.quote.moderatorId ?? null,
+    moderatedAt: input.quote.moderatedAt ?? null,
+    rejectionReason: input.quote.rejectionReason ?? null,
+    viewsCount: input.quote.viewsCount ?? 0,
+    likesCount: input.quote.likesCount ?? 0,
+    sharesCount: input.quote.sharesCount ?? 0,
+    isFeatured: input.quote.isFeatured ?? false,
+    createdAt: input.quote.createdAt ?? new Date(),
+    updatedAt: input.quote.updatedAt ?? new Date(),
   }))
   statements.push(db.update(schema.quoteCreationRequests)
     .set({ quoteId: sql`last_insert_rowid()` })
@@ -244,4 +289,108 @@ export function buildQuoteCreationStatements(input: QuoteCreationBatchInput) {
   }
 
   return { statements, quoteIdResultIndex }
+}
+
+export type QuoteImportUpsertBatchInput = {
+  requestKey: string
+  userId: number
+  payloadHash: string
+  quoteId: number
+  updateData: Record<string, unknown>
+  authorId: number | null
+  referenceId: number | null
+  newAuthor?: InlineAuthor
+  newReference?: InlineReference
+  existingAttributionId?: number
+  attributionIsPrimary: boolean
+  skipAttribution?: boolean
+  source?: CreateQuoteSourceData
+  retainIdempotencyRecord?: boolean
+}
+
+export function buildQuoteImportUpsertStatements(input: QuoteImportUpsertBatchInput) {
+  const { requestKey } = input
+  const field = (column: 'author_id' | 'reference_id' | 'quote_id' | 'primary_attribution_id') =>
+    sql`(SELECT ${sql.raw(column)} FROM quote_creation_requests WHERE request_key = ${requestKey})`
+  const statements: unknown[] = [db.insert(schema.quoteCreationRequests).values({
+    requestKey,
+    userId: input.userId,
+    payloadHash: input.payloadHash,
+    quoteId: input.quoteId,
+    authorId: input.authorId,
+    referenceId: input.referenceId,
+    primaryAttributionId: input.existingAttributionId ?? null,
+  })]
+
+  if (input.newAuthor) {
+    statements.push(...buildImportedAuthorStatements(requestKey, input.newAuthor))
+  }
+
+  if (input.newReference) {
+    statements.push(...buildImportedReferenceStatements(requestKey, input.newReference))
+  }
+
+  if (Object.keys(input.updateData).length > 0) {
+    statements.push(db.update(schema.quotes)
+      .set(input.updateData as any)
+      .where(eq(schema.quotes.id, input.quoteId)))
+  }
+
+  if (input.existingAttributionId != null && input.attributionIsPrimary) {
+    statements.push(db.update(schema.quoteAttributions)
+      .set({ isPrimary: true })
+      .where(eq(schema.quoteAttributions.id, input.existingAttributionId)))
+  } else if (input.existingAttributionId == null && !input.skipAttribution) {
+    statements.push(db.run(sql`INSERT INTO quote_attributions (quote_id, author_id, reference_id, is_primary, status, created_by)
+      SELECT quote_id, author_id, reference_id, ${input.attributionIsPrimary}, 'unverified', ${input.userId}
+      FROM quote_creation_requests
+      WHERE request_key = ${requestKey}
+        AND NOT EXISTS (
+          SELECT 1 FROM quote_attributions
+          WHERE quote_id = ${field('quote_id')}
+            AND author_id IS ${field('author_id')}
+            AND reference_id IS ${field('reference_id')}
+        )`))
+    statements.push(db.update(schema.quoteCreationRequests)
+      .set({ primaryAttributionId: sql`(
+        SELECT id FROM quote_attributions
+        WHERE quote_id = ${field('quote_id')}
+          AND author_id IS ${field('author_id')}
+          AND reference_id IS ${field('reference_id')}
+        ORDER BY id
+        LIMIT 1
+      )` })
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)))
+  }
+
+  if (input.source) {
+    const sourceType = input.source.source_type ?? 'manual'
+    const sourceUrl = input.source.source_url ?? null
+    statements.push(db.run(sql`INSERT INTO quote_sources (
+      quote_id, attribution_id, occurrence_id, source_type, source_medium, source_url,
+      label, locator_type, locator_value, translator_name, verification_status, notes, is_primary, created_by
+    ) SELECT
+      quote_id, primary_attribution_id, NULL, ${sourceType}, NULL, ${sourceUrl},
+      NULL, NULL, NULL, NULL, 'unverified', NULL, false, ${input.userId}
+    FROM quote_creation_requests
+    WHERE request_key = ${requestKey}
+      AND NOT EXISTS (
+        SELECT 1 FROM quote_sources
+        WHERE quote_id = ${field('quote_id')}
+          AND attribution_id IS ${field('primary_attribution_id')}
+          AND source_type = ${sourceType}
+          AND source_url IS ${sourceUrl}
+      )`))
+  }
+
+  if (input.retainIdempotencyRecord === false) {
+    statements.push(db.delete(schema.quoteCreationRequests)
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)))
+  } else {
+    statements.push(db.update(schema.quoteCreationRequests)
+      .set({ authorId: null, referenceId: null, primaryAttributionId: null })
+      .where(eq(schema.quoteCreationRequests.requestKey, requestKey)))
+  }
+
+  return statements
 }
