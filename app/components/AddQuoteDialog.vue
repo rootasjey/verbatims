@@ -308,8 +308,8 @@ type SourceTypeOption = { label: string; value: string }
 
 const sourceTypeOptions = computed<SourceTypeOption[]>(() => [
   { label: String($t('components.dialogs.no_source_type')), value: '' },
-  { label: 'Wikiquote (English)', value: 'wikiquote-en' },
-  { label: 'Wikiquote (French)', value: 'wikiquote-fr' }
+  { label: String($t('components.dialogs.source_type_wikiquote_en')), value: 'wikiquote-en' },
+  { label: String($t('components.dialogs.source_type_wikiquote_fr')), value: 'wikiquote-fr' }
 ])
 const selectedSourceType = computed({
   get: () => sourceTypeOptions.value.find(option => option.value === form.value.sourceType) ?? sourceTypeOptions.value[0],

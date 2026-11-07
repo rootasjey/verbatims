@@ -963,6 +963,8 @@
       "provenance_source_type": "Type de source",
       "search_source_type": "Rechercher un type de source...",
       "no_source_type": "Aucun type de source",
+      "source_type_wikiquote_en": "Wikiquote (anglais)",
+      "source_type_wikiquote_fr": "Wikiquote (français)",
       "source_url_placeholder": "https://…",
       "source_required_hint": "Ajoutez une URL ou un titre pour enregistrer cette source.",
       "locator_type": "Repère dans la source",

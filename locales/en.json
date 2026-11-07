@@ -944,6 +944,8 @@
       "provenance_source_type": "Source type",
       "search_source_type": "Search source type...",
       "no_source_type": "No source type",
+      "source_type_wikiquote_en": "Wikiquote (English)",
+      "source_type_wikiquote_fr": "Wikiquote (French)",
       "source_url_placeholder": "https://…",
       "source_required_hint": "Add a URL or title to save this source.",
       "locator_type": "Location in source",
