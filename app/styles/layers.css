@@ -14,6 +14,20 @@
   --z-layer-accessibility: 110;
 }
 
+/* UnoCSS shortcuts are not emitted when their classes only occur in dynamic Vue bindings. */
+:root .z-layer-page { z-index: var(--z-layer-page); }
+:root .z-layer-local { z-index: var(--z-layer-local); }
+:root .z-layer-sticky { z-index: var(--z-layer-sticky); }
+:root .z-layer-page-scrim { z-index: var(--z-layer-page-scrim); }
+:root .z-layer-app-chrome { z-index: var(--z-layer-app-chrome); }
+:root .z-layer-popover { z-index: var(--z-layer-popover); }
+:root .z-layer-modal-scrim { z-index: var(--z-layer-modal-scrim); }
+:root .z-layer-modal-chrome { z-index: var(--z-layer-modal-chrome); }
+:root .z-layer-modal-panel { z-index: var(--z-layer-modal-panel); }
+:root .z-layer-panel-popover { z-index: var(--z-layer-panel-popover); }
+:root .z-layer-notifications { z-index: var(--z-layer-notifications); }
+:root .z-layer-accessibility { z-index: var(--z-layer-accessibility); }
+
 :root :is(
   .alert-dialog-overlay,
   .dialog-overlay,
