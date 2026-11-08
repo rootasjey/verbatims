@@ -46,7 +46,7 @@ defineRouteMeta({
                 description: 'Optional source records. The server links them to the primary attribution and stores them as unverified.',
                 items: { type: 'object', properties: {
                   source_type: { type: 'string', default: 'manual', description: 'Legacy source-origin label, preserved as supplied.' },
-                  source_medium: { type: 'string', enum: ['book', 'web_page', 'transcript', 'audio', 'document', 'other'] },
+                  source_medium: { type: 'string', enum: ['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other'] },
                   source_url: { type: 'string', format: 'uri', nullable: true },
                   label: { type: 'string', nullable: true },
                   translator_name: { type: 'string', nullable: true },

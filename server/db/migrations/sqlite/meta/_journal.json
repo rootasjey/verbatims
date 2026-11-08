@@ -386,6 +386,13 @@
       "when": 1794072002000,
       "tag": "0066_prevent_quote_duplicate_reactivation",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "6",
+      "when": 1794096570000,
+      "tag": "0067_add_audiovisual_quote_source_medium",
+      "breakpoints": true
     }
   ]
 }

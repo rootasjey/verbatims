@@ -42,6 +42,7 @@
               <option value="web_page">{{ $t('components.dialogs.source_medium_web_page') }}</option>
               <option value="transcript">{{ $t('components.dialogs.source_medium_transcript') }}</option>
               <option value="audio">{{ $t('components.dialogs.source_medium_audio') }}</option>
+              <option value="audiovisual">{{ $t('components.dialogs.source_medium_audiovisual') }}</option>
               <option value="document">{{ $t('components.dialogs.source_medium_document') }}</option>
               <option value="other">{{ $t('components.dialogs.source_medium_other') }}</option>
             </select>

@@ -54,7 +54,7 @@ const quoteAttributionsPayloadSchema = z.array(z.object({
 
 const quoteSourceFieldsSchema = z.object({
   source_type: z.string().max(100).trim().optional().default('manual'),
-  source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'document', 'other']).optional().nullable(),
+  source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other']).optional().nullable(),
   source_url: z.string().url().optional().nullable(),
   label: z.string().max(200).trim().optional().nullable(),
   translator_name: z.string().max(200).trim().optional().nullable(),
@@ -155,7 +155,7 @@ export const createQuoteSourceSchema = z.object({
   attribution_id: nullablePositiveInt.optional().default(null),
   occurrence_id: nullablePositiveInt.optional().default(null),
   source_type: z.string().min(1).max(100).trim(),
-  source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'document', 'other']).optional().nullable(),
+  source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other']).optional().nullable(),
   source_url: z.string().url().optional().nullable(),
   label: z.string().max(200).trim().optional().nullable(),
   locator_type: z.enum(['page', 'chapter', 'timecode']).optional().nullable(),

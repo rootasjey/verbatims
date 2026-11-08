@@ -953,6 +953,7 @@
       "source_medium_web_page": "Page web",
       "source_medium_transcript": "Transcription",
       "source_medium_audio": "Audio ou podcast",
+      "source_medium_audiovisual": "Audiovisuel",
       "source_medium_document": "Document",
       "source_medium_other": "Autre",
       "source_label": "Titre ou repère de la source",

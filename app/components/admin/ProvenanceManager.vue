@@ -82,7 +82,7 @@
     <div v-if="creatingSource" class="mt-3 border border-gray-200 p-3 dark:border-gray-700">
       <div class="grid gap-2 sm:grid-cols-2"><input v-model="sourceForm.source_type" placeholder="Source type" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><input v-model="sourceForm.label" placeholder="Label" class="border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"></div>
       <label class="mt-2 block text-xs text-gray-600 dark:text-gray-400">Medium
-        <select v-model="sourceForm.source_medium" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null">Not specified</option><option value="book">Book</option><option value="web_page">Web page</option><option value="transcript">Transcript</option><option value="audio">Audio</option><option value="document">Document</option><option value="other">Other</option></select>
+        <select v-model="sourceForm.source_medium" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null">Not specified</option><option value="book">Book</option><option value="web_page">Web page</option><option value="transcript">Transcript</option><option value="audio">Audio</option><option value="audiovisual">Audiovisual</option><option value="document">Document</option><option value="other">Other</option></select>
       </label>
       <label class="mt-2 block text-xs text-gray-600 dark:text-gray-400">Supports occurrence (optional)
         <select v-model="sourceForm.occurrence_id" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 dark:border-gray-600"><option :value="null">Attribution evidence</option><option v-for="item in attributionOccurrences" :key="item.id" :value="item.id">{{ occurrenceLabel(item.id) }}</option></select>
@@ -126,7 +126,7 @@
           <input v-model="sourceForm.label" placeholder="Label" class="border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600">
         </div>
         <label class="block text-xs text-gray-600 dark:text-gray-400">Medium
-          <select v-model="sourceForm.source_medium" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600"><option :value="null">Not specified</option><option value="book">Book</option><option value="web_page">Web page</option><option value="transcript">Transcript</option><option value="audio">Audio</option><option value="document">Document</option><option value="other">Other</option></select>
+          <select v-model="sourceForm.source_medium" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600"><option :value="null">Not specified</option><option value="book">Book</option><option value="web_page">Web page</option><option value="transcript">Transcript</option><option value="audio">Audio</option><option value="audiovisual">Audiovisual</option><option value="document">Document</option><option value="other">Other</option></select>
         </label>
         <label class="block text-xs text-gray-600 dark:text-gray-400">Supports occurrence (optional)
           <select v-model="sourceForm.occurrence_id" class="mt-1 w-full border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-600"><option :value="null">Attribution evidence</option><option v-for="item in attributionOccurrences" :key="item.id" :value="item.id">{{ occurrenceLabel(item.id) }}</option></select>

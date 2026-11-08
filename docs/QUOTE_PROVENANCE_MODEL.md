@@ -19,7 +19,9 @@ quotes
   write routes enforce this. Deleting an attribution detaches its sources.
 - Sources are optional. A quote has at most one primary source.
 - `quote_sources.source_type` retains the existing source-origin label. New
-  submissions record the normalized medium separately in `source_medium`.
+  submissions record the normalized medium separately in `source_medium`. Use `audiovisual`
+  when the cited witness is a film, TV episode, or online video; use `transcript` or `document`
+  when the cited witness is the transcript/subtitle text or screenplay itself.
 - `locator_type` and `locator_value` store an optional page, chapter, or
   timecode within a source. Timecodes are stored as `HH:MM:SS`; `MM:SS` input
   treats its first field as total minutes.

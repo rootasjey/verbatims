@@ -122,7 +122,7 @@ export interface QuoteSource {
   is_primary: boolean
 }
 
-export type QuoteSourceMedium = 'book' | 'web_page' | 'transcript' | 'audio' | 'document' | 'other'
+export type QuoteSourceMedium = 'book' | 'web_page' | 'transcript' | 'audio' | 'audiovisual' | 'document' | 'other'
 export type QuoteSourceLocatorType = 'page' | 'chapter' | 'timecode'
 
 export interface CreateQuoteSourceData {

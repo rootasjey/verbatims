@@ -237,7 +237,7 @@ CREATE TABLE IF NOT EXISTS quote_sources (
   attribution_id INTEGER,
   occurrence_id INTEGER,
   source_type TEXT NOT NULL,
-  source_medium TEXT CHECK (source_medium IN ('book', 'web_page', 'transcript', 'audio', 'document', 'other')),
+  source_medium TEXT CHECK (source_medium IN ('book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other')),
   source_url TEXT,
   label TEXT,
   locator_type TEXT CHECK (locator_type IN ('page', 'chapter', 'timecode')),

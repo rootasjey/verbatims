@@ -356,7 +356,7 @@ export const quoteSources = sqliteTable('quote_sources', {
   attributionId: integer('attribution_id').references(() => quoteAttributions.id, { onDelete: 'set null' }),
   occurrenceId: integer('occurrence_id').references(() => quoteOccurrences.id, { onDelete: 'set null' }),
   sourceType: text('source_type').notNull(),
-  sourceMedium: text('source_medium', { enum: ['book', 'web_page', 'transcript', 'audio', 'document', 'other'] }),
+  sourceMedium: text('source_medium', { enum: ['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other'] }),
   sourceUrl: text('source_url'),
   label: text('label'),
   locatorType: text('locator_type', { enum: ['page', 'chapter', 'timecode'] }),
