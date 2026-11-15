@@ -204,8 +204,14 @@ export default defineEventHandler(async (event) => {
       message: 'Quote saved as draft'
     }
   } catch (error: any) {
-    if ((error as any).statusCode) throw error
-    console.error('Error creating quote:', error)
-    throwServer(500, 'Failed to create quote')
+    const statusCode = Number(error?.statusCode)
+    if (statusCode > 0 && statusCode < 500) throw error
+
+    const errorId = crypto.randomUUID()
+    const statusMessage = statusCode >= 500 && typeof error?.statusMessage === 'string'
+      ? error.statusMessage
+      : 'Failed to create quote'
+    console.error('Error creating quote:', { errorId, error })
+    throwServer(statusCode >= 500 ? statusCode : 500, statusMessage, { errorId })
   }
 })

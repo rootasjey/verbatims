@@ -90,12 +90,14 @@ const props = withDefaults(defineProps<{
   targetType?: ReportTargetType
   targetId?: number
   category?: ReportCategory
+  initialMessage?: string
   imageReport?: { themeId: number; imageVariant: ThemeImageVariant }
   entityImageReport?: { targetType: EntityImageReportTargetType; targetId: number }
 }>(), {
   targetType: 'general',
   targetId: undefined,
   category: undefined,
+  initialMessage: '',
   imageReport: undefined,
   entityImageReport: undefined
 })
@@ -132,6 +134,7 @@ const {
 watch(
   () => isOpen.value,
   (open) => {
+  if (open && props.initialMessage) form.value.message = props.initialMessage
   if (!open || (!props.category && !props.imageReport && !props.entityImageReport)) return
   const category = props.imageReport || props.entityImageReport ? 'content' : props.category
   const found = categories.value.find(c => c.value === category)

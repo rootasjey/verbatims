@@ -52,6 +52,16 @@
 							{{ $t('components.dialogs.attribution_ready_for_next_quote') }}
 						</span>
 					</p>
+					<div v-if="submissionError" role="alert" aria-live="assertive" aria-atomic="true" class="mb-4 flex items-start gap-2 rounded-1.5 border border-red-200 bg-red-50 px-3 py-2.5 font-sans text-sm leading-relaxed text-red-900 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-100">
+						<NIcon name="i-ph-warning-circle" class="mt-0.5 h-4 w-4 shrink-0" />
+						<div class="min-w-0 break-words">
+							<p>{{ submissionError }}</p>
+							<p v-if="submissionErrorId" class="mt-1 text-xs">{{ $t('components.dialogs.quote_error_reference', { id: submissionErrorId }) }}</p>
+							<button v-if="submissionErrorId" type="button" class="mt-1 rounded-sm font-600 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 dark:focus-visible:ring-red-200" @click="reportSubmissionError">
+								{{ $t('components.dialogs.quote_error_report_action') }}
+							</button>
+						</div>
+					</div>
 
 					<div ref="stepViewportRef" :style="{ height: stepViewportHeight }" class="quote-step-viewport relative overflow-hidden" @transitionend.self="finishStepTransition">
 					<Transition :name="transitionName">
@@ -270,6 +280,12 @@
 			</div>
 		</template>
 	</NDrawer>
+
+	<ReportDrawer
+		v-model:open="showErrorReport"
+		category="bug"
+		:initial-message="errorReportMessage"
+	/>
 </template>
 
 <script lang="ts" setup>
@@ -300,6 +316,11 @@ const draftEditUrl = computed(() => ({
 	query: { edit: savedDraftId.value ? String(savedDraftId.value) : undefined },
 }))
 const draftSavedPulseActive = ref(false)
+const submissionError = ref('')
+const submissionErrorId = ref('')
+const showErrorReport = ref(false)
+const errorReportMessage = ref('')
+const route = useRoute()
 let draftSavedPulseTimer: ReturnType<typeof setTimeout> | undefined
 const quotePlaceholder = computed(() => {
 	if (!lastSavedQuote.value) return String($t('components.dialogs.quote_placeholder'))
@@ -315,7 +336,11 @@ const isOpen = computed({
 
 watch(isOpen, (open) => {
 	if (open) step.value = 1
-	else clearDraftSavedPulse()
+	else {
+		clearDraftSavedPulse()
+		submissionError.value = ''
+		submissionErrorId.value = ''
+	}
 })
 
 const {
@@ -356,6 +381,28 @@ const {
 } = useQuoteForm()
 
 const hasAttribution = computed(() => Boolean(form.value.selectedAuthor || form.value.selectedReference))
+
+const reportSubmissionError = async () => {
+	if (!submissionErrorId.value) return
+	const stepLabel = String($t(step.value === 1
+		? 'components.dialogs.quote_step'
+		: step.value === 2
+			? 'components.dialogs.attribution_step'
+			: 'components.dialogs.source_step'))
+	errorReportMessage.value = String($t('components.dialogs.quote_error_report_template', {
+		id: submissionErrorId.value,
+		page: route.path,
+		step: stepLabel,
+	}))
+	isOpen.value = false
+	await nextTick()
+	showErrorReport.value = true
+}
+
+watch([() => form.value, sources], () => {
+	submissionError.value = ''
+	submissionErrorId.value = ''
+}, { deep: true })
 
 const authorSuggestionsHeight = ref('0px')
 const referenceSuggestionsHeight = ref('0px')
@@ -398,8 +445,6 @@ const collapseSuggestionPanel = (element: Element, done: () => void) => {
 		panel.style.marginTop = '0px'
 	})
 }
-
-const { showErrorToast } = useErrorToast()
 
 const goToAuth = async (path: '/login' | '/signup') => {
 	isOpen.value = false
@@ -510,6 +555,8 @@ const handleCreateEscape = (event: KeyboardEvent) => {
 
 const submitQuote = async () => {
 	if (submitting.value) return
+	submissionError.value = ''
+	submissionErrorId.value = ''
 	if (form.value.content.trim().length < 2) return
 	if (!form.value.selectedAuthor && !form.value.selectedReference) {
 		void goToAttributionStep()
@@ -540,7 +587,12 @@ const submitQuote = async () => {
 		await goToQuoteStep()
 	} catch (error: any) {
 		console.error('Error submitting quote:', error)
-		showErrorToast(error, String($t('components.dialogs.toast_error')))
+		const errorId = error?.data?.data?.errorId ?? error?.data?.errorId
+		submissionErrorId.value = typeof errorId === 'string' ? errorId : ''
+		const message = error?.data?.statusMessage || error?.statusMessage || error?.data?.message || error?.message
+		submissionError.value = !message || message === 'Failed to create quote'
+			? String($t('components.dialogs.quote_save_failed'))
+			: String(message)
 	} finally {
 		submitting.value = false
 		if (draftSaved.value) nextTick(() => quoteInputRef.value?.$el?.querySelector('textarea')?.focus())

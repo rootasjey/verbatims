@@ -112,6 +112,7 @@ interface Props {
   targetType?: ReportTargetType
   targetId?: number
   category?: ReportCategory
+  initialMessage?: string
   imageReport?: { themeId: number; imageVariant: ThemeImageVariant }
   entityImageReport?: { targetType: EntityImageReportTargetType; targetId: number }
 }
@@ -125,6 +126,7 @@ const props = withDefaults(defineProps<Props>(), {
   targetType: 'general',
   targetId: undefined,
   category: undefined,
+  initialMessage: '',
   imageReport: undefined,
   entityImageReport: undefined
 })
@@ -166,6 +168,7 @@ watch(
     const category = props.imageReport || props.entityImageReport ? 'content' : props.category ?? 'bug'
     const found = categories.value.find(item => item.value === category)
     if (found) form.value.category = found
+    if (props.initialMessage) form.value.message = props.initialMessage
   }
 )
 
