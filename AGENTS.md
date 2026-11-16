@@ -351,6 +351,14 @@ wrangler d1 execute verbatims --remote --file server/db/migrations/sqlite/0021_a
 
 Cloudflare D1 does not support application-managed `BEGIN`, `COMMIT`, or `ROLLBACK` statements. For an atomic sequence of mutations, build the Drizzle statements first and execute them with `await db.batch(statements as any)`. Validate all inputs and required reads before the batch; if a generated parent ID makes batching impossible, use a compensating delete on failure rather than issuing manual transaction statements.
 
+Only pass D1-preparable Drizzle query builders to `db.batch()`. A `db.run()` statement creates a `SQLiteRaw` object without the prepared statement that Drizzle's D1 batch implementation binds, so it can fail with `Cannot read properties of undefined (reading 'bind')`. For raw `INSERT ... SELECT` statements, wrap the SQL with the table's Drizzle insert builder instead:
+
+```ts
+db.insert(table).select(sql`SELECT ...`)
+```
+
+Local `libsql` batch tests may accept `SQLiteRaw` and miss this production-only failure; cover D1 batch preparation with `drizzle-orm/d1` as well. See the regression test in `server/utils/__tests__/quote-creation.test.ts`.
+
 ### D1 bound-parameter limits
 
 D1 limits each individual SQL statement to 100 bound parameters. Count every placeholder in the statement, including `SET` values and fixed `WHERE` filters, not only the IDs inside an `IN (...)` list. When a list can approach the limit, use `chunkForD1Bindings` from `server/utils/d1-parameter-batching.ts`, passing the number of bindings per value and any other bound parameters. Apply the same budget to each statement inside `db.batch()` and to multi-row inserts.
