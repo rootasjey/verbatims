@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { eq } from 'drizzle-orm'
+import { drizzle as drizzleD1 } from 'drizzle-orm/d1'
 import { createTestDb, seedQuote, seedUser } from './test-db'
 
 let currentDb: ReturnType<typeof createTestDb>
@@ -14,6 +15,63 @@ beforeEach(() => {
 })
 
 describe('quote import batches', () => {
+  it('uses D1-preparable statements for quote creation with inline authors, references, and sources', async () => {
+    const { buildQuoteCreationStatements, buildQuoteImportUpsertStatements } = await import('../quote-creation')
+    const testDb = currentDb
+    const preparedQueries: string[] = []
+    const d1 = {
+      prepare(query: string) {
+        return {
+          bind(..._values: unknown[]) {
+            preparedQueries.push(query)
+            return { query }
+          },
+        }
+      },
+      async batch(queries: unknown[]) {
+        return queries.map(() => ({ results: [] }))
+      },
+    }
+    currentDb = {
+      ...testDb,
+      db: drizzleD1(d1 as never, { schema: testDb.schema }) as never,
+    }
+
+    const creation = buildQuoteCreationStatements({
+      requestKey: 'd1-inline-entities',
+      userId: 1,
+      payloadHash: 'payload-hash',
+      quote: { name: 'A quote', language: 'en' },
+      authorId: null,
+      referenceId: null,
+      newAuthor: { name: 'An author' },
+      newReference: { name: 'A reference', primaryType: 'book' },
+      primaryAttribution: { status: 'unverified' },
+      sources: [{ source_type: 'manual', source_medium: 'audiovisual', label: 'A source' }],
+    })
+
+    await currentDb.db.batch(creation.statements as never[])
+
+    const importStatements = buildQuoteImportUpsertStatements({
+      requestKey: 'd1-import-source',
+      userId: 1,
+      payloadHash: 'payload-hash',
+      quoteId: 1,
+      updateData: {},
+      authorId: 1,
+      referenceId: 1,
+      attributionIsPrimary: true,
+      source: { source_type: 'manual', source_url: 'https://example.com/source' },
+    })
+
+    await currentDb.db.batch(importStatements as never[])
+
+    expect(preparedQueries.some(query => query.includes('insert into "authors"'))).toBe(true)
+    expect(preparedQueries.some(query => query.includes('insert into "quote_references"'))).toBe(true)
+    expect(preparedQueries.some(query => query.includes('insert into "quote_attributions"'))).toBe(true)
+    expect(preparedQueries.some(query => query.includes('insert into "quote_sources"'))).toBe(true)
+  })
+
   it('creates and then reuses inline authors and references across batches', async () => {
     const { buildQuoteCreationStatements } = await import('../quote-creation')
     await seedUser(currentDb.db)

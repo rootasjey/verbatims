@@ -51,16 +51,13 @@ function buildImportedAuthorStatements(requestKey: string, author: InlineAuthor)
   const birth = authorLifeDateColumnsFromInput('birth', authorInput)
   const death = authorLifeDateColumnsFromInput('death', authorInput)
   return [
-    db.run(sql`INSERT INTO authors (
-      name, is_fictional, job, description,
-      birth_date, birth_year, birth_era, birth_month, birth_day, birth_is_approximate, birth_calendar, birth_location,
-      death_date, death_year, death_era, death_month, death_day, death_is_approximate, death_calendar, death_location,
-      image_url
-    ) SELECT
-      ${author.name}, ${author.isFictional ?? false}, ${author.job ?? null}, ${author.description ?? null},
+    db.insert(schema.authors).select(sql`SELECT
+      NULL, ${author.name}, ${author.isFictional ?? false},
       ${birth.birthDate ?? null}, ${birth.birthYear ?? null}, ${birth.birthEra ?? 'ce'}, ${birth.birthMonth ?? null}, ${birth.birthDay ?? null}, ${birth.birthIsApproximate ?? false}, ${birth.birthCalendar ?? 'gregorian-proleptic'}, ${author.birth_location ?? null},
       ${death.deathDate ?? null}, ${death.deathYear ?? null}, ${death.deathEra ?? 'ce'}, ${death.deathMonth ?? null}, ${death.deathDay ?? null}, ${death.deathIsApproximate ?? false}, ${death.deathCalendar ?? 'gregorian-proleptic'}, ${author.death_location ?? null},
-      ${author.image_url ?? null}
+      ${author.job ?? null}, ${author.description ?? null}, ${author.image_url ?? null},
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      '[]', 0, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
     FROM quote_creation_requests
     WHERE request_key = ${requestKey}
       AND NOT EXISTS (SELECT 1 FROM authors WHERE LOWER(name) = LOWER(${author.name}))`),
@@ -74,8 +71,10 @@ function buildImportedAuthorStatements(requestKey: string, author: InlineAuthor)
 
 function buildImportedReferenceStatements(requestKey: string, reference: InlineReference) {
   return [
-    db.run(sql`INSERT INTO quote_references (name, original_language, primary_type, description, release_date)
-      SELECT ${reference.name}, ${reference.originalLanguage ?? 'en'}, ${reference.primaryType}, ${reference.description ?? null}, ${reference.releaseDate ?? null}
+    db.insert(schema.quoteReferences).select(sql`SELECT
+      NULL, ${reference.name}, ${reference.originalLanguage ?? 'en'}, ${reference.releaseDate ?? null}, ${reference.description ?? null}, ${reference.primaryType},
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      '[]', 0, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       FROM quote_creation_requests
       WHERE request_key = ${requestKey}
         AND NOT EXISTS (SELECT 1 FROM quote_references WHERE LOWER(name) = LOWER(${reference.name}))`),
@@ -412,8 +411,8 @@ export function buildQuoteImportUpsertStatements(input: QuoteImportUpsertBatchIn
       .set({ isPrimary: true })
       .where(eq(schema.quoteAttributions.id, input.existingAttributionId)))
   } else if (input.existingAttributionId == null && !input.skipAttribution) {
-    statements.push(db.run(sql`INSERT INTO quote_attributions (quote_id, author_id, reference_id, is_primary, status, created_by)
-      SELECT quote_id, author_id, reference_id, ${input.attributionIsPrimary}, 'unverified', ${input.userId}
+    statements.push(db.insert(schema.quoteAttributions).select(sql`SELECT
+      NULL, quote_id, author_id, reference_id, ${input.attributionIsPrimary}, 'unverified', NULL, NULL, NULL, ${input.userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       FROM quote_creation_requests
       WHERE request_key = ${requestKey}
         AND NOT EXISTS (
@@ -437,12 +436,9 @@ export function buildQuoteImportUpsertStatements(input: QuoteImportUpsertBatchIn
   if (input.source) {
     const sourceType = input.source.source_type ?? 'manual'
     const sourceUrl = input.source.source_url ?? null
-    statements.push(db.run(sql`INSERT INTO quote_sources (
-      quote_id, attribution_id, occurrence_id, source_type, source_medium, source_url,
-      label, locator_type, locator_value, translator_name, verification_status, notes, is_primary, created_by
-    ) SELECT
-      quote_id, primary_attribution_id, NULL, ${sourceType}, NULL, ${sourceUrl},
-      NULL, NULL, NULL, NULL, 'unverified', NULL, false, ${input.userId}
+    statements.push(db.insert(schema.quoteSources).select(sql`SELECT
+      NULL, quote_id, primary_attribution_id, NULL, ${sourceType}, NULL, ${sourceUrl},
+      NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, NULL, false, ${input.userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
     FROM quote_creation_requests
     WHERE request_key = ${requestKey}
       AND NOT EXISTS (
