@@ -5,22 +5,31 @@ import { getQuoteProvenance, syncPrimarySource } from '~~/server/utils/quote-pro
 import { detectSubmittedQuoteLanguage } from '~~/server/utils/quote-language'
 import { getAuditedBatchRow, runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit'
 import { buildQuoteCreationStatements, findQuoteCreationRequest, hashQuoteCreationPayload, normalizeQuoteCreationRequestKey, scopeQuoteCreationRequestKey } from '~~/server/utils/quote-creation'
+import { collectQuoteSubmissionStrings, serializeQuoteCreationError } from '~~/server/utils/quote-error-logging'
 
 export default defineEventHandler(async (event) => {
+  const sensitiveValues: string[] = []
+  let failureStage = 'authenticate'
+
   try {
     const { user } = await requireAuth(event)
+    failureStage = 'validate_request'
     const body = await readValidatedBody(event, createQuoteSchema.parse)
+    sensitiveValues.push(...collectQuoteSubmissionStrings(body))
     const requestedPrimary = body.attributions.find(attribution => attribution.is_primary)!
     const requestKey = normalizeQuoteCreationRequestKey(getHeader(event, 'idempotency-key'))
     const payloadHash = await hashQuoteCreationPayload(body)
+    failureStage = 'check_idempotency'
     const priorRequest = await findQuoteCreationRequest(requestKey, user.id, payloadHash)
     let quoteId = priorRequest?.quoteId ?? undefined
 
     if (!priorRequest && user.role === 'user') {
+      failureStage = 'check_rate_limit'
       await requireRateLimit(event, `create-quote:user:${user.id}`, 10, 3600, 'You have reached the limit of quote creations. Please try again later.')
     }
 
     if (!priorRequest) {
+      failureStage = 'validate_attributions'
       for (const attribution of body.attributions) {
         if (attribution.author_id != null) {
           const author = await db.select({ id: schema.authors.id })
@@ -51,6 +60,7 @@ export default defineEventHandler(async (event) => {
     if (priorRequest && !priorRequest.quoteId) throwServer(409, 'This Idempotency-Key was already used')
 
     if (!priorRequest) {
+      failureStage = 'check_duplicate_quote'
       const similarQuotes = await db.select({ id: schema.quotes.id })
         .from(schema.quotes)
         .where(and(
@@ -62,6 +72,7 @@ export default defineEventHandler(async (event) => {
       if (similarQuotes) throwServer(409, 'A similar quote already exists')
 
       const isPrivileged = user.role === 'admin' || user.role === 'moderator'
+      failureStage = 'detect_language_and_tags'
       const language = await detectSubmittedQuoteLanguage(event, body.name)
       const requestedTagIds = [...new Set((body.tags ?? []).map(Number).filter(Number.isInteger))]
       const validTags = requestedTagIds.length
@@ -103,6 +114,7 @@ export default defineEventHandler(async (event) => {
       })
 
       try {
+        failureStage = 'write_quote_batch'
         const results = await runWebEditorialAuditedBatch(event, user.id, statements, 'web_user')
         quoteId = getAuditedBatchRow<{ quoteId: number }>(results, quoteIdResultIndex + 1).quoteId
       } catch (error) {
@@ -132,6 +144,7 @@ export default defineEventHandler(async (event) => {
 
     if (!quoteId) throwServer(500, 'Quote creation did not return an ID')
 
+    failureStage = 'fetch_created_quote'
     // Fetch the created quote with all related data
     const createdQuote = await db.select({
       id: schema.quotes.id,
@@ -160,6 +173,7 @@ export default defineEventHandler(async (event) => {
     }
     const c = createdQuote!
 
+    failureStage = 'fetch_quote_tags'
     // Fetch tags for the quote
     const tags = await db.select({
       id: schema.tags.id,
@@ -171,6 +185,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quoteTags.quoteId, quoteId))
     .all()
 
+    failureStage = 'fetch_quote_provenance'
     // Transform the result
     const transformedQuote: QuoteWithMetadata = {
       id: c.id,
@@ -211,7 +226,12 @@ export default defineEventHandler(async (event) => {
     const statusMessage = statusCode >= 500 && typeof error?.statusMessage === 'string'
       ? error.statusMessage
       : 'Failed to create quote'
-    console.error('Error creating quote:', { errorId, error })
+    console.error(JSON.stringify({
+      event: 'quote.create.failed',
+      errorId,
+      stage: failureStage,
+      error: serializeQuoteCreationError(error, sensitiveValues),
+    }))
     throwServer(statusCode >= 500 ? statusCode : 500, statusMessage, { errorId })
   }
 })
