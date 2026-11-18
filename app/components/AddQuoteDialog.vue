@@ -149,6 +149,18 @@
         </Transition>
 
         <div v-if="canEditProvenance" class="space-y-4 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
+          <NTabs v-model="activeProvenanceTab" :items="provenanceTabs" />
+          <div v-if="activeProvenanceTab === 'sources' && provenance" class="max-h-80 overflow-auto">
+            <AdminProvenanceManager
+              :quote-id="editQuote!.id"
+              :attributions="provenance.attributions"
+              :sources="provenance.sources"
+              :occurrences="provenance.occurrences"
+              panel="sources"
+              @changed="loadProvenance"
+            />
+          </div>
+          <div v-else-if="activeProvenanceTab === 'attributions'">
           <div>
             <h3 class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">{{ $t('components.dialogs.provenance_title') }}</h3>
             <p class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.provenance_hint') }}</p>
@@ -178,6 +190,7 @@
                 class="w-full rounded-1 border border-gray-300 bg-transparent px-3 py-2 font-sans text-sm text-gray-900 placeholder-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-600 dark:text-gray-100 dark:placeholder-gray-500"
               />
             </div>
+          </div>
           </div>
         </div>
       </section>
@@ -284,7 +297,26 @@ const isOpen = computed({
 
 const isEditMode = computed(() => !!props.editQuote)
 const canUseForm = computed(() => Boolean(user.value) || isEditMode.value)
-const canEditProvenance = computed(() => isEditMode.value && ['admin', 'moderator'].includes(user.value?.role || ''))
+const canEditProvenance = computed(() => isEditMode.value && ['draft', 'approved'].includes(props.editQuote?.status || '') && ['admin', 'moderator'].includes(user.value?.role || ''))
+const activeProvenanceTab = ref<'attributions' | 'sources'>('attributions')
+const provenanceTabs = [
+  { name: 'Attribution', value: 'attributions', _tabsTrigger: { leading: 'i-ph-git-branch' } },
+  { name: 'Sources', value: 'sources', _tabsTrigger: { leading: 'i-ph-link' } },
+]
+const provenance = ref<{ attributions: QuoteAttribution[]; sources: QuoteSource[]; occurrences: QuoteOccurrence[] } | null>(null)
+const loadProvenance = async () => {
+  if (!props.editQuote?.id || !canEditProvenance.value) return
+  try {
+    const [attributionsResponse, sourcesResponse, occurrencesResponse] = await Promise.all([
+      $fetch<ApiResponse<QuoteAttribution[]>>(`/api/admin/quotes/${props.editQuote.id}/attributions`),
+      $fetch<ApiResponse<QuoteSource[]>>(`/api/admin/quotes/${props.editQuote.id}/sources`),
+      $fetch<ApiResponse<QuoteOccurrence[]>>(`/api/admin/quotes/${props.editQuote.id}/occurrences`),
+    ])
+    provenance.value = { attributions: attributionsResponse.data || [], sources: sourcesResponse.data || [], occurrences: occurrencesResponse.data || [] }
+  } catch (error) {
+    console.error('Failed to load quote provenance:', error)
+  }
+}
 const dialogTitle = computed(() => isEditMode.value ? String($t('components.dialogs.edit_quote')) : String($t('components.dialogs.add_quote')))
 const submitButtonText = computed(() => isEditMode.value ? String($t('components.dialogs.update')) : String($t('common.save')))
 const {
@@ -496,7 +528,10 @@ watch([() => form.value, sources], () => {
 }, { deep: true })
 
 watch(() => props.editQuote, (newQuote) => {
+  provenance.value = null
+  activeProvenanceTab.value = 'attributions'
   if (newQuote) {
+    void loadProvenance()
     initializeFormForEdit(newQuote)
     // Selected entities render as chips in the shared two-step form.
     authorQuery.value = ''
