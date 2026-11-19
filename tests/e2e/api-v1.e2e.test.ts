@@ -2,6 +2,7 @@ import { describe, test, expect } from 'vitest'
 import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
 import { createClient } from '@libsql/client'
 import { getParisDateKey } from '../../server/utils/theme-selection'
+import { isPersistedQuoteSource, resolveQuoteSourceAttributionId } from '../../app/utils/quote-source-edit'
 
 const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
 const testDb = await seedTestDb()
@@ -457,6 +458,64 @@ describe('Admin quote provenance routes', () => {
     expect(reopenedQuote.rows[0]?.status).toBe(status)
 
     await Promise.all([created.data.id, added.data.id].map(sourceId => $fetch(`/api/admin/quotes/${quoteId}/sources/${sourceId}`, {
+      ...adminHeaders(),
+      method: 'DELETE',
+    })))
+  })
+
+  test('saves sources after an approved quote edit replaces its primary attribution', async () => {
+    const originalSources = await $fetch('/api/admin/quotes/1/sources', adminHeaders())
+    expect(originalSources.data).toHaveLength(1)
+    const staleSource = originalSources.data[0]
+
+    await $fetch('/api/quotes/1', {
+      ...adminHeaders(),
+      method: 'PUT',
+      body: { attributions: [{ author_id: 1, reference_id: 1, is_primary: true }] },
+    })
+
+    const attributions = await $fetch('/api/admin/quotes/1/attributions', adminHeaders())
+    const currentPrimary = attributions.data.find((attribution: { is_primary: boolean }) => attribution.is_primary)
+    const sourcesAfterAttributionEdit = await $fetch('/api/admin/quotes/1/sources', adminHeaders())
+    const currentSourceIds = new Set(sourcesAfterAttributionEdit.data.map((source: { id: number }) => source.id))
+    const currentAttributionIds = new Set(attributions.data.map((attribution: { id: number }) => attribution.id))
+    const editedSourceBody = {
+      attribution_id: resolveQuoteSourceAttributionId(staleSource.attribution_id, currentAttributionIds, currentPrimary.id),
+      source_type: staleSource.source_type,
+      source_url: 'https://example.com/edited-after-attribution-replacement',
+      label: 'Edited after attribution replacement',
+      is_primary: true,
+    }
+    if (isPersistedQuoteSource(staleSource.id, currentSourceIds)) {
+      await $fetch(`/api/admin/quotes/1/sources/${staleSource.id}`, { ...adminHeaders(), method: 'PUT', body: editedSourceBody })
+    } else {
+      await $fetch('/api/admin/quotes/1/sources', { ...adminHeaders(), method: 'POST', body: editedSourceBody })
+    }
+    await $fetch('/api/admin/quotes/1/sources', {
+      ...adminHeaders(),
+      method: 'POST',
+      body: {
+        ...editedSourceBody,
+        source_url: 'https://example.com/second-after-attribution-replacement',
+        label: 'Second source after attribution replacement',
+        is_primary: false,
+      },
+    })
+
+    const reopenedSources = await $fetch('/api/admin/quotes/1/sources', adminHeaders())
+    const reopenedAttributions = await $fetch('/api/admin/quotes/1/attributions', adminHeaders())
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    const reopenedQuote = await localDb.execute({ sql: 'SELECT status FROM quotes WHERE id = ?', args: [1] })
+    localDb.close()
+
+    expect(reopenedSources.data).toHaveLength(2)
+    expect(reopenedSources.data.map((source: { label: string }) => source.label)).toContain('Edited after attribution replacement')
+    expect(reopenedSources.data.map((source: { label: string }) => source.label)).toContain('Second source after attribution replacement')
+    expect(reopenedSources.data.every((source: { attribution_id: number }) => source.attribution_id === currentPrimary.id)).toBe(true)
+    expect(reopenedAttributions.data.map((attribution: { id: number }) => attribution.id)).not.toContain(staleSource.attribution_id)
+    expect(reopenedQuote.rows[0]?.status).toBe('approved')
+
+    await Promise.all(reopenedSources.data.map((source: { id: number }) => $fetch(`/api/admin/quotes/1/sources/${source.id}`, {
       ...adminHeaders(),
       method: 'DELETE',
     })))

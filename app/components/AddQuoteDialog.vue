@@ -196,6 +196,7 @@
 </template>
 
 <script setup lang="ts">
+import { isPersistedQuoteSource, resolveQuoteSourceAttributionId } from '~/utils/quote-source-edit'
 import OverflowingTabLabel from '~/components/OverflowingTabLabel.vue'
 import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
@@ -261,7 +262,6 @@ type EditableQuoteSource = CreateQuoteSourceData & {
   verification_status?: QuoteProvenanceStatus
   is_primary?: boolean
 }
-const loadedSources = ref<QuoteSource[]>([])
 const sourcesLoaded = ref(false)
 const loadProvenance = async () => {
   if (!props.editQuote?.id || !canEditSources.value) return
@@ -275,7 +275,6 @@ const loadProvenance = async () => {
     const attributions = attributionsResponse.data || []
     const sourceData = sourcesResponse.data || []
     const primaryAttribution = attributions.find(attribution => attribution.is_primary) ?? attributions[0]
-    loadedSources.value = sourceData
     sources.value = sourceData.map(source => ({
       id: source.id,
       attribution_id: source.attribution_id ?? primaryAttribution?.id ?? null,
@@ -496,7 +495,6 @@ watch([() => form.value, sources], () => {
 }, { deep: true })
 
 watch(() => props.editQuote, (newQuote) => {
-  loadedSources.value = []
   if (newQuote) {
     initializeFormForEdit(newQuote)
     // Selected entities render as chips in the shared quote form.
@@ -645,19 +643,25 @@ const saveEditedSources = async (quoteId: number) => {
   const quoteAttributions = attributions.data ?? []
   const primaryAttribution = quoteAttributions.find(attribution => attribution.is_primary) ?? quoteAttributions[0]
   if (!primaryAttribution) throw new Error('A quote requires a primary attribution to record sources')
+  const attributionIds = new Set(quoteAttributions.map(attribution => attribution.id))
+  const currentSourcesResponse = await $fetch<ApiResponse<QuoteSource[]>, '/api/admin/quotes/:id/sources'>(`/api/admin/quotes/${quoteId}/sources` as '/api/admin/quotes/:id/sources')
+  const currentSources = currentSourcesResponse.data ?? []
+  const currentSourceIds = new Set(currentSources.map(source => source.id))
 
   const editedSources = (sources.value as EditableQuoteSource[]).filter(hasSourceContent)
-  const retainedIds = new Set(editedSources.map(source => source.id).filter((id): id is number => typeof id === 'number'))
+  const retainedIds = new Set(editedSources
+    .map(source => source.id)
+    .filter((id): id is number => isPersistedQuoteSource(id, currentSourceIds)))
   const path = `/api/admin/quotes/${quoteId}/sources`
 
-  for (const source of loadedSources.value) {
+  for (const source of currentSources) {
     if (retainedIds.has(source.id)) continue
     await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources/:sid'>(`${path}/${source.id}` as '/api/admin/quotes/:id/sources/:sid', { method: 'DELETE' })
   }
 
   const hasPrimary = editedSources.some(source => source.is_primary)
   const payloadFor = (source: EditableQuoteSource, index: number) => ({
-    attribution_id: source.attribution_id ?? primaryAttribution.id,
+    attribution_id: resolveQuoteSourceAttributionId(source.attribution_id, attributionIds, primaryAttribution.id),
     occurrence_id: source.occurrence_id ?? null,
     source_type: source.source_type || 'manual',
     source_medium: source.source_medium ?? null,
@@ -675,7 +679,7 @@ const saveEditedSources = async (quoteId: number) => {
     .sort((a, b) => Number(b.body.is_primary) - Number(a.body.is_primary))
 
   for (const { source, body } of orderedSources) {
-    if (source.id) {
+    if (isPersistedQuoteSource(source.id, currentSourceIds)) {
       await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources/:sid'>(`${path}/${source.id}` as '/api/admin/quotes/:id/sources/:sid', { method: 'PUT', body })
     } else {
       await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources'>(path as '/api/admin/quotes/:id/sources', { method: 'POST', body })
