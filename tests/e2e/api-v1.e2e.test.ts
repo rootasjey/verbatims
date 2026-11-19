@@ -446,13 +446,20 @@ describe('Admin quote provenance routes', () => {
     const reopenedSources = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
     const reopenedSource = reopenedSources.data.find((source: { id: number }) => source.id === created.data.id)
     const reopenedAddedSource = reopenedSources.data.find((source: { id: number }) => source.id === added.data.id)
-    const reopenedQuote = await $fetch(`/api/quotes/${quoteId}`)
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    const reopenedQuote = await localDb.execute({ sql: 'SELECT status FROM quotes WHERE id = ?', args: [quoteId] })
+    localDb.close()
 
     expect(reopenedSource.source_url).toBe('https://example.com/edited-source')
     expect(reopenedSource.label).toBe('Edited source')
     expect(reopenedAddedSource.source_url).toBe('https://example.com/second-source')
     expect(reopenedAddedSource.label).toBe('Second source')
-    expect(reopenedQuote.data.status).toBe(status)
+    expect(reopenedQuote.rows[0]?.status).toBe(status)
+
+    await Promise.all([created.data.id, added.data.id].map(sourceId => $fetch(`/api/admin/quotes/${quoteId}/sources/${sourceId}`, {
+      ...adminHeaders(),
+      method: 'DELETE',
+    })))
   })
 
   test('rejects provenance CRUD without moderator authentication', async () => {
