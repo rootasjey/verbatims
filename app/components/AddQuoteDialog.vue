@@ -14,14 +14,14 @@
     @close="closeDialog"
   >
     <template v-if="canUseForm" #header-progress>
-      <div :class="['grid gap-3', isEditMode ? 'grid-cols-2' : 'grid-cols-3']" :aria-label="String($t('components.dialogs.quote_form_steps'))">
+      <div :class="['grid gap-3', canEditSources || !isEditMode ? 'grid-cols-3' : 'grid-cols-2']" :aria-label="String($t('components.dialogs.quote_form_steps'))">
         <button type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.quote_step'))" :aria-current="quoteStep === 1 ? 'step' : undefined" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors', quoteStep === 1 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToQuoteStep">
           <OverflowingTabLabel number="01" :label="String($t('components.dialogs.quote_step'))" />
         </button>
         <button type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.attribution_step'))" :aria-current="quoteStep === 2 ? 'step' : undefined" :disabled="form.content.trim().length < 2" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', quoteStep === 2 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToAttributionStep">
           <OverflowingTabLabel number="02" :label="String($t('components.dialogs.attribution_step'))" />
         </button>
-        <button v-if="!isEditMode" type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.source_step'))" :aria-current="quoteStep === 3 ? 'step' : undefined" :disabled="form.content.trim().length < 2 || !hasAttribution || submitting" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', quoteStep === 3 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToSourceStep">
+        <button v-if="!isEditMode || canEditSources" type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.source_step'))" :aria-current="quoteStep === 3 ? 'step' : undefined" :disabled="form.content.trim().length < 2 || !hasAttribution || submitting || (isEditMode && !sourcesLoaded)" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', quoteStep === 3 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToSourceStep">
           <OverflowingTabLabel number="03" :label="String($t('components.dialogs.source_step'))" />
         </button>
       </div>
@@ -148,54 +148,9 @@
           </p>
         </Transition>
 
-        <div v-if="canEditProvenance" class="space-y-4 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
-          <NTabs v-model="activeProvenanceTab" :items="provenanceTabs" />
-          <div v-if="activeProvenanceTab === 'sources' && provenance" class="max-h-80 overflow-auto">
-            <AdminProvenanceManager
-              :quote-id="editQuote!.id"
-              :attributions="provenance.attributions"
-              :sources="provenance.sources"
-              :occurrences="provenance.occurrences"
-              panel="sources"
-              @changed="loadProvenance"
-            />
-          </div>
-          <div v-else-if="activeProvenanceTab === 'attributions'">
-          <div>
-            <h3 class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">{{ $t('components.dialogs.provenance_title') }}</h3>
-            <p class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.provenance_hint') }}</p>
-          </div>
-          <div class="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.provenance_source_type') }}</label>
-              <NCombobox
-                v-model="selectedSourceType"
-                :items="sourceTypeOptions"
-                by="value"
-                :disabled="submitting"
-                :_combobox-input="{ placeholder: $t('components.dialogs.search_source_type'), class: 'text-sm' }"
-                :_combobox-list="{ class: 'min-w-[220px]' }"
-                :_combobox-trigger="{ btn: 'outline-gray', size: 'sm', trailing: 'i-lucide-chevron-down', class: 'w-full justify-between rounded-lg' }"
-              >
-                <template #trigger="{ modelValue }">{{ modelValue?.label || $t('components.dialogs.no_source_type') }}</template>
-              </NCombobox>
-            </div>
-            <div>
-              <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.source_url') }}</label>
-              <input
-                v-model="form.sourceUrl"
-                type="url"
-                placeholder="https://..."
-                :disabled="submitting"
-                class="w-full rounded-1 border border-gray-300 bg-transparent px-3 py-2 font-sans text-sm text-gray-900 placeholder-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-600 dark:text-gray-100 dark:placeholder-gray-500"
-              />
-            </div>
-          </div>
-          </div>
-        </div>
       </section>
 
-      <section v-else key="sources" data-quote-step="3" class="py-2">
+      <section v-else-if="quoteStep === 3" key="sources" data-quote-step="3" class="py-2">
         <QuoteSourcesEditor v-model="sources" :disabled="submitting" />
       </section>
       </Transition>
@@ -226,7 +181,7 @@
         <NButton v-if="quoteStep === 1" btn="solid-black" type="button" :disabled="form.content.trim().length < 2 || submitting" @click="goToAttributionStep">
           {{ $t('common.next') }}<NIcon name="i-ph-arrow-right" class="ml-2 h-4 w-4" />
         </NButton>
-        <NButton v-else btn="solid-black" type="submit" :disabled="!hasAttribution || submitting" :loading="submitting" class="min-h-10 rounded-1 px-4">
+        <NButton v-else btn="solid-black" type="submit" :disabled="!hasAttribution || submitting || (quoteStep === 3 && isEditMode && !sourcesLoaded)" :loading="submitting" class="min-h-10 rounded-1 px-4">
           {{ isEditMode ? $t('components.dialogs.update') : $t('components.dialogs.save_as_draft') }}
         </NButton>
       </div>
@@ -297,24 +252,46 @@ const isOpen = computed({
 
 const isEditMode = computed(() => !!props.editQuote)
 const canUseForm = computed(() => Boolean(user.value) || isEditMode.value)
-const canEditProvenance = computed(() => isEditMode.value && ['draft', 'approved'].includes(props.editQuote?.status || '') && ['admin', 'moderator'].includes(user.value?.role || ''))
-const activeProvenanceTab = ref<'attributions' | 'sources'>('attributions')
-const provenanceTabs = [
-  { name: 'Attribution', value: 'attributions', _tabsTrigger: { leading: 'i-ph-git-branch' } },
-  { name: 'Sources', value: 'sources', _tabsTrigger: { leading: 'i-ph-link' } },
-]
-const provenance = ref<{ attributions: QuoteAttribution[]; sources: QuoteSource[]; occurrences: QuoteOccurrence[] } | null>(null)
-const adminQuoteProvenancePath = (quoteId: number, resource: string): string => `/api/admin/quotes/${quoteId}/${resource}`
+const canEditSources = computed(() => isEditMode.value && ['draft', 'approved'].includes(props.editQuote?.status || '') && ['admin', 'moderator'].includes(user.value?.role || ''))
+type EditableQuoteSource = CreateQuoteSourceData & {
+  id?: number
+  attribution_id?: number | null
+  occurrence_id?: number | null
+  source_type?: string
+  verification_status?: QuoteProvenanceStatus
+  is_primary?: boolean
+}
+const loadedSources = ref<QuoteSource[]>([])
+const sourcesLoaded = ref(false)
 const loadProvenance = async () => {
-  if (!props.editQuote?.id || !canEditProvenance.value) return
+  if (!props.editQuote?.id || !canEditSources.value) return
+  sourcesLoaded.value = false
   try {
     const quoteId = props.editQuote.id
-    const [attributionsResponse, sourcesResponse, occurrencesResponse] = await Promise.all([
-      $fetch<ApiResponse<QuoteAttribution[]>, '/api/admin/quotes/:id/attributions'>(adminQuoteProvenancePath(quoteId, 'attributions') as '/api/admin/quotes/:id/attributions'),
-      $fetch<ApiResponse<QuoteSource[]>, '/api/admin/quotes/:id/sources'>(adminQuoteProvenancePath(quoteId, 'sources') as '/api/admin/quotes/:id/sources'),
-      $fetch<ApiResponse<QuoteOccurrence[]>, '/api/admin/quotes/:id/occurrences'>(adminQuoteProvenancePath(quoteId, 'occurrences') as '/api/admin/quotes/:id/occurrences'),
+    const [attributionsResponse, sourcesResponse] = await Promise.all([
+      $fetch<ApiResponse<QuoteAttribution[]>, '/api/admin/quotes/:id/attributions'>(`/api/admin/quotes/${quoteId}/attributions` as '/api/admin/quotes/:id/attributions'),
+      $fetch<ApiResponse<QuoteSource[]>, '/api/admin/quotes/:id/sources'>(`/api/admin/quotes/${quoteId}/sources` as '/api/admin/quotes/:id/sources'),
     ])
-    provenance.value = { attributions: attributionsResponse.data || [], sources: sourcesResponse.data || [], occurrences: occurrencesResponse.data || [] }
+    const attributions = attributionsResponse.data || []
+    const sourceData = sourcesResponse.data || []
+    const primaryAttribution = attributions.find(attribution => attribution.is_primary) ?? attributions[0]
+    loadedSources.value = sourceData
+    sources.value = sourceData.map(source => ({
+      id: source.id,
+      attribution_id: source.attribution_id ?? primaryAttribution?.id ?? null,
+      occurrence_id: source.occurrence_id ?? null,
+      source_type: source.source_type,
+      source_medium: source.source_medium ?? null,
+      source_url: source.source_url ?? null,
+      label: source.label ?? null,
+      locator_type: source.locator_type ?? null,
+      locator_value: source.locator_value ?? null,
+      translator_name: source.translator_name ?? null,
+      verification_status: source.verification_status,
+      notes: source.notes ?? null,
+      is_primary: source.is_primary,
+    }))
+    sourcesLoaded.value = true
   } catch (error) {
     console.error('Failed to load quote provenance:', error)
   }
@@ -359,18 +336,6 @@ const {
   initializeFormForEdit,
   createPayload
 } = useQuoteForm()
-
-type SourceTypeOption = { label: string; value: string }
-
-const sourceTypeOptions = computed<SourceTypeOption[]>(() => [
-  { label: String($t('components.dialogs.no_source_type')), value: '' },
-  { label: String($t('components.dialogs.source_type_wikiquote_en')), value: 'wikiquote-en' },
-  { label: String($t('components.dialogs.source_type_wikiquote_fr')), value: 'wikiquote-fr' }
-])
-const selectedSourceType = computed({
-  get: () => sourceTypeOptions.value.find(option => option.value === form.value.sourceType) ?? sourceTypeOptions.value[0],
-  set: (option: SourceTypeOption | null) => { form.value.sourceType = option?.value ?? '' }
-})
 
 const authorSuggestionsHeight = ref('0px')
 const referenceSuggestionsHeight = ref('0px')
@@ -516,6 +481,7 @@ watch(isOpen, (open) => {
   if (open && canUseForm.value) {
     quoteStep.value = 1
     nextTick(() => quoteTextarea.value?.focus())
+    void loadProvenance()
   }
   else {
     clearDraftSavedPulse()
@@ -530,14 +496,13 @@ watch([() => form.value, sources], () => {
 }, { deep: true })
 
 watch(() => props.editQuote, (newQuote) => {
-  provenance.value = null
-  activeProvenanceTab.value = 'attributions'
+  loadedSources.value = []
   if (newQuote) {
-    void loadProvenance()
     initializeFormForEdit(newQuote)
-    // Selected entities render as chips in the shared two-step form.
+    // Selected entities render as chips in the shared quote form.
     authorQuery.value = ''
     referenceQuery.value = ''
+    if (isOpen.value) void loadProvenance()
   }
   else resetForm()
 }, { immediate: true })
@@ -570,7 +535,8 @@ const goToAttributionStep = async () => {
 }
 
 const goToSourceStep = async () => {
-  if (isEditMode.value || form.value.content.trim().length < 2 || !hasAttribution.value) return
+  if ((isEditMode.value && !canEditSources.value) || form.value.content.trim().length < 2 || !hasAttribution.value) return
+  if (isEditMode.value && !sourcesLoaded.value) return
   await changeStep(3)
 }
 
@@ -611,15 +577,9 @@ const submitQuote = async () => {
   try {
     const payload = createPayload()
     if (isEditMode.value && props.editQuote) {
-      const { language: _language, sources: _sources, ...baseUpdatePayload } = payload
-      const updatePayload = canEditProvenance.value
-        ? {
-            ...baseUpdatePayload,
-            source_type: form.value.sourceType || null,
-            source_url: form.value.sourceUrl || null,
-          }
-        : baseUpdatePayload
+      const { language: _language, sources: _sources, ...updatePayload } = payload
       await submitUpdateQuote(props.editQuote.id, updatePayload)
+      if (quoteStep.value === 3 && canEditSources.value) await saveEditedSources(props.editQuote.id)
       return
     }
     await submitCreateQuote(payload)
@@ -661,14 +621,68 @@ const submitCreateQuote = async (payload: CreateQuoteData) => {
 
 const submitUpdateQuote = async (
   editQuoteId: number,
-  payload: Omit<CreateQuoteData, 'language'> & { source_type?: string | null; source_url?: string | null },
+  payload: Omit<CreateQuoteData, 'language' | 'sources'>,
 ) => {
   const updateQuotePath = `/api/quotes/${editQuoteId}` as '/api/quotes/:id'
   await $fetch<{ success: boolean }, '/api/quotes/:id'>(updateQuotePath, {
     method: 'PUT',
     body: payload
   })
-  publishMutation({ type: 'updated', quoteIds: [editQuoteId] })
+}
+
+const hasSourceContent = (source: CreateQuoteSourceData) => Boolean(
+  source.source_url?.trim()
+  || source.label?.trim()
+  || source.source_medium
+  || source.locator_type
+  || source.locator_value?.trim()
+  || source.translator_name?.trim()
+  || source.notes?.trim(),
+)
+
+const saveEditedSources = async (quoteId: number) => {
+  const attributions = await $fetch<ApiResponse<QuoteAttribution[]>, '/api/admin/quotes/:id/attributions'>(`/api/admin/quotes/${quoteId}/attributions` as '/api/admin/quotes/:id/attributions')
+  const quoteAttributions = attributions.data ?? []
+  const primaryAttribution = quoteAttributions.find(attribution => attribution.is_primary) ?? quoteAttributions[0]
+  if (!primaryAttribution) throw new Error('A quote requires a primary attribution to record sources')
+
+  const editedSources = (sources.value as EditableQuoteSource[]).filter(hasSourceContent)
+  const retainedIds = new Set(editedSources.map(source => source.id).filter((id): id is number => typeof id === 'number'))
+  const path = `/api/admin/quotes/${quoteId}/sources`
+
+  for (const source of loadedSources.value) {
+    if (retainedIds.has(source.id)) continue
+    await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources/:sid'>(`${path}/${source.id}` as '/api/admin/quotes/:id/sources/:sid', { method: 'DELETE' })
+  }
+
+  const hasPrimary = editedSources.some(source => source.is_primary)
+  const payloadFor = (source: EditableQuoteSource, index: number) => ({
+    attribution_id: source.attribution_id ?? primaryAttribution.id,
+    occurrence_id: source.occurrence_id ?? null,
+    source_type: source.source_type || 'manual',
+    source_medium: source.source_medium ?? null,
+    source_url: source.source_url?.trim() || null,
+    label: source.label?.trim() || null,
+    locator_type: source.locator_type ?? null,
+    locator_value: source.locator_value?.trim() || null,
+    translator_name: source.translator_name?.trim() || null,
+    verification_status: source.verification_status || 'unverified',
+    notes: source.notes?.trim() || null,
+    is_primary: hasPrimary ? Boolean(source.is_primary) : index === 0,
+  })
+  const orderedSources = editedSources
+    .map((source, index) => ({ source, body: payloadFor(source, index) }))
+    .sort((a, b) => Number(b.body.is_primary) - Number(a.body.is_primary))
+
+  for (const { source, body } of orderedSources) {
+    if (source.id) {
+      await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources/:sid'>(`${path}/${source.id}` as '/api/admin/quotes/:id/sources/:sid', { method: 'PUT', body })
+    } else {
+      await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources'>(path as '/api/admin/quotes/:id/sources', { method: 'POST', body })
+    }
+  }
+
+  publishMutation({ type: 'updated', quoteIds: [quoteId] })
   emit('quote-updated')
   closeDialog()
 }

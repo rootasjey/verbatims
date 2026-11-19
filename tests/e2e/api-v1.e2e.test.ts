@@ -409,9 +409,9 @@ describe('Admin quote provenance routes', () => {
   })
 
   test.each([
-    { quoteId: 5, attributionId: 5, status: 'draft' },
+    { quoteId: 8, attributionId: 8, status: 'draft' },
     { quoteId: 1, attributionId: 1, status: 'approved' },
-  ])('retains edited source links after reopening a $status quote', async ({ quoteId, attributionId }) => {
+  ])('retains edited and added source links after reopening a $status quote', async ({ quoteId, attributionId, status }) => {
     const created = await $fetch(`/api/admin/quotes/${quoteId}/sources`, {
       ...adminHeaders(),
       method: 'POST',
@@ -432,11 +432,27 @@ describe('Admin quote provenance routes', () => {
       },
     })
 
+    const added = await $fetch(`/api/admin/quotes/${quoteId}/sources`, {
+      ...adminHeaders(),
+      method: 'POST',
+      body: {
+        attribution_id: attributionId,
+        source_type: 'book',
+        source_url: 'https://example.com/second-source',
+        label: 'Second source',
+      },
+    })
+
     const reopenedSources = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
     const reopenedSource = reopenedSources.data.find((source: { id: number }) => source.id === created.data.id)
+    const reopenedAddedSource = reopenedSources.data.find((source: { id: number }) => source.id === added.data.id)
+    const reopenedQuote = await $fetch(`/api/quotes/${quoteId}`)
 
     expect(reopenedSource.source_url).toBe('https://example.com/edited-source')
     expect(reopenedSource.label).toBe('Edited source')
+    expect(reopenedAddedSource.source_url).toBe('https://example.com/second-source')
+    expect(reopenedAddedSource.label).toBe('Second source')
+    expect(reopenedQuote.data.status).toBe(status)
   })
 
   test('rejects provenance CRUD without moderator authentication', async () => {
@@ -526,6 +542,9 @@ describe('API v1 quote provenance CRUD', () => {
   test('rejects provenance CRUD for a regular API user', async () => {
     const response = await fetch('/api/v1/quotes/1/attributions', {
       ...userWriteHeaders(),
+      method: 'POST',
+      headers: { ...userWriteHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ author_id: 2, reference_id: 2 }),
     })
     expect(response.status).toBe(403)
   })
@@ -570,7 +589,7 @@ describe('API v1 quote provenance CRUD', () => {
     const updated = await $fetch(`/api/v1/quotes/1/attributions/${attributionId}`, {
       ...moderatorHeaders(),
       method: 'PUT',
-      body: { status: 'disputed' },
+      body: { author_id: 2, reference_id: 2, status: 'disputed' },
     })
     expect(updated.success).toBe(true)
 
