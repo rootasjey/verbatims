@@ -304,13 +304,15 @@ const provenanceTabs = [
   { name: 'Sources', value: 'sources', _tabsTrigger: { leading: 'i-ph-link' } },
 ]
 const provenance = ref<{ attributions: QuoteAttribution[]; sources: QuoteSource[]; occurrences: QuoteOccurrence[] } | null>(null)
+const adminQuoteProvenancePath = (quoteId: number, resource: string): string => `/api/admin/quotes/${quoteId}/${resource}`
 const loadProvenance = async () => {
   if (!props.editQuote?.id || !canEditProvenance.value) return
   try {
+    const quoteId = props.editQuote.id
     const [attributionsResponse, sourcesResponse, occurrencesResponse] = await Promise.all([
-      $fetch<ApiResponse<QuoteAttribution[]>>(`/api/admin/quotes/${props.editQuote.id}/attributions`),
-      $fetch<ApiResponse<QuoteSource[]>>(`/api/admin/quotes/${props.editQuote.id}/sources`),
-      $fetch<ApiResponse<QuoteOccurrence[]>>(`/api/admin/quotes/${props.editQuote.id}/occurrences`),
+      $fetch<ApiResponse<QuoteAttribution[]>, '/api/admin/quotes/:id/attributions'>(adminQuoteProvenancePath(quoteId, 'attributions') as '/api/admin/quotes/:id/attributions'),
+      $fetch<ApiResponse<QuoteSource[]>, '/api/admin/quotes/:id/sources'>(adminQuoteProvenancePath(quoteId, 'sources') as '/api/admin/quotes/:id/sources'),
+      $fetch<ApiResponse<QuoteOccurrence[]>, '/api/admin/quotes/:id/occurrences'>(adminQuoteProvenancePath(quoteId, 'occurrences') as '/api/admin/quotes/:id/occurrences'),
     ])
     provenance.value = { attributions: attributionsResponse.data || [], sources: sourcesResponse.data || [], occurrences: occurrencesResponse.data || [] }
   } catch (error) {

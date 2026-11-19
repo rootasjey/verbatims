@@ -375,7 +375,7 @@ describe('Admin quote provenance routes', () => {
     const updated = await $fetch(`/api/admin/quotes/1/attributions/${attributionId}`, {
       ...adminHeaders(),
       method: 'PUT',
-      body: { status: 'disputed', notes: 'Needs a stronger source' },
+      body: { author_id: 2, reference_id: 2, status: 'disputed', notes: 'Needs a stronger source' },
     })
     expect(updated.success).toBe(true)
 
@@ -406,6 +406,37 @@ describe('Admin quote provenance routes', () => {
       method: 'DELETE',
     })
     expect(deletedAttribution.success).toBe(true)
+  })
+
+  test.each([
+    { quoteId: 5, attributionId: 5, status: 'draft' },
+    { quoteId: 1, attributionId: 1, status: 'approved' },
+  ])('retains edited source links after reopening a $status quote', async ({ quoteId, attributionId }) => {
+    const created = await $fetch(`/api/admin/quotes/${quoteId}/sources`, {
+      ...adminHeaders(),
+      method: 'POST',
+      body: {
+        attribution_id: attributionId,
+        source_type: 'book',
+        source_url: 'https://example.com/original-source',
+        label: 'Original source',
+      },
+    })
+
+    await $fetch(`/api/admin/quotes/${quoteId}/sources/${created.data.id}`, {
+      ...adminHeaders(),
+      method: 'PUT',
+      body: {
+        source_url: 'https://example.com/edited-source',
+        label: 'Edited source',
+      },
+    })
+
+    const reopenedSources = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
+    const reopenedSource = reopenedSources.data.find((source: { id: number }) => source.id === created.data.id)
+
+    expect(reopenedSource.source_url).toBe('https://example.com/edited-source')
+    expect(reopenedSource.label).toBe('Edited source')
   })
 
   test('rejects provenance CRUD without moderator authentication', async () => {
@@ -806,7 +837,10 @@ describe('PUT /api/v1/quotes/[id]', () => {
     const res = await $fetch(`/api/v1/quotes/${created.data.id}`, {
       ...writeHeaders(),
       method: 'PUT',
-      body: { name: 'Updated quote content!' },
+      body: {
+        name: 'Updated quote content!',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
     })
     expect(res.success).toBe(true)
     expect(res.data.content).toBe('Updated quote content!')
