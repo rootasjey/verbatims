@@ -34,6 +34,14 @@ export const buildProvenanceStatusFields = (
 export const shouldUpdateOnlyPrimaryAttribution = (submittedCount: number | undefined, primaryExists: boolean) =>
   submittedCount === 1 && primaryExists
 
+export const resolvePrimaryAttributionIds = (
+  submitted: { author_id?: number | null, reference_id?: number | null } | undefined,
+  current: { authorId: number | null, referenceId: number | null },
+) => ({
+  authorId: submitted && 'author_id' in submitted ? submitted.author_id ?? null : current.authorId,
+  referenceId: submitted && 'reference_id' in submitted ? submitted.reference_id ?? null : current.referenceId,
+})
+
 export const buildPrimaryAttributionUpdate = (
   current: PrimaryAttributionSnapshot,
   submitted: SubmittedAttribution,

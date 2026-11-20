@@ -18,6 +18,17 @@ describe('quote attribution validation', () => {
     })
 
     expect(quote.attributions?.[0]?.reference_id).toBe(2)
+    expect(quote.attributions?.[0]).not.toHaveProperty('author_id')
+    const clearedAuthor = updateQuoteSchema.parse({
+      attributions: [{ author_id: null, is_primary: true }],
+    })
+    expect(clearedAuthor.attributions?.[0]?.author_id).toBeNull()
+    expect(clearedAuthor.attributions?.[0]).not.toHaveProperty('reference_id')
+    const clearedReference = updateQuoteSchema.parse({
+      attributions: [{ reference_id: null, is_primary: true }],
+    })
+    expect(clearedReference.attributions?.[0]?.reference_id).toBeNull()
+    expect(clearedReference.attributions?.[0]).not.toHaveProperty('author_id')
   })
 
   it('accepts nullable provenance fields on quote updates', () => {

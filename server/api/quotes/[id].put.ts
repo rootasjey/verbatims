@@ -7,7 +7,7 @@ import { runWebEditorialAuditedBatch } from '~~/server/utils/api-editorial-audit
 import { assertQuoteNameAvailable, buildQuoteInlineEditResolutionStatements, isQuoteNameConflictError, scopeQuoteCreationRequestKey } from '~~/server/utils/quote-creation'
 import { requireAttributionForQuote, requireOccurrenceForAttribution } from '~~/server/utils/admin-quote-provenance'
 import { chunkForD1Bindings } from '~~/server/utils/d1-parameter-batching'
-import { buildPrimaryAttributionUpdate, isQuoteSourceSnapshotConflictError, orderQuoteSourceMutations, quoteSourceMatchesEdit, quoteSourceMatchesSnapshot, quoteSourceProofChanged, shouldUpdateOnlyPrimaryAttribution } from '~~/server/utils/quote-edit-safety'
+import { buildPrimaryAttributionUpdate, isQuoteSourceSnapshotConflictError, orderQuoteSourceMutations, quoteSourceMatchesEdit, quoteSourceMatchesSnapshot, quoteSourceProofChanged, resolvePrimaryAttributionIds, shouldUpdateOnlyPrimaryAttribution } from '~~/server/utils/quote-edit-safety'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -43,8 +43,10 @@ export default defineEventHandler(async (event) => {
     const replacementAttributions = body.attributions
     const replacementPrimary = replacementAttributions?.find(attribution => attribution.is_primary)
     const canUpdatePrimaryAttributionInPlace = shouldUpdateOnlyPrimaryAttribution(replacementAttributions?.length, Boolean(primaryAttribution))
-    let authorId = replacementPrimary?.author_id ?? primaryAttribution?.author_id ?? null
-    let referenceId = replacementPrimary?.reference_id ?? primaryAttribution?.reference_id ?? null
+    const { authorId, referenceId } = resolvePrimaryAttributionIds(replacementPrimary, {
+      authorId: primaryAttribution?.author_id ?? null,
+      referenceId: primaryAttribution?.reference_id ?? null,
+    })
 
     if (authorId == null && referenceId == null && !body.new_author && !body.new_reference) {
       throwServer(400, 'A quote requires an author or reference')
@@ -207,7 +209,11 @@ export default defineEventHandler(async (event) => {
           ...attribution,
           author_id: resolution.authorId,
           reference_id: resolution.referenceId,
-        } : attribution)
+        } : {
+          ...attribution,
+          author_id: attribution.author_id ?? null,
+          reference_id: attribution.reference_id ?? null,
+        })
         if (canUpdatePrimaryAttributionInPlace && primaryAttribution) {
           const attribution = resolvedAttributions[0]!
           statements.push(db.update(schema.quoteAttributions).set(buildPrimaryAttributionUpdate({ authorId: primaryAttribution.author_id, referenceId: primaryAttribution.reference_id, status: primaryAttribution.status }, attribution, attribution.author_id, attribution.reference_id, user.id, isAdmin) as any).where(eq(schema.quoteAttributions.id, primaryAttribution.id)))
@@ -278,12 +284,15 @@ export default defineEventHandler(async (event) => {
     } else if (replacementAttributions) {
       try {
         const statements: unknown[] = [db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, e.id))]
+        const resolvedAttributions = replacementAttributions.map(attribution => attribution.is_primary
+          ? { ...attribution, author_id: authorId, reference_id: referenceId }
+          : { ...attribution, author_id: attribution.author_id ?? null, reference_id: attribution.reference_id ?? null })
         if (canUpdatePrimaryAttributionInPlace && primaryAttribution) {
-          const attribution = replacementAttributions[0]!
+          const attribution = resolvedAttributions[0]!
           statements.push(db.update(schema.quoteAttributions).set(buildPrimaryAttributionUpdate({ authorId: primaryAttribution.author_id, referenceId: primaryAttribution.reference_id, status: primaryAttribution.status }, attribution, attribution.author_id, attribution.reference_id, user.id, isAdmin) as any).where(eq(schema.quoteAttributions.id, primaryAttribution.id)))
         } else {
           statements.push(db.delete(schema.quoteAttributions).where(eq(schema.quoteAttributions.quoteId, e.id)))
-          statements.push(db.insert(schema.quoteAttributions).values(replacementAttributions.map(attribution => ({
+          statements.push(db.insert(schema.quoteAttributions).values(resolvedAttributions.map(attribution => ({
             quoteId: e.id,
             authorId: attribution.author_id,
             referenceId: attribution.reference_id,

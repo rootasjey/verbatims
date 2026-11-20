@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildPrimaryAttributionUpdate, buildProvenanceStatusFields, getQuoteSourceSnapshotDeleteIds, isQuoteSourceSnapshotConflictError, orderQuoteSourceMutations, quoteSourceMatchesEdit, quoteSourceMatchesSnapshot, quoteSourceProofChanged, shouldUpdateOnlyPrimaryAttribution } from '../quote-edit-safety'
+import { buildPrimaryAttributionUpdate, buildProvenanceStatusFields, getQuoteSourceSnapshotDeleteIds, isQuoteSourceSnapshotConflictError, orderQuoteSourceMutations, quoteSourceMatchesEdit, quoteSourceMatchesSnapshot, quoteSourceProofChanged, resolvePrimaryAttributionIds, shouldUpdateOnlyPrimaryAttribution } from '../quote-edit-safety'
 import { buildQuoteSourceEditPayload, getExplicitQuoteSourceDeleteIds, isQuoteSourceLoadCurrent } from '../../../app/utils/quote-source-edit'
 import { chunkForD1Bindings } from '../d1-parameter-batching'
 import { updateQuoteSchema } from '../../validation/schemas'
@@ -9,6 +9,19 @@ describe('quote edit safety', () => {
 		expect(shouldUpdateOnlyPrimaryAttribution(1, true)).toBe(true)
 		expect(shouldUpdateOnlyPrimaryAttribution(2, true)).toBe(false)
 		expect(shouldUpdateOnlyPrimaryAttribution(1, false)).toBe(false)
+	})
+
+	it('respects explicit removal of either primary attribution while retaining omitted IDs', () => {
+		const current = { authorId: 11, referenceId: 22 }
+		const authorCleared = updateQuoteSchema.parse({ attributions: [{ author_id: null, is_primary: true }] })
+		const referenceCleared = updateQuoteSchema.parse({ attributions: [{ reference_id: null, is_primary: true }] })
+		expect(resolvePrimaryAttributionIds(authorCleared.attributions?.[0], current))
+			.toEqual({ authorId: null, referenceId: 22 })
+		expect(resolvePrimaryAttributionIds(referenceCleared.attributions?.[0], current))
+			.toEqual({ authorId: 11, referenceId: null })
+		const referenceChanged = updateQuoteSchema.parse({ attributions: [{ reference_id: 33, is_primary: true }] })
+		expect(resolvePrimaryAttributionIds(referenceChanged.attributions?.[0], current))
+			.toEqual({ authorId: 11, referenceId: 33 })
 	})
 
 	it('preserves attribution verification status unless identity or status changes', () => {

@@ -52,6 +52,17 @@ const quoteAttributionsPayloadSchema = z.array(z.object({
   { message: 'A quote requires exactly one primary attribution' },
 )
 
+const quoteAttributionsUpdatePayloadSchema = z.array(z.object({
+  author_id: nullablePositiveInt.optional(),
+  reference_id: nullablePositiveInt.optional(),
+  is_primary: z.boolean().optional().default(false),
+  status: provenanceStatus.optional(),
+  notes: z.string().max(5000).trim().optional().nullable(),
+})).min(1).refine(
+  attributions => attributions.filter(attribution => attribution.is_primary).length === 1,
+  { message: 'A quote requires exactly one primary attribution' },
+)
+
 const quoteSourceFieldsSchema = z.object({
   source_type: z.string().max(100).trim().optional().default('manual'),
   source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other']).optional().nullable(),
@@ -104,8 +115,9 @@ const quoteSourceInputSchema = quoteSourceFieldsSchema.superRefine((source, cont
   notes: source.notes || null,
 }))
 
-const attributionOrInlineEntity = (data: { attributions: Array<{ author_id: number | null, reference_id: number | null }>, new_author?: unknown, new_reference?: unknown }) =>
-  data.attributions.every(attribution => attribution.author_id !== null || attribution.reference_id !== null)
+const attributionOrInlineEntity = (data: { attributions: Array<{ author_id?: number | null, reference_id?: number | null }>, new_author?: unknown, new_reference?: unknown }, allowUnspecifiedIds = false) =>
+  data.attributions.every(attribution => attribution.author_id != null || attribution.reference_id != null
+    || (allowUnspecifiedIds && (attribution.author_id === undefined || attribution.reference_id === undefined)))
     || !!data.new_author
     || !!data.new_reference
 
@@ -135,7 +147,7 @@ export const updateQuoteSchema = z.object({
   language: z.enum(validLanguages).optional(),
   source_type: z.string().max(100).trim().nullable().optional(),
   source_url: z.string().url().nullable().optional(),
-  attributions: quoteAttributionsPayloadSchema.optional(),
+  attributions: quoteAttributionsUpdatePayloadSchema.optional(),
   sources: z.array(z.object({
     id: positiveInt.optional(),
     attribution_id: nullablePositiveInt.optional(),
@@ -193,7 +205,7 @@ export const updateQuoteSchema = z.object({
     original_language: z.string().min(1).max(10).trim().optional().default('en'),
   }).optional(),
 }).strict().refine(
-  data => !data.attributions || attributionOrInlineEntity({ ...data, attributions: data.attributions }),
+  data => !data.attributions || attributionOrInlineEntity({ ...data, attributions: data.attributions }, true),
   { message: 'An attribution requires an author or reference' },
 ).refine(
   data => !data.delete_source_ids?.length || Boolean(data.sources && data.source_snapshot_ids),
