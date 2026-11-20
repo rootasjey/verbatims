@@ -167,6 +167,7 @@ import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 import { useQuoteStepTransition } from '~/composables/useQuoteStepTransition'
+import { handleQuoteFormKeydown as handleSuggestionFormKeydown } from '~/utils/quote-suggestion-keyboard'
 
 interface Emits {
 	(e: 'update:open', value: boolean): void
@@ -384,18 +385,12 @@ const goToQuoteStep = async () => {
 }
 
 const handleCreateFormKeydown = (event: KeyboardEvent) => {
-	if (event.defaultPrevented || event.isComposing) return
-
-	if (step.value === 1 && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-		event.preventDefault()
-		void goToAttributionStep()
-		return
-	}
-
-		if (step.value > 1 && event.key === 'Enter' && !submitting.value) {
-		event.preventDefault()
-		void submitQuote()
-	}
+	handleSuggestionFormKeydown(event, {
+		step: step.value,
+		submitting: submitting.value,
+		advance: () => { void goToAttributionStep() },
+		submit: () => { void submitQuote() },
+	})
 }
 
 const handleCreateEscape = (event: KeyboardEvent) => {

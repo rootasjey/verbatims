@@ -153,6 +153,7 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 import { useQuoteStepTransition } from '~/composables/useQuoteStepTransition'
 import { normalizeTimecode } from '~~/shared/utils/timecode'
+import { handleQuoteFormKeydown as handleSuggestionFormKeydown } from '~/utils/quote-suggestion-keyboard'
 
 interface Props {
   modelValue: boolean
@@ -335,20 +336,12 @@ const collapseSuggestionPanel = (element: Element, done: () => void) => {
 
 const hasAttribution = computed(() => Boolean(form.value.selectedAuthor || form.value.selectedReference))
 const handleQuoteFormKeydown = (event: KeyboardEvent) => {
-  if (event.isComposing) return
-
-  if (quoteStep.value === 1 && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-    event.preventDefault()
-    void goToAttributionStep()
-    return
-  }
-
-  if (event.defaultPrevented) return
-
-  if (quoteStep.value > 1 && event.key === 'Enter' && !submitting.value) {
-    event.preventDefault()
-    void submitQuote()
-  }
+  handleSuggestionFormKeydown(event, {
+    step: quoteStep.value,
+    submitting: submitting.value,
+    advance: () => { void goToAttributionStep() },
+    submit: () => { void submitQuote() },
+  })
 }
 
 const handleCreateEscape = (event: KeyboardEvent) => {
