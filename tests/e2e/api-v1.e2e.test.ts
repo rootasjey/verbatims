@@ -916,11 +916,32 @@ describe('PUT /api/v1/quotes/[id]', () => {
       body: {
         name: 'Quote preserving omitted attribution verification metadata.',
         language: 'en',
-        attributions: [{ author_id: 1, reference_id: 1, is_primary: true, status: 'externally_verified' }],
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
       },
     })
+    const beforeVerification = await $fetch(`/api/v1/quotes/${created.data.id}/attributions`, moderatorHeaders())
+    const attribution = beforeVerification.data[0]
+    await $fetch(`/api/v1/quotes/${created.data.id}/attributions/${attribution.id}`, {
+      ...moderatorHeaders(),
+      method: 'PUT',
+      body: { author_id: 1, reference_id: 1, is_primary: true, status: 'externally_verified' },
+    })
+
+    const fixedVerifiedAt = '2024-01-02T03:04:05.000Z'
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    await localDb.execute({
+      sql: 'UPDATE quote_attributions SET verified_at = ? WHERE id = ?',
+      args: [Math.floor(Date.parse(fixedVerifiedAt) / 1000), attribution.id],
+    })
+    localDb.close()
+
     const initialAttributions = await $fetch(`/api/v1/quotes/${created.data.id}/attributions`, moderatorHeaders())
-    const initial = initialAttributions.data[0]
+    const initial = initialAttributions.data.find((item: { id: number }) => item.id === attribution.id)
+    expect(initial.status).toBe('externally_verified')
+    expect(initial.verified_by).toBe(2)
+    expect(initial.verified_at).toBe(fixedVerifiedAt)
+    expect(initial.verified_by).not.toBeNull()
+    expect(initial.verified_at).not.toBeNull()
 
     const updated = await $fetch(`/api/v1/quotes/${created.data.id}`, {
       ...writeHeaders(),
