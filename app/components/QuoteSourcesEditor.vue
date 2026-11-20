@@ -114,7 +114,7 @@
     <button
       type="button"
       class="inline-flex min-h-10 items-center gap-2 rounded-1 border border-gray-300 px-3 py-2 font-sans text-sm font-500 text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:border-neutral-600 dark:text-gray-200 dark:hover:bg-neutral-800"
-      :disabled="disabled || sources.length >= 10"
+      :disabled="disabled || newSourceCount >= 10"
       @click="addSource"
     >
       <NIcon name="i-ph-plus" class="h-4 w-4" />
@@ -129,6 +129,7 @@ import { normalizeTimecode } from '~~/shared/utils/timecode'
 const props = withDefaults(defineProps<{ disabled?: boolean }>(), { disabled: false })
 const sources = defineModel<CreateQuoteSourceData[]>({ default: () => [] })
 const { $t } = useI18n()
+const newSourceCount = computed(() => sources.value.filter(source => !(source as CreateQuoteSourceData & { id?: number }).id).length)
 
 const locatorPlaceholder = (type: QuoteSourceLocatorType | null | undefined) => {
   if (type === 'page') return String($t('components.dialogs.locator_page_placeholder'))

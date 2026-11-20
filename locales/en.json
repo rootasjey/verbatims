@@ -921,6 +921,7 @@
       "create_new_reference": "Create new reference: \"{name}\"",
       "quote_placeholder": "Enter the quote content...",
       "quote_save_failed": "The quote could not be saved. Your entries are still here. Please try again.",
+      "source_load_retry": "Retry loading sources",
       "quote_error_reference": "Reference ID: {id}",
       "quote_error_report_action": "Report this problem",
       "quote_error_report_template": "Quote submission failed\nReference ID: {id}\nPage: {page}\nStep: {step}\nThe quote text is not included automatically.",

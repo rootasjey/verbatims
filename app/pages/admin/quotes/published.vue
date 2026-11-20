@@ -503,6 +503,14 @@
     </ClientOnly>
 
     <ClientOnly>
+      <EditQuoteDrawer
+        v-model:open="showEditQuoteDrawer"
+        :edit-quote="selectedQuote"
+        @submitted="onQuoteUpdated"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
       <AddAuthorDialog
         v-model="showEditAuthorDialog"
         :edit-author="authorToEdit"
@@ -882,6 +890,7 @@ const statusPillClass = (status: string) => {
 
 const selectedQuote = ref<AdminQuote | undefined>(undefined)
 const showEditQuoteDialog = ref(false)
+const showEditQuoteDrawer = ref(false)
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
 const selectedQuotes = computed<number[]>(() => Object
@@ -1279,11 +1288,18 @@ const viewQuote = (quote: AdminQuote) => {
 
 const editQuote = (quote: AdminQuote) => {
   selectedQuote.value = quote
-  showEditQuoteDialog.value = true
+  if (window.matchMedia('(max-width: 767px)').matches) {
+    showEditQuoteDrawer.value = true
+    showEditQuoteDialog.value = false
+  } else {
+    showEditQuoteDialog.value = true
+    showEditQuoteDrawer.value = false
+  }
 }
 
 const onQuoteUpdated = () => {
   showEditQuoteDialog.value = false
+  showEditQuoteDrawer.value = false
   selectedQuote.value = undefined
   loadQuotes()
 }
@@ -1318,7 +1334,7 @@ const selectAllOnPage = () => {
 }
 
 const isAnyDialogOpen = computed(() =>
-  showEditQuoteDialog.value || showBulkAddToCollection.value ||
+  showEditQuoteDialog.value || showEditQuoteDrawer.value || showBulkAddToCollection.value ||
   showBulkEditDialog.value || showBulkUnpublishModal.value || showAuditDialog.value ||
   showAuditSettingsDialog.value ||
   showPageJumpDialog.value

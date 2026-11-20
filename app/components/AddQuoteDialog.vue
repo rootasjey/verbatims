@@ -4,12 +4,14 @@
     :title="dialogTitle"
     title-class="font-sans text-lg font-600 tracking-normal"
     center-title
+    compact-header
     :submit-text="submitButtonText"
     :submitting="submitting"
     :can-submit="!!form.content.trim()"
-    :hide-footer="true"
+    :hide-footer="!canUseForm"
     max-width="md"
     scrollable
+    scroll-fade
     @submit="submitQuote"
     @close="closeDialog"
   >
@@ -44,114 +46,57 @@
       </div>
     </section>
 
-    <form v-else @submit.prevent="quoteStep === 1 ? goToAttributionStep() : submitQuote()" @keydown.capture="handleCreateEscape" @keydown="handleQuoteFormKeydown" class="space-y-5 px-2">
+    <form v-else id="quote-editor-form" @submit.prevent="quoteStep === 1 ? goToAttributionStep() : submitQuote()" @keydown.capture="handleCreateEscape" @keydown="handleQuoteFormKeydown" class="space-y-5 px-2">
       <div ref="stepViewportRef" :style="{ height: stepViewportHeight }" class="quote-step-viewport relative overflow-hidden" @transitionend.self="finishStepTransition">
       <Transition :name="transitionName">
       <section v-if="quoteStep === 1" key="quote" data-quote-step="1" class="space-y-4 px-0 py-2">
-        <div class="relative">
-          <textarea
-            ref="quoteTextarea"
-            autofocus
+        <QuoteContentFields
+          ref="quoteTextarea"
           v-model="form.content"
           :placeholder="quotePlaceholder"
-          rows="5"
           :disabled="submitting"
-          required
           @input="draftSaved = false; clearDraftSavedPulse()"
-          class="min-h-40 w-full resize-y rounded-1.5 bg-gray-100/80 px-4 pb-10 pt-4 font-serif text-xl leading-snug text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400/60 dark:bg-neutral-900/80 dark:text-gray-100 dark:placeholder-gray-600 dark:focus-visible:ring-gray-500"
         />
-          <span class="pointer-events-none absolute bottom-3 right-4 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.content.length }))">{{ form.content.length }}</span>
-        </div>
       </section>
 
       <section v-else-if="quoteStep === 2" key="attribution" data-quote-step="2" class="space-y-4">
-        <div>
-          <label class="sr-only" for="add-quote-author">{{ $t('components.dialogs.author_label') }}</label>
-          <div class="flex min-h-12 flex-wrap items-center gap-2 rounded-1 border border-gray-300 px-3 py-1.5 transition-colors focus-within:border-gray-700 dark:border-neutral-700 dark:focus-within:border-neutral-300">
-            <span v-if="form.selectedAuthor" class="inline-flex max-w-full items-center gap-1.5 rounded-full bg-gray-100 py-1 pl-1 pr-2 font-sans text-sm text-gray-900 dark:bg-neutral-800 dark:text-gray-100">
-              <NAvatar :src="form.selectedAuthor.image_url" :alt="form.selectedAuthor.name" size="xs" class="shrink-0" />
-              <span class="max-w-48 truncate">{{ form.selectedAuthor.name }}</span>
-              <button type="button" class="ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-neutral-700 dark:hover:text-gray-100" :aria-label="String($t('components.dialogs.clear_selection'))" @mousedown.prevent @click="clearAuthorFromField"><NIcon name="i-tabler-x" class="h-3.5 w-3.5" /></button>
-            </span>
-            <input
-              id="add-quote-author"
-              ref="authorInputRef"
-              v-model="authorQuery"
-              type="text"
-              :placeholder="(form.selectedAuthor ? $t('components.dialogs.replace_selection') : $t('components.dialogs.search_author')) as string"
-              :aria-describedby="!hasAttribution ? 'quote-attribution-required' : undefined"
-              :disabled="submitting"
-              class="min-w-40 flex-1 border-0 bg-transparent px-1 py-2 font-sans text-base text-gray-900 outline-none placeholder-gray-400 focus:border-0 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-500"
-              @input="onAuthorInput"
-              @focus="handleAuthorInputFocus"
-              @blur="handleAuthorInputBlur"
-              @keydown="onAuthorKeydown"
-            />
-          </div>
-          <Transition name="quote-suggestions" @leave="collapseSuggestionPanel">
-          <div v-if="showAuthorSuggestions && (authorSuggestions.length || authorQuery)" ref="authorSuggestionsRef" :style="{ height: authorSuggestionsHeight }" class="quote-suggestions-panel mt-2 max-h-48 w-full overflow-auto rounded-1.5 border border-gray-200 bg-[#FAFAF9] shadow-lg dark:border-neutral-700 dark:bg-neutral-900" tabindex="-1" @blur="handleAuthorSuggestionsBlur" @keydown="handleAuthorKeydown">
-            <button v-for="(author, index) in authorSuggestions" :key="author.id" type="button" :class="['flex w-full items-center gap-2 px-3 py-2 text-left transition-colors', selectedAuthorIndex === index ? 'bg-gray-100 dark:bg-neutral-700' : 'hover:bg-gray-100 dark:hover:bg-neutral-800']" @click="selectAuthor(author)">
-              <NAvatar :src="author.image_url" :alt="author.name" size="xs" class="shrink-0" />
-              <span class="min-w-0">
-                <span class="block truncate font-sans text-sm text-gray-900 dark:text-gray-100">{{ author.name }}</span>
-                <span v-if="author.job" class="block truncate font-sans text-xs text-gray-500 dark:text-gray-400">{{ author.job }}</span>
-              </span>
-            </button>
-            <button v-if="authorQuery && !authorSuggestions.some(author => author.name.toLowerCase() === authorQuery.toLowerCase())" type="button" :class="['block w-full border-t border-gray-200 px-3 py-2 text-left font-sans text-sm text-gray-700 dark:border-neutral-700 dark:text-gray-300', selectedAuthorIndex === authorSuggestions.length ? 'bg-gray-100 dark:bg-neutral-700' : 'hover:bg-gray-100 dark:hover:bg-neutral-800']" @click="createNewAuthor">
-              {{ $t('components.dialogs.create_new_author', { name: authorQuery }) }}
-            </button>
-          </div>
-          </Transition>
+        <div v-if="isEditMode && canEditSources && sourceLoadError" class="space-y-2 text-sm text-red-700 dark:text-red-300" role="alert">
+          <p>{{ $t('components.dialogs.quote_save_failed') }}</p>
+          <NButton btn="outline-gray" type="button" @click="loadProvenance">{{ $t('components.dialogs.source_load_retry') }}</NButton>
         </div>
-
-        <div>
-          <label class="sr-only" for="add-quote-reference">{{ $t('components.dialogs.reference_label') }}</label>
-          <div class="flex min-h-12 flex-wrap items-center gap-2 rounded-1 border border-gray-300 px-3 py-1.5 transition-colors focus-within:border-gray-700 dark:border-neutral-700 dark:focus-within:border-neutral-300">
-            <span v-if="form.selectedReference" class="inline-flex max-w-full items-center gap-1.5 rounded-full bg-gray-100 py-1 pl-1 pr-2 font-sans text-sm text-gray-900 dark:bg-neutral-800 dark:text-gray-100">
-              <NAvatar :src="form.selectedReference.image_url" :alt="form.selectedReference.name" rounded="2" size="xs" class="shrink-0" />
-              <span class="max-w-48 truncate">{{ form.selectedReference.name }}</span>
-              <button type="button" class="ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-neutral-700 dark:hover:text-gray-100" :aria-label="String($t('components.dialogs.clear_selection'))" @mousedown.prevent @click="clearReferenceFromField"><NIcon name="i-tabler-x" class="h-3.5 w-3.5" /></button>
-            </span>
-            <input
-              id="add-quote-reference"
-              ref="referenceInputRef"
-              v-model="referenceQuery"
-              type="text"
-              :placeholder="(form.selectedReference ? $t('components.dialogs.replace_selection') : $t('components.dialogs.search_reference')) as string"
-              :aria-describedby="!hasAttribution ? 'quote-attribution-required' : undefined"
-              :disabled="submitting"
-              class="min-w-40 flex-1 border-0 bg-transparent px-1 py-2 font-sans text-base text-gray-900 outline-none placeholder-gray-400 focus:border-0 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-500"
-              @input="onReferenceInput"
-              @focus="handleReferenceInputFocus"
-              @blur="handleReferenceInputBlur"
-              @keydown="onReferenceKeydown"
-            />
-          </div>
-          <Transition name="quote-suggestions" @leave="collapseSuggestionPanel">
-          <div v-if="showReferenceSuggestions && (referenceSuggestions.length || referenceQuery)" ref="referenceSuggestionsRef" :style="{ height: referenceSuggestionsHeight }" class="quote-suggestions-panel mt-2 max-h-48 w-full overflow-auto rounded-1.5 border border-gray-200 bg-[#FAFAF9] shadow-lg dark:border-neutral-700 dark:bg-neutral-900" tabindex="-1" @blur="handleReferenceSuggestionsBlur" @keydown="handleReferenceKeydown">
-            <button v-for="(reference, index) in referenceSuggestions" :key="reference.id" type="button" :class="['flex w-full items-center gap-2 px-3 py-2 text-left transition-colors', selectedReferenceIndex === index ? 'bg-gray-100 dark:bg-neutral-700' : 'hover:bg-gray-100 dark:hover:bg-neutral-800']" @click="selectReference(reference)">
-              <NAvatar :src="reference.image_url" :alt="reference.name" rounded="2" size="xs" class="shrink-0" />
-              <span class="min-w-0">
-                <span class="block truncate font-sans text-sm text-gray-900 dark:text-gray-100">{{ reference.name }}</span>
-                <span v-if="reference.primary_type" class="block truncate font-sans text-xs capitalize text-gray-500 dark:text-gray-400">{{ reference.primary_type.replace('_', ' ') }}</span>
-              </span>
-            </button>
-            <button v-if="referenceQuery && !referenceSuggestions.some(reference => reference.name.toLowerCase() === referenceQuery.toLowerCase())" type="button" :class="['block w-full border-t border-gray-200 px-3 py-2 text-left font-sans text-sm text-gray-700 dark:border-neutral-700 dark:text-gray-300', selectedReferenceIndex === referenceSuggestions.length ? 'bg-gray-100 dark:bg-neutral-700' : 'hover:bg-gray-100 dark:hover:bg-neutral-800']" @click="createNewReference">
-              {{ $t('components.dialogs.create_new_reference', { name: referenceQuery }) }}
-            </button>
-          </div>
-          </Transition>
-        </div>
-        <Transition name="quote-suggestions" @leave="collapseSuggestionPanel">
-          <p v-if="!hasAttribution" id="quote-attribution-required" :class="['quote-suggestions-panel quote-attribution-required-feedback w-fit max-w-full font-sans text-xs text-gray-500 dark:text-gray-400', { 'quote-attribution-required-feedback--pulse': attributionRequiredPulseActive }]">
-            <span class="quote-attribution-required-feedback-label">{{ $t('components.dialogs.attribution_required') }}</span>
-          </p>
-        </Transition>
-
+        <QuoteAttributionFields
+          :selected-author="form.selectedAuthor"
+          :selected-reference="form.selectedReference"
+          v-model:author-query="authorQuery"
+          v-model:reference-query="referenceQuery"
+          :author-suggestions="authorSuggestions"
+          :reference-suggestions="referenceSuggestions"
+          :show-author-suggestions="showAuthorSuggestions"
+          :show-reference-suggestions="showReferenceSuggestions"
+          :selected-author-index="selectedAuthorIndex"
+          :selected-reference-index="selectedReferenceIndex"
+          :disabled="submitting"
+          :has-attribution="hasAttribution"
+          :input-refs="attributionInputRefs"
+          :suggestion-refs="attributionSuggestionRefs"
+          :handlers="attributionFieldHandlers"
+        >
+          <template #feedback>
+            <Transition name="quote-suggestions" @leave="collapseSuggestionPanel">
+              <p v-if="!hasAttribution" id="quote-attribution-required" :class="['quote-step-required-feedback quote-attribution-required-feedback w-fit max-w-full font-sans text-xs text-gray-500 dark:text-gray-400', { 'quote-attribution-required-feedback--pulse': attributionRequiredPulseActive }]">
+                <span class="quote-attribution-required-feedback-label">{{ $t('components.dialogs.attribution_required') }}</span>
+              </p>
+            </Transition>
+          </template>
+        </QuoteAttributionFields>
       </section>
 
       <section v-else-if="quoteStep === 3" key="sources" data-quote-step="3" class="py-2">
-        <QuoteSourcesEditor v-model="sources" :disabled="submitting" />
+        <div v-if="isEditMode && !sourcesLoaded" class="space-y-3 text-sm text-gray-500 dark:text-gray-400" role="status">
+          <p>{{ sourceLoadError ? $t('components.dialogs.quote_save_failed') : $t('common.loading') }}</p>
+          <NButton v-if="sourceLoadError" btn="outline-gray" type="button" @click="loadProvenance">{{ $t('components.dialogs.source_load_retry') }}</NButton>
+        </div>
+        <QuoteSourcesEditor v-else v-model="sources" :disabled="submitting" />
       </section>
       </Transition>
       </div>
@@ -174,18 +119,21 @@
           {{ $t('components.dialogs.attribution_ready_for_next_quote') }}
         </span>
       </p>
-      <div class="flex items-center justify-between gap-3 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
+    </form>
+
+    <template #footer>
+      <div class="w-full flex items-center justify-between gap-3 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
         <NButton btn="ghost-gray" type="button" :disabled="submitting" @click="quoteStep > 1 ? goToPreviousStep() : closeDialog()">
           {{ quoteStep > 1 ? $t('common.back') : $t('common.cancel') }}
         </NButton>
         <NButton v-if="quoteStep === 1" btn="solid-black" type="button" :disabled="form.content.trim().length < 2 || submitting" @click="goToAttributionStep">
           {{ $t('common.next') }}<NIcon name="i-ph-arrow-right" class="ml-2 h-4 w-4" />
         </NButton>
-        <NButton v-else btn="solid-black" type="submit" :disabled="!hasAttribution || submitting || (quoteStep === 3 && isEditMode && !sourcesLoaded)" :loading="submitting" class="min-h-10 rounded-1 px-4">
+        <NButton v-else btn="solid-black" type="submit" form="quote-editor-form" :disabled="!hasAttribution || submitting || (isEditMode && canEditSources && !sourcesLoaded)" :loading="submitting" class="min-h-10 rounded-1 px-4">
           {{ isEditMode ? $t('components.dialogs.update') : $t('components.dialogs.save_as_draft') }}
         </NButton>
       </div>
-    </form>
+    </template>
   </AppDialog>
 
   <ReportDialog
@@ -196,12 +144,15 @@
 </template>
 
 <script setup lang="ts">
-import { isPersistedQuoteSource, resolveQuoteSourceAttributionId } from '~/utils/quote-source-edit'
+import { buildQuoteSourceEditPayload, isQuoteSourceLoadCurrent } from '~/utils/quote-source-edit'
 import OverflowingTabLabel from '~/components/OverflowingTabLabel.vue'
+import QuoteContentFields from '~/components/QuoteContentFields.vue'
+import QuoteAttributionFields from '~/components/QuoteAttributionFields.vue'
 import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 import { useQuoteStepTransition } from '~/composables/useQuoteStepTransition'
+import { normalizeTimecode } from '~~/shared/utils/timecode'
 
 interface Props {
   modelValue: boolean
@@ -221,7 +172,7 @@ const { $t } = useI18n()
 const { user } = useUserSession()
 const { publishMutation } = useDashboardQuoteEvents()
 
-const quoteTextarea = ref<HTMLTextAreaElement | null>(null)
+const quoteTextarea = ref<{ focus: () => void } | null>(null)
 const quoteStep = ref<1 | 2 | 3>(1)
 const lastSavedQuote = ref('')
 const draftSaved = ref(false)
@@ -263,21 +214,38 @@ type EditableQuoteSource = CreateQuoteSourceData & {
   is_primary?: boolean
 }
 const sourcesLoaded = ref(false)
+const sourceLoadError = ref(false)
+const sourceLoadToken = ref(0)
+const sourceSnapshotIds = ref<number[]>([])
+const sourceSnapshot = ref<EditableQuoteSource[]>([])
+const sourceAttributionIds = ref<number[]>([])
+const primarySourceAttributionId = ref<number | null>(null)
 const loadProvenance = async () => {
   if (!props.editQuote?.id || !canEditSources.value) return
+  const quoteId = props.editQuote.id
+  const token = ++sourceLoadToken.value
   sourcesLoaded.value = false
+  sourceLoadError.value = false
+  sources.value = []
+  sourceSnapshotIds.value = []
+  sourceSnapshot.value = []
+  sourceAttributionIds.value = []
+  primarySourceAttributionId.value = null
   try {
-    const quoteId = props.editQuote.id
     const [attributionsResponse, sourcesResponse] = await Promise.all([
       $fetch<ApiResponse<QuoteAttribution[]>, '/api/admin/quotes/:id/attributions'>(`/api/admin/quotes/${quoteId}/attributions` as '/api/admin/quotes/:id/attributions'),
       $fetch<ApiResponse<QuoteSource[]>, '/api/admin/quotes/:id/sources'>(`/api/admin/quotes/${quoteId}/sources` as '/api/admin/quotes/:id/sources'),
     ])
     const attributions = attributionsResponse.data || []
     const sourceData = sourcesResponse.data || []
+    if (!isQuoteSourceLoadCurrent(token, sourceLoadToken.value, quoteId, props.editQuote?.id, isOpen.value)) return
     const primaryAttribution = attributions.find(attribution => attribution.is_primary) ?? attributions[0]
+    sourceSnapshotIds.value = sourceData.map(source => source.id)
+    sourceAttributionIds.value = attributions.map(attribution => attribution.id)
+    primarySourceAttributionId.value = primaryAttribution?.id ?? null
     sources.value = sourceData.map(source => ({
       id: source.id,
-      attribution_id: source.attribution_id ?? primaryAttribution?.id ?? null,
+      attribution_id: source.attribution_id ?? null,
       occurrence_id: source.occurrence_id ?? null,
       source_type: source.source_type,
       source_medium: source.source_medium ?? null,
@@ -287,11 +255,15 @@ const loadProvenance = async () => {
       locator_value: source.locator_value ?? null,
       translator_name: source.translator_name ?? null,
       verification_status: source.verification_status,
+      verified_by: source.verified_by ?? null,
+      verified_at: source.verified_at ?? null,
       notes: source.notes ?? null,
       is_primary: source.is_primary,
     }))
+    sourceSnapshot.value = sources.value.map(source => ({ ...source }))
     sourcesLoaded.value = true
   } catch (error) {
+    if (isQuoteSourceLoadCurrent(token, sourceLoadToken.value, quoteId, props.editQuote?.id, isOpen.value)) sourceLoadError.value = true
     console.error('Failed to load quote provenance:', error)
   }
 }
@@ -335,23 +307,6 @@ const {
   initializeFormForEdit,
   createPayload
 } = useQuoteForm()
-
-const authorSuggestionsHeight = ref('0px')
-const referenceSuggestionsHeight = ref('0px')
-
-watch([showAuthorSuggestions, authorSuggestions, authorQuery], async ([visible]) => {
-  if (!visible) return
-  await nextTick()
-  const panel = authorSuggestionsRef.value
-  if (panel) authorSuggestionsHeight.value = `${Math.min(panel.scrollHeight, 192)}px`
-}, { flush: 'post' })
-
-watch([showReferenceSuggestions, referenceSuggestions, referenceQuery], async ([visible]) => {
-  if (!visible) return
-  await nextTick()
-  const panel = referenceSuggestionsRef.value
-  if (panel) referenceSuggestionsHeight.value = `${Math.min(panel.scrollHeight, 192)}px`
-}, { flush: 'post' })
 
 const collapseSuggestionPanel = (element: Element, done: () => void) => {
   const panel = element as HTMLElement
@@ -474,20 +429,45 @@ const onReferenceInput = () => {
   if (referenceQuery.value.trim()) void searchReferences($fetch, { limit: 5, minLength: 1 })
   else referenceSuggestions.value = []
 }
+
+const attributionInputRefs = { author: authorInputRef, reference: referenceInputRef }
+const attributionSuggestionRefs = { author: authorSuggestionsRef, reference: referenceSuggestionsRef }
+const attributionFieldHandlers = {
+  authorInput: onAuthorInput,
+  authorFocus: handleAuthorInputFocus,
+  authorBlur: handleAuthorInputBlur,
+  authorKeydown: onAuthorKeydown,
+  authorSuggestionsBlur: handleAuthorSuggestionsBlur,
+  authorPanelKeydown: handleAuthorKeydown,
+  selectAuthor,
+  createAuthor: createNewAuthor,
+  clearAuthor: clearAuthorFromField,
+  referenceInput: onReferenceInput,
+  referenceFocus: handleReferenceInputFocus,
+  referenceBlur: handleReferenceInputBlur,
+  referenceKeydown: onReferenceKeydown,
+  referenceSuggestionsBlur: handleReferenceSuggestionsBlur,
+  referencePanelKeydown: handleReferenceKeydown,
+  selectReference,
+  createReference: createNewReference,
+  clearReference: clearReferenceFromField,
+}
+
 const closeDialog = () => { isOpen.value = false }
 
 watch(isOpen, (open) => {
+  sourceLoadToken.value++
   if (open && canUseForm.value) {
     quoteStep.value = 1
     nextTick(() => quoteTextarea.value?.focus())
-    void loadProvenance()
+    if (canEditSources.value) void loadProvenance()
   }
   else {
     clearDraftSavedPulse()
     submissionError.value = ''
     submissionErrorId.value = ''
   }
-})
+}, { flush: 'sync' })
 
 watch([() => form.value, sources], () => {
   submissionError.value = ''
@@ -495,15 +475,16 @@ watch([() => form.value, sources], () => {
 }, { deep: true })
 
 watch(() => props.editQuote, (newQuote) => {
+  sourceLoadToken.value++
   if (newQuote) {
     initializeFormForEdit(newQuote)
     // Selected entities render as chips in the shared quote form.
     authorQuery.value = ''
     referenceQuery.value = ''
-    if (isOpen.value) void loadProvenance()
+    if (isOpen.value && canEditSources.value) void loadProvenance()
   }
   else resetForm()
-}, { immediate: true })
+}, { immediate: true, flush: 'sync' })
 
 const showContentEmptyError = () => {
   useToast().toast({ title: String($t('components.dialogs.toast_error')), description: String($t('components.dialogs.quote_placeholder')) })
@@ -569,6 +550,11 @@ const submitQuote = async () => {
     }
     return
   }
+  if (isEditMode.value && canEditSources.value && !sourcesLoaded.value) {
+    sourceLoadError.value = true
+    submissionError.value = String($t('components.dialogs.quote_save_failed'))
+    return
+  }
   submitting.value = true
   let savedDraft = false
 
@@ -576,8 +562,21 @@ const submitQuote = async () => {
     const payload = createPayload()
     if (isEditMode.value && props.editQuote) {
       const { language: _language, sources: _sources, ...updatePayload } = payload
-      await submitUpdateQuote(props.editQuote.id, updatePayload)
-      if (quoteStep.value === 3 && canEditSources.value) await saveEditedSources(props.editQuote.id)
+      if (canEditSources.value) {
+        validateEditedSources()
+        if (primarySourceAttributionId.value == null) throw new Error('A quote requires a primary attribution to record sources')
+        const sourcePayload = buildQuoteSourceEditPayload(sources.value as EditableQuoteSource[], sourceSnapshotIds.value, sourceSnapshot.value, new Set(sourceAttributionIds.value), primarySourceAttributionId.value)
+        await submitUpdateQuote(props.editQuote.id, { ...updatePayload, ...sourcePayload } as any)
+        publishMutation({ type: 'updated', quoteIds: [props.editQuote.id] })
+        emit('quote-updated')
+        closeDialog()
+      }
+      else await submitUpdateQuote(props.editQuote.id, updatePayload)
+      if (!canEditSources.value) {
+        publishMutation({ type: 'updated', quoteIds: [props.editQuote.id] })
+        emit('quote-updated')
+        closeDialog()
+      }
       return
     }
     await submitCreateQuote(payload)
@@ -629,6 +628,8 @@ const submitUpdateQuote = async (
 }
 
 const hasSourceContent = (source: CreateQuoteSourceData) => Boolean(
+  source.source_type?.trim()
+  ||
   source.source_url?.trim()
   || source.label?.trim()
   || source.source_medium
@@ -638,57 +639,20 @@ const hasSourceContent = (source: CreateQuoteSourceData) => Boolean(
   || source.notes?.trim(),
 )
 
-const saveEditedSources = async (quoteId: number) => {
-  const attributions = await $fetch<ApiResponse<QuoteAttribution[]>, '/api/admin/quotes/:id/attributions'>(`/api/admin/quotes/${quoteId}/attributions` as '/api/admin/quotes/:id/attributions')
-  const quoteAttributions = attributions.data ?? []
-  const primaryAttribution = quoteAttributions.find(attribution => attribution.is_primary) ?? quoteAttributions[0]
-  if (!primaryAttribution) throw new Error('A quote requires a primary attribution to record sources')
-  const attributionIds = new Set(quoteAttributions.map(attribution => attribution.id))
-  const currentSourcesResponse = await $fetch<ApiResponse<QuoteSource[]>, '/api/admin/quotes/:id/sources'>(`/api/admin/quotes/${quoteId}/sources` as '/api/admin/quotes/:id/sources')
-  const currentSources = currentSourcesResponse.data ?? []
-  const currentSourceIds = new Set(currentSources.map(source => source.id))
-
-  const editedSources = (sources.value as EditableQuoteSource[]).filter(hasSourceContent)
-  const retainedIds = new Set(editedSources
-    .map(source => source.id)
-    .filter((id): id is number => isPersistedQuoteSource(id, currentSourceIds)))
-  const path = `/api/admin/quotes/${quoteId}/sources`
-
-  for (const source of currentSources) {
-    if (retainedIds.has(source.id)) continue
-    await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources/:sid'>(`${path}/${source.id}` as '/api/admin/quotes/:id/sources/:sid', { method: 'DELETE' })
-  }
-
-  const hasPrimary = editedSources.some(source => source.is_primary)
-  const payloadFor = (source: EditableQuoteSource, index: number) => ({
-    attribution_id: resolveQuoteSourceAttributionId(source.attribution_id, attributionIds, primaryAttribution.id),
-    occurrence_id: source.occurrence_id ?? null,
-    source_type: source.source_type || 'manual',
-    source_medium: source.source_medium ?? null,
-    source_url: source.source_url?.trim() || null,
-    label: source.label?.trim() || null,
-    locator_type: source.locator_type ?? null,
-    locator_value: source.locator_value?.trim() || null,
-    translator_name: source.translator_name?.trim() || null,
-    verification_status: source.verification_status || 'unverified',
-    notes: source.notes?.trim() || null,
-    is_primary: hasPrimary ? Boolean(source.is_primary) : index === 0,
-  })
-  const orderedSources = editedSources
-    .map((source, index) => ({ source, body: payloadFor(source, index) }))
-    .sort((a, b) => Number(b.body.is_primary) - Number(a.body.is_primary))
-
-  for (const { source, body } of orderedSources) {
-    if (isPersistedQuoteSource(source.id, currentSourceIds)) {
-      await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources/:sid'>(`${path}/${source.id}` as '/api/admin/quotes/:id/sources/:sid', { method: 'PUT', body })
-    } else {
-      await $fetch<{ success: boolean }, '/api/admin/quotes/:id/sources'>(path as '/api/admin/quotes/:id/sources', { method: 'POST', body })
+const validateEditedSources = () => {
+  for (const source of sources.value) {
+    if (!hasSourceContent(source)) continue
+    if (Boolean(source.locator_type) !== Boolean(source.locator_value?.trim())) {
+      throw new Error('A source locator needs both a type and a value')
+    }
+    if (source.locator_type === 'timecode' && source.locator_value && !normalizeTimecode(source.locator_value)) {
+      throw new Error('Use MM:SS or HH:MM:SS with seconds below 60')
+    }
+    if (source.source_url?.trim()) {
+      try { new URL(source.source_url.trim()) }
+      catch { throw new Error('Enter a valid source URL') }
     }
   }
-
-  publishMutation({ type: 'updated', quoteIds: [quoteId] })
-  emit('quote-updated')
-  closeDialog()
 }
 
 const handleClickOutside = (event: Event) => {

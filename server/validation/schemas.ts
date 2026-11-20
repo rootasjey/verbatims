@@ -45,7 +45,7 @@ const quoteAttributionsPayloadSchema = z.array(z.object({
   author_id: nullablePositiveInt.optional().default(null),
   reference_id: nullablePositiveInt.optional().default(null),
   is_primary: z.boolean().optional().default(false),
-  status: provenanceStatus.optional().default('unverified'),
+  status: provenanceStatus.optional(),
   notes: z.string().max(5000).trim().optional().nullable(),
 })).min(1).refine(
   attributions => attributions.filter(attribution => attribution.is_primary).length === 1,
@@ -61,6 +61,24 @@ const quoteSourceFieldsSchema = z.object({
   locator_type: z.enum(['page', 'chapter', 'timecode']).optional().nullable(),
   locator_value: z.string().max(250).trim().optional().nullable(),
   notes: z.string().max(5000).trim().optional().nullable(),
+})
+
+const quoteSourceSnapshotSchema = z.object({
+  id: positiveInt,
+  attribution_id: nullablePositiveInt,
+  occurrence_id: nullablePositiveInt,
+  source_type: z.string().max(100),
+  source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other']).nullable(),
+  source_url: z.string().nullable(),
+  label: z.string().nullable(),
+  locator_type: z.enum(['page', 'chapter', 'timecode']).nullable(),
+  locator_value: z.string().nullable(),
+  translator_name: z.string().nullable(),
+  verification_status: provenanceStatus,
+  verified_by: nullablePositiveInt,
+  verified_at: z.string().datetime().nullable(),
+  notes: z.string().nullable(),
+  is_primary: z.boolean(),
 })
 
 const quoteSourceInputSchema = quoteSourceFieldsSchema.superRefine((source, context) => {
@@ -94,7 +112,7 @@ const attributionOrInlineEntity = (data: { attributions: Array<{ author_id: numb
 export const createQuoteSchema = z.object({
   name: z.string().min(2).max(4000).trim(),
   language: z.enum(validLanguages).optional(),
-  attributions: quoteAttributionsPayloadSchema,
+  attributions: quoteAttributionsPayloadSchema.transform(attributions => attributions.map(attribution => ({ ...attribution, status: attribution.status ?? 'unverified' }))),
   sources: z.array(quoteSourceInputSchema).max(10).optional(),
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),
@@ -118,6 +136,81 @@ export const updateQuoteSchema = z.object({
   source_type: z.string().max(100).trim().nullable().optional(),
   source_url: z.string().url().nullable().optional(),
   attributions: quoteAttributionsPayloadSchema.optional(),
+  sources: z.array(z.object({
+    id: positiveInt.optional(),
+    attribution_id: nullablePositiveInt.optional(),
+    occurrence_id: nullablePositiveInt.optional(),
+    source_type: z.string().min(1).max(100).optional(),
+    source_medium: z.enum(['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other']).optional().nullable(),
+    source_url: z.string().url().optional().nullable(),
+    label: z.string().max(200).optional().nullable(),
+    locator_type: z.enum(['page', 'chapter', 'timecode']).optional().nullable(),
+    locator_value: z.string().max(250).optional().nullable(),
+    translator_name: z.string().max(200).optional().nullable(),
+    verification_status: provenanceStatus.optional(),
+    notes: z.string().max(5000).optional().nullable(),
+    is_primary: z.boolean().optional(),
+  }).superRefine((source, context) => {
+    if (Boolean(source.locator_type) !== Boolean(source.locator_value)) {
+      context.addIssue({ code: 'custom', message: 'A locator requires both a type and value', path: ['locator_value'] })
+    }
+    if (source.locator_type === 'timecode' && source.locator_value && !normalizeTimecode(source.locator_value)) {
+      context.addIssue({ code: 'custom', message: 'Use MM:SS or HH:MM:SS with seconds below 60', path: ['locator_value'] })
+    }
+  }).transform((source) => {
+    if (source.id !== undefined) return { ...source, source_type: source.source_type ?? 'manual' }
+    return {
+      ...source,
+      source_type: source.source_type?.trim() || 'manual',
+      label: source.label?.trim() || null,
+      locator_value: source.locator_value?.trim() || null,
+      translator_name: source.translator_name?.trim() || null,
+      notes: source.notes?.trim() || null,
+    }
+  }).superRefine((source, context) => {
+    if (source.id === undefined && Boolean(source.locator_type) !== Boolean(source.locator_value)) {
+      context.addIssue({ code: 'custom', message: 'A locator requires both a type and value', path: ['locator_value'] })
+    }
+    if (source.id === undefined && !source.source_url && !source.label) {
+      context.addIssue({ code: 'custom', message: 'A source requires a URL or label', path: ['source_url'] })
+    }
+  })).superRefine((sources, context) => {
+    const addedSourceCount = sources.filter(source => source.id === undefined).length
+    if (addedSourceCount > 10) {
+      context.addIssue({ code: 'custom', message: 'A quote update can add at most 10 sources', path: [] })
+    }
+  }).optional(),
+  source_snapshot_ids: z.array(positiveInt).optional(),
+  source_snapshot: z.array(quoteSourceSnapshotSchema).optional(),
+  delete_source_ids: z.array(positiveInt).optional(),
+  new_author: z.object({
+    name: z.string().min(1).max(200).trim(),
+    is_fictional: z.boolean().optional().default(false),
+  }).optional(),
+  new_reference: z.object({
+    name: z.string().min(1).max(200).trim(),
+    primary_type: z.string().min(1).max(100).trim().optional().default('other'),
+    original_language: z.string().min(1).max(10).trim().optional().default('en'),
+  }).optional(),
+}).strict().refine(
+  data => !data.attributions || attributionOrInlineEntity({ ...data, attributions: data.attributions }),
+  { message: 'An attribution requires an author or reference' },
+).refine(
+  data => !data.delete_source_ids?.length || Boolean(data.sources && data.source_snapshot_ids),
+  { message: 'Source deletions require the original source snapshot and source list' },
+).refine(
+  data => !data.delete_source_ids || data.delete_source_ids.every(id => data.source_snapshot_ids?.includes(id)),
+  { message: 'Only sources from the original snapshot may be deleted' },
+)
+
+export const createV1QuoteSchema = createQuoteSchema.strict()
+
+export const updateV1QuoteSchema = z.object({
+  name: z.string().min(2).max(3000).trim().optional(),
+  language: z.enum(validLanguages).optional(),
+  source_type: z.string().max(100).trim().nullable().optional(),
+  source_url: z.string().url().nullable().optional(),
+  attributions: quoteAttributionsPayloadSchema.optional(),
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),
     is_fictional: z.boolean().optional().default(false),
@@ -131,10 +224,6 @@ export const updateQuoteSchema = z.object({
   data => !data.attributions || attributionOrInlineEntity({ ...data, attributions: data.attributions }),
   { message: 'An attribution requires an author or reference' },
 )
-
-export const createV1QuoteSchema = createQuoteSchema.strict()
-
-export const updateV1QuoteSchema = updateQuoteSchema.strict()
 
 const quoteAttributionFields = z.object({
   author_id: nullablePositiveInt.optional().default(null),

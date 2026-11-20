@@ -909,6 +909,32 @@ describe('POST /api/v1/quotes', () => {
 })
 
 describe('PUT /api/v1/quotes/[id]', () => {
+  test('preserves verification metadata when attribution status is omitted', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...moderatorHeaders(),
+      method: 'POST',
+      body: {
+        name: 'Quote preserving omitted attribution verification metadata.',
+        language: 'en',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true, status: 'externally_verified' }],
+      },
+    })
+    const initial = created.data.attributions[0]
+
+    const updated = await $fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...moderatorHeaders(),
+      method: 'PUT',
+      body: { attributions: [{ author_id: 1, reference_id: 1, is_primary: true }] },
+    })
+
+    expect(updated.data.attributions[0]).toMatchObject({
+      id: initial.id,
+      status: 'externally_verified',
+      verified_by: initial.verified_by,
+      verified_at: initial.verified_at,
+    })
+  })
+
   test('updates a quote', async () => {
     const created = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),

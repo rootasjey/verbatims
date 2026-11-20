@@ -940,6 +940,7 @@
       "create_new_reference": "Créer une référence : \"{name}\"",
       "quote_placeholder": "Saisissez le contenu de la citation...",
       "quote_save_failed": "Impossible d’enregistrer la citation. Votre saisie est conservée dans ce dialogue. Réessayez.",
+      "source_load_retry": "Réessayer de charger les sources",
       "quote_error_reference": "Référence de suivi : {id}",
       "quote_error_report_action": "Signaler ce problème",
       "quote_error_report_template": "Échec de l’enregistrement d’une citation\nRéférence de suivi : {id}\nPage : {page}\nÉtape : {step}\nLe texte de la citation n’est pas inclus automatiquement.",
