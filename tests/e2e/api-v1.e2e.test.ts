@@ -911,7 +911,7 @@ describe('POST /api/v1/quotes', () => {
 describe('PUT /api/v1/quotes/[id]', () => {
   test('preserves verification metadata when attribution status is omitted', async () => {
     const created = await $fetch('/api/v1/quotes', {
-      ...moderatorHeaders(),
+      ...writeHeaders(),
       method: 'POST',
       body: {
         name: 'Quote preserving omitted attribution verification metadata.',
@@ -919,15 +919,19 @@ describe('PUT /api/v1/quotes/[id]', () => {
         attributions: [{ author_id: 1, reference_id: 1, is_primary: true, status: 'externally_verified' }],
       },
     })
-    const initial = created.data.attributions[0]
+    const initialAttributions = await $fetch(`/api/v1/quotes/${created.data.id}/attributions`, moderatorHeaders())
+    const initial = initialAttributions.data[0]
 
     const updated = await $fetch(`/api/v1/quotes/${created.data.id}`, {
-      ...moderatorHeaders(),
+      ...writeHeaders(),
       method: 'PUT',
       body: { attributions: [{ author_id: 1, reference_id: 1, is_primary: true }] },
     })
+    const updatedAttributions = await $fetch(`/api/v1/quotes/${created.data.id}/attributions`, moderatorHeaders())
+    const persisted = updatedAttributions.data.find((attribution: { id: number }) => attribution.id === initial.id)
 
-    expect(updated.data.attributions[0]).toMatchObject({
+    expect(updated.success).toBe(true)
+    expect(persisted).toMatchObject({
       id: initial.id,
       status: 'externally_verified',
       verified_by: initial.verified_by,
