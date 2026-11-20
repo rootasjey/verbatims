@@ -1,6 +1,8 @@
 import { describe, test, expect } from 'vitest'
-import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
+import { $fetch, fetch, setup, url } from '@nuxt/test-utils/e2e'
 import { createClient } from '@libsql/client'
+import { existsSync } from 'node:fs'
+import puppeteer from 'puppeteer'
 import { getParisDateKey } from '../../server/utils/theme-selection'
 import { buildQuoteSourceEditPayload, isPersistedQuoteSource, resolveQuoteSourceAttributionId } from '../../app/utils/quote-source-edit'
 
@@ -93,6 +95,83 @@ describe('POST /api/auth/login', () => {
       body: JSON.stringify({ email: 'test@verbatims.cc', password: 'wrongpass' }),
     })
     expect(res.status).toBe(401)
+  })
+})
+
+describe('Quote suggestion keyboard flow', () => {
+  test('selects a focused suggestion in the desktop dialog and mobile drawer without submitting', async () => {
+    const browser = await puppeteer.launch({
+      headless: true,
+      executablePath: process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : puppeteer.executablePath()),
+      args: ['--no-sandbox'],
+    })
+    try {
+      const page = await browser.newPage()
+      const quotePosts: string[] = []
+      page.on('request', request => {
+        if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/quotes') quotePosts.push(request.url())
+      })
+
+      await page.goto(url('/'), { waitUntil: 'domcontentloaded' })
+      const loginStatus = await page.evaluate(async () => {
+        const response = await window.fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'test@verbatims.cc', password: 'admin123!' }),
+        })
+        return response.status
+      })
+      expect(loginStatus).toBe(200)
+      await page.reload({ waitUntil: 'domcontentloaded' })
+
+      for (const { surface, width } of [
+        { surface: 'AddQuoteDialog', width: 1280 },
+        { surface: 'AddQuoteDrawer', width: 390 },
+      ]) {
+        await page.setViewport({ width, height: 900 })
+        await page.goto(url('/'), { waitUntil: 'domcontentloaded' })
+        await page.waitForFunction(() => (window as any).useNuxtApp?.().isHydrating === false)
+        await page.keyboard.down('ControlLeft')
+        await page.keyboard.press('a')
+        await page.keyboard.up('ControlLeft')
+        await page.waitForFunction(() => Array.from(document.querySelectorAll('form')).some(form => form.querySelector('textarea') && form.getBoundingClientRect().width > 0))
+
+        let activeForm = null
+        for (const candidate of await page.$$('form')) {
+          if (await candidate.evaluate(element => !!element.querySelector('textarea') && element.getBoundingClientRect().width > 0)) {
+            activeForm = candidate
+            break
+          }
+        }
+        expect(activeForm, `${surface} form should be visible`).toBeTruthy()
+        const quoteInput = await activeForm!.$('textarea')
+        await quoteInput!.type('Keyboard suggestion propagation fixture')
+        await page.evaluate(() => {
+          const attributionStep = Array.from(document.querySelectorAll('button')).find(button => button.getAttribute('aria-label')?.toLowerCase().includes('attribution') && button.getBoundingClientRect().width > 0)
+          ;(attributionStep as HTMLButtonElement | undefined)?.click()
+        })
+        await page.waitForSelector('#quote-attribution-author', { visible: true, timeout: 10000 }).catch(async () => {
+          const diagnostics = await page.evaluate(() => Array.from(document.querySelectorAll('form')).map(form => ({
+            id: form.id,
+            text: form.innerText.slice(0, 400),
+            buttons: Array.from(form.querySelectorAll('button')).map(button => ({ text: button.innerText, label: button.getAttribute('aria-label'), disabled: (button as HTMLButtonElement).disabled })),
+          })))
+          throw new Error(`${surface} did not reach attribution step: ${JSON.stringify(diagnostics)}`)
+        })
+        await page.type('#quote-attribution-author', 'Marcus')
+        await page.waitForFunction(() => Array.from(document.querySelectorAll('.quote-suggestions-panel button')).some(button => button.textContent?.includes('Marcus Aurelius')))
+        const focusedSuggestion = await page.evaluateHandle(() => Array.from(document.querySelectorAll('.quote-suggestions-panel button')).find(button => button.textContent?.includes('Marcus Aurelius')))
+        await focusedSuggestion.evaluate(button => (button as HTMLButtonElement).focus())
+        await page.keyboard.press('Enter')
+
+        await page.waitForFunction(() => document.querySelector('#quote-attribution-author')?.parentElement?.querySelector('.max-w-48.truncate')?.textContent?.trim() === 'Marcus Aurelius')
+        await new Promise(resolve => setTimeout(resolve, 250))
+        expect(await activeForm!.evaluate(element => element.isConnected && element.getBoundingClientRect().width > 0), `${surface} should remain open`).toBe(true)
+        expect(quotePosts, `${surface} should not submit`).toHaveLength(0)
+      }
+    } finally {
+      await browser.close()
+    }
   })
 })
 
