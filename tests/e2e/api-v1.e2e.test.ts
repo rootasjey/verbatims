@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest'
 import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
 import { createClient } from '@libsql/client'
 import { getParisDateKey } from '../../server/utils/theme-selection'
-import { isPersistedQuoteSource, resolveQuoteSourceAttributionId } from '../../app/utils/quote-source-edit'
+import { buildQuoteSourceEditPayload, isPersistedQuoteSource, resolveQuoteSourceAttributionId } from '../../app/utils/quote-source-edit'
 
 const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
 const testDb = await seedTestDb()
@@ -539,6 +539,145 @@ describe('Admin quote provenance routes', () => {
           is_primary: staleSource.is_primary,
         },
       })
+    }
+  })
+
+  test.each([
+    { quoteId: 8, status: 'draft' },
+    { quoteId: 1, status: 'approved' },
+  ])('saves the combined quote and source payload atomically for a $status quote', async ({ quoteId, status }) => {
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    const originalQuoteResult = await localDb.execute({ sql: 'SELECT name FROM quotes WHERE id = ?', args: [quoteId] })
+    const originalName = String(originalQuoteResult.rows[0]?.name)
+    localDb.close()
+
+    const baselineResponse = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
+    const baselineSources = [...baselineResponse.data]
+    const attributions = await $fetch(`/api/admin/quotes/${quoteId}/attributions`, adminHeaders())
+    const primary = attributions.data.find((attribution: { is_primary: boolean }) => attribution.is_primary)
+    let initialSources = baselineSources
+
+    try {
+      if (initialSources.length === 0) {
+        await $fetch(`/api/admin/quotes/${quoteId}/sources`, {
+          ...adminHeaders(),
+          method: 'POST',
+          body: {
+            attribution_id: primary.id,
+            source_type: 'book',
+            source_url: `https://example.com/cart-1-initial-${quoteId}`,
+            label: `Initial source ${quoteId}`,
+            is_primary: true,
+          },
+        })
+        initialSources = (await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())).data
+      }
+
+      for (const source of initialSources) {
+        await $fetch(`/api/admin/quotes/${quoteId}/sources/${source.id}`, {
+          ...adminHeaders(),
+          method: 'PUT',
+          body: { verification_status: 'externally_verified' },
+        })
+      }
+      initialSources = (await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())).data
+
+      const payload = buildQuoteSourceEditPayload(
+        [...initialSources, {
+          attribution_id: primary.id,
+          source_type: 'book',
+          source_url: `https://example.com/cart-1-added-${quoteId}`,
+          label: `Added source ${quoteId}`,
+          is_primary: false,
+        }],
+        initialSources.map((source: { id: number }) => source.id),
+        initialSources,
+        new Set(attributions.data.map((attribution: { id: number }) => attribution.id)),
+        primary.id,
+      )
+      const updatedName = `${originalName} Combined source edit`
+      const response = await $fetch(`/api/quotes/${quoteId}`, {
+        ...adminHeaders(),
+        method: 'PUT',
+        body: { name: updatedName, ...payload },
+      })
+      expect(response.success).toBe(true)
+
+      const persistedSources = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
+      expect(persistedSources.data).toHaveLength(initialSources.length + 1)
+      const preservedSource = persistedSources.data.find((source: { id: number }) => source.id === initialSources[0]?.id)
+      expect(preservedSource.verification_status).toBe('externally_verified')
+      expect(persistedSources.data.map((source: { label: string }) => source.label)).toContain(`Added source ${quoteId}`)
+      const persistedQuote = createClient({ url: `file:${testDb.dbPath}` })
+      const quoteResult = await persistedQuote.execute({ sql: 'SELECT name, status FROM quotes WHERE id = ?', args: [quoteId] })
+      persistedQuote.close()
+      expect(quoteResult.rows[0]?.name).toBe(updatedName)
+      expect(quoteResult.rows[0]?.status).toBe(status)
+    } finally {
+      const currentSources = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
+      const baselineIds = new Set(baselineSources.map((source: { id: number }) => source.id))
+      for (const source of currentSources.data) {
+        if (!baselineIds.has(source.id)) {
+          await $fetch(`/api/admin/quotes/${quoteId}/sources/${source.id}`, { ...adminHeaders(), method: 'DELETE' })
+        }
+      }
+      for (const source of baselineSources) {
+        await $fetch(`/api/admin/quotes/${quoteId}/sources/${source.id}`, {
+          ...adminHeaders(),
+          method: 'PUT',
+          body: {
+            attribution_id: source.attribution_id,
+            source_type: source.source_type,
+            source_medium: source.source_medium,
+            source_url: source.source_url,
+            label: source.label,
+            locator_type: source.locator_type,
+            locator_value: source.locator_value,
+            translator_name: source.translator_name,
+            notes: source.notes,
+            is_primary: source.is_primary,
+            verification_status: source.verification_status,
+          },
+        })
+      }
+      await $fetch(`/api/quotes/${quoteId}`, { ...adminHeaders(), method: 'PUT', body: { name: originalName } })
+    }
+  })
+
+  test('rolls back the quote edit when the combined source insert fails', async () => {
+    const quoteId = 8
+    const attributions = await $fetch(`/api/admin/quotes/${quoteId}/attributions`, adminHeaders())
+    const primary = attributions.data.find((attribution: { is_primary: boolean }) => attribution.is_primary)
+    const sourcePayload = buildQuoteSourceEditPayload([{
+      attribution_id: primary.id,
+      source_type: 'book',
+      source_url: 'https://example.com/cart-1-rollback',
+      label: 'Rollback source',
+      is_primary: true,
+    }], [], [], new Set(attributions.data.map((attribution: { id: number }) => attribution.id)), primary.id)
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    const initialQuote = await localDb.execute({ sql: 'SELECT name, status FROM quotes WHERE id = ?', args: [quoteId] })
+    const initialSources = await localDb.execute({ sql: 'SELECT id FROM quote_sources WHERE quote_id = ?', args: [quoteId] })
+    const initialName = initialQuote.rows[0]?.name
+    const trigger = 'cart1_force_source_insert_failure'
+
+    try {
+      await localDb.execute(`CREATE TRIGGER ${trigger} BEFORE INSERT ON quote_sources WHEN NEW.quote_id = ${quoteId} BEGIN SELECT RAISE(ABORT, 'forced CART-1 test failure'); END`)
+      const response = await fetch(`/api/quotes/${quoteId}`, {
+        ...adminHeaders(),
+        method: 'PUT',
+        headers: { ...adminHeaders().headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Must roll back with source insert', ...sourcePayload }),
+      })
+      expect(response.status).toBe(500)
+    } finally {
+      await localDb.execute(`DROP TRIGGER IF EXISTS ${trigger}`)
+      const quoteAfter = await localDb.execute({ sql: 'SELECT name, status FROM quotes WHERE id = ?', args: [quoteId] })
+      const sourcesAfter = await localDb.execute({ sql: 'SELECT id FROM quote_sources WHERE quote_id = ?', args: [quoteId] })
+      expect(quoteAfter.rows[0]?.name).toBe(initialName)
+      expect(quoteAfter.rows[0]?.status).toBe('draft')
+      expect(sourcesAfter.rows.map((row: { id: unknown }) => row.id)).toEqual(initialSources.rows.map((row: { id: unknown }) => row.id))
+      localDb.close()
     }
   })
 
