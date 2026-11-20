@@ -53,12 +53,24 @@
       </div>
     </template>
 
-    <div
-      v-if="scrollable"
-      ref="dialogContentRef"
-      :class="['min-h-0 overflow-auto', scrollableContentClass]"
-    >
-      <slot />
+    <div v-if="scrollable" class="relative min-h-0 overflow-hidden">
+      <div
+        ref="dialogContentRef"
+        :class="['h-full min-h-0 overflow-auto', scrollableContentClass]"
+        @scroll.passive="updateScrollFade"
+      >
+        <slot />
+      </div>
+      <div
+        v-if="scrollFade && hasScrollBefore"
+        class="pointer-events-none absolute inset-x-0 top-0 z-10 h-7 bg-gradient-to-b from-[#FAFAF9] to-transparent dark:from-[#151515]"
+        aria-hidden="true"
+      />
+      <div
+        v-if="scrollFade && hasScrollAfter"
+        class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-7 bg-gradient-to-t from-[#FAFAF9] to-transparent dark:from-[#151515]"
+        aria-hidden="true"
+      />
     </div>
     <div v-else ref="dialogContentRef">
       <slot />
@@ -102,6 +114,7 @@ interface Props {
   compactHeader?: boolean
   scrollable?: boolean
   scrollableContentClass?: string
+  scrollFade?: boolean
   una?: Record<string, string>
   preserveAppChrome?: boolean
   dialogContentStyle?: Record<string, string>
@@ -123,6 +136,7 @@ const props = withDefaults(defineProps<Props>(), {
   hideHeaderBorder: false,
   compactHeader: false,
   scrollable: false,
+  scrollFade: false,
   preserveAppChrome: false,
   una: () => ({})
 })
@@ -135,6 +149,43 @@ const submitText = computed(() => props.submitText ?? String($t('components.app_
 const cancelText = computed(() => props.cancelText ?? String($t('components.app_dialog.cancel')))
 
 const dialogContentRef = ref<HTMLElement | null>(null)
+const hasScrollBefore = ref(false)
+const hasScrollAfter = ref(false)
+let scrollContentObserver: ResizeObserver | undefined
+
+function updateScrollFade() {
+  const content = dialogContentRef.value
+  if (!props.scrollFade || !content) {
+    hasScrollBefore.value = false
+    hasScrollAfter.value = false
+    return
+  }
+
+  hasScrollBefore.value = content.scrollTop > 1
+  hasScrollAfter.value = content.scrollTop + content.clientHeight < content.scrollHeight - 1
+}
+
+watch([dialogContentRef, () => props.modelValue, () => props.scrollFade], async ([content, isOpen, isEnabled]) => {
+  scrollContentObserver?.disconnect()
+  scrollContentObserver = undefined
+
+  if (!content || !isOpen || !isEnabled) {
+    updateScrollFade()
+    return
+  }
+
+  await nextTick()
+  updateScrollFade()
+  scrollContentObserver = new ResizeObserver(updateScrollFade)
+  scrollContentObserver.observe(content)
+
+  const slottedContent = content.firstElementChild
+  if (slottedContent instanceof HTMLElement) {
+    scrollContentObserver.observe(slottedContent)
+  }
+}, { flush: 'post' })
+
+onBeforeUnmount(() => scrollContentObserver?.disconnect())
 
 const isOpen = computed({
   get: () => props.modelValue,

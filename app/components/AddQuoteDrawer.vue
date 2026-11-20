@@ -1,8 +1,15 @@
 <template>
-	<NDrawer v-model:open="isOpen" direction="bottom">
+	<NDrawer
+		v-model:open="isOpen"
+		direction="bottom"
+		:una="{
+			drawerContent: 'max-h-[min(92dvh,56rem)] w-full max-w-full overflow-hidden rounded-t-2xl border border-b-0 border-gray-200 bg-[#FAFAF9] shadow-2xl dark:border-neutral-800 dark:bg-[#151515]',
+			drawerOverlay: 'bg-black/45',
+		}"
+	>
 		<template #body>
-			<div class="max-h-[min(88dvh,48rem)] overflow-y-auto rounded-t-5 bg-[#FAFAF9] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 text-gray-900 dark:bg-[#151515] dark:text-gray-100 sm:px-8">
-				<div class="mb-6 flex items-center justify-between gap-4 border-b border-gray-200/80 pb-4 dark:border-neutral-700/80">
+			<div class="flex h-[min(88dvh,48rem)] max-h-[min(88dvh,48rem)] flex-col overflow-hidden rounded-t-5 bg-[#FAFAF9] px-5 pt-6 text-gray-900 dark:bg-[#151515] dark:text-gray-100 sm:px-8">
+				<div v-if="!user" class="mb-6 flex items-center justify-between gap-4 border-b border-gray-200/80 pb-4 dark:border-neutral-700/80">
 					<h2 class="font-sans text-lg font-600 tracking-normal">
 						{{ $t('components.dialogs.add_quote') }}
 					</h2>
@@ -33,17 +40,20 @@
 					</div>
 				</section>
 
-				<form v-else @submit.prevent="submitQuote" @keydown.capture="handleCreateEscape" @keydown="handleCreateFormKeydown" class="space-y-6">
-					<div class="mb-6 grid grid-cols-3 gap-3" :aria-label="String($t('components.dialogs.add_quote_steps'))">
-						<button type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.quote_step'))" :aria-current="step === 1 ? 'step' : undefined" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors', step === 1 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToQuoteStep">
-							<OverflowingTabLabel number="01" :label="String($t('components.dialogs.quote_step'))" />
+				<form v-else @submit.prevent="submitQuote" @keydown.capture="handleCreateEscape" @keydown="handleCreateFormKeydown" class="flex min-h-0 flex-1 flex-col">
+					<div class="mb-6 flex items-start gap-3" :aria-label="String($t('components.dialogs.add_quote_steps'))">
+						<div class="flex min-w-0 flex-1 gap-3 overflow-x-auto overscroll-x-contain">
+						<button type="button" class="shrink-0 whitespace-nowrap" :aria-label="String($t('components.dialogs.quote_step'))" :aria-current="step === 1 ? 'step' : undefined" :class="['w-max min-w-max border-b-2 pb-2 text-left font-sans text-sm transition-colors', step === 1 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToQuoteStep">
+							<OverflowingTabLabel number="01" :label="String($t('components.dialogs.quote_step'))" intrinsic />
 						</button>
-						<button type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.attribution_step'))" :aria-current="step === 2 ? 'step' : undefined" :disabled="form.content.trim().length < 2" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', step === 2 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToAttributionStep">
-							<OverflowingTabLabel number="02" :label="String($t('components.dialogs.attribution_step'))" />
+						<button type="button" class="shrink-0 whitespace-nowrap" :aria-label="String($t('components.dialogs.attribution_step'))" :aria-current="step === 2 ? 'step' : undefined" :disabled="form.content.trim().length < 2" :class="['w-max min-w-max border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', step === 2 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToAttributionStep">
+							<OverflowingTabLabel number="02" :label="String($t('components.dialogs.attribution_step'))" intrinsic />
 						</button>
-						<button type="button" class="overflowing-tab-trigger min-w-0 overflow-hidden whitespace-nowrap" :aria-label="String($t('components.dialogs.source_step'))" :aria-current="step === 3 ? 'step' : undefined" :disabled="form.content.trim().length < 2 || !hasAttribution || submitting" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', step === 3 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToSourceStep">
-							<OverflowingTabLabel number="03" :label="String($t('components.dialogs.source_step'))" />
+						<button type="button" class="shrink-0 whitespace-nowrap" :aria-label="String($t('components.dialogs.source_step'))" :aria-current="step === 3 ? 'step' : undefined" :disabled="form.content.trim().length < 2 || !hasAttribution || submitting" :class="['w-max min-w-max border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', step === 3 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToSourceStep">
+							<OverflowingTabLabel number="03" :label="String($t('components.dialogs.source_step'))" intrinsic />
 						</button>
+						</div>
+						<NButton icon btn="ghost-gray" label="i-ph-x" size="sm" class="shrink-0 rounded-full" @click="isOpen = false" />
 					</div>
 					<p v-if="draftSaved" role="status" aria-live="polite" :class="['quote-draft-saved-feedback mb-4 flex items-center gap-2 font-sans text-sm text-gray-600 dark:text-gray-300', { 'quote-draft-saved-feedback--pulse': draftSavedPulseActive }]">
 						<NIcon name="i-tabler-circle-check" class="h-4 w-4 shrink-0" />
@@ -63,181 +73,42 @@
 						</div>
 					</div>
 
-					<div ref="stepViewportRef" :style="{ height: stepViewportHeight }" class="quote-step-viewport relative overflow-hidden" @transitionend.self="finishStepTransition">
+					<div ref="stepViewportRef" :style="{ height: stepViewportHeight }" class="quote-step-viewport relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain" @transitionend.self="finishStepTransition">
 					<Transition :name="transitionName">
-					<div v-if="step === 1" key="quote" data-quote-step="1" class="space-y-5 p-2">
-						<div class="relative">
-							<NInput
-								ref="quoteInputRef"
-								type="textarea"
-								autofocus
-								v-model="form.content"
-								class="min-h-48 rounded-1.5 bg-gray-100/80 px-4 pb-10 pt-4 font-serif text-2xl leading-snug text-gray-900 ring-transparent placeholder-gray-400 focus-visible:ring-2 focus-visible:ring-gray-400/60 light:focus-visible:ring-gray-400/60 dark:bg-neutral-900/80 dark:text-gray-100 dark:placeholder-gray-600 dark:focus-visible:ring-gray-500"
-								:placeholder="quotePlaceholder"
-								:rows="4"
-								:disabled="submitting"
-								@input="draftSaved = false; clearDraftSavedPulse()"
-								required
-							/>
-							<span class="pointer-events-none absolute bottom-3 right-4 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.content.length }))">{{ form.content.length }}</span>
-						</div>
+					<div v-if="step === 1" key="quote" data-quote-step="1" class="space-y-4 px-0 py-2">
+						<QuoteContentFields
+							ref="quoteInputRef"
+							v-model="form.content"
+							:placeholder="quotePlaceholder"
+							:disabled="submitting"
+							@input="draftSaved = false; clearDraftSavedPulse()"
+						/>
 					</div>
 
 					<div v-else-if="step === 2" key="attribution" data-quote-step="2" class="space-y-5">
-						<!-- Author Selection -->
-						<div>
-							<label class="sr-only">
-								{{ $t('components.dialogs.author_label') }}
-							</label>
-							<div class="relative">
-								<div class="flex min-h-12 flex-wrap items-center gap-2 rounded-1 border border-gray-300 px-3 py-1.5 transition-colors focus-within:border-gray-700 dark:border-neutral-700 dark:focus-within:border-neutral-300">
-									<span v-if="form.selectedAuthor" class="inline-flex max-w-full items-center gap-1.5 rounded-full bg-gray-100 py-1 pl-1 pr-2 font-sans text-sm text-gray-900 dark:bg-neutral-800 dark:text-gray-100">
-										<NAvatar :src="form.selectedAuthor.image_url" :alt="form.selectedAuthor.name" size="xs" class="shrink-0" />
-										<span class="max-w-48 truncate">{{ form.selectedAuthor.name }}</span>
-										<button type="button" class="ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-neutral-700 dark:hover:text-gray-100" :aria-label="String($t('components.dialogs.clear_selection'))" @mousedown.prevent @click="clearAuthorFromField"><NIcon name="i-tabler-x" class="h-3.5 w-3.5" /></button>
-									</span>
-									<input
-										id="drawer-add-quote-author"
-										ref="authorInputRef"
-										v-model="authorQuery"
-										type="text"
-										class="min-w-40 flex-1 border-0 bg-transparent px-1 py-2 font-sans text-base text-gray-900 outline-none placeholder-gray-400 focus:border-0 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-500"
-										:aria-label="String($t('components.dialogs.author_label'))"
-										:placeholder="(form.selectedAuthor ? $t('components.dialogs.replace_selection') : $t('components.dialogs.search_author')) as string"
-										:disabled="submitting"
-										@input="onAuthorInput"
-										@focus="handleAuthorInputFocus"
-										@blur="handleAuthorInputBlur"
-										@keydown="onAuthorKeydown"
-									/>
-								</div>
-								<!-- Author Suggestions -->
-								<Transition name="quote-suggestions" @leave="collapseSuggestionPanel">
-								<div
-									v-if="showAuthorSuggestions && (authorSuggestions.length > 0 || authorQuery)"
-									ref="authorSuggestionsRef"
-								:style="{ height: authorSuggestionsHeight }"
-									class="quote-suggestions-panel relative z-10 mt-2 max-h-48 w-full overflow-auto rounded-1.5 border border-gray-200 bg-[#FAFAF9] shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
-									tabindex="-1"
-									@blur="handleAuthorSuggestionsBlur"
-									@keydown="handleAuthorKeydown"
-								>
-									<div
-										v-for="(author, index) in authorSuggestions"
-										:key="author.id"
-										:class="[
-											'px-3 py-2 cursor-pointer flex items-center space-x-2',
-											selectedAuthorIndex === index
-											? 'bg-gray-100 dark:bg-neutral-700'
-											: 'hover:bg-gray-100 dark:hover:bg-neutral-800'
-										]"
-										@click="selectAuthor(author)"
-										@mouseenter="selectedAuthorIndex = index"
-									>
-										<NAvatar :src="author.image_url" :alt="author.name" size="xs" class="shrink-0" />
-										<div class="flex-1">
-											<div class="text-sm font-medium">{{ author.name }}</div>
-											<div v-if="author.job" class="text-xs text-gray-500">{{ author.job }}</div>
-										</div>
-									</div>
-									<div
-										v-if="authorQuery && !authorSuggestions.some((a: Author) => a.name.toLowerCase() === authorQuery.toLowerCase())"
-										:class="[
-											'px-3 py-2 cursor-pointer border-t border-gray-200 dark:border-gray-700',
-											selectedAuthorIndex === authorSuggestions.length
-											? 'bg-gray-100 dark:bg-neutral-700'
-											: 'hover:bg-gray-100 dark:hover:bg-neutral-800'
-										]"
-										@click="createNewAuthor"
-										@mouseenter="selectedAuthorIndex = authorSuggestions.length"
-									>
-										<div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-											{{ $t('components.dialogs.create_new_author', { name: authorQuery }) }}
-										</div>
-									</div>
-								</div>
-								</Transition>
-								</div>
-						</div>
-
-						<!-- Reference Selection -->
-						<div>
-							<label class="sr-only">
-								{{ $t('components.dialogs.reference_label') }}
-							</label>
-							<div class="relative">
-								<div class="flex min-h-12 flex-wrap items-center gap-2 rounded-1 border border-gray-300 px-3 py-1.5 transition-colors focus-within:border-gray-700 dark:border-neutral-700 dark:focus-within:border-neutral-300">
-									<span v-if="form.selectedReference" class="inline-flex max-w-full items-center gap-1.5 rounded-full bg-gray-100 py-1 pl-1 pr-2 font-sans text-sm text-gray-900 dark:bg-neutral-800 dark:text-gray-100">
-										<NAvatar :src="form.selectedReference.image_url" :alt="form.selectedReference.name" rounded="2" size="xs" class="shrink-0" />
-										<span class="max-w-48 truncate">{{ form.selectedReference.name }}</span>
-										<button type="button" class="ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-neutral-700 dark:hover:text-gray-100" :aria-label="String($t('components.dialogs.clear_selection'))" @mousedown.prevent @click="clearReferenceFromField"><NIcon name="i-tabler-x" class="h-3.5 w-3.5" /></button>
-									</span>
-									<input
-										id="drawer-add-quote-reference"
-										ref="referenceInputRef"
-										v-model="referenceQuery"
-										type="text"
-										class="min-w-40 flex-1 border-0 bg-transparent px-1 py-2 font-sans text-base text-gray-900 outline-none placeholder-gray-400 focus:border-0 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-500"
-										:aria-label="String($t('components.dialogs.reference_label'))"
-										:placeholder="(form.selectedReference ? $t('components.dialogs.replace_selection') : $t('components.dialogs.search_reference')) as string"
-										:disabled="submitting"
-										@input="onReferenceInput"
-										@focus="handleReferenceInputFocus"
-										@blur="handleReferenceInputBlur"
-										@keydown="onReferenceKeydown"
-									/>
-								</div>
-								<!-- Reference Suggestions -->
-								<Transition name="quote-suggestions" @leave="collapseSuggestionPanel">
-								<div
-									v-if="showReferenceSuggestions && (referenceSuggestions.length > 0 || referenceQuery)"
-									ref="referenceSuggestionsRef"
-								:style="{ height: referenceSuggestionsHeight }"
-									class="quote-suggestions-panel relative z-10 mt-2 max-h-48 w-full overflow-auto rounded-1.5 border border-gray-200 bg-[#FAFAF9] shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
-									tabindex="-1"
-									@blur="handleReferenceSuggestionsBlur"
-									@keydown="handleReferenceKeydown"
-								>
-									<div
-										v-for="(reference, index) in referenceSuggestions"
-										:key="reference.id"
-										:class="[
-											'px-3 py-2 cursor-pointer flex items-center space-x-2',
-											selectedReferenceIndex === index
-											? 'bg-gray-100 dark:bg-neutral-700'
-											: 'hover:bg-gray-100 dark:hover:bg-neutral-800'
-										]"
-										@click="selectReference(reference)"
-										@mouseenter="selectedReferenceIndex = index"
-									>
-										<NAvatar :src="reference.image_url" :alt="reference.name" rounded="2" size="xs" class="shrink-0" />
-										<div class="flex-1">
-											<div class="text-sm font-medium">{{ reference.name }}</div>
-											<div v-if="reference.primary_type" class="text-xs text-gray-500 capitalize">{{ reference.primary_type.replace('_', ' ') }}</div>
-										</div>
-									</div>
-									<div
-										v-if="referenceQuery && !referenceSuggestions.some((r: QuoteReference) => r.name.toLowerCase() === referenceQuery.toLowerCase())"
-										:class="[
-											'px-3 py-2 cursor-pointer border-t border-gray-200 dark:border-gray-700',
-											selectedReferenceIndex === referenceSuggestions.length
-											? 'bg-gray-100 dark:bg-neutral-700'
-											: 'hover:bg-gray-100 dark:hover:bg-neutral-800'
-										]"
-										@click="createNewReference"
-										@mouseenter="selectedReferenceIndex = referenceSuggestions.length"
-									>
-										<div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-											{{ $t('components.dialogs.create_new_reference', { name: referenceQuery }) }}
-										</div>
-									</div>
-								</div>
-								</Transition>
-								</div>
-						</div>
-						<p v-if="!form.selectedAuthor && !form.selectedReference" class="text-right font-sans text-xs text-gray-500 dark:text-gray-400">
-							{{ $t('components.dialogs.attribution_required') }}
-						</p>
+						<QuoteAttributionFields
+							:selected-author="form.selectedAuthor"
+							:selected-reference="form.selectedReference"
+							v-model:author-query="authorQuery"
+							v-model:reference-query="referenceQuery"
+							:author-suggestions="authorSuggestions"
+							:reference-suggestions="referenceSuggestions"
+							:show-author-suggestions="showAuthorSuggestions"
+							:show-reference-suggestions="showReferenceSuggestions"
+							:selected-author-index="selectedAuthorIndex"
+							:selected-reference-index="selectedReferenceIndex"
+							:disabled="submitting"
+							:has-attribution="hasAttribution"
+							:input-refs="attributionInputRefs"
+							:suggestion-refs="attributionSuggestionRefs"
+							:handlers="attributionFieldHandlers"
+						>
+							<template #feedback>
+								<p v-if="!hasAttribution" class="font-sans text-xs text-gray-500 dark:text-gray-400">
+									{{ $t('components.dialogs.attribution_required') }}
+								</p>
+							</template>
+						</QuoteAttributionFields>
 					</div>
 
 					<div v-else key="sources" data-quote-step="3" class="py-2">
@@ -246,7 +117,7 @@
 					</Transition>
 					</div>
 
-					<div class="flex items-center justify-between gap-3 border-t border-gray-200/80 pt-5 dark:border-neutral-700/80">
+					<div class="mt-auto -mx-5 flex shrink-0 items-center justify-between gap-3 border-t border-gray-200/80 bg-[#FAFAF9] px-5 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 dark:border-neutral-700/80 dark:bg-[#151515] sm:-mx-8 sm:px-8">
 						<NButton
 							btn="light:soft dark:soft-white"
 							type="button"
@@ -290,10 +161,13 @@
 
 <script lang="ts" setup>
 import OverflowingTabLabel from '~/components/OverflowingTabLabel.vue'
+import QuoteContentFields from '~/components/QuoteContentFields.vue'
+import QuoteAttributionFields from '~/components/QuoteAttributionFields.vue'
 import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 import { useQuoteStepTransition } from '~/composables/useQuoteStepTransition'
+import { handleQuoteFormKeydown as handleSuggestionFormKeydown } from '~/utils/quote-suggestion-keyboard'
 
 interface Emits {
 	(e: 'update:open', value: boolean): void
@@ -404,48 +278,6 @@ watch([() => form.value, sources], () => {
 	submissionErrorId.value = ''
 }, { deep: true })
 
-const authorSuggestionsHeight = ref('0px')
-const referenceSuggestionsHeight = ref('0px')
-
-watch([showAuthorSuggestions, authorSuggestions, authorQuery], async ([visible]) => {
-	if (!visible) return
-	await nextTick()
-	const panel = authorSuggestionsRef.value
-	if (panel) authorSuggestionsHeight.value = `${Math.min(panel.scrollHeight, 192)}px`
-}, { flush: 'post' })
-
-watch([showReferenceSuggestions, referenceSuggestions, referenceQuery], async ([visible]) => {
-	if (!visible) return
-	await nextTick()
-	const panel = referenceSuggestionsRef.value
-	if (panel) referenceSuggestionsHeight.value = `${Math.min(panel.scrollHeight, 192)}px`
-}, { flush: 'post' })
-
-const collapseSuggestionPanel = (element: Element, done: () => void) => {
-	const panel = element as HTMLElement
-	panel.style.height = `${panel.getBoundingClientRect().height}px`
-	panel.style.marginTop = getComputedStyle(panel).marginTop
-
-	let completed = false
-	const finish = () => {
-		if (completed) return
-		completed = true
-		clearTimeout(fallback)
-		panel.removeEventListener('transitionend', onTransitionEnd)
-		done()
-	}
-	const onTransitionEnd = (event: TransitionEvent) => {
-		if (event.target === panel && event.propertyName === 'height') finish()
-	}
-	const fallback = setTimeout(finish, 320)
-	panel.addEventListener('transitionend', onTransitionEnd)
-
-	requestAnimationFrame(() => {
-		panel.style.height = '0px'
-		panel.style.marginTop = '0px'
-	})
-}
-
 const goToAuth = async (path: '/login' | '/signup') => {
 	isOpen.value = false
 	await navigateTo(path)
@@ -495,6 +327,29 @@ const clearReferenceFromField = () => {
 	nextTick(() => referenceInputRef.value?.focus?.())
 }
 
+const attributionInputRefs = { author: authorInputRef, reference: referenceInputRef }
+const attributionSuggestionRefs = { author: authorSuggestionsRef, reference: referenceSuggestionsRef }
+const attributionFieldHandlers = {
+	authorInput: onAuthorInput,
+	authorFocus: handleAuthorInputFocus,
+	authorBlur: handleAuthorInputBlur,
+	authorKeydown: onAuthorKeydown,
+	authorSuggestionsBlur: handleAuthorSuggestionsBlur,
+	authorPanelKeydown: handleAuthorKeydown,
+	selectAuthor,
+	createAuthor: createNewAuthor,
+	clearAuthor: clearAuthorFromField,
+	referenceInput: onReferenceInput,
+	referenceFocus: handleReferenceInputFocus,
+	referenceBlur: handleReferenceInputBlur,
+	referenceKeydown: onReferenceKeydown,
+	referenceSuggestionsBlur: handleReferenceSuggestionsBlur,
+	referencePanelKeydown: handleReferenceKeydown,
+	selectReference,
+	createReference: createNewReference,
+	clearReference: clearReferenceFromField,
+}
+
 const clearDraftSavedPulse = () => {
 	draftSavedPulseActive.value = false
 	if (draftSavedPulseTimer) clearTimeout(draftSavedPulseTimer)
@@ -526,22 +381,16 @@ const goToPreviousStep = async () => {
 
 const goToQuoteStep = async () => {
 	await changeStep(1)
-	void nextTick(() => quoteInputRef.value?.$el?.querySelector('textarea')?.focus())
+	void nextTick(() => quoteInputRef.value?.focus?.())
 }
 
 const handleCreateFormKeydown = (event: KeyboardEvent) => {
-	if (event.defaultPrevented || event.isComposing) return
-
-	if (step.value === 1 && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-		event.preventDefault()
-		void goToAttributionStep()
-		return
-	}
-
-		if (step.value > 1 && event.key === 'Enter' && !submitting.value) {
-		event.preventDefault()
-		void submitQuote()
-	}
+	handleSuggestionFormKeydown(event, {
+		step: step.value,
+		submitting: submitting.value,
+		advance: () => { void goToAttributionStep() },
+		submit: () => { void submitQuote() },
+	})
 }
 
 const handleCreateEscape = (event: KeyboardEvent) => {
@@ -595,7 +444,7 @@ const submitQuote = async () => {
 			: String(message)
 	} finally {
 		submitting.value = false
-		if (draftSaved.value) nextTick(() => quoteInputRef.value?.$el?.querySelector('textarea')?.focus())
+		if (draftSaved.value) nextTick(() => quoteInputRef.value?.focus?.())
 	}
 }
 

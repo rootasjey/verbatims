@@ -272,6 +272,9 @@
     <ClientOnly>
       <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote" @quote-updated="onQuoteUpdated" />
     </ClientOnly>
+    <ClientOnly>
+      <EditQuoteDrawer v-model:open="showEditQuoteDrawer" :edit-quote="selectedQuote" @submitted="onQuoteUpdated" />
+    </ClientOnly>
 
     <ClientOnly>
       <NDialog v-model:open="showBulkSubmitModal">
@@ -336,6 +339,7 @@ useHead({
 const selectedQuote = ref<AdminQuote | null>(null)
 const showQuoteDialog = ref(false)
 const showEditQuoteDialog = ref(false)
+const showEditQuoteDrawer = ref(false)
 
 const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
@@ -515,7 +519,7 @@ const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value 
 
 const isAnyDialogOpen = computed(() =>
   showQuoteDialog.value || showDeleteModal.value || showBulkDeleteModal.value ||
-  showBulkEditDialog.value || showEditQuoteDialog.value || showBulkSubmitModal.value
+  showBulkEditDialog.value || showEditQuoteDialog.value || showEditQuoteDrawer.value || showBulkSubmitModal.value
 )
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
@@ -700,7 +704,9 @@ const viewQuote = (quote: AdminQuote) => {
 
 const editQuote = (quote: AdminQuote) => {
   selectedQuote.value = quote
-  showEditQuoteDialog.value = true
+  const useMobileDrawer = window.matchMedia('(max-width: 767px)').matches
+  showEditQuoteDrawer.value = useMobileDrawer
+  showEditQuoteDialog.value = !useMobileDrawer
 }
 
 const submitForReview = async (quote: AdminQuote) => {
@@ -717,6 +723,7 @@ const submitForReview = async (quote: AdminQuote) => {
 
 const onQuoteUpdated = () => {
   showEditQuoteDialog.value = false
+  showEditQuoteDrawer.value = false
   selectedQuote.value = null
   loadQuotes()
 }

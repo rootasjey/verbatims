@@ -6,6 +6,7 @@ import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 import { runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
 import { hasApiPermission, requireApiKeyRole } from '~~/server/utils/api-key'
 import { assertQuoteNameAvailable, buildQuoteInlineEditResolutionStatements, isQuoteNameConflictError, scopeQuoteCreationRequestKey } from '~~/server/utils/quote-creation'
+import { buildProvenanceStatusFields } from '~~/server/utils/quote-edit-safety'
 
 defineRouteMeta({
   openAPI: {
@@ -172,30 +173,32 @@ export default defineEventHandler(async (event) => {
     }
 
     for (const { id, replacement } of attributionsToUpdate) {
-      const verified = isMod && replacement.status !== 'unverified'
+      const current = currentProvenance.attributions.find(item => item.id === id)
+      const identityChanged = Boolean(current && (
+        (replacement.is_primary && resolution)
+        || replacement.author_id !== current.author_id
+        || replacement.reference_id !== current.reference_id
+      ))
+      const verificationFields = buildProvenanceStatusFields(current?.status, replacement.status, isMod, api.userId, identityChanged)
       statements.push(db.update(schema.quoteAttributions).set({
         authorId: replacement.is_primary && body.new_author && resolution ? resolution.authorId : replacement.author_id,
         referenceId: replacement.is_primary && body.new_reference && resolution ? resolution.referenceId : replacement.reference_id,
         isPrimary: replacement.is_primary,
-        status: isMod ? replacement.status : 'unverified',
-        verifiedBy: verified ? api.userId : null,
-        verifiedAt: verified ? new Date() : null,
+        ...verificationFields,
         notes: replacement.notes,
         updatedAt: new Date(),
       }).where(eq(schema.quoteAttributions.id, id)))
     }
 
     for (const attribution of attributionsToInsert) {
-      const verified = isMod && attribution.status !== 'unverified'
+      const verificationFields = buildProvenanceStatusFields(undefined, attribution.status, isMod, api.userId, true)
       statements.push(db.insert(schema.quoteAttributions).values({
         quoteId,
         authorId: attribution.is_primary && body.new_author && resolution ? resolution.authorId : attribution.author_id,
         referenceId: attribution.is_primary && body.new_reference && resolution ? resolution.referenceId : attribution.reference_id,
         isPrimary: attribution.is_primary,
-        status: isMod ? attribution.status : 'unverified',
+        ...verificationFields,
         notes: attribution.notes,
-        verifiedBy: verified ? api.userId : null,
-        verifiedAt: verified ? new Date() : null,
         createdBy: api.userId,
       }))
     }

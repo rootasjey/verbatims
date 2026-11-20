@@ -8,6 +8,20 @@
     white-space: nowrap;
   }
 
+  .overflowing-tab-label--intrinsic {
+    width: max-content;
+  }
+
+  .overflowing-tab-label--intrinsic .overflowing-tab-label__viewport {
+    flex: none;
+    min-width: max-content;
+    overflow: visible;
+  }
+
+  .overflowing-tab-label--intrinsic .overflowing-tab-label__track {
+    gap: 0;
+  }
+
   .overflowing-tab-label__number {
     flex: none;
     font-size: 0.75rem;

@@ -1,5 +1,5 @@
 <template>
-  <span class="overflowing-tab-label">
+  <span :class="['overflowing-tab-label', { 'overflowing-tab-label--intrinsic': intrinsic }]">
     <span v-if="number" class="overflowing-tab-label__number">{{ number }}</span>
     <NTooltip :content="label" :_tooltip-content="{ side: 'bottom' }">
       <span ref="viewport" class="overflowing-tab-label__viewport" :class="{ 'is-overflowing': isOverflowing }">
@@ -18,6 +18,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 const props = defineProps<{
   number?: string
   label: string
+  intrinsic?: boolean
 }>()
 
 const viewport = ref<HTMLElement | null>(null)

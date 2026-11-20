@@ -1,5 +1,5 @@
 import { createClient } from '@libsql/client'
-import { readFileSync } from 'node:fs'
+import { readFileSync, rmSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { sha256 } from '@noble/hashes/sha2.js'
@@ -28,6 +28,7 @@ async function hashPassword(plain: string): Promise<string> {
 }
 
 export async function seedTestDb() {
+  rmSync(DB_PATH, { force: true })
   const client = createClient({ url: `file:${DB_PATH}` })
 
   const schemaPath = resolve(__dirname, '../../db/migrations/schema.sql')
@@ -64,14 +65,14 @@ export async function seedTestDb() {
     INSERT INTO users (id, email, name, password, role, language) VALUES (1, 'test@verbatims.cc', 'Test User', '${adminPw}', 'admin', 'en');
     INSERT INTO users (id, email, name, password, role, language) VALUES (2, 'moderator@verbatims.cc', 'Test Moderator', '${adminPw}', 'moderator', 'en');
     INSERT INTO users (id, email, name, password, role, language) VALUES (3, 'user@verbatims.cc', 'Test API User', '${adminPw}', 'user', 'en');
-    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Test Key', '${keyHash}', 'vbt_testke', '["read"]', 1000, 3600, 1000, 3600, 1);
-    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Write Key', '${writeKeyHash}', 'vbt_writek', '["read","write:quotes","delete:quotes","write:authors","delete:authors","write:references","delete:references","write:collections","delete:collections"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Test Key', '${keyHash}', 'vbt_testke', '["read","read:provenance"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Write Key', '${writeKeyHash}', 'vbt_writek', '["read","write:quotes","write:attributions","assign:authors","assign:references","delete:quotes","write:authors","delete:authors","write:references","delete:references","write:collections","delete:collections"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'No Perm Key', '${noPermKeyHash}', 'vbt_noperm', '["read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Theme Key', '${themeKeyHash}', 'vbt_themek', '["admin:themes","delete:themes"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Social Read Key', '${socialReadKeyHash}', 'vbt_socialr', '["social:read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Social Write Key', '${socialWriteKeyHash}', 'vbt_socialw', '["social:read","social:write","social:delete"]', 1000, 3600, 1000, 3600, 1);
-    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (3, 'User Key', '${userKeyHash}', 'vbt_userkey', '["read","write:quotes"]', 1000, 3600, 1000, 3600, 1);
-    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (2, 'Moderator Key', '${moderatorKeyHash}', 'vbt_modkey0', '["read","write:quotes","delete:quotes"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (3, 'User Key', '${userKeyHash}', 'vbt_userkey', '["read","read:provenance","write:quotes","write:attributions","assign:authors","assign:references"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (2, 'Moderator Key', '${moderatorKeyHash}', 'vbt_modkey0', '["read","read:provenance","write:attributions","assign:authors","assign:references","write:sources","delete:sources","delete:attributions"]', 1000, 3600, 1000, 3600, 1);
 
     INSERT INTO authors (id, name, is_fictional) VALUES (1, 'Marcus Aurelius', 0), (2, 'Albert Camus', 0), (3, 'Friedrich Nietzsche', 0);
     INSERT INTO quote_references (id, name, primary_type) VALUES (1, 'Meditations', 'book'), (2, 'The Stranger', 'book'), (3, 'Thus Spoke Zarathustra', 'book');
@@ -84,8 +85,9 @@ export async function seedTestDb() {
     INSERT INTO quotes (id, name, language, user_id, status) VALUES (5, 'This is a draft quote not yet approved.', 'en', 1, 'draft');
     INSERT INTO quotes (id, name, language, user_id, status) VALUES (6, 'A pending quote awaiting moderation.', 'en', 1, 'pending');
     INSERT INTO quotes (id, name, language, user_id, status) VALUES (7, 'Another pending quote.', 'en', 1, 'pending');
+    INSERT INTO quotes (id, name, language, user_id, status) VALUES (8, 'Draft quote for source editing coverage.', 'en', 1, 'draft');
 
-    INSERT INTO quote_attributions (id, quote_id, author_id, reference_id, is_primary, status, created_by) VALUES (1, 1, 1, 1, 1, 'unverified', 1), (2, 2, 2, NULL, 1, 'unverified', 1), (3, 3, 3, 3, 1, 'unverified', 1), (4, 4, 2, NULL, 1, 'unverified', 1), (5, 5, 1, NULL, 1, 'unverified', 1), (6, 6, 1, NULL, 1, 'unverified', 1), (7, 7, 2, NULL, 1, 'unverified', 1);
+    INSERT INTO quote_attributions (id, quote_id, author_id, reference_id, is_primary, status, created_by) VALUES (1, 1, 1, 1, 1, 'unverified', 1), (2, 2, 2, NULL, 1, 'unverified', 1), (3, 3, 3, 3, 1, 'unverified', 1), (4, 4, 2, NULL, 1, 'unverified', 1), (5, 5, 1, NULL, 1, 'unverified', 1), (6, 6, 1, NULL, 1, 'unverified', 1), (7, 7, 2, NULL, 1, 'unverified', 1), (8, 8, 1, NULL, 1, 'unverified', 1);
     INSERT INTO quote_sources (id, quote_id, attribution_id, source_type, source_url, label, is_primary, created_by) VALUES (1, 1, 1, 'wikiquote-en', 'https://en.wikiquote.org/wiki/Marcus_Aurelius', 'Wikiquote', 1, 1);
 
     INSERT INTO quote_tags (quote_id, tag_id) VALUES (1, 1), (1, 2), (1, 3), (2, 2), (3, 2);

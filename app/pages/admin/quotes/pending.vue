@@ -318,6 +318,9 @@
       <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote" @quote-updated="onQuoteUpdated" />
     </ClientOnly>
     <ClientOnly>
+      <EditQuoteDrawer v-model:open="showEditQuoteDrawer" :edit-quote="selectedQuote" @submitted="onQuoteUpdated" />
+    </ClientOnly>
+    <ClientOnly>
       <BulkEditQuotesDialog v-model:open="showBulkEditDialog" :selected-quotes="selectedQuotesData" @updated="onBulkEditComplete" />
     </ClientOnly>
 
@@ -404,6 +407,7 @@ const showBulkRejectModal = ref(false)
 const showBulkEditDialog = ref(false)
 const showBulkApproveModal = ref(false)
 const showEditQuoteDialog = ref(false)
+const showEditQuoteDrawer = ref(false)
 const showQuoteDialog = ref(false)
 const selectedQuote = ref<any>(null)
 const rejectionReason = ref('')
@@ -568,7 +572,7 @@ const onBulkSelectionAction = (key: string) => {
 
 const isAnyDialogOpen = computed(() =>
   showQuoteDialog.value || showRejectModal.value || showBulkRejectModal.value ||
-  showBulkEditDialog.value || showEditQuoteDialog.value || showBulkApproveModal.value
+  showBulkEditDialog.value || showEditQuoteDialog.value || showEditQuoteDrawer.value || showBulkApproveModal.value
 )
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
@@ -895,11 +899,14 @@ const viewQuote = (quote: any) => {
 
 const editQuote = (quote: any) => {
   selectedQuote.value = quote
-  showEditQuoteDialog.value = true
+  const useMobileDrawer = window.matchMedia('(max-width: 767px)').matches
+  showEditQuoteDrawer.value = useMobileDrawer
+  showEditQuoteDialog.value = !useMobileDrawer
 }
 
 const onQuoteUpdated = () => {
   showEditQuoteDialog.value = false
+  showEditQuoteDrawer.value = false
   selectedQuote.value = null
   loadQuotes()
 }

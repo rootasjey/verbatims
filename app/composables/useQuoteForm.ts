@@ -1,5 +1,6 @@
 import { ref, nextTick, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
+import { shouldHandleSuggestionPanelKeydown } from '~/utils/quote-suggestion-keyboard'
 
 type LanguageOption = {
   label: string
@@ -263,6 +264,7 @@ export function useQuoteForm() {
 
     const handleKeydown = (event: KeyboardEvent) => {
       if (!config.show.value) return
+      if (!shouldHandleSuggestionPanelKeydown(event)) return
       const hasCreateOption = config.query.value && !config.suggestions.value.some((s: any) => s.name.toLowerCase() === config.query.value.toLowerCase())
       const totalItems = config.suggestions.value.length + (hasCreateOption ? 1 : 0)
 

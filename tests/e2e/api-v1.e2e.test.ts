@@ -1,7 +1,10 @@
 import { describe, test, expect } from 'vitest'
-import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
+import { $fetch, fetch, setup, url } from '@nuxt/test-utils/e2e'
 import { createClient } from '@libsql/client'
+import { existsSync } from 'node:fs'
+import puppeteer from 'puppeteer'
 import { getParisDateKey } from '../../server/utils/theme-selection'
+import { buildQuoteSourceEditPayload, isPersistedQuoteSource, resolveQuoteSourceAttributionId } from '../../app/utils/quote-source-edit'
 
 const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
 const testDb = await seedTestDb()
@@ -92,6 +95,90 @@ describe('POST /api/auth/login', () => {
       body: JSON.stringify({ email: 'test@verbatims.cc', password: 'wrongpass' }),
     })
     expect(res.status).toBe(401)
+  })
+})
+
+describe('Quote suggestion keyboard flow', () => {
+  test('selects a focused suggestion in the desktop dialog and mobile drawer without submitting', async () => {
+    const browser = await puppeteer.launch({
+      headless: true,
+      executablePath: process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : puppeteer.executablePath()),
+      args: ['--no-sandbox'],
+    })
+    try {
+      const page = await browser.newPage()
+      const quotePosts: string[] = []
+      page.on('request', request => {
+        if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/quotes') quotePosts.push(request.url())
+      })
+
+      await page.goto(url('/'), { waitUntil: 'domcontentloaded' })
+      const loginStatus = await page.evaluate(async () => {
+        const response = await window.fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'test@verbatims.cc', password: 'admin123!' }),
+        })
+        return response.status
+      })
+      expect(loginStatus).toBe(200)
+      await page.reload({ waitUntil: 'domcontentloaded' })
+
+      for (const { surface, width } of [
+        { surface: 'AddQuoteDialog', width: 1280 },
+        { surface: 'AddQuoteDrawer', width: 390 },
+      ]) {
+        await page.setViewport({ width, height: 900 })
+        await page.goto(url('/'), { waitUntil: 'domcontentloaded' })
+        await page.waitForFunction(() => (window as any).useNuxtApp?.().isHydrating === false)
+        await page.keyboard.down('ControlLeft')
+        await page.keyboard.press('a')
+        await page.keyboard.up('ControlLeft')
+        await page.waitForFunction(() => Array.from(document.querySelectorAll('form')).some(form => form.querySelector('textarea') && form.getBoundingClientRect().width > 0))
+
+        let activeForm = null
+        for (const candidate of await page.$$('form')) {
+          if (await candidate.evaluate(element => !!element.querySelector('textarea') && element.getBoundingClientRect().width > 0)) {
+            activeForm = candidate
+            break
+          }
+        }
+        expect(activeForm, `${surface} form should be visible`).toBeTruthy()
+        const quoteInput = await activeForm!.$('textarea')
+        await quoteInput!.type('Keyboard suggestion propagation fixture')
+        await page.evaluate(() => {
+          const attributionStep = Array.from(document.querySelectorAll('button')).find(button => button.getAttribute('aria-label')?.toLowerCase().includes('attribution') && button.getBoundingClientRect().width > 0)
+          ;(attributionStep as HTMLButtonElement | undefined)?.click()
+        })
+        await page.waitForSelector('#quote-attribution-author', { visible: true, timeout: 10000 }).catch(async () => {
+          const diagnostics = await page.evaluate(() => Array.from(document.querySelectorAll('form')).map(form => ({
+            id: form.id,
+            text: form.innerText.slice(0, 400),
+            buttons: Array.from(form.querySelectorAll('button')).map(button => ({ text: button.innerText, label: button.getAttribute('aria-label'), disabled: (button as HTMLButtonElement).disabled })),
+          })))
+          throw new Error(`${surface} did not reach attribution step: ${JSON.stringify(diagnostics)}`)
+        })
+        await page.type('#quote-attribution-author', 'us')
+        await page.waitForFunction(() => {
+          const names = Array.from(document.querySelectorAll('.quote-suggestions-panel button')).map(button => button.textContent || '')
+          return names.some(name => name.includes('Albert Camus')) && names.some(name => name.includes('Marcus Aurelius'))
+        }, { timeout: 10000 })
+        const initialSuggestions = await page.$$eval('.quote-suggestions-panel button', buttons => buttons.map(button => button.textContent || ''))
+        expect(initialSuggestions[0]).toContain('Albert Camus')
+        const focusedSuggestion = await page.evaluateHandle(() => Array.from(document.querySelectorAll('.quote-suggestions-panel button')).find(button => button.textContent?.includes('Marcus Aurelius')))
+        await focusedSuggestion.evaluate(button => (button as HTMLButtonElement).focus())
+        await page.keyboard.press('Enter')
+
+        await page.waitForFunction(() => Boolean(document.querySelector('#quote-attribution-author')?.parentElement?.querySelector('.max-w-48.truncate')), { timeout: 10000 })
+        const selectedAuthor = await page.$eval('#quote-attribution-author', input => input.parentElement?.querySelector('.max-w-48.truncate')?.textContent?.trim())
+        expect(selectedAuthor).toBe('Marcus Aurelius')
+        await new Promise(resolve => setTimeout(resolve, 250))
+        expect(await activeForm!.evaluate(element => element.isConnected && element.getBoundingClientRect().width > 0), `${surface} should remain open`).toBe(true)
+        expect(quotePosts, `${surface} should not submit`).toHaveLength(0)
+      }
+    } finally {
+      await browser.close()
+    }
   })
 })
 
@@ -375,7 +462,7 @@ describe('Admin quote provenance routes', () => {
     const updated = await $fetch(`/api/admin/quotes/1/attributions/${attributionId}`, {
       ...adminHeaders(),
       method: 'PUT',
-      body: { status: 'disputed', notes: 'Needs a stronger source' },
+      body: { author_id: 2, reference_id: 2, status: 'disputed', notes: 'Needs a stronger source' },
     })
     expect(updated.success).toBe(true)
 
@@ -406,6 +493,278 @@ describe('Admin quote provenance routes', () => {
       method: 'DELETE',
     })
     expect(deletedAttribution.success).toBe(true)
+  })
+
+  test.each([
+    { quoteId: 8, attributionId: 8, status: 'draft' },
+    { quoteId: 1, attributionId: 1, status: 'approved' },
+  ])('retains edited and added source links after reopening a $status quote', async ({ quoteId, attributionId, status }) => {
+    const created = await $fetch(`/api/admin/quotes/${quoteId}/sources`, {
+      ...adminHeaders(),
+      method: 'POST',
+      body: {
+        attribution_id: attributionId,
+        source_type: 'book',
+        source_url: 'https://example.com/original-source',
+        label: 'Original source',
+      },
+    })
+
+    await $fetch(`/api/admin/quotes/${quoteId}/sources/${created.data.id}`, {
+      ...adminHeaders(),
+      method: 'PUT',
+      body: {
+        source_url: 'https://example.com/edited-source',
+        label: 'Edited source',
+      },
+    })
+
+    const added = await $fetch(`/api/admin/quotes/${quoteId}/sources`, {
+      ...adminHeaders(),
+      method: 'POST',
+      body: {
+        attribution_id: attributionId,
+        source_type: 'book',
+        source_url: 'https://example.com/second-source',
+        label: 'Second source',
+      },
+    })
+
+    const reopenedSources = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
+    const reopenedSource = reopenedSources.data.find((source: { id: number }) => source.id === created.data.id)
+    const reopenedAddedSource = reopenedSources.data.find((source: { id: number }) => source.id === added.data.id)
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    const reopenedQuote = await localDb.execute({ sql: 'SELECT status FROM quotes WHERE id = ?', args: [quoteId] })
+    localDb.close()
+
+    expect(reopenedSource.source_url).toBe('https://example.com/edited-source')
+    expect(reopenedSource.label).toBe('Edited source')
+    expect(reopenedAddedSource.source_url).toBe('https://example.com/second-source')
+    expect(reopenedAddedSource.label).toBe('Second source')
+    expect(reopenedQuote.rows[0]?.status).toBe(status)
+
+    await Promise.all([created.data.id, added.data.id].map(sourceId => $fetch(`/api/admin/quotes/${quoteId}/sources/${sourceId}`, {
+      ...adminHeaders(),
+      method: 'DELETE',
+    })))
+  })
+
+  test('saves sources after an approved quote edit changes its primary attribution', async () => {
+    const originalSources = await $fetch('/api/admin/quotes/1/sources', adminHeaders())
+    expect(originalSources.data).toHaveLength(1)
+    const staleSource = originalSources.data[0]
+    let addedSourceId: number | undefined
+
+    try {
+      await $fetch('/api/quotes/1', {
+        ...adminHeaders(),
+        method: 'PUT',
+        body: { attributions: [{ author_id: 2, reference_id: 2, is_primary: true }] },
+      })
+
+      const attributions = await $fetch('/api/admin/quotes/1/attributions', adminHeaders())
+      const currentPrimary = attributions.data.find((attribution: { is_primary: boolean }) => attribution.is_primary)
+      expect(currentPrimary.author_id).toBe(2)
+      expect(currentPrimary.reference_id).toBe(2)
+      const sourcesAfterAttributionEdit = await $fetch('/api/admin/quotes/1/sources', adminHeaders())
+      const currentSourceIds = new Set(sourcesAfterAttributionEdit.data.map((source: { id: number }) => source.id))
+      const currentAttributionIds = new Set(attributions.data.map((attribution: { id: number }) => attribution.id))
+      const editedSourceBody = {
+        attribution_id: resolveQuoteSourceAttributionId(staleSource.attribution_id, currentAttributionIds, currentPrimary.id),
+        source_type: staleSource.source_type,
+        source_url: 'https://example.com/edited-after-attribution-replacement',
+        label: 'Edited after attribution replacement',
+        is_primary: true,
+      }
+      if (isPersistedQuoteSource(staleSource.id, currentSourceIds)) {
+        await $fetch(`/api/admin/quotes/1/sources/${staleSource.id}`, { ...adminHeaders(), method: 'PUT', body: editedSourceBody })
+      } else {
+        await $fetch('/api/admin/quotes/1/sources', { ...adminHeaders(), method: 'POST', body: editedSourceBody })
+      }
+      const addedSource = await $fetch('/api/admin/quotes/1/sources', {
+        ...adminHeaders(),
+        method: 'POST',
+        body: {
+          ...editedSourceBody,
+          source_url: 'https://example.com/second-after-attribution-replacement',
+          label: 'Second source after attribution replacement',
+          is_primary: false,
+        },
+      })
+      addedSourceId = addedSource.data.id
+
+      const reopenedSources = await $fetch('/api/admin/quotes/1/sources', adminHeaders())
+      const reopenedAttributions = await $fetch('/api/admin/quotes/1/attributions', adminHeaders())
+      const localDb = createClient({ url: `file:${testDb.dbPath}` })
+      const reopenedQuote = await localDb.execute({ sql: 'SELECT status FROM quotes WHERE id = ?', args: [1] })
+      localDb.close()
+
+      expect(reopenedSources.data).toHaveLength(2)
+      expect(reopenedSources.data.map((source: { label: string }) => source.label)).toContain('Edited after attribution replacement')
+      expect(reopenedSources.data.map((source: { label: string }) => source.label)).toContain('Second source after attribution replacement')
+      expect(reopenedSources.data.every((source: { attribution_id: number }) => source.attribution_id === currentPrimary.id)).toBe(true)
+      expect(reopenedAttributions.data.map((attribution: { id: number }) => attribution.id)).toContain(staleSource.attribution_id)
+      expect(reopenedQuote.rows[0]?.status).toBe('approved')
+    } finally {
+      if (addedSourceId !== undefined) {
+        await $fetch(`/api/admin/quotes/1/sources/${addedSourceId}`, { ...adminHeaders(), method: 'DELETE' })
+      }
+      await $fetch('/api/quotes/1', {
+        ...adminHeaders(),
+        method: 'PUT',
+        body: { attributions: [{ author_id: 1, reference_id: 1, is_primary: true }] },
+      })
+      await $fetch(`/api/admin/quotes/1/sources/${staleSource.id}`, {
+        ...adminHeaders(),
+        method: 'PUT',
+        body: {
+          attribution_id: staleSource.attribution_id,
+          source_type: staleSource.source_type,
+          source_url: staleSource.source_url,
+          label: staleSource.label,
+          is_primary: staleSource.is_primary,
+        },
+      })
+    }
+  })
+
+  test.each([
+    { quoteId: 8, status: 'draft' },
+    { quoteId: 1, status: 'approved' },
+  ])('saves the combined quote and source payload atomically for a $status quote', async ({ quoteId, status }) => {
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    const originalQuoteResult = await localDb.execute({ sql: 'SELECT name FROM quotes WHERE id = ?', args: [quoteId] })
+    const originalName = String(originalQuoteResult.rows[0]?.name)
+    localDb.close()
+
+    const baselineResponse = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
+    const baselineSources = [...baselineResponse.data]
+    const attributions = await $fetch(`/api/admin/quotes/${quoteId}/attributions`, adminHeaders())
+    const primary = attributions.data.find((attribution: { is_primary: boolean }) => attribution.is_primary)
+    let initialSources = baselineSources
+
+    try {
+      if (initialSources.length === 0) {
+        await $fetch(`/api/admin/quotes/${quoteId}/sources`, {
+          ...adminHeaders(),
+          method: 'POST',
+          body: {
+            attribution_id: primary.id,
+            source_type: 'book',
+            source_url: `https://example.com/cart-1-initial-${quoteId}`,
+            label: `Initial source ${quoteId}`,
+            is_primary: true,
+          },
+        })
+        initialSources = (await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())).data
+      }
+
+      for (const source of initialSources) {
+        await $fetch(`/api/admin/quotes/${quoteId}/sources/${source.id}`, {
+          ...adminHeaders(),
+          method: 'PUT',
+          body: { verification_status: 'externally_verified' },
+        })
+      }
+      initialSources = (await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())).data
+
+      const payload = buildQuoteSourceEditPayload(
+        [...initialSources, {
+          attribution_id: primary.id,
+          source_type: 'book',
+          source_url: `https://example.com/cart-1-added-${quoteId}`,
+          label: `Added source ${quoteId}`,
+          is_primary: false,
+        }],
+        initialSources.map((source: { id: number }) => source.id),
+        initialSources,
+        new Set(attributions.data.map((attribution: { id: number }) => attribution.id)),
+        primary.id,
+      )
+      const updatedName = `${originalName} Combined source edit`
+      const response = await $fetch(`/api/quotes/${quoteId}`, {
+        ...adminHeaders(),
+        method: 'PUT',
+        body: { name: updatedName, ...payload },
+      })
+      expect(response.success).toBe(true)
+
+      const persistedSources = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
+      expect(persistedSources.data).toHaveLength(initialSources.length + 1)
+      const preservedSource = persistedSources.data.find((source: { id: number }) => source.id === initialSources[0]?.id)
+      expect(preservedSource.verification_status).toBe('externally_verified')
+      expect(persistedSources.data.map((source: { label: string }) => source.label)).toContain(`Added source ${quoteId}`)
+      const persistedQuote = createClient({ url: `file:${testDb.dbPath}` })
+      const quoteResult = await persistedQuote.execute({ sql: 'SELECT name, status FROM quotes WHERE id = ?', args: [quoteId] })
+      persistedQuote.close()
+      expect(quoteResult.rows[0]?.name).toBe(updatedName)
+      expect(quoteResult.rows[0]?.status).toBe(status)
+    } finally {
+      const currentSources = await $fetch(`/api/admin/quotes/${quoteId}/sources`, adminHeaders())
+      const baselineIds = new Set(baselineSources.map((source: { id: number }) => source.id))
+      for (const source of currentSources.data) {
+        if (!baselineIds.has(source.id)) {
+          await $fetch(`/api/admin/quotes/${quoteId}/sources/${source.id}`, { ...adminHeaders(), method: 'DELETE' })
+        }
+      }
+      for (const source of baselineSources) {
+        await $fetch(`/api/admin/quotes/${quoteId}/sources/${source.id}`, {
+          ...adminHeaders(),
+          method: 'PUT',
+          body: {
+            attribution_id: source.attribution_id,
+            source_type: source.source_type,
+            source_medium: source.source_medium,
+            source_url: source.source_url,
+            label: source.label,
+            locator_type: source.locator_type,
+            locator_value: source.locator_value,
+            translator_name: source.translator_name,
+            notes: source.notes,
+            is_primary: source.is_primary,
+            verification_status: source.verification_status,
+          },
+        })
+      }
+      await $fetch(`/api/quotes/${quoteId}`, { ...adminHeaders(), method: 'PUT', body: { name: originalName } })
+    }
+  })
+
+  test('rolls back the quote edit when the combined source insert fails', async () => {
+    const quoteId = 8
+    const attributions = await $fetch(`/api/admin/quotes/${quoteId}/attributions`, adminHeaders())
+    const primary = attributions.data.find((attribution: { is_primary: boolean }) => attribution.is_primary)
+    const sourcePayload = buildQuoteSourceEditPayload([{
+      attribution_id: primary.id,
+      source_type: 'book',
+      source_url: 'https://example.com/cart-1-rollback',
+      label: 'Rollback source',
+      is_primary: true,
+    }], [], [], new Set(attributions.data.map((attribution: { id: number }) => attribution.id)), primary.id)
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    const initialQuote = await localDb.execute({ sql: 'SELECT name, status FROM quotes WHERE id = ?', args: [quoteId] })
+    const initialSources = await localDb.execute({ sql: 'SELECT id FROM quote_sources WHERE quote_id = ?', args: [quoteId] })
+    const initialName = initialQuote.rows[0]?.name
+    const trigger = 'cart1_force_source_insert_failure'
+
+    try {
+      await localDb.execute(`CREATE TRIGGER ${trigger} BEFORE INSERT ON quote_sources WHEN NEW.quote_id = ${quoteId} BEGIN SELECT RAISE(ABORT, 'forced CART-1 test failure'); END`)
+      const response = await fetch(`/api/quotes/${quoteId}`, {
+        ...adminHeaders(),
+        method: 'PUT',
+        headers: { ...adminHeaders().headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Must roll back with source insert', ...sourcePayload }),
+      })
+      expect(response.status).toBe(500)
+    } finally {
+      await localDb.execute(`DROP TRIGGER IF EXISTS ${trigger}`)
+      const quoteAfter = await localDb.execute({ sql: 'SELECT name, status FROM quotes WHERE id = ?', args: [quoteId] })
+      const sourcesAfter = await localDb.execute({ sql: 'SELECT id FROM quote_sources WHERE quote_id = ?', args: [quoteId] })
+      expect(quoteAfter.rows[0]?.name).toBe(initialName)
+      expect(quoteAfter.rows[0]?.status).toBe('draft')
+      expect(sourcesAfter.rows.map((row: { id: unknown }) => row.id)).toEqual(initialSources.rows.map((row: { id: unknown }) => row.id))
+      localDb.close()
+    }
   })
 
   test('rejects provenance CRUD without moderator authentication', async () => {
@@ -495,6 +854,9 @@ describe('API v1 quote provenance CRUD', () => {
   test('rejects provenance CRUD for a regular API user', async () => {
     const response = await fetch('/api/v1/quotes/1/attributions', {
       ...userWriteHeaders(),
+      method: 'POST',
+      headers: { ...userWriteHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ author_id: 2, reference_id: 2 }),
     })
     expect(response.status).toBe(403)
   })
@@ -539,7 +901,7 @@ describe('API v1 quote provenance CRUD', () => {
     const updated = await $fetch(`/api/v1/quotes/1/attributions/${attributionId}`, {
       ...moderatorHeaders(),
       method: 'PUT',
-      body: { status: 'disputed' },
+      body: { author_id: 2, reference_id: 2, status: 'disputed' },
     })
     expect(updated.success).toBe(true)
 
@@ -793,6 +1155,57 @@ describe('POST /api/v1/quotes', () => {
 })
 
 describe('PUT /api/v1/quotes/[id]', () => {
+  test('preserves verification metadata when attribution status is omitted', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: {
+        name: 'Quote preserving omitted attribution verification metadata.',
+        language: 'en',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
+    })
+    const beforeVerification = await $fetch(`/api/v1/quotes/${created.data.id}/attributions`, moderatorHeaders())
+    const attribution = beforeVerification.data[0]
+    await $fetch(`/api/v1/quotes/${created.data.id}/attributions/${attribution.id}`, {
+      ...moderatorHeaders(),
+      method: 'PUT',
+      body: { author_id: 1, reference_id: 1, is_primary: true, status: 'externally_verified' },
+    })
+
+    const fixedVerifiedAt = '2024-01-02T03:04:05.000Z'
+    const localDb = createClient({ url: `file:${testDb.dbPath}` })
+    await localDb.execute({
+      sql: 'UPDATE quote_attributions SET verified_at = ? WHERE id = ?',
+      args: [Math.floor(Date.parse(fixedVerifiedAt) / 1000), attribution.id],
+    })
+    localDb.close()
+
+    const initialAttributions = await $fetch(`/api/v1/quotes/${created.data.id}/attributions`, moderatorHeaders())
+    const initial = initialAttributions.data.find((item: { id: number }) => item.id === attribution.id)
+    expect(initial.status).toBe('externally_verified')
+    expect(initial.verified_by).toBe(2)
+    expect(initial.verified_at).toBe(fixedVerifiedAt)
+    expect(initial.verified_by).not.toBeNull()
+    expect(initial.verified_at).not.toBeNull()
+
+    const updated = await $fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...writeHeaders(),
+      method: 'PUT',
+      body: { attributions: [{ author_id: 1, reference_id: 1, is_primary: true }] },
+    })
+    const updatedAttributions = await $fetch(`/api/v1/quotes/${created.data.id}/attributions`, moderatorHeaders())
+    const persisted = updatedAttributions.data.find((attribution: { id: number }) => attribution.id === initial.id)
+
+    expect(updated.success).toBe(true)
+    expect(persisted).toMatchObject({
+      id: initial.id,
+      status: 'externally_verified',
+      verified_by: initial.verified_by,
+      verified_at: initial.verified_at,
+    })
+  })
+
   test('updates a quote', async () => {
     const created = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
@@ -806,7 +1219,10 @@ describe('PUT /api/v1/quotes/[id]', () => {
     const res = await $fetch(`/api/v1/quotes/${created.data.id}`, {
       ...writeHeaders(),
       method: 'PUT',
-      body: { name: 'Updated quote content!' },
+      body: {
+        name: 'Updated quote content!',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+      },
     })
     expect(res.success).toBe(true)
     expect(res.data.content).toBe('Updated quote content!')

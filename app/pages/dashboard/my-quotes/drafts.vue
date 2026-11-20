@@ -134,9 +134,9 @@
               :model-value="!!rowSelection[quote.id]"
               @toggle="toggleQuote(idx, quote.id, $event.shiftKey)"
             />
-            <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link flex-1 min-w-0 block" @click.prevent="handleEditQuote(quote)">
+            <button type="button" data-selection-primary class="quote-editorial-link flex-1 min-w-0 block text-left" @click="openDraftForEditing(quote)">
               <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em]" />
-            </NuxtLink>
+            </button>
             <div class="mt-1.5 flex flex-wrap items-center gap-2">
               <NuxtLink v-if="quote.author?.id" :to="`/authors/${quote.author.id}`" class="font-sans text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" @click.stop>{{ quote.author.name }}</NuxtLink>
               <span v-else-if="quote.author?.name || (quote as any).author_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name }}</span>
@@ -804,13 +804,13 @@ const editQuote = (quote: DashboardQuote) => {
   showEditQuoteDialog.value = true
 }
 
-const openDraftForEditing = (quote: DashboardQuote) => {
+const openDraftForEditing = (quote: DashboardQuote | ProcessedQuoteResult) => {
   if (window.matchMedia('(min-width: 768px)').matches) {
-    editQuote(quote)
+    editQuote(quote as unknown as DashboardQuote)
     return
   }
 
-  selectedQuote.value = quote
+  selectedQuote.value = quote as unknown as DashboardQuote
   showEditQuoteDrawer.value = true
 }
 
@@ -827,8 +827,7 @@ const onBulkEditComplete = () => {
 }
 
 const handleEditQuote = (quote: ProcessedQuoteResult) => {
-  selectedQuote.value = quote as unknown as DashboardQuote
-  showEditQuoteDrawer.value = true
+  openDraftForEditing(quote)
 }
 
 const handleSubmitQuote = async (quote: ProcessedQuoteResult) => {
