@@ -9,8 +9,10 @@ import { buildQuoteSourceEditPayload, isPersistedQuoteSource, resolveQuoteSource
 const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
 const testDb = await seedTestDb()
 process.env.NUXT_TEST_DB_PATH = testDb.dbPath
-const chromiumPath = process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined)
-if (chromiumPath) process.env.PUPPETEER_EXECUTABLE_PATH = chromiumPath
+const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH
+  || process.env.CHROMIUM_PATH
+  || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined)
+if (!process.env.PUPPETEER_EXECUTABLE_PATH && chromiumPath) process.env.PUPPETEER_EXECUTABLE_PATH = chromiumPath
 
 const apiKey = testDb.apiKey
 const writeKey = testDb.writeKey
