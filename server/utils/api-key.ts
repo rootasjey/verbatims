@@ -30,6 +30,8 @@ export const API_KEY_PERMISSIONS = [
   'social:delete',
   'admin:themes',
   'delete:themes',
+  'propose:quote-corrections',
+  'apply:quote-corrections',
   '*',
 ] as const
 
