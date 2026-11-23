@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   const proposal = await db.select().from(schema.quoteCorrectionProposals).where(eq(schema.quoteCorrectionProposals.id, proposalId)).get()
   if (!proposal) throwServer(404, 'Proposal not found')
   if (proposal.appliedAt) throwServer(409, 'An applied proposal cannot receive another decision')
-  if (proposal.proposedBy === user.id) throwServer(403, 'The proposer cannot decide on their own proposal')
+  if (body.decision === 'approved' && proposal.proposedBy === user.id) throwServer(403, 'The proposer cannot approve their own proposal')
   const latest = await db.select().from(schema.quoteCorrectionDecisions)
     .where(eq(schema.quoteCorrectionDecisions.proposalId, proposalId))
     .orderBy(desc(schema.quoteCorrectionDecisions.id)).get()
@@ -21,9 +21,17 @@ export default defineEventHandler(async (event) => {
   if (body.decision === 'rejected' && !reason) throwServer(400, 'A rejection reason is required')
   const decidedAt = new Date()
   const expiresAt = body.decision === 'approved' ? new Date(decidedAt.getTime() + 24 * 60 * 60 * 1000) : null
-  const [decision] = await db.insert(schema.quoteCorrectionDecisions).values({
-    proposalId, fingerprint: proposal.fingerprint, decision: body.decision,
-    decidedBy: user.id, decidedAt, expiresAt, reason: body.decision === 'rejected' ? reason : null,
-  }).returning({ id: schema.quoteCorrectionDecisions.id })
+  let decision: { id: number } | undefined
+  try {
+    [decision] = await db.insert(schema.quoteCorrectionDecisions).values({
+      proposalId, fingerprint: proposal.fingerprint, decision: body.decision,
+      decidedBy: user.id, decidedAt, expiresAt, reason: body.decision === 'rejected' ? reason : null,
+    }).returning({ id: schema.quoteCorrectionDecisions.id })
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('decision is no longer valid')) {
+      throwServer(409, 'A rejection is final or another decision is still active')
+    }
+    throw error
+  }
   return { success: true, data: { id: decision!.id, proposal_id: proposalId, fingerprint: proposal.fingerprint, decision: body.decision, decided_at: decidedAt, expires_at: expiresAt, reason: body.decision === 'rejected' ? reason : null } }
 })

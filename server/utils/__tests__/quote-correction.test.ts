@@ -27,12 +27,27 @@ describe('parseCorrectionPayload', () => {
     }, 'quote')).toThrow('exact locator')
   })
 
-  it('accepts only documented nullable attribution fields', () => {
+  it('validates nullable attribution fields and numeric IDs', () => {
     expect(parseCorrectionPayload({
       changes: { notes: { before: null, after: 'Updated note' } }, evidence,
     }, 'attribution').changes.notes).toEqual({ before: null, after: 'Updated note' })
-    expect(() => parseCorrectionPayload({
+    expect(parseCorrectionPayload({
       changes: { author_id: { before: 3, after: null } }, evidence,
-    }, 'attribution')).toThrow('cannot be null')
+    }, 'attribution').changes.author_id).toEqual({ before: 3, after: null })
+    expect(() => parseCorrectionPayload({
+      changes: { author_id: { before: 3, after: '4' } }, evidence,
+    }, 'attribution')).toThrow('positive integer or null')
+  })
+
+  it('rejects values outside constrained field domains', () => {
+    expect(() => parseCorrectionPayload({
+      changes: { language: { before: 'en', after: 'xx' } }, evidence,
+    }, 'quote')).toThrow('Invalid quote language')
+    expect(() => parseCorrectionPayload({
+      changes: { source_medium: { before: 'book', after: 'text' } }, evidence,
+    }, 'source')).toThrow('Invalid source medium')
+    expect(() => parseCorrectionPayload({
+      changes: { locator_type: { before: null, after: 'paragraph' } }, evidence,
+    }, 'source')).toThrow('Invalid locator type')
   })
 })

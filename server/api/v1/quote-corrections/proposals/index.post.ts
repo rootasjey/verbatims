@@ -1,7 +1,7 @@
 import { and, desc, eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { requireApiPermission } from '~~/server/utils/api-key'
-import { CORRECTION_FIELDS, correctionFingerprint, getCorrectionTarget, parseCorrectionPayload, type CorrectionTarget } from '~~/server/utils/quote-correction'
+import { CORRECTION_FIELDS, correctionFingerprint, getCorrectionTarget, parseCorrectionPayload, snapshotQuoteSource, validateSourceCorrectionAfter, type CorrectionPayload, type CorrectionTarget } from '~~/server/utils/quote-correction'
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
@@ -15,12 +15,16 @@ export default defineEventHandler(async (event) => {
   if (!Number.isSafeInteger(quoteId) || quoteId < 1 || !Number.isSafeInteger(targetId) || targetId < 1) throwServer(400, 'Invalid quote or target ID')
   const current = await getCorrectionTarget(target, targetId, quoteId)
   if (!current || (target === 'quote' && targetId !== quoteId)) throwServer(404, 'Correction target not found')
-  const payload = parseCorrectionPayload(input.payload, target)
-  for (const evidence of payload.evidence) {
-    const source = await db.select({ id: schema.quoteSources.id, locatorType: schema.quoteSources.locatorType, locatorValue: schema.quoteSources.locatorValue }).from(schema.quoteSources)
-      .where(and(eq(schema.quoteSources.id, evidence.source_id), eq(schema.quoteSources.quoteId, quoteId))).get()
-    if (!source || source.locatorType !== evidence.locator_type || source.locatorValue !== evidence.locator_value) throwServer(400, 'Evidence locator must match a source record on the target quote')
+  const parsedPayload = parseCorrectionPayload(input.payload, target)
+  const evidence: CorrectionPayload['evidence'] = []
+  for (const item of parsedPayload.evidence) {
+    const source = await db.select().from(schema.quoteSources)
+      .where(and(eq(schema.quoteSources.id, item.source_id), eq(schema.quoteSources.quoteId, quoteId))).get()
+    if (!source || source.locatorType !== item.locator_type || source.locatorValue !== item.locator_value) throwServer(400, 'Evidence locator must match a source record on the target quote')
+    evidence.push({ ...item, snapshot: snapshotQuoteSource(source) })
   }
+  const payload = { ...parsedPayload, evidence }
+  if (target === 'source') validateSourceCorrectionAfter(payload, current as unknown as Record<string, unknown>)
   const targetTable = target === 'quote' ? schema.quotes : target === 'attribution' ? schema.quoteAttributions : schema.quoteSources
   const fields = CORRECTION_FIELDS[target] as Record<string, unknown>
   for (const [field, change] of Object.entries(payload.changes)) {
@@ -33,6 +37,10 @@ export default defineEventHandler(async (event) => {
       ? payload.changes[field]!.after
       : (current as unknown as Record<string, unknown>)[field === 'author_id' ? 'authorId' : 'referenceId']
     if (after('author_id') == null && after('reference_id') == null) throwServer(400, 'An attribution must retain an author or reference')
+    const authorId = after('author_id')
+    if (authorId != null && !await db.select({ id: schema.authors.id }).from(schema.authors).where(eq(schema.authors.id, Number(authorId))).get()) throwServer(400, 'Invalid author_id')
+    const referenceId = after('reference_id')
+    if (referenceId != null && !await db.select({ id: schema.quoteReferences.id }).from(schema.quoteReferences).where(eq(schema.quoteReferences.id, Number(referenceId))).get()) throwServer(400, 'Invalid reference_id')
   }
   const previousId = input.previous_proposal_id == null ? null : Number(input.previous_proposal_id)
   let version = 1

@@ -835,6 +835,7 @@ export const quoteCorrectionProposals = sqliteTable('quote_correction_proposals'
   proposedBy: integer('proposed_by'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
   appliedAt: integer('applied_at', { mode: 'timestamp' }),
+  applicationId: text('application_id'),
 }, table => ({ quoteIdx: index('idx_quote_correction_proposals_quote').on(table.quoteId) }))
 
 export const quoteCorrectionDecisions = sqliteTable('quote_correction_decisions', {
@@ -854,6 +855,7 @@ export const quoteCorrectionApplyAttempts = sqliteTable('quote_correction_apply_
   fingerprint: text('fingerprint'),
   actorUserId: integer('actor_user_id'),
   apiKeyId: integer('api_key_id'),
+  applicationId: text('application_id'),
   requestId: text('request_id'),
   outcome: text('outcome').notNull(),
   reason: text('reason'),

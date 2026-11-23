@@ -1,7 +1,7 @@
 import { and, desc, eq, isNull, sql } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
-import { CORRECTION_FIELDS, correctionTargetIdColumn, getCorrectionTarget, parseCorrectionPayload, type CorrectionTarget } from '~~/server/utils/quote-correction'
+import { CORRECTION_FIELDS, correctionTargetIdColumn, getCorrectionTarget, parseCorrectionPayload, sourceSnapshotMatchesCondition, validateSourceCorrectionAfter, type CorrectionTarget } from '~~/server/utils/quote-correction'
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
@@ -25,8 +25,20 @@ export default defineEventHandler(async (event) => {
       )).orderBy(desc(schema.quoteCorrectionDecisions.id)).get()
     if (!decision || !decision.expiresAt || decision.expiresAt.getTime() <= Date.now()) throwServer(409, 'A current human approval is required')
     const target = proposal.targetType as CorrectionTarget
+    const decisionGuards = [
+      sql`EXISTS (SELECT 1 FROM quote_correction_decisions WHERE proposal_id = ${proposalId} AND fingerprint = ${proposal.fingerprint} AND decision = 'approved' AND expires_at > unixepoch())`,
+      sql`NOT EXISTS (SELECT 1 FROM quote_correction_decisions WHERE proposal_id = ${proposalId} AND decision = 'rejected')`,
+    ]
+    const evidenceGuards = payload.evidence.map((item) => {
+      if (!item.snapshot || item.snapshot.quote_id !== proposal!.quoteId
+        || item.snapshot.locator_type !== item.locator_type || item.snapshot.locator_value !== item.locator_value) {
+        throwServer(409, 'Approved source evidence is incomplete or inconsistent')
+      }
+      return sourceSnapshotMatchesCondition(item.source_id, item.snapshot)
+    })
     const current = await getCorrectionTarget(target, proposal.targetId, proposal.quoteId)
     if (!current) throwServer(409, 'Correction target no longer exists')
+    if (target === 'source') validateSourceCorrectionAfter(payload, current as unknown as Record<string, unknown>)
     const fieldMap = CORRECTION_FIELDS[target] as Record<string, any>
     const targetTable = target === 'quote' ? schema.quotes : target === 'attribution' ? schema.quoteAttributions : schema.quoteSources
     const beforeConditions = []
@@ -54,32 +66,53 @@ export default defineEventHandler(async (event) => {
       updates.verifiedAt = null
     }
     const appliedAt = new Date()
+    const applicationId = crypto.randomUUID()
     updates.updatedAt = appliedAt
     const idColumn = correctionTargetIdColumn(target)
+    const mutationConditions = [...beforeConditions, ...evidenceGuards, ...decisionGuards]
     const mutation = target === 'quote'
-      ? db.update(schema.quotes).set(updates as any).where(and(eq(idColumn, proposal.targetId), ...beforeConditions)).returning({ id: idColumn })
+      ? db.update(schema.quotes).set(updates as any).where(and(eq(idColumn, proposal.targetId), ...mutationConditions)).returning({ id: idColumn })
       : target === 'attribution'
-        ? db.update(schema.quoteAttributions).set(updates as any).where(and(eq(idColumn, proposal.targetId), eq(schema.quoteAttributions.quoteId, proposal.quoteId), ...beforeConditions)).returning({ id: idColumn })
-        : db.update(schema.quoteSources).set(updates as any).where(and(eq(idColumn, proposal.targetId), eq(schema.quoteSources.quoteId, proposal.quoteId), ...beforeConditions)).returning({ id: idColumn })
-    const results = await runApiAuditedBatch(event, api, [mutation])
-    try {
-      getAuditedBatchRow<{ id: number }>(results, 1)
-    } catch {
-      throwServer(409, 'Current value changed before the correction could be applied')
-    }
-    await db.update(schema.quoteCorrectionProposals).set({ appliedAt }).where(and(eq(schema.quoteCorrectionProposals.id, proposalId), eq(schema.quoteCorrectionProposals.fingerprint, proposal.fingerprint), isNull(schema.quoteCorrectionProposals.appliedAt))).run()
+        ? db.update(schema.quoteAttributions).set(updates as any).where(and(eq(idColumn, proposal.targetId), eq(schema.quoteAttributions.quoteId, proposal.quoteId), ...mutationConditions)).returning({ id: idColumn })
+        : db.update(schema.quoteSources).set(updates as any).where(and(eq(idColumn, proposal.targetId), eq(schema.quoteSources.quoteId, proposal.quoteId), ...mutationConditions)).returning({ id: idColumn })
+    const markApplied = db.update(schema.quoteCorrectionProposals).set({ appliedAt, applicationId })
+      .where(and(eq(schema.quoteCorrectionProposals.id, proposalId), eq(schema.quoteCorrectionProposals.fingerprint, proposal.fingerprint), isNull(schema.quoteCorrectionProposals.appliedAt)))
+      .returning({ id: schema.quoteCorrectionProposals.id })
+    const successAttempt = db.insert(schema.quoteCorrectionApplyAttempts).values({
+      proposalId, fingerprint: proposal.fingerprint, actorUserId: api.userId, apiKeyId: api.id, applicationId,
+      requestId: getHeader(event, 'x-request-id') || getHeader(event, 'cf-ray') || null,
+      outcome: 'applied', reason: null,
+    }).returning({ id: schema.quoteCorrectionApplyAttempts.id })
+    const results = await runApiAuditedBatch(event, api, [mutation, markApplied, successAttempt], applicationId)
+    getAuditedBatchRow<{ id: number }>(results, 1)
+    getAuditedBatchRow<{ id: number }>(results, 2)
+    getAuditedBatchRow<{ id: number }>(results, 3)
     const reread = await getCorrectionTarget(target, proposal.targetId, proposal.quoteId)
     const verified = Boolean(reread && Object.entries(payload.changes).every(([field, change]) => {
       const propertyKey = Object.entries(targetTable).find(([, column]) => column === fieldMap[field])?.[0]
       return Boolean(propertyKey && (reread as unknown as Record<string, unknown>)[propertyKey] === change.after)
     }))
-    if (!verified) throw new Error('Applied correction failed verification on reread')
-    await logAttempt(proposalId, proposal.fingerprint, api.userId, api.id, event, 'applied', null)
-    return { success: true, result: 'applied', proposal_id: proposalId, applied_at: appliedAt }
+    if (!verified) {
+      await logAttempt(proposalId, proposal.fingerprint, api.userId, api.id, event, 'verification_failed', 'Post-application values diverged on reread')
+    }
+    return { success: true, result: 'applied', proposal_id: proposalId, applied_at: appliedAt, verified }
   } catch (error) {
     const statusCode = Number((error as { statusCode?: number })?.statusCode)
     const reason = error instanceof Error ? error.message.slice(0, 500) : 'Application failed'
+    if (proposal) {
+      const latest = await db.select({ appliedAt: schema.quoteCorrectionProposals.appliedAt }).from(schema.quoteCorrectionProposals)
+        .where(eq(schema.quoteCorrectionProposals.id, proposal.id)).get()
+      if (latest?.appliedAt) {
+        await logAttempt(proposal.id, proposal.fingerprint, api?.userId ?? null, api?.id ?? null, event, 'already_applied', 'Proposal was applied by a concurrent request')
+        return { success: true, result: 'already_applied', proposal_id: proposal.id }
+      }
+    }
     await logAttempt(proposal?.id ?? (Number.isSafeInteger(proposalId) ? proposalId : null), proposal?.fingerprint ?? null, api?.userId ?? null, api?.id ?? null, event, statusCode === 403 ? 'denied' : 'refused', reason)
+    if (reason.includes('Quote correction mutation was not applied') || reason.includes('Attribution correction mutation was not applied')
+      || reason.includes('Source correction mutation was not applied') || reason.includes('current approval without rejection')
+      || reason.includes('Correction mutation audit record is missing')) {
+      throwServer(409, 'Approval, evidence, or current values changed before application')
+    }
     throw error
   }
 })
