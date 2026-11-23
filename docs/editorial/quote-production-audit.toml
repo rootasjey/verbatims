@@ -232,10 +232,20 @@ quote_status = "unverified"
 existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. Attribution à Goethe et à Faust, première partie, seulement retrouvée dans des bases de citations; la formule exacte n’a pas été retrouvée dans une édition primaire consultée. https://www.goodreads.com/quotes/18941-as-soon-as-you-trust-yourself-you-will-know-how"
 
-review_outcome = "no_primary_source_found"
-reviewed_at = "2026-10-30"
-review_notes = "Aucune source primaire de Goethe n’a été trouvée. Wikiquote classe explicitement la phrase parmi les formules largement attribuées à Goethe sans citation d’œuvre. L’attribution ne doit pas être conservée comme établie; faute d’auteur alternatif démontré, signaler l’attribution comme douteuse plutôt que d’en inventer une."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : la source primaire de Faust I, vers 2061–2062, donne en allemand « Mein guter Freund, das wird sich alles geben; / Sobald du dir vertraust, sobald weißt du zu leben. » (Mephistopheles). La traduction anglaise de Bayard Taylor consultée dans une édition de Faust donne une formulation différente : « Whence once you trust yourself, you know the art of living. » L’attribution de l’idée à Goethe est étayée par le texte primaire, mais je n’ai pas identifié de témoin primaire de la formulation anglaise exacte actuellement enregistrée ni son traducteur. Résultat inconclusif pour le texte anglais exact; aucune correction précise de traduction proposée. Piste : identifier l’édition/traduction qui porte exactement « As soon as you trust yourself… »."
 
+[[quotes.audit_sources]]
+url = "https://v1-3.faustedition.net/print/faust.all"
+source_level = "primary_text"
+locator = "Faust I, vers 2061–2062; Mephistopheles à Faust"
+support = "Édition numérique du texte allemand : « Mein guter Freund, das wird sich alles geben; / Sobald du dir vertraust, sobald weißt du zu leben. » Elle confirme l’origine goethéenne de l’idée, pas la traduction anglaise exacte en production."
+[[quotes.audit_sources]]
+url = "https://www.gutenberg.org/cache/epub/14460/pg14460.html"
+source_level = "primary_text"
+locator = "Faust: a Tragedy [part 1], scène correspondante à Faust I, vers 2061–2062"
+support = "Traduction publiée par Bayard Taylor : « Dear friend, vain trouble to yourself you're giving; / Whence once you trust yourself, you know the art of living. » Diffère de la formulation anglaise auditée."
 [[quotes.audit_sources]]
 url = "https://en.wikiquote.org/wiki/Johann_Wolfgang_von_Goethe"
 source_level = "secondary"
@@ -260,9 +270,9 @@ quote_status = "unverified"
 existing_review_outcome = "source_candidate_found"
 existing_review_notes = "2026-10-16. Formulation exacte reproduite par une transcription secondaire qui l’identifie au sketch « L’administration ». Enregistrement ou transcription éditoriale primaire à contrôler. https://www.cultivonsnous.fr/dans-ladministration/"
 
-review_outcome = "source_candidate_found"
-reviewed_at = "2026-10-30"
-review_notes = "Une transcription gouvernementale d’un discours du Conseil provincial de Liège (2010) reproduit exactement la phrase et la présente comme une citation de Coluche. La notice BNFA confirme que « L’Administration » figure dans son intégrale; des transcriptions secondaires localisent la phrase dans ce sketch. L’enregistrement original ou une transcription éditoriale primaire n’a pas été contrôlé : attribution fortement étayée, mais pas vérifiée à la source primaire."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : la formulation exacte est reprise dans un compte rendu institutionnel de 2010 et dans des transcriptions qui l’associent au sketch « L’Administration ». Ce sont des témoins secondaires; la notice bibliographique de l’intégrale confirme l’existence du sketch mais ne reproduit pas ce passage. Aucune source primaire accessible (enregistrement ou transcription éditoriale contrôlée) n’a été localisée pendant ce run. Attribution plausible, non confirmée selon le critère primaire. Piste : écouter une édition légalement accessible de L’intégrale des sketches, volume contenant « L’Administration », et relever le passage/timecode."
 
 [[quotes.audit_sources]]
 url = "https://www.provincedeliege.be/conseillers/doc/cra/20101209%20Th%C3%A9matique%20ENVOL.pdf"
@@ -293,9 +303,9 @@ quote_status = "unverified"
 existing_review_outcome = "possible_misattribution"
 existing_review_notes = "2026-10-16. Attribution à Ponce non corroborée. La recherche trouve surtout des formulations proches classées anonymes ou attribuées à d’autres; aucune source directe Twitch/vidéo retrouvée. https://citations.webescence.com/citations/anonyme/Dans-vie-perd-jamais-Soit-gagne-Soit-apprend-10702"
 
-review_outcome = "possible_misattribution"
-reviewed_at = "2026-10-30"
-review_notes = "La formulation exacte est classée anonyme dans une base de citations; une variante « on ne perd jamais, soit on gagne, soit on apprend » circule sous le nom de Nelson Mandela, mais une transcription de podcast reconnaît qu’aucune occurrence exacte de Mandela n’est connue. Je n’ai trouvé aucune source primaire reliant cette phrase à Ponce. L’attribution à Ponce est douteuse, sans preuve suffisante pour identifier l’auteur réel; conserver le dossier comme contesté et ne pas substituer Mandela."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : la recherche exacte n’a pas produit de témoin primaire établissant cette formule ni l’attribution à Ponce. Les reprises trouvées classent une variante plus longue comme anonyme et discutent l’attribution fréquente à Nelson Mandela, sans attestation primaire; elles ne prouvent pas l’auteur de la formulation actuelle. Le rattachement de production à Ponce (Twitch) demeure non vérifié et contestable, mais aucune autre attribution n’est établie. Résultat inconclusif; ne pas substituer Mandela. Piste : retrouver l’enregistrement Twitch original associé à la référence de production et établir sa date/transcription."
 
 [[quotes.audit_sources]]
 url = "https://citations.webescence.com/citations/anonyme/Dans-vie-perd-jamais-Soit-gagne-Soit-apprend-10702"
@@ -329,12 +339,13 @@ existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. Formule anglaise couramment attribuée à Montaigne, mais aucune occurrence primaire de Montaigne ni source pour la référence « Marianne » n’a été établie dans ce passage d’audit. https://files01.core.ac.uk/download/288887033.pdf"
 
 review_outcome = "disputed"
-reviewed_at = "2026-10-30"
-review_notes = "La source primaire de Montaigne contient bien l’idée et le passage correspondant dans les Essais, livre II, chapitre 12 (« Apologie de Raimond Sebond »): « il n’est rien qui imprime si vivement quelque chose en nostre souvenance, que le desir de l’oublier ». Le texte anglais en base (« fixes a thing so intensely… ») n’est pas celui de ce témoin primaire; c’est une traduction ou paraphrase moderne. La référence actuellement liée (#9 Marianne) est incorrecte. Remplacer par les Essais II, 12 et choisir une traduction anglaise identifiable, ou conserver le français original avec repère."
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : le témoin français primaire des Essais donne « il n’est rien qui imprime si vivement quelque chose en nostre souvenance, que le desir de l’oublier » (édition de Bordeaux, II, 12, selon le fac-similé déjà référencé). La traduction anglaise de Charles Cotton consultée dans le texte intégral de Project Gutenberg, livre III, chapitre IV (« Of Diversion »), dit : « there is nothing that so much imprints any thing in our memory as a desire to forget it. » Aucun des deux témoins ne porte la formulation de production « Nothing fixes a thing so intensely… », qui est une reformulation moderne; l’attribution générale à Montaigne est confirmée, la citation exacte ne l’est pas. La référence de production « Marianne » n’est pas l’œuvre source. Correction éditoriale précise à soumettre : remplacer le texte par une traduction primaire identifiable ou par le français original et citer le passage des Essais; relire les valeurs live avant toute application."
 
 [[quotes.audit_sources]]
 url = "https://www.e-rara.ch/download/pdf/7293261.pdf"
 source_level = "primary"
+locator = "Essais, livre II, chapitre XII, passage « il n’est rien qui imprime si vivement… le désir de l’oublier » (fac-similé de l’Exemplaire de Bordeaux)"
 support = "Fac-similé numérisé des Essais; livre II, chapitre XII, passage « il n’est rien qui imprime si vivement… le désir de l’oublier »."
 
 [[quotes.audit_sources]]
@@ -342,6 +353,11 @@ url = "https://fr.wikisource.org/wiki/Page%3AMontaigne_-_Essais%2C_%C3%89d_de_Bo
 source_level = "primary"
 support = "Transcription corrigée et conforme au fac-similé de l’Exemplaire de Bordeaux; reproduit le passage dans II, 12."
 
+[[quotes.audit_sources]]
+url = "https://www.gutenberg.org/files/3600/3600-h/3600-h.htm"
+source_level = "primary_text"
+locator = "Book III, Chapter IV, ‘Of Diversion’ (Charles Cotton translation)"
+support = "La traduction de Cotton donne « there is nothing that so much imprints any thing in our memory as a desire to forget it », formulation différente du texte de production."
 [[quotes.audit_sources]]
 url = "https://pure.royalholloway.ac.uk/ws/portalfiles/portal/29412683/Alex_James_Gray_Remembering_Lucretius_Memory_and_Identity_in_Montaigne_s_Essais.pdf"
 source_level = "authoritative_secondary"
@@ -368,9 +384,14 @@ quote_status = "unverified"
 existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. La formulation exacte n’a pas été retrouvée dans une source fiable du film ou du roman; l’attribution au personnage Nick Carraway reste à vérifier dans la scène/édition concernée."
 
-review_outcome = "inconclusive"
-reviewed_at = "2026-10-30"
-review_notes = "La phrase française exacte n’a pas été retrouvée dans une source primaire consultable du film de 2013, dans le texte du roman, ni dans une transcription fiable indexée. Le libellé évoque une narration littéraire, mais cela ne suffit pas à l’attribuer à Nick Carraway ou au film. Garder l’attribution non vérifiée et demander un minutage/sous-titre ou un témoin de l’édition avant toute correction."
+review_outcome = "disputed"
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : la traduction française publiée de Gatsby le Magnifique (Victor Llona, Éditions du Sagittaire, 1946), chapitre I, pp. 14–42, contient le passage correspondant : « très haut au-dessus de la ville, notre rangée de fenêtres dorées contenait sans doute une part de l’humain mystère aux yeux du passant distrait qui peut-être la regardait au même moment de la rue où l’ombre s’entassait ». La citation de production est une reformulation, avec des écarts précis (« rangée » → « nos fenêtres », « contenait » → « devaient dévoiler », « passant distrait » → « badaud qui passait par là ») et la graphie « badau »; elle n’est pas verbatim de cette édition. Le témoin est un roman de F. Scott Fitzgerald narré par Nick Carraway; il ne confirme pas la référence de production au film de 2013. Proposition de correction à soumettre séparément : relier au roman/à une édition identifiée et remplacer la paraphrase par un extrait vérifié, après relecture des valeurs live."
+[[quotes.audit_sources]]
+url = "https://fr.wikisource.org/wiki/Gatsby_le_Magnifique/I"
+source_level = "primary_text"
+locator = "Chapitre I; passage « très haut au-dessus de la ville… notre rangée de fenêtres dorées… »; traduction Victor Llona, Éditions du Sagittaire, 1946, pp. 14–42"
+support = "Transcription de l’édition française publiée, alignée sur les pages numérisées; le texte source diffère de la paraphrase enregistrée."
 [[quotes.attributions]]
 id = 11
 author_id = 172
