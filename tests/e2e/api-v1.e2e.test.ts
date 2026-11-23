@@ -16,6 +16,7 @@ if (!process.env.PUPPETEER_EXECUTABLE_PATH && chromiumPath) process.env.PUPPETEE
 
 const apiKey = testDb.apiKey
 const writeKey = testDb.writeKey
+const writeNoProvenanceKey = testDb.writeNoProvenanceKey
 const noPermKey = testDb.noPermKey
 const themeKey = testDb.themeKey
 const socialReadKey = testDb.socialReadKey
@@ -48,6 +49,10 @@ function adminHeaders() {
 
 function writeHeaders() {
   return { headers: { Authorization: `Bearer ${writeKey}` } }
+}
+
+function writeNoProvenanceHeaders() {
+  return { headers: { Authorization: `Bearer ${writeNoProvenanceKey}` } }
 }
 
 function noPermHeaders() {
@@ -1155,6 +1160,31 @@ describe('POST /api/v1/quotes', () => {
     })
     expect(res.success).toBe(true)
     expect(res.data.attributions[0].author?.name).toBe('Epictetus')
+  })
+
+  test('omits attributions and sources from write responses without read:provenance', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...writeNoProvenanceHeaders(),
+      method: 'POST',
+      body: {
+        name: 'Quote created without provenance read access.',
+        language: 'en',
+        attributions: [{ author_id: 1, reference_id: 1, is_primary: true }],
+        sources: [{ source_url: 'https://example.com/provenance-access-test', label: 'Access test source' }],
+      },
+    })
+    expect(created.success).toBe(true)
+    expect(created.data).not.toHaveProperty('attributions')
+    expect(created.data).not.toHaveProperty('sources')
+
+    const updated = await $fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...writeNoProvenanceHeaders(),
+      method: 'PUT',
+      body: { name: 'Updated quote without provenance read access.' },
+    })
+    expect(updated.success).toBe(true)
+    expect(updated.data).not.toHaveProperty('attributions')
+    expect(updated.data).not.toHaveProperty('sources')
   })
 })
 

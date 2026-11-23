@@ -47,6 +47,8 @@ export async function seedTestDb() {
   const keyHash = hashKey(apiKey)
   const writeKey = 'vbt_writekey0000000000000000000000000000000000'
   const writeKeyHash = hashKey(writeKey)
+  const writeNoProvenanceKey = 'vbt_writeonly00000000000000000000000000000000'
+  const writeNoProvenanceKeyHash = hashKey(writeNoProvenanceKey)
   const noPermKey = 'vbt_nopermkey00000000000000000000000000000000'
   const noPermKeyHash = hashKey(noPermKey)
   const themeKey = 'vbt_themekey0000000000000000000000000000000000'
@@ -67,6 +69,7 @@ export async function seedTestDb() {
     INSERT INTO users (id, email, name, password, role, language) VALUES (3, 'user@verbatims.cc', 'Test API User', '${adminPw}', 'user', 'en');
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Test Key', '${keyHash}', 'vbt_testke', '["read","read:provenance"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Write Key', '${writeKeyHash}', 'vbt_writek', '["read","read:provenance","write:quotes","write:attributions","assign:authors","assign:references","delete:quotes","write:authors","delete:authors","write:references","delete:references","write:collections","delete:collections"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Write Key Without Provenance Read', '${writeNoProvenanceKeyHash}', 'vbt_writeonly', '["read","write:quotes","write:attributions","assign:authors","assign:references","delete:attributions","write:sources"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'No Perm Key', '${noPermKeyHash}', 'vbt_noperm', '["read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Theme Key', '${themeKeyHash}', 'vbt_themek', '["admin:themes","delete:themes"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Social Read Key', '${socialReadKeyHash}', 'vbt_socialr', '["social:read"]', 1000, 3600, 1000, 3600, 1);
@@ -99,7 +102,7 @@ export async function seedTestDb() {
   `)
 
   client.close()
-  return { dbPath: DB_PATH, apiKey, writeKey, noPermKey, themeKey, socialReadKey, socialWriteKey, userKey, moderatorKey }
+  return { dbPath: DB_PATH, apiKey, writeKey, writeNoProvenanceKey, noPermKey, themeKey, socialReadKey, socialWriteKey, userKey, moderatorKey }
 }
 
 if (process.argv[1] && process.argv[1].includes('seed-e2e')) {
