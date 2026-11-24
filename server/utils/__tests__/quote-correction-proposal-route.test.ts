@@ -102,4 +102,23 @@ describe('quote correction proposal routes', () => {
     }))
     expect(result.data.payload.changes.source_type).toEqual({ before: '', after: 'primary' })
   })
+
+  it('rejects a timecode correction that becomes a no-op after normalization', async () => {
+    await seedUser(testDb.db, { id: 1 })
+    await seedQuote(testDb.db, { id: 1, userId: 1, name: 'A quotation' })
+    const [source] = await testDb.db.insert(testDb.schema.quoteSources).values({
+      quoteId: 1, sourceType: 'primary', sourceUrl: 'https://example.com/edition-a', label: 'Edition A',
+      locatorType: 'timecode', locatorValue: '00:01:23',
+    }).returning()
+    await expect(createProposalRoute(apiEvent({
+      target_type: 'source', quote_id: 1, target_id: source!.id,
+      payload: {
+        changes: { locator_value: { before: '00:01:23', after: '01:23' } },
+        evidence: [{ source_id: source!.id, locator_type: 'timecode', locator_value: '00:01:23' }],
+      },
+    }))).rejects.toThrow('Field has no change after normalization')
+
+    const proposals = await testDb.db.select().from(testDb.schema.quoteCorrectionProposals).all()
+    expect(proposals).toHaveLength(0)
+  })
 })

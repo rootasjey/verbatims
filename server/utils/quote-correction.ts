@@ -204,6 +204,9 @@ export function validateSourceCorrectionAfter(payload: CorrectionPayload, curren
       item.locator_value = normalizedEvidence
     }
   }
+  for (const [field, change] of Object.entries(payload.changes)) {
+    if (JSON.stringify(change.before) === JSON.stringify(change.after)) throwServer(400, `Field has no change after normalization: ${field}`)
+  }
 }
 
 export function sourceSnapshotMatchesCondition(sourceId: number, snapshot: SourceSnapshot) {
