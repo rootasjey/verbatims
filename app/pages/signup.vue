@@ -124,6 +124,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 const { $t, $ts } = useI18n()
 const sessionCookieName = useRuntimeConfig().public.sessionCookieName
 

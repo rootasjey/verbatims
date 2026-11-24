@@ -344,6 +344,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import './home-v3.css'
 import type { ProcessedQuoteResult } from '~~/server/types'
 import type { UseHomeFeed } from '~/composables/useHomeFeed'

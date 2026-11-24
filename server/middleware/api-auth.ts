@@ -9,6 +9,17 @@ const publicV1Paths = [
 
 export default defineEventHandler(async (event) => {
   const path = event.path || event.node.req.url || ''
+  const correctionApplyMatch = path.match(/^\/api\/v1\/quote-corrections\/proposals\/([^/?]+)\/apply(?:\?|$)/)
+  const isCorrectionApply = Boolean(correctionApplyMatch)
+  const proposalSegment = correctionApplyMatch?.[1]
+  const proposalId = proposalSegment && /^\d+$/.test(proposalSegment) ? Number(proposalSegment) : null
+  const logCorrectionDenial = (reason: string, keyData?: { id: number; userId: number }) => db.insert(schema.quoteCorrectionApplyAttempts).values({
+    proposalId: Number.isSafeInteger(proposalId) ? proposalId : null,
+    actorUserId: keyData?.userId ?? null,
+    apiKeyId: keyData?.id ?? null,
+    requestId: getHeader(event, 'x-request-id') || getHeader(event, 'cf-ray') || null,
+    outcome: 'denied', reason,
+  }).run().catch(() => {})
 
   event.context.source = 'web'
 
@@ -18,20 +29,24 @@ export default defineEventHandler(async (event) => {
 
   const authHeader = getHeader(event, 'authorization')
   if (!authHeader) {
+    if (isCorrectionApply) await logCorrectionDenial('Missing authentication')
     throwServer(401, 'Missing Authorization header. Use: Authorization: Bearer vbt_xxx')
   }
 
   if (!authHeader.startsWith('Bearer ')) {
+    if (isCorrectionApply) await logCorrectionDenial('Invalid authentication format')
     throwServer(401, 'Invalid Authorization format. Use: Authorization: Bearer vbt_xxx')
   }
 
   const apiKey = authHeader.slice(7).trim()
   if (!apiKey) {
+    if (isCorrectionApply) await logCorrectionDenial('Missing API key')
     throwServer(401, 'Missing API key')
   }
 
   const keyData = await validateApiKey(apiKey)
   if (!keyData) {
+    if (isCorrectionApply) await logCorrectionDenial('Invalid or inactive API key')
     throwServer(401, 'Invalid or inactive API key')
   }
 
@@ -43,7 +58,10 @@ export default defineEventHandler(async (event) => {
     const key = `ratelimit:apikey:write:${keyData.id}:${bucket}`
     const result = await checkRateLimit({ key, max: keyData.writeRateLimit, window: keyData.writeWindowSec })
     setRateLimitHeaders(event, result, keyData.writeRateLimit)
-    if (!result.success) throwServer(429, 'Write rate limit exceeded. Try again later.')
+    if (!result.success) {
+      if (isCorrectionApply) await logCorrectionDenial('Write rate limit exceeded', keyData)
+      throwServer(429, 'Write rate limit exceeded. Try again later.')
+    }
   } else {
     const bucket = Math.floor(Date.now() / 1000 / keyData.readWindowSec)
     const key = `ratelimit:apikey:read:${keyData.id}:${bucket}`

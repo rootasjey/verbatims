@@ -31,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 const { $t } = useI18n()
 const route = useRoute()
 const token = computed(() => typeof route.query.token === 'string' ? route.query.token : '')

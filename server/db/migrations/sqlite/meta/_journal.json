@@ -393,6 +393,20 @@
       "when": 1794096570000,
       "tag": "0067_add_audiovisual_quote_source_medium",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "6",
+      "when": 1794096571000,
+      "tag": "0068_quote_correction_workflow",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "6",
+      "when": 1795484078000,
+      "tag": "0069_quote_correction_review_guards",
+      "breakpoints": true
     }
   ]
 }

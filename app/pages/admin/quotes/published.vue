@@ -628,6 +628,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import type { QuoteLanguage } from '~/types'
 import type { QuoteAuditOutcome, QuoteAuditProgress } from '#shared/constants/quote-audit'
 import type { LanguageOption } from '~/stores/language'

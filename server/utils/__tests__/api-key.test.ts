@@ -152,6 +152,13 @@ describe('requireApiPermission', () => {
     expect(() => requireApiPermission(apiKey, 'anything')).not.toThrow()
   })
 
+  it('accepts the quote correction proposal and apply permissions', async () => {
+    const { validateApiKeyPermissions } = await import('../api-key')
+    expect(validateApiKeyPermissions(['propose:quote-corrections', 'apply:quote-corrections'])).toEqual([
+      'propose:quote-corrections', 'apply:quote-corrections',
+    ])
+  })
+
   it('throws 403 when permission is missing', async () => {
     const { requireApiPermission } = await import('../api-key')
     const apiKey = {

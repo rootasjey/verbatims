@@ -109,6 +109,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 const { t } = useI18n()
 const showMobileMenu = ref(false)
 const mobileMenuItems = computed(() => [

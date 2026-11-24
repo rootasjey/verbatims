@@ -1,6 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
-import type { H3Event } from 'h3'
+import { getHeader, type H3Event } from 'h3'
 import type { ApiKeyData } from './api-key'
 
 /**
@@ -8,7 +8,7 @@ import type { ApiKeyData } from './api-key'
  * D1 serializes the batch as one transaction, so its singleton context cannot leak
  * into another request. Audit rows snapshot the stored values and generated IDs.
  */
-export async function runApiAuditedBatch(event: H3Event, api: ApiKeyData, statements: unknown[]) {
+export async function runApiAuditedBatch(event: H3Event, api: ApiKeyData, statements: unknown[], requestIdOverride?: string) {
   return runEditorialAuditedBatch(event, {
     actorUserId: api.userId,
     actorUserName: api.userName,
@@ -16,7 +16,7 @@ export async function runApiAuditedBatch(event: H3Event, api: ApiKeyData, statem
     apiKeyName: api.name,
     apiKeyPrefix: api.keyPrefix,
     source: safeAuditHeader(event.context.source) || 'api_v1',
-  }, statements)
+  }, statements, undefined, requestIdOverride)
 }
 
 export function getAuditedBatchRow<T>(results: unknown[], index: number): T {
@@ -57,13 +57,14 @@ async function runEditorialAuditedBatch(
   actor: { actorUserId: number; actorUserName: string | null; apiKeyId: number | null; apiKeyName: string | null; apiKeyPrefix: string | null; source: string },
   statements: unknown[],
   taskIdOverride?: string,
+  requestIdOverride?: string,
 ) {
   const taskId = safeAuditHeader(taskIdOverride)
     || safeAuditHeader(event && (
       getHeader(event, 'x-task-id')
       || getHeader(event, 'x-paperclip-task-id')
       || getHeader(event, 'x-codex-task-id')))
-  const requestId = event ? safeAuditHeader(getHeader(event, 'x-request-id') || getHeader(event, 'cf-ray')) : null
+  const requestId = safeAuditHeader(requestIdOverride) || (event ? safeAuditHeader(getHeader(event, 'x-request-id') || getHeader(event, 'cf-ray')) : null)
   const context = {
     id: 1,
     ...actor,

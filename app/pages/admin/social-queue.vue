@@ -517,6 +517,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import type { SocialPlatform, SocialQueueStatus } from '~~/shared/constants/social'
 import { SOCIAL_PLATFORMS, SOCIAL_PLATFORM_LABELS, isSocialPlatform } from '~~/shared/constants/social'
 import { watch, computed, onMounted, onUnmounted } from 'vue'

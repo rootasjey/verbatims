@@ -352,6 +352,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import type { ProcessedQuoteResult } from '~~/server/types';
 import { useDashboardQuoteEvents } from '~/composables/useDashboardQuoteEvents'
 import {

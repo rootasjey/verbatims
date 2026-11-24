@@ -823,6 +823,45 @@ export const quoteEditorialAuditContext = sqliteTable('quote_editorial_audit_con
   requestId: text('request_id'),
 })
 
+export const quoteCorrectionProposals = sqliteTable('quote_correction_proposals', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  quoteId: integer('quote_id').notNull(),
+  targetType: text('target_type', { enum: ['quote', 'attribution', 'source'] }).notNull(),
+  targetId: integer('target_id').notNull(),
+  version: integer('version').notNull(),
+  previousProposalId: integer('previous_proposal_id'),
+  payload: text('payload').notNull(),
+  fingerprint: text('fingerprint').notNull(),
+  proposedBy: integer('proposed_by'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  appliedAt: integer('applied_at', { mode: 'timestamp' }),
+  applicationId: text('application_id'),
+}, table => ({ quoteIdx: index('idx_quote_correction_proposals_quote').on(table.quoteId) }))
+
+export const quoteCorrectionDecisions = sqliteTable('quote_correction_decisions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  proposalId: integer('proposal_id').notNull(),
+  fingerprint: text('fingerprint').notNull(),
+  decision: text('decision', { enum: ['approved', 'rejected'] }).notNull(),
+  decidedBy: integer('decided_by').notNull(),
+  decidedAt: integer('decided_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }),
+  reason: text('reason'),
+}, table => ({ proposalIdx: index('idx_quote_correction_decisions_proposal').on(table.proposalId) }))
+
+export const quoteCorrectionApplyAttempts = sqliteTable('quote_correction_apply_attempts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  proposalId: integer('proposal_id'),
+  fingerprint: text('fingerprint'),
+  actorUserId: integer('actor_user_id'),
+  apiKeyId: integer('api_key_id'),
+  applicationId: text('application_id'),
+  requestId: text('request_id'),
+  outcome: text('outcome').notNull(),
+  reason: text('reason'),
+  occurredAt: integer('occurred_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+}, table => ({ proposalIdx: index('idx_quote_correction_attempts_proposal').on(table.proposalId) }))
+
 export const themeEnrichmentJobs = sqliteTable('theme_enrichment_jobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   themeId: integer('theme_id').notNull().references(() => themes.id, { onDelete: 'cascade' }),

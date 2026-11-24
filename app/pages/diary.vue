@@ -168,6 +168,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import { navigateTo } from 'nuxt/app'
 
 definePageMeta({
