@@ -110,6 +110,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 
 interface AuditEvent {

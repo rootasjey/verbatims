@@ -396,7 +396,9 @@
   </ClientOnly>
 </template>
 
-<script lang="ts" setup>import { useJsonLd } from '../../composables/useSeo'
+<script lang="ts" setup>
+import { $fetch } from 'ofetch'
+import { useJsonLd } from '../../composables/useSeo'
 import { authorLifeDateFromFields, formatAuthorLifeSpan } from '#shared/utils/author-life-date'
 import type { ComputedRef, Ref } from 'vue'
 import type { QuoteWithRelations } from '~/types'

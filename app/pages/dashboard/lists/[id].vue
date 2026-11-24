@@ -222,6 +222,7 @@
 </template>
 
 <script lang="ts" setup>
+import { $fetch } from 'ofetch'
 import { formatDashboardQuoteDateRelative, formatDashboardQuoteDateTooltip } from '~/utils/dashboard-quote-date'
 
 definePageMeta({

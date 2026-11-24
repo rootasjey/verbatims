@@ -77,6 +77,8 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
+
 const $t = useI18n().$_t({ ...useRoute(), path: '/admin/maintenance', name: 'admin-maintenance' } as ReturnType<typeof useRoute>)
 
 const isResetting = ref(false)

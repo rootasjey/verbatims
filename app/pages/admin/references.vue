@@ -318,6 +318,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import { ref, computed, watch, reactive, nextTick } from 'vue'
 import { formatRelativeTime, parseDateInput } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'

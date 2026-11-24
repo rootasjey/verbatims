@@ -376,6 +376,8 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
+
 interface ProfileForm {
   name: string
   bio: string

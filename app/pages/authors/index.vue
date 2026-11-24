@@ -205,6 +205,7 @@
 </template>
 
 <script lang="ts" setup>
+import { $fetch } from 'ofetch'
 import { useDebounceFn } from '@vueuse/core'
 import { useJsonLd } from '~/composables/useSeo'
 import { useVerbatimsSeo } from '~/composables/useSeo'

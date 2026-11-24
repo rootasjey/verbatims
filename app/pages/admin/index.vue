@@ -117,6 +117,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import { formatRelativeTime } from '~/utils/time-formatter'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })

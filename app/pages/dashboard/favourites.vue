@@ -283,6 +283,7 @@
 </template>
 
 <script setup lang="ts">
+import { $fetch } from 'ofetch'
 import type { ProcessedQuoteResult } from '~~/server/types'
 import { getDateTimestamp } from '~/utils/time-formatter'
 import { formatDashboardQuoteDateRelative, formatDashboardQuoteDateTooltip } from '~/utils/dashboard-quote-date'
