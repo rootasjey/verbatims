@@ -1,7 +1,6 @@
 import { cleanupAbandonedImageUploads } from '../../utils/image-storage'
 
-const PAPERCLIP_WEBHOOK_URL_KEY = 'PAPERCLIP_R2_WEBHOOK_URL'
-const PAPERCLIP_WEBHOOK_SECRET_KEY = 'PAPERCLIP_R2_WEBHOOK_SECRET'
+const MULTICA_WEBHOOK_URL_KEY = 'MULTICA_R2_WEBHOOK_URL'
 const MAX_REPORTED_CANDIDATE_KEYS = 100
 
 interface CleanupSummary {
@@ -24,34 +23,41 @@ function getWorkerSecret(name: string): string {
   return env[name] || workerEnv?.[name] || ''
 }
 
-async function notifyPaperclip(payload: Record<string, unknown>, runId: string): Promise<void> {
-  const webhookUrl = getWorkerSecret(PAPERCLIP_WEBHOOK_URL_KEY)
-  const webhookSecret = getWorkerSecret(PAPERCLIP_WEBHOOK_SECRET_KEY)
+async function notifyMultica(payload: Record<string, unknown>, runId: string): Promise<void> {
+  const webhookUrl = getWorkerSecret(MULTICA_WEBHOOK_URL_KEY)
 
-  if (!webhookUrl && !webhookSecret) {
+  if (!webhookUrl) {
     console.warn({
-      event: 'image_upload_cleanup_paperclip_notification_skipped',
+      event: 'image_upload_cleanup_multica_notification_skipped',
       reason: 'not_configured',
       runId,
     })
     return
   }
 
-  if (!webhookUrl || !webhookSecret) {
-    throw new Error('Paperclip cleanup webhook configuration is incomplete')
+  let parsedUrl: URL
+  try {
+    parsedUrl = new URL(webhookUrl)
+  } catch {
+    throw new Error('Multica cleanup webhook URL is invalid')
   }
 
-  const parsedUrl = new URL(webhookUrl)
   if (
-    parsedUrl.origin !== 'https://paperclip.corpinot.cc'
-    || !parsedUrl.pathname.startsWith('/api/routine-triggers/public/')
-    || !parsedUrl.pathname.endsWith('/fire')
+    parsedUrl.origin !== 'https://multica.ai'
+    || parsedUrl.port !== ''
+    || parsedUrl.username !== ''
+    || parsedUrl.password !== ''
+    || parsedUrl.search !== ''
+    || parsedUrl.hash !== ''
+    || !/^\/api\/webhooks\/autopilots\/[A-Za-z0-9_-]{20,128}$/.test(parsedUrl.pathname)
   ) {
-    throw new Error('Paperclip cleanup webhook URL is not an allowed Paperclip trigger')
+    throw new Error('Multica cleanup webhook URL is not an allowed autopilot trigger')
   }
 
+  const webhookToken = parsedUrl.pathname.split('/').at(-1)!
   const body = JSON.stringify({
-    payload: {
+    event: String(payload.event ?? 'webhook.received'),
+    eventPayload: {
       source: 'cloudflare-worker',
       worker: 'verbatims',
       ...payload,
@@ -67,7 +73,7 @@ async function notifyPaperclip(payload: Record<string, unknown>, runId: string):
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${webhookSecret}`,
+          Authorization: `Bearer ${webhookToken}`,
           'Content-Type': 'application/json',
           'Idempotency-Key': `image-upload-cleanup:${runId}:${String(payload.event ?? 'report')}`,
         },
@@ -75,20 +81,32 @@ async function notifyPaperclip(payload: Record<string, unknown>, runId: string):
         signal: controller.signal,
       })
 
-      await response.body?.cancel()
-
-      if (response.ok) return
-      if (response.status < 500 && response.status !== 429) {
-        throw new Error(`Paperclip cleanup webhook rejected the request (${response.status})`)
+      if (response.ok) {
+        const result = await response.json() as { status?: unknown }
+        if (result.status === 'accepted' || result.status === 'duplicate' || result.status === 'skipped') return
+        if (result.status === 'ignored') {
+          throw new Error('Multica cleanup webhook ignored the request')
+        }
+        throw new Error('Multica cleanup webhook returned an unexpected response')
       }
 
-      console.warn('Paperclip cleanup webhook retry', { runId, attempt, status: response.status })
+      await response.body?.cancel()
+      if (response.status < 500 && response.status !== 429) {
+        throw new Error(`Multica cleanup webhook rejected the request (${response.status})`)
+      }
+
+      console.warn('Multica cleanup webhook retry', { runId, attempt, status: response.status })
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Paperclip cleanup webhook rejected')) {
+      if (
+        error instanceof Error
+        && (error.message.startsWith('Multica cleanup webhook rejected')
+          || error.message.startsWith('Multica cleanup webhook ignored')
+          || error.message.startsWith('Multica cleanup webhook returned'))
+      ) {
         throw error
       }
 
-      console.warn('Paperclip cleanup webhook retry', {
+      console.warn('Multica cleanup webhook retry', {
         runId,
         attempt,
         reason: error instanceof Error && error.name === 'AbortError' ? 'timeout' : 'network_error',
@@ -102,7 +120,7 @@ async function notifyPaperclip(payload: Record<string, unknown>, runId: string):
     }
   }
 
-  throw new Error(`Paperclip cleanup webhook delivery failed after ${maxAttempts} attempts (runId: ${runId})`)
+  throw new Error(`Multica cleanup webhook delivery failed after ${maxAttempts} attempts (runId: ${runId})`)
 }
 
 export default defineTask({
@@ -121,13 +139,13 @@ export default defineTask({
       console.error('Image upload cleanup failed', { runId, error: errorMessage })
 
       try {
-        await notifyPaperclip({
+        await notifyMultica({
           event: 'image_upload_cleanup_failure',
           runId,
           error: errorMessage,
         }, runId)
       } catch {
-        console.error('Paperclip cleanup failure notification failed', { runId })
+        console.error('Multica cleanup failure notification failed', { runId })
       }
 
       throw error
@@ -155,7 +173,7 @@ export default defineTask({
       deleted: result.deleted,
     }
     console.info(summary)
-    await notifyPaperclip({ ...summary }, runId)
+    await notifyMultica({ ...summary }, runId)
     return summary
   },
 })
