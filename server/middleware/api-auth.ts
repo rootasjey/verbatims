@@ -9,9 +9,14 @@ const publicV1Paths = [
 
 export default defineEventHandler(async (event) => {
   const path = event.path || event.node.req.url || ''
-  const isCorrectionApply = /^\/api\/v1\/quote-corrections\/proposals\/\d+\/apply(?:\?|$)/.test(path)
-  const logCorrectionDenial = (reason: string) => db.insert(schema.quoteCorrectionApplyAttempts).values({
-    proposalId: Number(path.match(/proposals\/(\d+)/)?.[1]) || null,
+  const correctionApplyMatch = path.match(/^\/api\/v1\/quote-corrections\/proposals\/([^/?]+)\/apply(?:\?|$)/)
+  const isCorrectionApply = Boolean(correctionApplyMatch)
+  const proposalSegment = correctionApplyMatch?.[1]
+  const proposalId = proposalSegment && /^\d+$/.test(proposalSegment) ? Number(proposalSegment) : null
+  const logCorrectionDenial = (reason: string, keyData?: { id: number; userId: number }) => db.insert(schema.quoteCorrectionApplyAttempts).values({
+    proposalId: Number.isSafeInteger(proposalId) ? proposalId : null,
+    actorUserId: keyData?.userId ?? null,
+    apiKeyId: keyData?.id ?? null,
     requestId: getHeader(event, 'x-request-id') || getHeader(event, 'cf-ray') || null,
     outcome: 'denied', reason,
   }).run().catch(() => {})
@@ -54,7 +59,7 @@ export default defineEventHandler(async (event) => {
     const result = await checkRateLimit({ key, max: keyData.writeRateLimit, window: keyData.writeWindowSec })
     setRateLimitHeaders(event, result, keyData.writeRateLimit)
     if (!result.success) {
-      if (isCorrectionApply) await logCorrectionDenial('Write rate limit exceeded')
+      if (isCorrectionApply) await logCorrectionDenial('Write rate limit exceeded', keyData)
       throwServer(429, 'Write rate limit exceeded. Try again later.')
     }
   } else {

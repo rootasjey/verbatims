@@ -1,12 +1,13 @@
 import { and, desc, eq, isNull, sql } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { getAuditedBatchRow, runApiAuditedBatch } from '~~/server/utils/api-editorial-audit'
-import { CORRECTION_FIELDS, correctionTargetIdColumn, getCorrectionTarget, parseCorrectionPayload, sourceSnapshotMatchesCondition, validateSourceCorrectionAfter, type CorrectionTarget } from '~~/server/utils/quote-correction'
+import { CORRECTION_FIELDS, correctionTargetIdColumn, evidenceLocatorMatchesSnapshotOrRepair, getCorrectionTarget, nestedErrorMessage, parseCorrectionPayload, sourceSnapshotMatchesCondition, validateSourceCorrectionAfter, type CorrectionTarget } from '~~/server/utils/quote-correction'
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   const proposalId = Number(getRouterParam(event, 'id'))
   let proposal: typeof schema.quoteCorrectionProposals.$inferSelect | undefined
+  let applicationCommitted = false
   try {
     if (!Number.isSafeInteger(proposalId) || proposalId < 1) throwServer(400, 'Invalid proposal ID')
     if (!api?.permissions.includes('apply:quote-corrections')) throwServer(403, 'API key missing required permission: apply:quote-corrections')
@@ -31,7 +32,7 @@ export default defineEventHandler(async (event) => {
     ]
     const evidenceGuards = payload.evidence.map((item) => {
       if (!item.snapshot || item.snapshot.quote_id !== proposal!.quoteId
-        || item.snapshot.locator_type !== item.locator_type || item.snapshot.locator_value !== item.locator_value) {
+        || !evidenceLocatorMatchesSnapshotOrRepair(target, proposal!.targetId, item, item.snapshot, payload)) {
         throwServer(409, 'Approved source evidence is incomplete or inconsistent')
       }
       return sourceSnapshotMatchesCondition(item.source_id, item.snapshot)
@@ -81,24 +82,33 @@ export default defineEventHandler(async (event) => {
     const successAttempt = db.insert(schema.quoteCorrectionApplyAttempts).values({
       proposalId, fingerprint: proposal.fingerprint, actorUserId: api.userId, apiKeyId: api.id, applicationId,
       requestId: getHeader(event, 'x-request-id') || getHeader(event, 'cf-ray') || null,
-      outcome: 'applied', reason: null,
+      outcome: 'applied_unverified', reason: 'Mutation committed; post-application verification pending',
     }).returning({ id: schema.quoteCorrectionApplyAttempts.id })
     const results = await runApiAuditedBatch(event, api, [mutation, markApplied, successAttempt], applicationId)
+    applicationCommitted = true
     getAuditedBatchRow<{ id: number }>(results, 1)
     getAuditedBatchRow<{ id: number }>(results, 2)
     getAuditedBatchRow<{ id: number }>(results, 3)
-    const reread = await getCorrectionTarget(target, proposal.targetId, proposal.quoteId)
+    let reread: Awaited<ReturnType<typeof getCorrectionTarget>> | null = null
+    let verificationReason: string | null = null
+    try {
+      reread = await getCorrectionTarget(target, proposal.targetId, proposal.quoteId)
+      if (!reread) verificationReason = 'Post-application target could not be reread'
+    } catch (error) {
+      verificationReason = error instanceof Error ? `Post-application reread failed: ${error.message.slice(0, 350)}` : 'Post-application reread failed'
+    }
     const verified = Boolean(reread && Object.entries(payload.changes).every(([field, change]) => {
       const propertyKey = Object.entries(targetTable).find(([, column]) => column === fieldMap[field])?.[0]
       return Boolean(propertyKey && (reread as unknown as Record<string, unknown>)[propertyKey] === change.after)
     }))
-    if (!verified) {
-      await logAttempt(proposalId, proposal.fingerprint, api.userId, api.id, event, 'verification_failed', 'Post-application values diverged on reread')
-    }
+    if (!verified && !verificationReason) verificationReason = 'Post-application values diverged on reread'
+    await logAttempt(proposalId, proposal.fingerprint, api.userId, api.id, event,
+      verified ? 'verified' : 'verification_failed', verificationReason, applicationId)
     return { success: true, result: 'applied', proposal_id: proposalId, applied_at: appliedAt, verified }
   } catch (error) {
     const statusCode = Number((error as { statusCode?: number })?.statusCode)
-    const reason = error instanceof Error ? error.message.slice(0, 500) : 'Application failed'
+    const reason = nestedErrorMessage(error).slice(0, 500) || 'Application failed'
+    if (applicationCommitted) throwServer(500, 'Correction was committed; its applied_unverified attempt records the result')
     if (proposal) {
       const latest = await db.select({ appliedAt: schema.quoteCorrectionProposals.appliedAt }).from(schema.quoteCorrectionProposals)
         .where(eq(schema.quoteCorrectionProposals.id, proposal.id)).get()
@@ -117,9 +127,9 @@ export default defineEventHandler(async (event) => {
   }
 })
 
-async function logAttempt(proposalId: number | null, fingerprint: string | null, actorUserId: number | null, apiKeyId: number | null, event: any, outcome: string, reason: string | null) {
+async function logAttempt(proposalId: number | null, fingerprint: string | null, actorUserId: number | null, apiKeyId: number | null, event: any, outcome: string, reason: string | null, applicationId: string | null = null) {
   await db.insert(schema.quoteCorrectionApplyAttempts).values({
-    proposalId, fingerprint, actorUserId, apiKeyId,
+    proposalId, fingerprint, actorUserId, apiKeyId, applicationId,
     requestId: getHeader(event, 'x-request-id') || getHeader(event, 'cf-ray') || null,
     outcome, reason,
   }).run()

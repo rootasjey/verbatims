@@ -1,5 +1,6 @@
 import { desc, eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { nestedErrorMessage } from '~~/server/utils/quote-correction'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event) => {
       decidedBy: user.id, decidedAt, expiresAt, reason: body.decision === 'rejected' ? reason : null,
     }).returning({ id: schema.quoteCorrectionDecisions.id })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('decision is no longer valid')) {
+    if (nestedErrorMessage(error).includes('decision is no longer valid')) {
       throwServer(409, 'A rejection is final or another decision is still active')
     }
     throw error

@@ -22,6 +22,25 @@ export const CORRECTION_FIELDS = {
 } as const
 
 export type CorrectionTarget = keyof typeof CORRECTION_FIELDS
+export function nestedErrorMessage(error: unknown) {
+  const messages: string[] = []
+  const seen = new Set<unknown>()
+  let current: unknown = error
+  while (current && !seen.has(current) && messages.length < 5) {
+    seen.add(current)
+    if (current instanceof Error) {
+      messages.push(current.message)
+      current = current.cause
+    } else if (typeof current === 'object' && 'message' in current && typeof current.message === 'string') {
+      messages.push(current.message)
+      current = 'cause' in current ? current.cause : null
+    } else {
+      break
+    }
+  }
+  return messages.join(': ')
+}
+
 export type SourceSnapshot = {
   quote_id: number
   attribution_id: number | null
@@ -50,6 +69,7 @@ export function parseCorrectionPayload(value: unknown, target: CorrectionTarget)
   const input = value as Record<string, unknown>
   if (!input.changes || typeof input.changes !== 'object' || Array.isArray(input.changes)) throwServer(400, 'Changes must be an object')
   const changes = input.changes as Record<string, { before?: unknown, after?: unknown }>
+  const parsedChanges: CorrectionPayload['changes'] = {}
   const allowed = CORRECTION_FIELDS[target] as Record<string, unknown>
   const names = Object.keys(changes)
   if (!names.length) throwServer(400, 'At least one field change is required')
@@ -61,6 +81,7 @@ export function parseCorrectionPayload(value: unknown, target: CorrectionTarget)
     if (JSON.stringify(change.before) === JSON.stringify(change.after)) throwServer(400, `Field has no change: ${name}`)
     assertFieldValue(target, name, change.before, true)
     assertFieldValue(target, name, change.after, false)
+    parsedChanges[name] = { before: change.before, after: change.after }
   }
   if (!Array.isArray(input.evidence) || input.evidence.length < 1) throwServer(400, 'At least one source locator is required')
   if (input.evidence.length > 4) throwServer(400, 'At most four evidence locators are supported per proposal')
@@ -76,12 +97,12 @@ export function parseCorrectionPayload(value: unknown, target: CorrectionTarget)
     if (locator.snapshot !== undefined) evidenceItem.snapshot = parseSourceSnapshot(locator.snapshot)
     return evidenceItem
   })
-  return { changes, evidence }
+  return { changes: parsedChanges, evidence }
 }
 
 function assertFieldValue(target: CorrectionTarget, name: string, value: unknown, before: boolean) {
   if (value === null) {
-    if (target === 'quote' || (target === 'attribution' && name !== 'notes' && !['author_id', 'reference_id'].includes(name)) || (target === 'source' && name === 'source_type')) throwServer(400, `${name} cannot be null`)
+    if ((target === 'quote' && name !== 'language') || (target === 'attribution' && name !== 'notes' && !['author_id', 'reference_id'].includes(name)) || (target === 'source' && name === 'source_type')) throwServer(400, `${name} cannot be null`)
     return
   }
   if (target === 'attribution' && ['author_id', 'reference_id'].includes(name)) {
@@ -94,7 +115,7 @@ function assertFieldValue(target: CorrectionTarget, name: string, value: unknown
   const maxLengths: Record<string, number> = { name: 4000, language: 10, notes: 5000, source_type: 100, source_medium: 20, source_url: 2000, label: 200, locator_type: 20, locator_value: 250, translator_name: 200 }
   if (value.length > (maxLengths[name] ?? 5000)) throwServer(400, `${name} is too long`)
   if (target === 'quote' && name === 'name' && !before && value.trim().length < 2) throwServer(400, 'Quote text must contain at least two characters')
-  if (!before && target === 'quote' && name === 'language' && !['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la'].includes(value)) throwServer(400, 'Invalid quote language')
+  if (target === 'quote' && name === 'language' && value !== null && !['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la'].includes(value)) throwServer(400, 'Invalid quote language')
   if (!before && target === 'source' && name === 'source_medium' && !['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other'].includes(value)) throwServer(400, 'Invalid source medium')
   if (!before && target === 'source' && name === 'locator_type' && !['page', 'chapter', 'timecode'].includes(value)) throwServer(400, 'Invalid locator type')
   if (target === 'source' && name === 'source_type' && !value.trim()) throwServer(400, 'Source type cannot be empty')
@@ -138,6 +159,20 @@ export function snapshotQuoteSource(source: typeof schema.quoteSources.$inferSel
     verified_by: source.verifiedBy, verified_at: timestampSnapshot(source.verifiedAt),
     notes: source.notes, is_primary: source.isPrimary, created_by: source.createdBy,
   }
+}
+
+export function evidenceLocatorMatchesSnapshotOrRepair(
+  target: CorrectionTarget,
+  targetId: number,
+  item: CorrectionPayload['evidence'][number],
+  snapshot: SourceSnapshot,
+  payload: CorrectionPayload,
+) {
+  if (snapshot.locator_type === item.locator_type && snapshot.locator_value === item.locator_value) return true
+  if (target !== 'source' || item.source_id !== targetId || !('locator_type' in payload.changes || 'locator_value' in payload.changes)) return false
+  const resultingType = 'locator_type' in payload.changes ? payload.changes.locator_type!.after : snapshot.locator_type
+  const resultingValue = 'locator_value' in payload.changes ? payload.changes.locator_value!.after : snapshot.locator_value
+  return resultingType === item.locator_type && resultingValue === item.locator_value
 }
 
 function timestampSnapshot(value: unknown): string | null {

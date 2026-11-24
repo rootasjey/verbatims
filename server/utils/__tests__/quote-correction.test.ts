@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 vi.mock('hub:db', async () => ({ db: {}, schema: await import('../../db/schema') }))
 
-import { parseCorrectionPayload } from '../quote-correction'
+import { nestedErrorMessage, parseCorrectionPayload } from '../quote-correction'
 
 describe('parseCorrectionPayload', () => {
+  beforeEach(() => {
+    vi.stubGlobal('throwServer', (_statusCode: number, message: string) => { throw new Error(message) })
+  })
+
   const evidence = [{ source_id: 2, locator_type: 'page', locator_value: '14' }]
 
   it('accepts allowlisted quote edits with a source locator', () => {
@@ -49,5 +53,19 @@ describe('parseCorrectionPayload', () => {
     expect(() => parseCorrectionPayload({
       changes: { locator_type: { before: null, after: 'paragraph' } }, evidence,
     }, 'source')).toThrow('Invalid locator type')
+  })
+
+  it('allows a nullable existing quote language to be corrected', () => {
+    expect(parseCorrectionPayload({
+      changes: { language: { before: null, after: 'fr' } }, evidence,
+    }, 'quote').changes.language).toEqual({ before: null, after: 'fr' })
+    expect(() => parseCorrectionPayload({
+      changes: { language: { before: null, after: 'xx' } }, evidence,
+    }, 'quote')).toThrow('Invalid quote language')
+  })
+
+  it('includes nested SQLite causes when classifying database guard failures', () => {
+    const error = new Error('Failed query', { cause: new Error('Quote correction version chain is no longer current') })
+    expect(nestedErrorMessage(error)).toContain('version chain is no longer current')
   })
 })

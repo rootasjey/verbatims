@@ -1,7 +1,7 @@
 import { and, desc, eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { requireApiPermission } from '~~/server/utils/api-key'
-import { CORRECTION_FIELDS, correctionFingerprint, getCorrectionTarget, parseCorrectionPayload, snapshotQuoteSource, validateSourceCorrectionAfter, type CorrectionPayload, type CorrectionTarget } from '~~/server/utils/quote-correction'
+import { CORRECTION_FIELDS, correctionFingerprint, evidenceLocatorMatchesSnapshotOrRepair, getCorrectionTarget, nestedErrorMessage, parseCorrectionPayload, snapshotQuoteSource, validateSourceCorrectionAfter, type CorrectionPayload, type CorrectionTarget } from '~~/server/utils/quote-correction'
 
 export default defineEventHandler(async (event) => {
   const api = event.context.api
@@ -20,8 +20,10 @@ export default defineEventHandler(async (event) => {
   for (const item of parsedPayload.evidence) {
     const source = await db.select().from(schema.quoteSources)
       .where(and(eq(schema.quoteSources.id, item.source_id), eq(schema.quoteSources.quoteId, quoteId))).get()
-    if (!source || source.locatorType !== item.locator_type || source.locatorValue !== item.locator_value) throwServer(400, 'Evidence locator must match a source record on the target quote')
-    evidence.push({ ...item, snapshot: snapshotQuoteSource(source) })
+    if (!source) throwServer(400, 'Evidence source must belong to the target quote')
+    const snapshot = snapshotQuoteSource(source)
+    if (!evidenceLocatorMatchesSnapshotOrRepair(target, targetId, item, snapshot, parsedPayload)) throwServer(400, 'Evidence locator must match the source record or its proposed locator correction')
+    evidence.push({ ...item, snapshot })
   }
   const payload = { ...parsedPayload, evidence }
   if (target === 'source') validateSourceCorrectionAfter(payload, current as unknown as Record<string, unknown>)
@@ -50,21 +52,29 @@ export default defineEventHandler(async (event) => {
     if (!previous || previous.quoteId !== quoteId || previous.targetType !== target || previous.targetId !== targetId) throwServer(400, 'Previous proposal must target the same record')
     const latest = await db.select({ id: schema.quoteCorrectionProposals.id, version: schema.quoteCorrectionProposals.version }).from(schema.quoteCorrectionProposals)
       .where(and(eq(schema.quoteCorrectionProposals.quoteId, quoteId), eq(schema.quoteCorrectionProposals.targetType, target), eq(schema.quoteCorrectionProposals.targetId, targetId)))
-      .orderBy(desc(schema.quoteCorrectionProposals.version)).get()
+      .orderBy(desc(schema.quoteCorrectionProposals.version), desc(schema.quoteCorrectionProposals.id)).get()
     if (latest?.id !== previousId) throwServer(409, 'A new version must link to the latest proposal')
     version = previous.version + 1
   } else {
     const latest = await db.select({ version: schema.quoteCorrectionProposals.version }).from(schema.quoteCorrectionProposals)
       .where(and(eq(schema.quoteCorrectionProposals.quoteId, quoteId), eq(schema.quoteCorrectionProposals.targetType, target), eq(schema.quoteCorrectionProposals.targetId, targetId)))
-      .orderBy(desc(schema.quoteCorrectionProposals.version)).get()
+      .orderBy(desc(schema.quoteCorrectionProposals.version), desc(schema.quoteCorrectionProposals.id)).get()
     if (latest) throwServer(409, 'A new version must link to the previous proposal')
   }
   const immutable = { quote_id: quoteId, target_type: target, target_id: targetId, version, previous_proposal_id: previousId, payload }
   const fingerprint = await correctionFingerprint(immutable)
-  const [created] = await db.insert(schema.quoteCorrectionProposals).values({
-    quoteId, targetType: target, targetId, version, previousProposalId: previousId,
-    payload: JSON.stringify(payload), fingerprint, proposedBy: api.userId,
-  }).returning({ id: schema.quoteCorrectionProposals.id })
+  let created: { id: number } | undefined
+  try {
+    [created] = await db.insert(schema.quoteCorrectionProposals).values({
+      quoteId, targetType: target, targetId, version, previousProposalId: previousId,
+      payload: JSON.stringify(payload), fingerprint, proposedBy: api.userId,
+    }).returning({ id: schema.quoteCorrectionProposals.id })
+  } catch (error) {
+    if (nestedErrorMessage(error).includes('version chain is no longer current')) {
+      throwServer(409, 'A concurrent proposal changed the version chain; retry using its latest proposal')
+    }
+    throw error
+  }
   setResponseStatus(event, 201)
   return { success: true, data: { ...immutable, id: created!.id, fingerprint } }
 })

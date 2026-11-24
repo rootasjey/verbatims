@@ -1,6 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
-import type { H3Event } from 'h3'
+import { getHeader, type H3Event } from 'h3'
 import type { ApiKeyData } from './api-key'
 
 /**
