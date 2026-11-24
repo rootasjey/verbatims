@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { and, eq, isNull } from 'drizzle-orm'
 import { createTestDb, seedQuote, seedUser } from './test-db'
 import type { TestDb } from './test-db'
-import { evidenceLocatorMatchesSnapshotOrRepair, sourceSnapshotMatchesCondition, snapshotQuoteSource } from '../quote-correction'
+import { evidenceLocatorMatchesSnapshotOrRepair, parseCorrectionPayload, sourceSnapshotMatchesCondition, snapshotQuoteSource, validateSourceCorrectionAfter } from '../quote-correction'
 import { runApiAuditedBatch } from '../api-editorial-audit'
 
 let testDb: TestDb
@@ -151,6 +151,31 @@ describe('quote correction workflow database guards', () => {
     }
     expect(evidenceLocatorMatchesSnapshotOrRepair('source', source!.id, item, snapshot, payload)).toBe(true)
     expect(evidenceLocatorMatchesSnapshotOrRepair('quote', source!.id, item, snapshot, payload)).toBe(false)
+  })
+
+  it('normalizes a repaired evidence timecode before proposal persistence and application checks', async () => {
+    await seedUser(testDb.db, { id: 1 })
+    await seedQuote(testDb.db, { id: 1, userId: 1 })
+    const [source] = await testDb.db.insert(testDb.schema.quoteSources).values({
+      quoteId: 1, sourceType: 'primary', sourceUrl: 'https://example.com/edition-a', label: 'Edition A',
+    }).returning()
+    const snapshot = snapshotQuoteSource(source!)
+    const payload = parseCorrectionPayload({
+      changes: { locator_type: { before: null, after: 'timecode' }, locator_value: { before: null, after: '01:23' } },
+      evidence: [{ source_id: source!.id, locator_type: 'timecode', locator_value: '01:23' }],
+    }, 'source')
+
+    validateSourceCorrectionAfter(payload, source as unknown as Record<string, unknown>)
+    expect(payload.changes.locator_value?.after).toBe('00:01:23')
+    expect(payload.evidence[0]?.locator_value).toBe('00:01:23')
+
+    const storedPayload = JSON.parse(JSON.stringify({
+      ...payload,
+      evidence: payload.evidence.map(item => ({ ...item, snapshot })),
+    }))
+    const approvedPayload = parseCorrectionPayload(storedPayload, 'source')
+    validateSourceCorrectionAfter(approvedPayload, source as unknown as Record<string, unknown>)
+    expect(evidenceLocatorMatchesSnapshotOrRepair('source', source!.id, approvedPayload.evidence[0]!, snapshot, approvedPayload)).toBe(true)
   })
 
   it('rejects concurrent branches in the proposal version chain', async () => {

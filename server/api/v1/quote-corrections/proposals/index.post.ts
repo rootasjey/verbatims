@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
   const current = await getCorrectionTarget(target, targetId, quoteId)
   if (!current || (target === 'quote' && targetId !== quoteId)) throwServer(404, 'Correction target not found')
   const parsedPayload = parseCorrectionPayload(input.payload, target)
+  if (target === 'source') validateSourceCorrectionAfter(parsedPayload, current as unknown as Record<string, unknown>)
   const evidence: CorrectionPayload['evidence'] = []
   for (const item of parsedPayload.evidence) {
     const source = await db.select().from(schema.quoteSources)
@@ -26,7 +27,6 @@ export default defineEventHandler(async (event) => {
     evidence.push({ ...item, snapshot })
   }
   const payload = { ...parsedPayload, evidence }
-  if (target === 'source') validateSourceCorrectionAfter(payload, current as unknown as Record<string, unknown>)
   const targetTable = target === 'quote' ? schema.quotes : target === 'attribution' ? schema.quoteAttributions : schema.quoteSources
   const fields = CORRECTION_FIELDS[target] as Record<string, unknown>
   for (const [field, change] of Object.entries(payload.changes)) {

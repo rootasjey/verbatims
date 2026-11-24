@@ -118,7 +118,7 @@ function assertFieldValue(target: CorrectionTarget, name: string, value: unknown
   if (target === 'quote' && name === 'language' && value !== null && !['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la'].includes(value)) throwServer(400, 'Invalid quote language')
   if (!before && target === 'source' && name === 'source_medium' && !['book', 'web_page', 'transcript', 'audio', 'audiovisual', 'document', 'other'].includes(value)) throwServer(400, 'Invalid source medium')
   if (!before && target === 'source' && name === 'locator_type' && !['page', 'chapter', 'timecode'].includes(value)) throwServer(400, 'Invalid locator type')
-  if (target === 'source' && name === 'source_type' && !value.trim()) throwServer(400, 'Source type cannot be empty')
+  if (!before && target === 'source' && name === 'source_type' && !value.trim()) throwServer(400, 'Source type cannot be empty')
   if (target === 'source' && name === 'source_url' && !before) {
     try { new URL(value) } catch { throwServer(400, 'Source URL must be absolute') }
   }
@@ -195,6 +195,13 @@ export function validateSourceCorrectionAfter(payload: CorrectionPayload, curren
     if (locatorValue !== normalized) {
       if (!('locator_value' in payload.changes)) throwServer(400, 'Include locator_value when normalizing a timecode')
       payload.changes.locator_value!.after = normalized
+    }
+    for (const item of payload.evidence) {
+      if (item.source_id !== Number(current.id) || item.locator_type !== 'timecode'
+        || !('locator_type' in payload.changes || 'locator_value' in payload.changes)) continue
+      const normalizedEvidence = normalizeTimecode(item.locator_value)
+      if (!normalizedEvidence) throwServer(400, 'Evidence timecode must use MM:SS or HH:MM:SS with seconds below 60')
+      item.locator_value = normalizedEvidence
     }
   }
 }

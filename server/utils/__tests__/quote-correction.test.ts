@@ -64,6 +64,17 @@ describe('parseCorrectionPayload', () => {
     }, 'quote')).toThrow('Invalid quote language')
   })
 
+  it('accepts an empty stored source type while requiring a non-empty replacement', () => {
+    const payload = { changes: { source_type: { before: '', after: 'primary' } }, evidence }
+    expect(parseCorrectionPayload(payload, 'source').changes.source_type).toEqual({ before: '', after: 'primary' })
+    expect(() => parseCorrectionPayload({
+      changes: { source_type: { before: '', after: '' } }, evidence,
+    }, 'source')).toThrow('Field has no change')
+    expect(() => parseCorrectionPayload({
+      changes: { source_type: { before: 'other', after: ' ' } }, evidence,
+    }, 'source')).toThrow('Source type cannot be empty')
+  })
+
   it('includes nested SQLite causes when classifying database guard failures', () => {
     const error = new Error('Failed query', { cause: new Error('Quote correction version chain is no longer current') })
     expect(nestedErrorMessage(error)).toContain('version chain is no longer current')
