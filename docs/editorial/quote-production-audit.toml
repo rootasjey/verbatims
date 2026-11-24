@@ -46,13 +46,14 @@ quote_status = "unverified"
 existing_review_outcome = "source_candidate_found"
 existing_review_notes = "2026-10-16. Formulation attribuée à Coluche dans des catalogues secondaires; un recueil est cité (« Coluche les inoubliables »), et une reprise la rattache au sketch « L’étudiant ». Enregistrement/transcription primaire non contrôlé. https://www.dicocitations.com/auteurs-citations-pseudos/1085/Coluche.php ; https://blogs.mediapart.fr/association-amour-de-la-justice/blog/300326/justice-nous-ne-nous-y-retrouvons-plus"
 
-review_outcome = "source_candidate_found"
-reviewed_at = "2026-10-30"
-review_notes = "La formulation exacte n’a pas été retrouvée dans une source primaire. Une page de compilation distingue cette version (« appelez-moi / je vous dirai ») d’une variante liée au sketch « L’étudiant » (« Écrivez-nous / on vous expliquera ») et rapporte une attribution concurrente aux Cyniques sans preuve directe. Conserver l’attribution à Coluche comme non vérifiée; aucune correction de texte ou d’auteur justifiée à ce stade."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-03"
+review_notes = "La formulation exacte n’a pas été retrouvée dans une source primaire. Une page de compilation distingue cette version (« appelez-moi / je vous dirai ») d’une variante liée au sketch « L’étudiant » (« Écrivez-nous / on vous expliquera ») et rapporte une attribution concurrente aux Cyniques sans preuve directe. Conserver l’attribution à Coluche comme non vérifiée; aucune correction de texte ou d’auteur justifiée à ce stade.\n\nBatch 001 (2026-11-03): résultat inconclusif. Secondary dossier distinguishes current wording from the L’étudiant variant and records a competing Les Cyniques claim. Its primary recording was not inspected; metadata and an indirect comment cannot establish priority. An initial open failed (cache miss); a subsequent indexed search retrieved the dossier. No exact primary witness located. Keep Coluche and wording unchanged, unverified. Prochaine recherche : Listen to a lawfully accessible L’étudiant recording and locate the passage; inspect Les Cyniques L’assurance chômage recording before proposing any attribution change. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://citations-plus.com/citation/102-citation-si-avez-besoin-quelque-chose-appelez-dirai-comment-passer-coluche"
 source_level = "secondary"
+locator = "Origine et source de la citation; evidence items 1–4"
 support = "La page identifie la formulation exacte comme non retrouvée et documente une variante liée au sketch « L’étudiant »; elle n’est pas une source primaire."
 [[quotes.attributions]]
 id = 1
@@ -74,13 +75,14 @@ quote_status = "unverified"
 existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. Recherche exacte: pas de source primaire ni d’auteur établi. Une base de citations classe une formulation proche comme anonyme; ne pas attribuer davantage sans source. https://citations.webescence.com/citations/anonyme/Dans-vie-perd-jamais-Soit-gagne-Soit-apprend-10702"
 
-review_outcome = "disputed"
-reviewed_at = "2026-10-30"
-review_notes = "Cette formulation française correspond à une famille de maximes souvent attribuées à George Bernard Shaw, mais Quote Investigator ne trouve pas de preuve substantielle d’un usage par Shaw. La source retrace des formes voisines à Sydney J. Harris (1969) et Thomas Szasz (1973). La citation française exacte et son auteur restent non établis; garder « Anonyme » plutôt que d’ajouter une attribution non sourcée."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-03"
+review_notes = "Cette formulation française correspond à une famille de maximes souvent attribuées à George Bernard Shaw, mais Quote Investigator ne trouve pas de preuve substantielle d’un usage par Shaw. La source retrace des formes voisines à Sydney J. Harris (1969) et Thomas Szasz (1973). La citation française exacte et son auteur restent non établis; garder « Anonyme » plutôt que d’ajouter une attribution non sourcée.\n\nBatch 001 (2026-11-03): résultat inconclusif. Secondary historical investigation finds no substantive Shaw evidence and traces related English forms to Harris (1969) and Szasz (1973). Those are related formulations, not proof of authorship of this exact French text. Primary scans were not independently inspected. Current Anonymous attribution remains appropriate as an unresolved attribution, not a verified author identity. Prochaine recherche : Consult the cited Record-Gazette 18 April 1969 p.1 col.10 and Szasz The Second Sin p.49; locate a French translation witness before assigning an author. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://quoteinvestigator.com/2021/09/28/create-yourself/"
 source_level = "secondary"
+locator = "Reply and chronology; notes 1–3 and 8–10"
 support = "Étude documentée de l’origine des variantes anglaises; elle rejette les attributions à Shaw faute de preuve et relève des occurrences antérieures chez Sydney J. Harris et Thomas Szasz."
 [[quotes.attributions]]
 id = 2
@@ -132,13 +134,14 @@ quote_status = "unverified"
 existing_review_outcome = "source_candidate_found"
 existing_review_notes = "2026-10-16. Formulation exacte reproduite et créditée à George Bernard Shaw dans La Dramaturgie d’Yves Lavandier, extrait p. 16, référence bibliographique [173]. Source secondaire; œuvre originale de Shaw non identifiée. https://media.electre-ng.com/extraits/extrait-id/ec832bd4d4081746c31cb5024dd3a8fb9ec9b6bfccb89f4070ab3f72168c0378.pdf"
 
-review_outcome = "source_candidate_found"
-reviewed_at = "2026-10-30"
-review_notes = "La formulation française exacte et le crédit à George Bernard Shaw sont reproduits dans un extrait éditorial d’Yves Lavandier, avec un renvoi bibliographique [173]. C’est une source secondaire; l’œuvre originale de Shaw et le passage primaire n’ont pas été identifiés. Laisser le texte et l’attribution inchangés mais non vérifiés."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-03"
+review_notes = "La formulation française exacte et le crédit à George Bernard Shaw sont reproduits dans un extrait éditorial d’Yves Lavandier, avec un renvoi bibliographique [173]. C’est une source secondaire; l’œuvre originale de Shaw et le passage primaire n’ont pas été identifiés. Laisser le texte et l’attribution inchangés mais non vérifiés.\n\nBatch 001 (2026-11-03): résultat inconclusif. Exact French wording and Shaw credit occur in the 2019 publisher excerpt of Yves Lavandier La Dramaturgie. This is secondary evidence for Shaw. A teaching edition points to Preface to Plays Pleasant, consistent with existing reference #169, but the Shaw primary text and French translation were not inspected. Internet Archive playspleasantunp02shaw OCR attempt timed out during TLS; web open also failed. Do not treat a catalogue or teaching excerpt as primary verification. Historical audit locator p.16 is corrected here to printed p.17 / PDF index 16. Prochaine recherche : Inspect the actual Plays Pleasant preface scan and its French translation; compare the current reference before any reference proposal. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://media.electre-ng.com/extraits/extrait-id/ec832bd4d4081746c31cb5024dd3a8fb9ec9b6bfccb89f4070ab3f72168c0378.pdf"
 source_level = "secondary"
+locator = "PDF index 16 (17th PDF page), printed p.17, Introduction epigraph, George Bernard Shaw [173]"
 support = "Extrait d’ouvrage qui reproduit la phrase française et l’attribue à George Bernard Shaw; renvoi [173], sans preuve primaire visible dans l’extrait."
 [[quotes.attributions]]
 id = 4
@@ -162,13 +165,14 @@ quote_status = "unverified"
 existing_review_outcome = "source_candidate_found"
 existing_review_notes = "2026-10-16. Reprise bibliographique repérée dans Pensées et anecdotes, Le Cherche Midi, 1995, p. 112. Texte du recueil non consulté directement; vérifier la page avant confirmation. https://bribes.org/biblio/bribes59.pdf"
 
-review_outcome = "source_candidate_found"
-reviewed_at = "2026-10-30"
-review_notes = "Une transcription bibliographique attribue le texte à Coluche, Pensées et anecdotes (Le Cherche Midi, 1995), p. 112. Le livre lui-même n’a pas été consulté; texte exact et attribution restent à confirmer sur l’édition citée. Aucune correction de production pour l’instant."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-03"
+review_notes = "Une transcription bibliographique attribue le texte à Coluche, Pensées et anecdotes (Le Cherche Midi, 1995), p. 112. Le livre lui-même n’a pas été consulté; texte exact et attribution restent à confirmer sur l’édition citée. Aucune correction de production pour l’instant.\n\nBatch 001 (2026-11-03): résultat inconclusif. The compilation transcribes wording matching the current citation apart from typography and cites the 1995 collection p.112. This is a useful bibliographic lead, not direct consultation of the collection. No primary edition page inspected. Retain current attribution and no linked reference; adding a reference would be protected and needs evidence and explicit approval. Prochaine recherche : Inspect Pensées et anecdotes (1995) p.112 in a lawful library/preview copy; only then formulate a precise source/reference proposal. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://bribes.org/biblio/bribes59.pdf"
 source_level = "secondary"
+locator = "PDF index 451 (452nd PDF page), printed p.452, RICHESSE; entry cites Coluche, Pensées et anecdotes, Le cherche midi 1995 p.112"
 support = "La transcription cite Coluche, Pensées et anecdotes (1995), p. 112; elle constitue une piste bibliographique, pas la consultation de l’édition primaire."
 [[quotes.attributions]]
 id = 5
@@ -191,8 +195,8 @@ existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. Attribution à Anne Lamott largement reprise, mais les versions retrouvées disent « it may float forth and open like those fluted Japanese blossoms… »; la formulation en base est raccourcie et diffère. Source primaire (livre) non contrôlée. https://www.spiritualityandpractice.com/quotes/quotations/view/26277/spiritual-quotation"
 
 review_outcome = "inconclusive"
-reviewed_at = "2026-10-30"
-review_notes = "La formulation exacte est répétée par plusieurs sites de citations, mais je n’ai pas retrouvé le passage dans un livre d’Anne Lamott ou une autre source primaire. Une version plus longue circule avec une fin différente (« …opens like those fluted Japanese blossoms… »); la citation en base peut être tronquée. Garder le texte et l’attribution non vérifiés jusqu’à contrôle d’une édition."
+reviewed_at = "2026-11-03"
+review_notes = "La formulation exacte est répétée par plusieurs sites de citations, mais je n’ai pas retrouvé le passage dans un livre d’Anne Lamott ou une autre source primaire. Une version plus longue circule avec une fin différente (« …opens like those fluted Japanese blossoms… »); la citation en base peut être tronquée. Garder le texte et l’attribution non vérifiés jusqu’à contrôle d’une édition.\n\nBatch 001 (2026-11-03): résultat inconclusif. Secondary excerpt credits Plan B but gives a different formulation (pronoun opening and modal wording); BrainyQuote https://www.brainyquote.com/quotes/anne_lamott_381086 repeats the current version without a primary locator. These establish circulation and a book lead, not that the current sentence is verbatim Lamott. No publisher/book page or signed essay containing this wording inspected. No exact correction justified yet. Prochaine recherche : Inspect a lawful Plan B edition or publisher excerpt and locate the hope paragraph. Determine whether current wording is a paraphrase before proposing text or protected reference changes. Aucun changement n’a été appliqué en production."
 
 [[quotes.audit_sources]]
 url = "https://www.brainyquote.com/quotes/anne_lamott_381086"
@@ -203,6 +207,11 @@ support = "Reproduit la formulation exacte et l’attribue à Anne Lamott, sans 
 url = "https://mommastrong.com/pages/what-is-the-hook"
 source_level = "secondary"
 support = "Reprend la même version, également sans localisation bibliographique."
+[[quotes.audit_sources]]
+url = "https://www.spiritualityandpractice.com/quotes/quotations/view/26277/spiritual-quotation"
+source_level = "secondary"
+locator = "Spiritual Quotation; paragraph on hope; book credit Plan B: Further Thoughts on Faith"
+support = "Secondary excerpt credits Plan B but gives a different formulation (pronoun opening and modal wording); BrainyQuote https://www.brainyquote.com/quotes/anne_lamott_381086 repeats the current version without a primary locator. These establish circulation and a book lead, not that the current sentence is verbatim Lamott. No publisher/book page or signed essay containing this wording inspected. No exact correction justified yet."
 [[quotes.attributions]]
 id = 6
 author_id = 51
@@ -223,10 +232,20 @@ quote_status = "unverified"
 existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. Attribution à Goethe et à Faust, première partie, seulement retrouvée dans des bases de citations; la formule exacte n’a pas été retrouvée dans une édition primaire consultée. https://www.goodreads.com/quotes/18941-as-soon-as-you-trust-yourself-you-will-know-how"
 
-review_outcome = "no_primary_source_found"
-reviewed_at = "2026-10-30"
-review_notes = "Aucune source primaire de Goethe n’a été trouvée. Wikiquote classe explicitement la phrase parmi les formules largement attribuées à Goethe sans citation d’œuvre. L’attribution ne doit pas être conservée comme établie; faute d’auteur alternatif démontré, signaler l’attribution comme douteuse plutôt que d’en inventer une."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : la source primaire de Faust I, vers 2061–2062, donne en allemand « Mein guter Freund, das wird sich alles geben; / Sobald du dir vertraust, sobald weißt du zu leben. » (Mephistopheles). La traduction anglaise de Bayard Taylor consultée dans une édition de Faust donne une formulation différente : « Whence once you trust yourself, you know the art of living. » L’attribution de l’idée à Goethe est étayée par le texte primaire, mais je n’ai pas identifié de témoin primaire de la formulation anglaise exacte actuellement enregistrée ni son traducteur. Résultat inconclusif pour le texte anglais exact; aucune correction précise de traduction proposée. Piste : identifier l’édition/traduction qui porte exactement « As soon as you trust yourself… »."
 
+[[quotes.audit_sources]]
+url = "https://v1-3.faustedition.net/print/faust.all"
+source_level = "primary_text"
+locator = "Faust I, vers 2061–2062; Mephistopheles à Faust"
+support = "Édition numérique du texte allemand : « Mein guter Freund, das wird sich alles geben; / Sobald du dir vertraust, sobald weißt du zu leben. » Elle confirme l’origine goethéenne de l’idée, pas la traduction anglaise exacte en production."
+[[quotes.audit_sources]]
+url = "https://www.gutenberg.org/cache/epub/14460/pg14460.html"
+source_level = "primary_text"
+locator = "Faust: a Tragedy [part 1], scène correspondante à Faust I, vers 2061–2062"
+support = "Traduction publiée par Bayard Taylor : « Dear friend, vain trouble to yourself you're giving; / Whence once you trust yourself, you know the art of living. » Diffère de la formulation anglaise auditée."
 [[quotes.audit_sources]]
 url = "https://en.wikiquote.org/wiki/Johann_Wolfgang_von_Goethe"
 source_level = "secondary"
@@ -251,9 +270,9 @@ quote_status = "unverified"
 existing_review_outcome = "source_candidate_found"
 existing_review_notes = "2026-10-16. Formulation exacte reproduite par une transcription secondaire qui l’identifie au sketch « L’administration ». Enregistrement ou transcription éditoriale primaire à contrôler. https://www.cultivonsnous.fr/dans-ladministration/"
 
-review_outcome = "source_candidate_found"
-reviewed_at = "2026-10-30"
-review_notes = "Une transcription gouvernementale d’un discours du Conseil provincial de Liège (2010) reproduit exactement la phrase et la présente comme une citation de Coluche. La notice BNFA confirme que « L’Administration » figure dans son intégrale; des transcriptions secondaires localisent la phrase dans ce sketch. L’enregistrement original ou une transcription éditoriale primaire n’a pas été contrôlé : attribution fortement étayée, mais pas vérifiée à la source primaire."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : la formulation exacte est reprise dans un compte rendu institutionnel de 2010 et dans des transcriptions qui l’associent au sketch « L’Administration ». Ce sont des témoins secondaires; la notice bibliographique de l’intégrale confirme l’existence du sketch mais ne reproduit pas ce passage. Aucune source primaire accessible (enregistrement ou transcription éditoriale contrôlée) n’a été localisée pendant ce run. Attribution plausible, non confirmée selon le critère primaire. Piste : écouter une édition légalement accessible de L’intégrale des sketches, volume contenant « L’Administration », et relever le passage/timecode."
 
 [[quotes.audit_sources]]
 url = "https://www.provincedeliege.be/conseillers/doc/cra/20101209%20Th%C3%A9matique%20ENVOL.pdf"
@@ -284,9 +303,9 @@ quote_status = "unverified"
 existing_review_outcome = "possible_misattribution"
 existing_review_notes = "2026-10-16. Attribution à Ponce non corroborée. La recherche trouve surtout des formulations proches classées anonymes ou attribuées à d’autres; aucune source directe Twitch/vidéo retrouvée. https://citations.webescence.com/citations/anonyme/Dans-vie-perd-jamais-Soit-gagne-Soit-apprend-10702"
 
-review_outcome = "possible_misattribution"
-reviewed_at = "2026-10-30"
-review_notes = "La formulation exacte est classée anonyme dans une base de citations; une variante « on ne perd jamais, soit on gagne, soit on apprend » circule sous le nom de Nelson Mandela, mais une transcription de podcast reconnaît qu’aucune occurrence exacte de Mandela n’est connue. Je n’ai trouvé aucune source primaire reliant cette phrase à Ponce. L’attribution à Ponce est douteuse, sans preuve suffisante pour identifier l’auteur réel; conserver le dossier comme contesté et ne pas substituer Mandela."
+review_outcome = "inconclusive"
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : la recherche exacte n’a pas produit de témoin primaire établissant cette formule ni l’attribution à Ponce. Les reprises trouvées classent une variante plus longue comme anonyme et discutent l’attribution fréquente à Nelson Mandela, sans attestation primaire; elles ne prouvent pas l’auteur de la formulation actuelle. Le rattachement de production à Ponce (Twitch) demeure non vérifié et contestable, mais aucune autre attribution n’est établie. Résultat inconclusif; ne pas substituer Mandela. Piste : retrouver l’enregistrement Twitch original associé à la référence de production et établir sa date/transcription."
 
 [[quotes.audit_sources]]
 url = "https://citations.webescence.com/citations/anonyme/Dans-vie-perd-jamais-Soit-gagne-Soit-apprend-10702"
@@ -320,12 +339,13 @@ existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. Formule anglaise couramment attribuée à Montaigne, mais aucune occurrence primaire de Montaigne ni source pour la référence « Marianne » n’a été établie dans ce passage d’audit. https://files01.core.ac.uk/download/288887033.pdf"
 
 review_outcome = "disputed"
-reviewed_at = "2026-10-30"
-review_notes = "La source primaire de Montaigne contient bien l’idée et le passage correspondant dans les Essais, livre II, chapitre 12 (« Apologie de Raimond Sebond »): « il n’est rien qui imprime si vivement quelque chose en nostre souvenance, que le desir de l’oublier ». Le texte anglais en base (« fixes a thing so intensely… ») n’est pas celui de ce témoin primaire; c’est une traduction ou paraphrase moderne. La référence actuellement liée (#9 Marianne) est incorrecte. Remplacer par les Essais II, 12 et choisir une traduction anglaise identifiable, ou conserver le français original avec repère."
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : le témoin français primaire des Essais donne « il n’est rien qui imprime si vivement quelque chose en nostre souvenance, que le desir de l’oublier » (édition de Bordeaux, II, 12, selon le fac-similé déjà référencé). La traduction anglaise de Charles Cotton consultée dans le texte intégral de Project Gutenberg, livre III, chapitre IV (« Of Diversion »), dit : « there is nothing that so much imprints any thing in our memory as a desire to forget it. » Aucun des deux témoins ne porte la formulation de production « Nothing fixes a thing so intensely… », qui est une reformulation moderne; l’attribution générale à Montaigne est confirmée, la citation exacte ne l’est pas. La référence de production « Marianne » n’est pas l’œuvre source. Correction éditoriale précise à soumettre : remplacer le texte par une traduction primaire identifiable ou par le français original et citer le passage des Essais; relire les valeurs live avant toute application."
 
 [[quotes.audit_sources]]
 url = "https://www.e-rara.ch/download/pdf/7293261.pdf"
 source_level = "primary"
+locator = "Essais, livre II, chapitre XII, passage « il n’est rien qui imprime si vivement… le désir de l’oublier » (fac-similé de l’Exemplaire de Bordeaux)"
 support = "Fac-similé numérisé des Essais; livre II, chapitre XII, passage « il n’est rien qui imprime si vivement… le désir de l’oublier »."
 
 [[quotes.audit_sources]]
@@ -333,6 +353,11 @@ url = "https://fr.wikisource.org/wiki/Page%3AMontaigne_-_Essais%2C_%C3%89d_de_Bo
 source_level = "primary"
 support = "Transcription corrigée et conforme au fac-similé de l’Exemplaire de Bordeaux; reproduit le passage dans II, 12."
 
+[[quotes.audit_sources]]
+url = "https://www.gutenberg.org/files/3600/3600-h/3600-h.htm"
+source_level = "primary_text"
+locator = "Book III, Chapter IV, ‘Of Diversion’ (Charles Cotton translation)"
+support = "La traduction de Cotton donne « there is nothing that so much imprints any thing in our memory as a desire to forget it », formulation différente du texte de production."
 [[quotes.audit_sources]]
 url = "https://pure.royalholloway.ac.uk/ws/portalfiles/portal/29412683/Alex_James_Gray_Remembering_Lucretius_Memory_and_Identity_in_Montaigne_s_Essais.pdf"
 source_level = "authoritative_secondary"
@@ -359,9 +384,14 @@ quote_status = "unverified"
 existing_review_outcome = "inconclusive"
 existing_review_notes = "2026-10-16. La formulation exacte n’a pas été retrouvée dans une source fiable du film ou du roman; l’attribution au personnage Nick Carraway reste à vérifier dans la scène/édition concernée."
 
-review_outcome = "inconclusive"
-reviewed_at = "2026-10-30"
-review_notes = "La phrase française exacte n’a pas été retrouvée dans une source primaire consultable du film de 2013, dans le texte du roman, ni dans une transcription fiable indexée. Le libellé évoque une narration littéraire, mais cela ne suffit pas à l’attribuer à Nick Carraway ou au film. Garder l’attribution non vérifiée et demander un minutage/sous-titre ou un témoin de l’édition avant toute correction."
+review_outcome = "disputed"
+reviewed_at = "2026-11-23"
+review_notes = "Run 02 (2026-11-23) : la traduction française publiée de Gatsby le Magnifique (Victor Llona, Éditions du Sagittaire, 1946), chapitre I, pp. 14–42, contient le passage correspondant : « très haut au-dessus de la ville, notre rangée de fenêtres dorées contenait sans doute une part de l’humain mystère ». La citation de production est une reformulation, avec des écarts précis (« rangée » → « nos fenêtres », « contenait » → « devaient dévoiler », « passant distrait » → « badaud qui passait par là ») et la graphie « badau »; elle n’est pas verbatim de cette édition. Le témoin est un roman de F. Scott Fitzgerald narré par Nick Carraway; il ne confirme pas la référence de production au film de 2013. Proposition de correction à soumettre séparément : relier au roman/à une édition identifiée et remplacer la paraphrase par un extrait vérifié, après relecture des valeurs live."
+[[quotes.audit_sources]]
+url = "https://fr.wikisource.org/wiki/Gatsby_le_Magnifique/I"
+source_level = "primary_text"
+locator = "Chapitre I; passage « très haut au-dessus de la ville… notre rangée de fenêtres dorées… »; traduction Victor Llona, Éditions du Sagittaire, 1946, pp. 14–42"
+support = "Transcription de l’édition française publiée, alignée sur les pages numérisées; le texte source diffère de la paraphrase enregistrée."
 [[quotes.attributions]]
 id = 11
 author_id = 172
